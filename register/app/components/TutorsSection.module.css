@@ -1,0 +1,242 @@
+.section {
+    padding: 5rem 1rem;
+    background-color: #f9fafb;
+    overflow: hidden;
+  }
+  
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .content {
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+  }
+  
+  .textContent {
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .bigheading {
+    color: #4338ca;
+    font-weight: bold;
+    font-size: 1.6rem;
+  }
+  
+  .heading {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #111827;
+    margin-bottom: 1.5rem;
+  }
+  
+  .subheading {
+    font-size: 1.125rem;
+    line-height: 1.6;
+    color: #4b5563;
+    margin-bottom: 2rem;
+  }
+  
+  .ctaButton {
+    background-color: #4f46e5;
+    color: white;
+    border: none;
+    padding: 0.9rem 2.5rem;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 6px rgba(79, 70, 229, 0.1);
+  }
+  
+  .ctaButton:hover {
+    background-color: #4338ca;
+    box-shadow: 0 6px 12px rgba(79, 70, 229, 0.15);
+  }
+  
+  .carouselContainer {
+    position: relative;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    overflow: hidden;
+  }
+  
+  .carousel {
+    display: flex;
+    transition: transform 0.5s ease;
+    width: 100%;
+  }
+  
+  .tutorCard {
+    flex: 0 0 100%;
+    background: white;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    margin: 0 1rem;
+    min-width: calc(100% - 2rem);
+  }
+  
+  .tutorImage {
+    width: 100%;
+    height: 300px;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+  }
+  
+  .tutorCard:hover .image {
+    transform: scale(1.05);
+  }
+  
+  .tutorInfo {
+    padding: 1.5rem;
+    text-align: center;
+  }
+  
+  .tutorInfo h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #111827;
+  }
+  
+  .subject {
+    color: #4f46e5;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+  }
+  
+  .rating {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.25rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .starFilled {
+    color: #f59e0b;
+    font-size: 1.1rem;
+  }
+  
+  .starEmpty {
+    color: #d1d5db;
+    font-size: 1.1rem;
+  }
+  
+  .ratingValue {
+    margin-left: 0.5rem;
+    font-weight: 600;
+    color: #4b5563;
+  }
+  
+  .experience {
+    color: #6b7280;
+    font-size: 0.875rem;
+  }
+  
+  .carouselButton {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    background: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+  }
+  
+  .carouselButton:hover {
+    background: #4f46e5;
+    color: white;
+  }
+  
+  .prevButton {
+    left: 1rem;
+  }
+  
+  .nextButton {
+    right: 1rem;
+  }
+  
+  .dots {
+    display: flex;
+    justify-content: center;
+    margin-top: 1.5rem;
+    gap: 0.5rem;
+  }
+  
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #d1d5db;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .activeDot {
+    background: #4f46e5;
+    transform: scale(1.2);
+  }
+  
+  /* Responsive styles */
+  @media (min-width: 768px) {
+    .tutorCard {
+      flex: 0 0 calc(50% - 2rem);
+      min-width: calc(50% - 2rem);
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .tutorCard {
+      flex: 0 0 calc(33.333% - 2rem);
+      min-width: calc(33.333% - 2rem);
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .section {
+      padding: 3rem 1rem;
+    }
+    
+    .heading {
+      font-size: 2rem;
+    }
+    
+    .subheading {
+      font-size: 1rem;
+    }
+    
+    .carouselButton {
+      width: 35px;
+      height: 35px;
+      font-size: 1rem;
+    }
+  }

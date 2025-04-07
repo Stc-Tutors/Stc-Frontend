@@ -1,0 +1,101 @@
+/* Footer Container */
+.footerContainer {
+  background-color: #0a1f44; /* Dark blue background */
+  padding: 2rem 0;
+}
+
+/* Top Section (Icons, Logo, Buttons) */
+.footerTop {
+  background-color: #e8eaf6; /* Light grayish background */
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 12px; /* Smooth rounded edges */
+  max-width: 90%;
+  margin: auto;
+}
+
+/* Social Icons */
+.socialIcons {
+  display: flex;
+  gap: 1rem;
+}
+
+.socialIcons span {
+  background-color: #0a1f44; /* Dark blue */
+  color: white;
+  padding: 0.6rem;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.2rem;
+  width: 40px;
+  height: 40px;
+  transition: background 0.3s;
+}
+
+.socialIcons span:hover {
+  background-color: #3b5bdb; /* Lighter blue on hover */
+}
+
+/* Logo Centered */
+.footerLogo img {
+  width: 80px; /* Adjust based on actual logo size */
+}
+
+/* Auth Buttons */
+.authButtons {
+  display: flex;
+  gap: 1rem;
+}
+
+.authButtons button {
+  padding: 0.5rem 1.2rem;
+  font-size: 1rem;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.loginBtn {
+  background: transparent;
+  color: #0a1f44;
+  border: 1px solid #0a1f44;
+}
+
+.signupBtn {
+  background: #0a1f44;
+  color: white;
+}
+
+.loginBtn:hover,
+.signupBtn:hover {
+  background: #3b5bdb;
+  color: white;
+}
+
+/* Footer Bottom */
+.footerBottom {
+  color: white;
+  text-align: center;
+  margin-top: 1.5rem;
+}
+
+.footerLinks {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  font-size: 0.9rem;
+}
+
+.footerLinks a {
+  color: white;
+  text-decoration: none;
+}
+
+.footerLinks a:hover {
+  text-decoration: underline;
+}
