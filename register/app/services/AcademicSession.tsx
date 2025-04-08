@@ -11,8 +11,8 @@ const services = [
       "Get Expert Academic Support",
       "Get personalized tutoring from experienced educators across all subjects. From basic concepts to advanced topics, we ensure comprehensive understanding and improved grades."
     ],
-    image: "/image/kids.jpeg",
-    link: "/services/academic-tutoring"
+    image: "/image/tutoring.jpg",
+    link: "/services/AcademicTutoring"
   },
 
   {
@@ -23,14 +23,14 @@ const services = [
       "Learning Has No Age Limit",
       "Flexible education programs designed for adults seeking to advance their knowledge or complete their academic journey. Study at your own pace with dedicated support"
     ],
-    image: "/image/kids.jpeg",
+    image: "/image/adult education.jpg",
     link: "/services/adult-education"
   },
-  // Add your 9 other services here following the same structure
+
   {
     id: 3,
     title: "Exam Preparation",
-    number: "3.14",
+    //number: "3.14",
     description: [
       "Ace Your Exams",
       "Comprehensive test prep for SAT, ACT, GRE, and more with proven strategies and mock tests."
