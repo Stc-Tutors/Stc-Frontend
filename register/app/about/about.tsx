@@ -9,7 +9,7 @@ const About = () => {
           {/* Left Side: Image + Stats */}
           <div className="relative">
             <Image
-              src="/image/banner.jpg" // Replace with actual path
+              src="/image/about.jpg" // Replace with actual path
               alt="Tutoring session"
               width={600}
               height={400}

@@ -9,7 +9,7 @@ const CTA = () => {
         {/* Left Side: Image & Floating Elements */}
         <div className="relative flex-1">
           <Image
-            src="/image/cta.jpeg"
+            src="/image/happy.jpg"
             alt="Student with Phone"
             width={500}
             height={500}

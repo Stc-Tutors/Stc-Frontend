@@ -9,7 +9,7 @@ const tutors = [
     id: 1,
     name: "Dr. Sarah Johnson",
     subject: "Mathematics",
-    image: "/image/tutor1.jpeg",
+    image: "/image/tutor4.jpg",
     experience: "10+ years experience",
     rating: 4.9
   },
@@ -17,7 +17,7 @@ const tutors = [
     id: 2,
     name: "Prof. Michael Chen",
     subject: "Physics",
-    image: "/image/tutor2.jpeg",
+    image: "/image/tutor1.jpg",
     experience: "8 years experience",
     rating: 4.8
   },
@@ -25,7 +25,7 @@ const tutors = [
     id: 3,
     name: "Ms. Emily Wilson",
     subject: "English Literature",
-    image:"/image/tutor3.jpeg",
+    image:"/image/tutor2.jpg",
     experience: "5 years experience",
     rating: 4.7
   },
@@ -33,7 +33,7 @@ const tutors = [
     id: 4,
     name: "Mr. David Kim",
     subject: "Chemistry",
-    image: "/image/tutor1.jpeg",
+    image: "/image/tutor3.jpg",
     experience: "7 years experience",
     rating: 4.8
   },
@@ -41,7 +41,7 @@ const tutors = [
     id: 5,
     name: "Dr. Lisa Rodriguez",
     subject: "Biology",
-    image: "/image/tutor2.jpeg",
+    image: "/image/tutor1.jpg",
     experience: "9 years experience",
     rating: 4.9
   }

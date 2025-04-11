@@ -71,7 +71,7 @@ const Contact = () => {
           >
             <div className="flex items-center gap-4">
               <Phone className="text-indigo-600" />
-              <span className="text-gray-700">+234 816 679 5092</span>
+              <span className="text-gray-700">+234 706 055 4954</span>
             </div>
             <div className="flex items-center gap-4">
               <Mail className="text-indigo-600" />
@@ -79,7 +79,7 @@ const Contact = () => {
             </div>
             <div className="flex items-center gap-4">
               <MapPin className="text-indigo-600" />
-              <span className="text-gray-700">Ibadan, Nigeria</span>
+              <span className="text-gray-700">Nigeria</span>
             </div>
 
             <div className="flex gap-4 mt-6">

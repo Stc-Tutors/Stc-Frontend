@@ -18,7 +18,7 @@ const ServicesSection = () => {
           <div className="w-full md:w-1/2">
             <div className="relative h-80 md:h-96 rounded-lg overflow-hidden">
               <Image
-                src="/image/cta.jpeg" // Replace with your image path
+                src="/image/images2.jpg" // Replace with your image path
                 alt="Learning solutions"
                 fill
                 className="object-cover"
