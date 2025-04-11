@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import Image from "next/image";
-import { FaFacebookF, FaInstagram, FaLinkedin } from "react-icons/fa";
+import { FaFacebook, FaInstagram, FaLinkedin, FaTwitter } from "react-icons/fa";
 
 export default function Footer() {
   return (
@@ -11,13 +11,12 @@ export default function Footer() {
         {/* Social Icons */}
         <div className="flex space-x-4">
           <span className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-600 hover:bg-blue-500 cursor-pointer">
-            <FaFacebookF size={20} />
+            <FaFacebook size={20} />
           </span>
 
-          {/** 
           <span className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-400 hover:bg-blue-300 cursor-pointer">
-            <FaXTwitter size={20} />
-          </span>*/}
+            <FaTwitter size={20} />
+          </span>
 
           <span className="w-10 h-10 flex items-center justify-center rounded-full bg-pink-500 hover:bg-pink-400 cursor-pointer">
             <FaInstagram size={20} />

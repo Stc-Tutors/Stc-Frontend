@@ -2,6 +2,7 @@
 import { Mail, Phone, MapPin } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
+import { FaWhatsapp, FaInstagram, FaFacebook, FaLinkedin, FaTwitter } from "react-icons/fa";
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -39,6 +40,34 @@ const Contact = () => {
 
     // Optional: send to backend/API
   };
+
+  const socialLinks = [
+    {
+      icon: <FaWhatsapp size={20} />,
+      url: "https://wa.me/2347060554954",
+      label: "WhatsApp"
+    },
+    {
+      icon: <FaInstagram size={20} />,
+      url: "https://instagram.com/stc.consult01",
+      label: "Instagram"
+    },
+    {
+      icon: <FaFacebook size={20} />,
+      url: "https://facebook.com/yourpage",
+      label: "Facebook"
+    },
+    {
+      icon: <FaLinkedin size={20} />,
+      url: "https://linkedin.com/company/yourcompany",
+      label: "LinkedIn"
+    },
+    {
+      icon: <FaTwitter size={20} />,
+      url: "https://twitter.com/yourhandle",
+      label: "Twitter"
+    }
+  ];
 
   return (
     <section className="bg-white py-20 px-6 md:px-12 lg:px-20">
@@ -82,11 +111,23 @@ const Contact = () => {
               <span className="text-gray-700">Nigeria</span>
             </div>
 
-            <div className="flex gap-4 mt-6">
-              <a href="#" className="text-indigo-600 hover:underline">WhatsApp</a>
-              <a href="#" className="text-indigo-600 hover:underline">Instagram</a>
-              <a href="#" className="text-indigo-600 hover:underline">Facebook</a>
-            </div>
+             {/* Updated Social Links Section */}
+      <div className="flex gap-4 mt-6">
+        {socialLinks.map((social, index) => (
+          <motion.a
+            key={index}
+            href={social.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={social.label}
+            className="text-indigo-600 hover:text-indigo-800 transition-colors p-2 rounded-full hover:bg-indigo-50"
+            whileHover={{ y: -2 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            {social.icon}
+          </motion.a>
+        ))}
+      </div>
           </motion.div>
 
           {/* Right: Form */}
