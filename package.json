@@ -11,7 +11,6 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",
-    "@types/react-datepicker": "^7.0.0",
     "framer-motion": "^12.6.3",
     "monnify-js": "^1.0.2",
     "next": "^15.2.3",
