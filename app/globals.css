@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+/* globals.css */
+:root {
+  --primary-blue: #0a1f44; /* Adjust based on Figma color */
+  --accent-blue: #3b5bdb; /* Adjust if needed */
+  --white: #ffffff;
+}
+
+
+
+
