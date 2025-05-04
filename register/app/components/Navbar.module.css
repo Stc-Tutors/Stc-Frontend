@@ -89,7 +89,8 @@
 /* CTA Button */
 .ctaButton {
   background: white;
-  color: #4f46e5;
+  /*color: #4f46e5;*/
+  color: var(--color-primary);
   padding: 0.6rem 1.5rem;
   border-radius: 50px;
   font-weight: 600;
@@ -147,7 +148,7 @@
   left: 0;
   width: 100%;
   height: 100vh;
-  background: rgba(79, 70, 229, 0.98);
+  background: rgba(56, 128, 225, 1);;
   backdrop-filter: blur(5px);
   display: flex;
   justify-content: center;
@@ -186,13 +187,13 @@
 }
 
 .mobileLink:hover {
-  color: white;
+  color: var(--primary-blue);
 }
 
 .mobileCta {
   display: inline-block;
   background: white;
-  color: #4f46e5;
+  color: var(--color-primary);
   padding: 0.8rem 2rem;
   border-radius: 50px;
   font-weight: 600;
@@ -203,6 +204,7 @@
 
 .mobileCta:hover {
   background: #f8f9fa;
+  color: var(--primary-blue);
   transform: scale(1.05);
 }
 

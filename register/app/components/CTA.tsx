@@ -32,7 +32,7 @@ const CTA = () => {
 
         {/* Right Side: Contact Form */}
         <div className="flex-1 bg-white p-6 md:p-8 rounded-lg shadow-lg">
-          <h2 className="text-2xl font-semibold text-blue-900">Unlock your potential with skilled instructors.</h2>
+          <h2 className="text-2xl font-semibold text-[#38b6ff]">Unlock your potential with skilled instructors.</h2>
           <p className="mt-2 mb-4">Book a class with us today</p>
           <form className="space-y-4">
             <input
@@ -49,7 +49,7 @@ const CTA = () => {
             ></textarea>
             <button
               type="submit"
-              className="w-full bg-indigo-700 text-white py-3 rounded-md text-lg hover:bg-blue-700 transition"
+              className="w-full bg-[#38b6ff] text-white py-3 rounded-md text-lg hover:bg-blue-700 transition"
             >
               Send Message
             </button>

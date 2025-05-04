@@ -38,7 +38,7 @@ const About = () => {
           <div>
             <h2 className="text-4xl font-bold text-gray-900">
               We Are Committed To <br />
-              Your <span className="text-indigo-600">Success</span>
+              Your <span className="text-[#38b6ff]">Success</span>
             </h2>
             <p className="mt-6 text-gray-700 leading-relaxed">
               STC Edu Consult, a subsidiary of Statcomm TC Limited, aims to

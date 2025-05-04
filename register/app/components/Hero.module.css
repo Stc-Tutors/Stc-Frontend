@@ -35,7 +35,7 @@
 }
 
 .highlight {
-  color: #4f46e5;
+  color: var(--color-primary);
   position: relative;
   display: inline-block;
 }
@@ -70,7 +70,8 @@
 }
 
 .primaryButton {
-  background-color: #4f46e5;
+  /*background-color: #4f46e5;*/
+  background-color: var(--color-primary);
   color: white;
   border: none;
   padding: 0.8rem 1.8rem;
@@ -83,8 +84,8 @@
 
 .secondaryButton {
   background-color: white;
-  color: #4f46e5;
-  border: 2px solid #4f46e5;
+  color: var(--color-primary);
+  border: 2px solid var(--color-primary);
   padding: 0.8rem 1.8rem;
   border-radius: 0.5rem;
   font-size: 1rem;
@@ -100,7 +101,7 @@
   border-radius: 2rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   font-weight: 600;
-  color: #4f46e5;
+  color: var(--color-primary);
 }
 
 .labelTop {

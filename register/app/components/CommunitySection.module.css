@@ -58,7 +58,7 @@
   }
   
   .eyebrow {
-    color: #4f46e5;
+    color: var(--color-primary);
     font-weight: 600;
     font-size: 1rem;
     margin-bottom: 1rem;
@@ -75,7 +75,7 @@
   }
   
   .highlight {
-    color: #4f46e5;
+    color: var(--color-primary);
     position: relative;
     display: inline-block;
   }
@@ -100,7 +100,7 @@
   }
   
   .ctaButton {
-    background-color: #4f46e5;
+    background-color: var(--color-primary);
     color: white;
     border: none;
     padding: 0.9rem 2.5rem;
@@ -113,8 +113,8 @@
   }
   
   .ctaButton:hover {
-    background-color: #4338ca;
-    box-shadow: 0 6px 20px rgba(79, 70, 229, 0.3);
+    background-color: var(--color-primary);
+    box-shadow: 0 6px 20px rgba(56, 128, 225, 1);
   }
   
   /* Responsive styles */

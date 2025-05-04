@@ -1,6 +1,6 @@
 /* Footer Container */
 .footerContainer {
-  background-color: #0a1f44; /* Dark blue background */
+  background-color: #0a1f44;
   padding: 2rem 0;
 }
 
@@ -11,7 +11,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-radius: 12px; /* Smooth rounded edges */
+  border-radius: 12px;
   max-width: 90%;
   margin: auto;
 }

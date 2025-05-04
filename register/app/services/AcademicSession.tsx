@@ -17,18 +17,6 @@ const services = [
 
   {
     id: 2,
-    title: "Adult Education",
-    //number: "4/58",
-    description: [
-      "Learning Has No Age Limit",
-      "Flexible education programs designed for adults seeking to advance their knowledge or complete their academic journey. Study at your own pace with dedicated support"
-    ],
-    image: "/image/adult education.jpg",
-    link: "/services/AdultEducation"
-  },
-
-  {
-    id: 3,
     title: "Exam Preparation",
     //number: "3.14",
     description: [
@@ -37,6 +25,18 @@ const services = [
     ],
     image:"/image/exam.jpg",
     link: "/services/Exam"
+  },
+
+  {
+    id: 3,
+    title: "Adult Education",
+    //number: "4/58",
+    description: [
+      "Learning Has No Age Limit",
+      "Flexible education programs designed for adults seeking to advance their knowledge or complete their academic journey. Study at your own pace with dedicated support"
+    ],
+    image: "/image/adult education.jpg",
+    link: "/services/AdultEducation"
   },
 
   {

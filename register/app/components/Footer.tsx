@@ -5,7 +5,7 @@ import { FaFacebook, FaInstagram, FaLinkedin, FaTwitter } from "react-icons/fa";
 
 export default function Footer() {
   return (
-    <footer className="bg-blue-900 text-white p-8">
+    <footer className="bg-[#38b6ff] text-white p-8">
       {/* Top Section: Social Icons, Logo, Login/Signup */}
       <div className="flex flex-col md:flex-row justify-between items-center mb-6">
         {/* Social Icons */}
@@ -44,7 +44,7 @@ export default function Footer() {
             </span>
           </Link>*/}
           <Link href="/register">
-            <span className="bg-blue-700 px-4 py-2 rounded-md hover:bg-blue-600 transition">
+            <span className="bg-white text-[#38b6ff] px-4 py-2 rounded-md hover:bg-blue-100 transition">
               Get Started
             </span>
           </Link>

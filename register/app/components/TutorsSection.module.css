@@ -22,7 +22,7 @@
   }
 
   .bigheading {
-    color: #4338ca;
+    color: var(--color-primary);
     font-weight: bold;
     font-size: 1.6rem;
   }
@@ -43,7 +43,7 @@
   }
   
   .ctaButton {
-    background-color: #4f46e5;
+    background-color: var(--color-primary);
     color: white;
     border: none;
     padding: 0.9rem 2.5rem;
@@ -56,8 +56,8 @@
   }
   
   .ctaButton:hover {
-    background-color: #4338ca;
-    box-shadow: 0 6px 12px rgba(79, 70, 229, 0.15);
+    background-color: var(--color-primary);
+    box-shadow: 0 6px 12px rgba(56, 128, 225, 1);
   }
   
   .carouselContainer {
@@ -116,7 +116,7 @@
   }
   
   .subject {
-    color: #4f46e5;
+    color: var(--color-primary);
     font-weight: 500;
     margin-bottom: 0.5rem;
     font-size: 1.1rem;
@@ -172,7 +172,7 @@
   }
   
   .carouselButton:hover {
-    background: #4f46e5;
+    background: var(--color-primary);
     color: white;
   }
   
@@ -202,7 +202,7 @@
   }
   
   .activeDot {
-    background: #4f46e5;
+    background: var(--color-primary);
     transform: scale(1.2);
   }
   
