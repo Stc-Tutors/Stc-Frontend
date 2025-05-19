@@ -113,8 +113,9 @@
   }
   
   .ctaButton:hover {
-    background-color: var(--color-primary);
+    background-color: var(--accent-blue);
     box-shadow: 0 6px 20px rgba(56, 128, 225, 1);
+    /* box-shadow: 0 6px 20px rgba(79, 70, 229, 0.2); */
   }
   
   /* Responsive styles */

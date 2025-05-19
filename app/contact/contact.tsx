@@ -99,15 +99,15 @@ const Contact = () => {
             transition={{ duration: 0.6 }}
           >
             <div className="flex items-center gap-4">
-              <Phone className="text-indigo-600" />
+              <Phone className="text-[#38b6ff]" />
               <span className="text-gray-700">+234 706 055 4954</span>
             </div>
             <div className="flex items-center gap-4">
-              <Mail className="text-indigo-600" />
+              <Mail className="text-[#38b6ff]" />
               <span className="text-gray-700">statcomm.tc@gmail.com</span>
             </div>
             <div className="flex items-center gap-4">
-              <MapPin className="text-indigo-600" />
+              <MapPin className="text-[#38b6ff]" />
               <span className="text-gray-700">Nigeria</span>
             </div>
 
@@ -120,7 +120,7 @@ const Contact = () => {
             target="_blank"
             rel="noopener noreferrer"
             aria-label={social.label}
-            className="text-indigo-600 hover:text-indigo-800 transition-colors p-2 rounded-full hover:bg-indigo-50"
+            className="text-[#38b6ff] hover:text-indigo-800 transition-colors p-2 rounded-full hover:bg-indigo-50"
             whileHover={{ y: -2 }}
             whileTap={{ scale: 0.95 }}
           >
@@ -186,7 +186,7 @@ const Contact = () => {
             </div>
             <button
               type="submit"
-              className="bg-indigo-600 text-white px-6 py-3 rounded-md hover:bg-indigo-700 transition"
+              className="bg-[#38b6ff] text-white px-6 py-3 rounded-md hover:bg-indigo-700 transition"
             >
               Send Message
             </button>

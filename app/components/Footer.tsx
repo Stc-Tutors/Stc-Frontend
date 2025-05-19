@@ -108,7 +108,7 @@ export default function Footer() {
       </div>
 
       {/* Copyright Section */}
-      <div className="mt-8 pt-4 border-t border-gray-800 text-center text-gray-400">
+      <div className="mt-8 pt-4 border-t border-gray-800 text-center text-blue-900">
         © {new Date().getFullYear()} STC Tutors. All rights reserved.
       </div>
     </footer>

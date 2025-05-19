@@ -2,6 +2,8 @@
 import Image from 'next/image';
 import { FaGraduationCap, FaLaptopCode, FaUserTie, FaBrain } from 'react-icons/fa';
 
+import YouTubeCard from './YouTubeCard';
+
 const ServicesSection = () => {
   const services = [
     { icon: <FaGraduationCap size={20} />, text: "Academic Tutoring" },
@@ -40,7 +42,7 @@ const ServicesSection = () => {
             <ul className="space-y-4">
               {services.map((service, index) => (
                 <li key={index} className="flex items-center gap-3">
-                  <span className="text-indigo-600">{service.icon}</span>
+                  <span className="text-[#38b6ff]">{service.icon}</span>
                   <span className="text-gray-700">{service.text}</span>
                 </li>
               ))}

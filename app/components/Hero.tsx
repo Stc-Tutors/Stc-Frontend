@@ -51,7 +51,7 @@ const Hero = () => {
           priority
         />
         
-        {/* Floating Labels */}
+        {/* Floating Labels
         <motion.span 
           className={`${styles.label} ${styles.labelTop}`}
           initial={{ x: -20, opacity: 0 }}
@@ -75,7 +75,7 @@ const Hero = () => {
           transition={{ delay: 1.2, duration: 0.5 }}
         >
           One-on-One
-        </motion.span>
+        </motion.span> */}
       </motion.div>
 
       {/* Right Side - Text */}

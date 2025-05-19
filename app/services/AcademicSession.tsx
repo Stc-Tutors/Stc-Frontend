@@ -23,7 +23,7 @@ const services = [
       "Ace Your Exams",
       "Comprehensive test prep for SAT, ACT, GRE, and more with proven strategies and mock tests."
     ],
-    image:"/image/exam.jpg",
+    image:"/image/exam prep.jpg",
     link: "/services/Exam"
   },
 
@@ -131,7 +131,7 @@ const AcademicSession = () => {
               </p>
               <Link 
                 href={service.link}
-                className="flex items-center text-indigo-600 font-medium hover:text-indigo-800 transition-colors w-fit"
+                className="flex items-center text-[#38b6ff] font-medium hover:text-indigo-300 transition-colors w-fit"
               >
                 Learn More <span className="ml-2">→</span>
               </Link>

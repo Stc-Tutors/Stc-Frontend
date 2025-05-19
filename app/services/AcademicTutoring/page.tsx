@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import Head from 'next/head';
+import YouTubePlayer from '@/app/components/YouTubePlayer';
 
 export default function AcademicTutoring() {
   return (
@@ -12,9 +13,9 @@ export default function AcademicTutoring() {
       <main className="container mx-auto px-6 py-10">
         {/* Hero Banner */}
         <section className="text-center mb-12">
-          <div className="relative h-64 w-full bg-gray-200">
+          <div className="relative h-64 w-full md:h-96 bg-gray-200">
             {/* Placeholder for hero image */}
-            <Image src="/images/placeholder-hero.jpg" alt="Academic Tutoring" layout="fill" objectFit="cover" />
+            <Image src="/image/academic2.jpg" alt="Academic Tutoring" layout="fill" objectFit="cover" />
           </div>
           <h1 className="text-4xl font-bold mt-6">Academic Tutoring</h1>
           <p className="text-xl text-gray-600 mt-2">Personalized Support to Unlock Every Student's Potential</p>
@@ -54,37 +55,51 @@ export default function AcademicTutoring() {
 
         {/* Detailed Benefits */}
         <section className="mb-12">
-          <h2 className="text-2xl font-semibold mb-4">Benefits</h2>
-          <div className="space-y-8">
-            <div className="flex flex-col md:flex-row items-center">
-              <div className="md:w-1/2 md:pr-6">
-                <h3 className="text-xl font-semibold">Improved Confidence & Engagement</h3>
-                <p>Our interactive whiteboard keeps students engaged and motivated to learn.</p>
-              </div>
-              <div className="md:w-1/2 h-48 w-full relative">
-                <Image src="/images/benefit-confidence.jpg" alt="Confidence" layout="fill" objectFit="cover" />
-              </div>
-            </div>
-            <div className="flex flex-col md:flex-row items-center">
-              <div className="md:w-1/2 md:pr-6">
-                <h3 className="text-xl font-semibold">Measurable Grade Improvement</h3>
-                <p>On average, our students improve by 15–20% in their exam scores.</p>
-              </div>
-              <div className="md:w-1/2 h-48 w-full relative">
-                <Image src="/images/benefit-grades.jpg" alt="Grades Improvement" layout="fill" objectFit="cover" />
-              </div>
-            </div>
-            <div className="flex flex-col md:flex-row items-center">
-              <div className="md:w-1/2 md:pr-6">
-                <h3 className="text-xl font-semibold">Lifelong Learning Skills</h3>
-                <p>Build study habits and critical thinking skills for continued academic success.</p>
-              </div>
-              <div className="md:w-1/2 h-48 w-full relative">
-                <Image src="/images/benefit-skills.jpg" alt="Learning Skills" layout="fill" objectFit="cover" />
-              </div>
-            </div>
-          </div>
-        </section>
+          <h2 className="text-2xl font-semibold mb-8 text-center">Benefits</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+            
+            {/* Benefit 1 */}
+            <div>
+              <h3 className="text-xl font-semibold mb-2">Improved Confidence & Engagement</h3>
+              <p className="mb-4">Our interactive whiteboard keeps students engaged and motivated to learn.</p>
+              <div className="mx-auto w-[250px] h-[160px] relative">
+                <Image
+                src="/image/3.jpg"
+                alt="Confidence"
+                layout="fill"
+                className="object-cover rounded-md"
+                />
+                </div>
+                </div>
+                
+                {/* Benefit 2 */}
+                <div>
+                  <h3 className="text-xl font-semibold mb-2">Measurable Grade Improvement</h3>
+                  <p className="mb-4">On average, our students improve by 15–20% in their exam scores.</p>
+                  <div className="mx-auto w-[250px] h-[160px] relative">
+                    <Image
+                    src="/image/confidence.jpg"
+                    alt="Grades Improvement"
+                    layout="fill"
+                    className="object-cover rounded-md"
+                    />
+                    </div>
+                    </div>
+                    
+                    {/* Benefit 3 */}
+                    <div>
+                      <h3 className="text-xl font-semibold mb-2">Lifelong Learning Skills</h3>
+                      <p className="mb-4">Build study habits and critical thinking skills for continued academic success.</p>
+                      <div className="mx-auto w-[250px] h-[160px] relative">
+                        <Image
+                        src="/image/5.jpg"
+                        alt="Learning Skills"
+                        layout="fill"
+                        className="object-cover rounded-md"/>
+                        </div>
+                        </div>
+                        </div>
+                        </section>
 
         {/* How It Works */}
         <section className="mb-12">
@@ -103,16 +118,18 @@ export default function AcademicTutoring() {
           <div className="mb-6">
             {/* Placeholder for video */}
             <div className="w-full h-64 bg-gray-300 flex items-center justify-center">
-              <span className="text-gray-700">Video Placeholder</span>
+              <span className="text-gray-700">
+                <YouTubePlayer videoId={"DPKCjJViqo"} />
+              </span>
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[1,2,3].map(i => (
               <div key={i} className="relative h-40 w-full bg-gray-200">
-                <Image src={`/images/media-placeholder-${i}.jpg`} alt="Media" layout="fill" objectFit="cover" />
+                <Image src={`/image/Exam.jpg`} alt="Media" layout="fill" objectFit="cover" />
               </div>
             ))}
-          </div>
+          </div> */}
         </section>
 
         {/* Testimonials */}

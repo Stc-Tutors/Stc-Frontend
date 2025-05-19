@@ -49,7 +49,7 @@ const CTA = () => {
             ></textarea>
             <button
               type="submit"
-              className="w-full bg-[#38b6ff] text-white py-3 rounded-md text-lg hover:bg-blue-700 transition"
+              className="w-full bg-[#38b6ff] text-white py-3 rounded-md text-lg hover:bg-[#1c2574] transition"
             >
               Send Message
             </button>
