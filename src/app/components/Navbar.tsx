@@ -1,9 +1,10 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import styles from "./Navbar.module.css";
+import { ROUTES } from "@/config/routes";
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -77,7 +78,7 @@ const Navbar = () => {
               ))}
               <li>
                 <Link
-                  href="/register"
+                  href={ROUTES.AUTH.REGISTER}
                   className={styles.mobileCta}
                   onClick={() => setMobileOpen(false)}
                 >

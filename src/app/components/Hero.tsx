@@ -1,9 +1,9 @@
 "use client";
-import React from "react";
 import Image from "next/image";
 import styles from "./Hero.module.css";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { ROUTES } from "@/config/routes";
 
 const Hero = () => {
   // Animation variants
@@ -31,18 +31,18 @@ const Hero = () => {
   };
 
   return (
-    <motion.section 
+    <motion.section
       className={styles.hero}
       initial="hidden"
       animate="visible"
       variants={containerVariants}
     >
       {/* Left Side - Image */}
-      <motion.div 
+      <motion.div
         className={styles.imageContainer}
         variants={itemVariants}
       >
-        <Image 
+        <Image
           src="/image/kids.jpeg"
           alt="Student learning online"
           width={500}
@@ -50,7 +50,7 @@ const Hero = () => {
           className={styles.heroImage}
           priority
         />
-        
+
         {/* Floating Labels
         <motion.span 
           className={`${styles.label} ${styles.labelTop}`}
@@ -79,7 +79,7 @@ const Hero = () => {
       </motion.div>
 
       {/* Right Side - Text */}
-      <motion.div 
+      <motion.div
         className={styles.textContainer}
         variants={itemVariants}
       >
@@ -94,12 +94,12 @@ const Hero = () => {
           <strong>technology training</strong>, skill acquisition, and personal
           counseling.
         </motion.p>
-        <motion.div 
+        <motion.div
           className={styles.buttons}
           variants={itemVariants}
         >
-          <Link href="/register" passHref>
-            <motion.button 
+          <Link href={ROUTES.AUTH.REGISTER} passHref>
+            <motion.button
               className={styles.primaryButton}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -118,17 +118,17 @@ const Hero = () => {
           </Link> */}
 
           {/* Login Button */}
-          <Link href="/signin" passHref>
-          <motion.button 
-          className={styles.secondaryButton}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}>
-            Login
+          <Link href={ROUTES.AUTH.LOGIN} passHref>
+            <motion.button
+              className={styles.secondaryButton}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}>
+              Login
             </motion.button>
-            </Link>
-            </motion.div>
-            </motion.div>
-            </motion.section>
+          </Link>
+        </motion.div>
+      </motion.div>
+    </motion.section>
   );
 };
 

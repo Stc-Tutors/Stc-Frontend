@@ -2,6 +2,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { FaFacebook, FaInstagram, FaLinkedin, FaTwitter } from "react-icons/fa";
+import { ROUTES } from "@/config/routes";
 
 export default function Footer() {
   return (
@@ -28,10 +29,10 @@ export default function Footer() {
 
         {/* Logo Image */}
         <div className="my-4 md:my-0">
-          <Image 
-            src="/image/image.png"  
+          <Image
+            src="/image/image.png"
             alt="STC Logo"
-            width={150}  
+            width={150}
             height={100}
           />
         </div>
@@ -43,7 +44,7 @@ export default function Footer() {
               Login
             </span>
           </Link>*/}
-          <Link href="/register">
+          <Link href={ROUTES.AUTH.REGISTER}>
             <span className="bg-white text-[#38b6ff] px-4 py-2 rounded-md hover:bg-blue-100 transition">
               Get Started
             </span>
