@@ -8,10 +8,12 @@ export async function middleware(request: Request) {
     "/about",
     "/contact",
     "/privacy-policy",
-    "/terms-of-service",
+    "/services",
   ];
 
-  const isPublicPage = publicPaths.includes(pathname);
+  const isPublicPage = pathname === "/" || publicPaths.some(publicPath => 
+    publicPath !== "/" && pathname.startsWith(publicPath)
+  );
 
   const token = request.headers
     .get("cookie")
@@ -29,5 +31,5 @@ export async function middleware(request: Request) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|image|video).*)"],
 };

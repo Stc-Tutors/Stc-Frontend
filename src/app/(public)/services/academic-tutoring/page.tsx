@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Head from 'next/head';
-import YouTubePlayer from '../../components/YouTubePlayer';
+// import YouTubePlayer from '../../components/YouTubePlayer';
 
 import { useRouter } from 'next/navigation';
 
@@ -85,7 +85,7 @@ export default function AcademicTutoring() {
             <div>
               <h3 className="text-xl font-semibold mb-2">Improved Confidence & Engagement</h3>
               <p className="mb-4">Our interactive whiteboard keeps students engaged and motivated to learn.</p>
-              <div className="mx-auto w-[250px] h-[160px] relative">
+              <div className="mx-auto w-[200px] h-[160px] relative">
                 <Image
                 src="/image/3.jpg"
                 alt="Confidence"
@@ -113,7 +113,7 @@ export default function AcademicTutoring() {
                     <div>
                       <h3 className="text-xl font-semibold mb-2">Lifelong Learning Skills</h3>
                       <p className="mb-4">Build study habits and critical thinking skills for continued academic success.</p>
-                      <div className="mx-auto w-[250px] h-[160px] relative">
+                      <div className="mx-auto w-[200px] h-[160px] relative">
                         <Image
                         src="/image/5.jpg"
                         alt="Learning Skills"

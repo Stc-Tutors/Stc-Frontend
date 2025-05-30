@@ -2,7 +2,7 @@
 import { Mail, Phone, MapPin } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { FaWhatsapp, FaInstagram, FaFacebook, FaLinkedin, FaTwitter } from "react-icons/fa";
+import { FaWhatsapp, FaInstagram, FaFacebook, FaLinkedin, FaTiktok } from "react-icons/fa";
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -54,7 +54,7 @@ const Contact = () => {
     },
     {
       icon: <FaFacebook size={20} />,
-      url: "https://facebook.com/yourpage",
+      url: "https://facebook.com/https://web.facebook.com/stc.consult01/",
       label: "Facebook"
     },
     {
@@ -63,9 +63,9 @@ const Contact = () => {
       label: "LinkedIn"
     },
     {
-      icon: <FaTwitter size={20} />,
-      url: "https://twitter.com/yourhandle",
-      label: "Twitter"
+      icon: <FaTiktok size={20} />,
+      url: "https://www.tiktok.com/@stc.consult01",
+      label: "Tiktok"
     }
   ];
 

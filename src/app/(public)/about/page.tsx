@@ -2,7 +2,7 @@ import About from "./about";
 import MissionVision from "./mission";
 import MeetOurCEO from "./MeetOurCEO";
 import TeamSection from './TeamSection';
-import Footer from "../components/Footer";
+import Footer from "../../components/Footer";
 
 
 export default function Home() {

@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -63,7 +64,7 @@ export default function RegisterForm() {
               <FormItem>
                 <FormLabel>First Name</FormLabel>
                 <FormControl>
-                  <Input {...field} type="email" placeholder="Enter your first name" />
+                  <Input {...field} type="text" placeholder="Enter your first name" />
                 </FormControl>
                 <FormMessage />
               </FormItem>

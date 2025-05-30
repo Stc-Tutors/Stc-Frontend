@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import Image from "next/image";
-import { FaFacebook, FaInstagram, FaLinkedin, FaTwitter } from "react-icons/fa";
+import { FaFacebook, FaInstagram, FaLinkedin, FaTiktok } from "react-icons/fa";
 import { ROUTES } from "@/config/routes";
 
 export default function Footer() {
@@ -11,20 +11,37 @@ export default function Footer() {
       <div className="flex flex-col md:flex-row justify-between items-center mb-6">
         {/* Social Icons */}
         <div className="flex space-x-4">
-          <span className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-600 hover:bg-blue-500 cursor-pointer">
+          <a
+          href="https://facebook.com/https://web.facebook.com/stc.consult01/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-600 hover:bg-blue-500 cursor-pointer">
             <FaFacebook size={20} />
-          </span>
+            </a>
 
-          <span className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-400 hover:bg-blue-300 cursor-pointer">
-            <FaTwitter size={20} />
-          </span>
+          <a
+          href="https://www.tiktok.com/@stc.consult01"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-400 hover:bg-blue-300 cursor-pointer">
+            <FaTiktok size={20} />
+            </a>
 
-          <span className="w-10 h-10 flex items-center justify-center rounded-full bg-pink-500 hover:bg-pink-400 cursor-pointer">
+           <a
+           href="https://instagram.com/stc.consult01"
+           target="_blank"
+           rel="noopener noreferrer"
+           className="w-10 h-10 flex items-center justify-center rounded-full bg-pink-500 hover:bg-pink-400 cursor-pointer">
             <FaInstagram size={20} />
-          </span>
-          <span className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-700 hover:bg-blue-600 cursor-pointer">
+            </a>
+
+           <a
+           href="https://linkedin.com/yourpage"
+           target="_blank"
+           rel="noopener noreferrer"
+           className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-700 hover:bg-blue-600 cursor-pointer">
             <FaLinkedin size={20} />
-          </span>
+            </a>
         </div>
 
         {/* Logo Image */}

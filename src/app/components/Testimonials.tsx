@@ -10,21 +10,21 @@ const testimonials = [
     quote: "“After six months of tutoring, my grades jumped from D to B+ in Mathematics. The tutors here really know how to explain complex topics simply”",
     author: "Aminat Ayobo",
     program: "IJMB | 365",
-    image: "/image/testimonial1.jpeg"
+    image: "/image/testimonial4.jpg"
   },
   {
     id: 2,
     quote: "“The Project Management course changed my career path completely. Within three months, I secured a better position. Worth every penny.”",
     author: "John Adams",
     program: "JUPEB | 329",
-    image: "/image/testimonial2.jpeg"
+    image: "/image/testimonial2.jpg"
   },
   {
     id: 3,
     quote: "“The career counseling gave me clear direction and a solid plan for my future. Now I'm confidently pursuing my goals”",
     author: "Oji Clara",
     program: "IJMB | 365",
-    image: "/image/testimonial3.jpeg"
+    image: "/image/testimonial3.jpg"
   }
 ];
 
