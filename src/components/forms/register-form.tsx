@@ -54,6 +54,28 @@ export default function RegisterForm() {
 
 
   return (
+
+    <div className="min-h-screen lex-col items-center justify-center">
+      <div className="w-full max-w-md">
+        {/* Back to Home Button */}
+        <Link
+          href="/"
+          className="text-[#3b5bdb] underline underline-offset-4 hover:text-[#38b6ff] transition-colors duration-200"
+        >
+          <span className="flex items-center gap-1">
+          <svg
+            className="w-4 h-3 mr-1"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+          Back to Home
+          </span>
+        </Link>
+
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <div className="flex flex-col gap-2">
@@ -64,7 +86,8 @@ export default function RegisterForm() {
               <FormItem>
                 <FormLabel>First Name</FormLabel>
                 <FormControl>
-                  <Input {...field} type="text" placeholder="Enter your first name" />
+                  <Input {...field} type="text" placeholder="Enter your first name" 
+                  className="focus:ring-2 focus:[#3b5bdb]"/>
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -128,7 +151,7 @@ export default function RegisterForm() {
           />
         </div>
 
-        <Button disabled={form.formState.isSubmitting} type="submit" className="w-full">
+        <Button disabled={form.formState.isSubmitting} type="submit" className="w-full bg-[#3b5bdb] hover:bg-blue-800 text-white transition-colors duration-300">
           {form.formState.isSubmitting && (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           )}
@@ -137,11 +160,14 @@ export default function RegisterForm() {
       </form>
       <div className="text-center text-sm mt-4">
         Already have an account?{" "}
-        <Link href={ROUTES.AUTH.LOGIN} className="underline underline-offset-4">
+        <Link href={ROUTES.AUTH.LOGIN} className="underline underline-offset-4 text-stcblue hover:text-blue-800 transition-colors"
+>
           Log In
         </Link>
       </div>
     </Form>
 
+    </div>
+    </div>
   )
 }
