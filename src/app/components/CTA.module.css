@@ -1,0 +1,87 @@
+.cta {
+  padding: 4rem 2rem;
+  background: #f3f4f6ee;
+}
+
+.container {
+  display: flex;
+  max-width: 1200px;
+  margin: auto;
+  align-items: center;
+  gap: 2rem;
+}
+
+.imageWrapper {
+  position: relative;
+  flex: 1;
+}
+
+.mainImage {
+  width: 100%;
+  border-radius: 10px;
+}
+
+.floating {
+  position: absolute;
+  background: white;
+  padding: 0.8rem;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.trophy {
+  top: 10%;
+  left: -10%;
+}
+
+.gradeCard {
+  bottom: 5%;
+  left: -10%;
+  font-size: 0.9rem;
+}
+
+.graph {
+  bottom: 10%;
+  right: -10%;
+}
+
+.formWrapper {
+  flex: 1;
+  background: white;
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.cta h2 {
+  color: #0a1f44;
+  font-size: 1.8rem;
+}
+
+.cta p {
+  margin-bottom: 1rem;
+}
+
+.cta input, 
+.cta textarea {
+  width: 100%;
+  padding: 0.8rem;
+  margin-bottom: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.cta button {
+  background: #3b5bdb;
+  color: white;
+  padding: 1rem;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  font-size: 1rem;
+  border-radius: 5px;
+}
+
+.cta button:hover {
+  background: #2a47a5;
+}
