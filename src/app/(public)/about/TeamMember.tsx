@@ -1,6 +1,6 @@
 // components/TeamMember.tsx
 import Image from 'next/image';
-import { FaLinkedin, FaTwitter, FaGithub } from 'react-icons/fa';
+import { FaLinkedin, FaTwitter, FaGithub, FaBehance } from 'react-icons/fa';
 
 interface TeamMemberProps {
   name: string;
@@ -10,6 +10,7 @@ interface TeamMemberProps {
     linkedin?: string;
     twitter?: string;
     github?: string;
+    behance?: string;
   };
 }
 
@@ -77,6 +78,17 @@ export default function TeamMember({
             aria-label={`${name}'s GitHub`}
           >
             <FaGithub size={18} />
+          </a>
+        )}
+        {socialLinks.behance && (
+          <a 
+            href={socialLinks.behance} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-gray-400 hover:text-gray-700 transition-colors"
+            aria-label={`${name}'s Behance`}
+          >
+            <FaBehance size={18} />
           </a>
         )}
       </div>

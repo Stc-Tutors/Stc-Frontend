@@ -8,7 +8,7 @@ export async function RegisterAction(
   data: IUserSignup
 ): Promise<[ApiResponse<null> | null, string | null]> {
   const [res, error] = await fetchAPI({
-    url: "/auth/register",
+    url: "/auth/signup",
     request: {
       method: "POST",
       headers: {
