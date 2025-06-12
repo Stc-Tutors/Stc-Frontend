@@ -2,6 +2,11 @@ import { ROUTES } from "./config/routes";
 
 export async function middleware(request: Request) {
   const pathname = new URL(request.url).pathname;
+
+  // if (pathname === "/auth/register") {
+  //   return Response.redirect(new URL("/dashboard", request.url))
+  // }
+
   const isAuthPage = pathname.startsWith("/auth");
   const publicPaths = [
     "/",
