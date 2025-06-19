@@ -1,5 +1,7 @@
 "use client";
 
+import SignupLogo from "../components/SignupLogo";
+
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import PhoneInput from "react-phone-input-2";
@@ -7,7 +9,7 @@ import "react-phone-input-2/lib/style.css";
 
 export default function RegisterPage() {
   const router = useRouter();
-  const steps = ["/dashboard", "/dashboard/child-info", "/dashboard/subjects", "/dashboard/schedule", "/dashboard/payment"];
+  const steps = ["/dashboard", "/dashboard/review", "/dashboard/select-service", "/dashboard/signup", "/dashboard/child-info", "/dashboard/subjects", "/dashboard/schedule", "/dashboard/payment"];
   const [isClient, setIsClient] = useState(false);
   const [errors, setErrors] = useState({
     firstName: "",
@@ -128,7 +130,7 @@ export default function RegisterPage() {
     if (validateForm()) {
       sessionStorage.setItem("registerFormData", JSON.stringify(formData));
       // await handleRegister();
-      router.push("/dashboard/child-info");
+      router.push("/dashboard/review");
     }
   };
 
@@ -142,7 +144,9 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-blue-900">
+    <div className="min-h-screen bg-blue-900 flex flex-col items-center px-4 py-8">
+      <SignupLogo />
+    {/* <div className="min-h-screen flex flex-col items-center justify-center bg-blue-900"> */}
       <div className="bg-white p-8 rounded-lg shadow-lg w-96">
         <h2 className="text-2xl font-bold text-center">Register</h2>
         <p className="text-2xl font-bold text-center">Welcome, great parent! </p>

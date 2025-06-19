@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import PhoneInput, { CountryData } from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 
+import SignupLogo from "@/app/components/SignupLogo";
+
 // Countries and Flags
 const countries = [
   { name: "United States", code: "us", dialCode: "+1" },
@@ -90,6 +92,13 @@ export default function ChildInfoPage() {
       gradeLevel: "",
     }));
   }, [formData.countryOfResidence]); */
+  
+  //Saves Data
+  const saveData = () => {
+    sessionStorage.setItem("childinfo",
+      JSON.stringify(formData)
+    );
+  };
 
   // Save form data and navigate to next step
   const handleSubmit = (e: React.FormEvent) => {
@@ -98,16 +107,31 @@ export default function ChildInfoPage() {
     router.push("/dashboard/subjects");
   };
 
+  // Save form data and navigate to next step
+  // const handleSubmit = (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   saveData();
+  //   router.push("/dashboard/subjects")
+  // }
+
   // Save form data and navigate back
   const handleBack = () => {
     if (typeof window !== "undefined" && formData) {
       sessionStorage.setItem("childInfoFormData", JSON.stringify(formData));
     }
-    router.push("/dashboard"); // Navigate to the previous step
+    router.push("/dashboard/signup"); // Navigate to the previous step
   };
 
+  // Save form data and navigate back
+  // const handleBack = () => {
+  //   saveData();
+  //   router.push("/dashboard/signup");
+  // }
+
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-blue-900 py-8">
+    // <div className="min-h-screen flex flex-col items-center justify-center bg-blue-900 py-8">
+    <div className="min-h-screen bg-blue-900 flex flex-col items-center px-4 py-8">
+          <SignupLogo />
       <div className="bg-white p-8 rounded-lg shadow-lg w-96">
         <h2 className="text-2xl font-bold text-center">Child Information</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -122,7 +146,7 @@ export default function ChildInfoPage() {
             required
           />
 
-         {/* Gender Dropdown 
+         {/* Gender */}
           <select
             name="gender"
             value={formData.gender}
@@ -134,7 +158,7 @@ export default function ChildInfoPage() {
             <option value="Male">Male</option>
             <option value="Female">Female</option>
             <option value="Prefer not to say">Prefer not to say</option>
-          </select> */}
+          </select>
 
           {/* Date of Birth */}
           <input

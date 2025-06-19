@@ -94,7 +94,7 @@ export default function SchedulePage() {
   return (
     <div className="min-h-screen flex justify-center bg-blue-900 py-12 px-6">
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-2xl">
-        <h2 className="text-center text-xl font-bold text-gray-900">Schedule</h2>
+        <h2 className="text-center text-xl font-bold text-gray-900">Summary</h2>
 
         {children.map((child, index) => (
           <div key={index} className="mt-6 border-b pb-6">
@@ -127,7 +127,7 @@ export default function SchedulePage() {
               </div>
             </section>
 
-            {/* Location Section */}
+            {/* Location Section
             <section className="mt-6">
               <h3 className="font-semibold text-lg text-gray-700">Location</h3>
               <div className="bg-gray-100 p-4 rounded-lg mt-2">
@@ -149,7 +149,7 @@ export default function SchedulePage() {
                   </div>
                 ))}
               </div>
-            </section>
+            </section> */}
 
             {/* Schedule Section */}
             <section className="mt-6">
@@ -177,20 +177,20 @@ export default function SchedulePage() {
           </div>
         ))}
 
-        {/* Add Another Child */}
+        {/* Add Another Child
         <button
           onClick={addChild}
           className="w-full bg-gray-300 text-gray-700 py-2 mt-4 rounded hover:bg-gray-400"
         >
           + Add Another Child
-        </button>
+        </button> */}
 
         {/* Proceed to Payment */}
         <button
-          onClick={() => router.push("/register/payment")}
+          onClick={() => router.push("/dashboard/select-service")}
           className="mt-6 w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700"
         >
-          Proceed to Payment →
+          Enroll Your Child → / Register New Services
         </button>
       </div>
     </div>
