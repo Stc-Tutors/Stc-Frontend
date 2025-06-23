@@ -2,7 +2,7 @@
 import Image from 'next/image';
 import { FaGraduationCap, FaLaptopCode, FaUserTie, FaBrain } from 'react-icons/fa';
 
-import YouTubeCard from './YouTubeCard';
+// import YouTubeCard from './YouTubeCard';
 
 const ServicesSection = () => {
   const services = [
