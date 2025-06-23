@@ -9,16 +9,16 @@ const MeetOurCEO = () => {
           {/* Left Side: CEO Image */}
           <div className="relative">
             <Image
-              src="/image/ceo.jpg"
+              src="/image/management.jpg"
               alt="Olalayo Ayodeji - CEO"
               width={500}
               height={500}
               className="rounded-lg shadow-lg"
             />
-            <div className="absolute bottom-4 left-4 bg-gray-900 text-white shadow-md p-3 rounded-md text-center">
-              <p className="text-lg font-bold">Olalayo Ayodeji</p>
-              <p className="text-sm text-gray-300">CEO/Founder</p>
-            </div>
+            {/* <div className="absolute bottom-4 left-4 bg-gray-900 text-white shadow-md p-3 rounded-md text-center">
+              {/* <p className="text-lg font-bold">SC TUTORS</p> */}
+              {/* <p className="text-sm text-gray-300">CEO/Founder</p> */}
+            {/* </div> */} 
           </div>
 
           {/* Right Side: CEO Message */}

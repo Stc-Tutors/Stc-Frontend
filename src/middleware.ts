@@ -2,16 +2,25 @@ import { ROUTES } from "./config/routes";
 
 export async function middleware(request: Request) {
   const pathname = new URL(request.url).pathname;
+
+  // if (pathname === "/auth/register") {
+  //   return Response.redirect(new URL("/dashboard", request.url))
+  // }
+
   const isAuthPage = pathname.startsWith("/auth");
   const publicPaths = [
     "/",
     "/about",
     "/contact",
     "/privacy-policy",
-    "/terms-of-service",
+    "/services",
+    "/dashboard",
+    "/program",
   ];
 
-  const isPublicPage = publicPaths.includes(pathname);
+  const isPublicPage = pathname === "/" || publicPaths.some(publicPath => 
+    publicPath !== "/" && pathname.startsWith(publicPath)
+  );
 
   const token = request.headers
     .get("cookie")
@@ -29,5 +38,5 @@ export async function middleware(request: Request) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|image|video).*)"],
 };

@@ -159,7 +159,7 @@
 import Image from 'next/image';
 import Head from 'next/head';
 
-import YouTubePlayer from '@/app/components/YouTubePlayer';
+// import YouTubePlayer from '@/app/components/YouTubePlayer';
 import { useRouter } from 'next/navigation';
 
 export default function TechTraining() {

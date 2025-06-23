@@ -214,7 +214,7 @@ export default function RegisterPage() {
               onChange={(e) =>
                 setFormData({ ...formData, password: e.target.value })
               }
-              className={'w-full p-2 border ${errors.password ? border-red-500 : border-gray-300} rounded pr-10'}
+              className={`w-full p-2 border ${errors.password ? 'border-red-500' : 'border-gray-300'} rounded pr-10`}
               />
               <span
               onClick={() => setShowPassword(!showPassword)}

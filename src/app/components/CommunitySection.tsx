@@ -54,7 +54,7 @@ const CommunitySection = () => {
               </div>
               <div className={styles.imageWrapper}>
                 <Image
-                  src="/image/community5.jpeg"
+                  src="/image/community5.jpg"
                   alt="Online learning session"
                   width={250}
                   height={300}
@@ -65,7 +65,7 @@ const CommunitySection = () => {
             <div className={styles.imageColumn}>
               <div className={styles.imageWrapper}>
                 <Image
-                  src="/image/community6.jpeg"
+                  src="/image/community3.jpg"
                   alt="Group discussion"
                   width={250}
                   height={300}

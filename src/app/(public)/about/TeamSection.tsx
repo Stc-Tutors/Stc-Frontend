@@ -4,19 +4,19 @@ import TeamMember from './TeamMember';
 export default function TeamSection() {
   const team = [
     {
-      name: "Ajayi Araoluwanimi",
+      name: "Ayomide Alaka",
       role: "Product Designer",
-      imageUrl: "/team/ajayi.jpg",
+      imageUrl: "/team/ayomide.jpg",
       socialLinks: {
-        linkedin: "https://linkedin.com/in/username",
-        twitter: "https://twitter.com/username"
+        linkedin: "https://www.linkedin.com/in/ayomide-alaka-36690527a?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app",
+        behance: "https://www.behance.net/ayomide21"
       }
     },
 
     {
-        name: "Ajayi Araoluwanimi",
-        role: "Product Designer",
-        imageUrl: "/team/ajayi.jpg",
+        name: "Shoaga Wuraola",
+        role: "Frontend-End Developer",
+        imageUrl: "/team/wuraola.jpg",
         socialLinks: {
           linkedin: "https://linkedin.com/in/username",
           twitter: "https://twitter.com/username"
@@ -25,37 +25,7 @@ export default function TeamSection() {
 
       {
         name: "Ajayi Araoluwanimi",
-        role: "Product Designer",
-        imageUrl: "/team/ajayi.jpg",
-        socialLinks: {
-          linkedin: "https://linkedin.com/in/username",
-          twitter: "https://twitter.com/username"
-        }
-      },
-
-      {
-        name: "Ajayi Araoluwanimi",
-        role: "Product Designer",
-        imageUrl: "/team/ajayi.jpg",
-        socialLinks: {
-          linkedin: "https://linkedin.com/in/username",
-          twitter: "https://twitter.com/username"
-        }
-      },
-
-      {
-        name: "Ajayi Araoluwanimi",
-        role: "Product Designer",
-        imageUrl: "/team/ajayi.jpg",
-        socialLinks: {
-          linkedin: "https://linkedin.com/in/username",
-          twitter: "https://twitter.com/username"
-        }
-      },
-
-      {
-        name: "Ajayi Araoluwanimi",
-        role: "Product Designer",
+        role: "Back-End Developer",
         imageUrl: "/team/ajayi.jpg",
         socialLinks: {
           linkedin: "https://linkedin.com/in/username",

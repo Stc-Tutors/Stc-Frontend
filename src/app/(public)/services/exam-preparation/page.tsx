@@ -5,7 +5,7 @@ import Head from 'next/head';
 
 
 import { useRouter } from 'next/navigation';
-import YouTubePlayer from '../../components/YouTubePlayer';
+// import YouTubePlayer from '../../components/YouTubePlayer';
 
 export default function ExamPreparation() {
   const router = useRouter();
