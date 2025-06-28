@@ -1,5 +1,7 @@
+import React from "react";
 import "./globals.css";
 import { Toaster } from "sonner";
+import { UserProvider } from "@/contexts/user-context";
 
 
 export const metadata = {
@@ -10,11 +12,12 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="min-h-screen flex flex-col ">
-        {/* <Navbar /> */}
-        {children}
-        <Toaster position="top-right" />
-      </body>
+      <UserProvider>
+        <body className="min-h-screen flex flex-col ">
+          {children}
+          <Toaster position="top-right" />
+        </body>
+      </UserProvider>
     </html>
   );
 }

@@ -1,5 +1,4 @@
-import { ROUTES } from "@/config/routes";
-import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 
 interface FetchApiTypes {
   baseUrl?: string;
@@ -19,21 +18,30 @@ export default async function fetchAPI<T>({
   request,
 }: FetchApiTypes): Promise<[Response | null, null | string]> {
   try {
-    const res = await fetch(`${baseUrl}${url}`, request);
+    const cookieStore = cookies();
+    const token = cookieStore.get("token")?.value;
+
+    const headers = new Headers(request.headers || {});
+    if (token && !headers.has("Authorization")) {
+      headers.set("Authorization", `Bearer ${token}`);
+    }
+
+    const res = await fetch(`${baseUrl}${url}`, { ...request, headers });
 
     // console.log("The response error is ", req)
     if (!res.ok) {
+      if (res.status === 401) {
+        throw new Error('Unauthorized');
+      }
       const data = await res.json();
       throw new Error(data.message)
     }
 
     return [res, null];
-
-
   } catch (error) {
-    if((error as Error).message === 'Unauthorized') {
-      redirect(ROUTES.AUTH.LOGIN);
-    }
+    // if ((error as Error).message === 'Unauthorized') {
+    //   redirect(ROUTES.AUTH.LOGIN);
+    // }
     return [null, (error as Error).message];
   }
 }

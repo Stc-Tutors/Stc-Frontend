@@ -1,6 +1,5 @@
 "use client";
 
-import SignupLogo from "@/app/components/SignupLogo";
 import { useRouter } from "next/navigation";
 
 export default function SelectServicePage() {
@@ -9,13 +8,10 @@ export default function SelectServicePage() {
   const handleSelect = (type: string, focus: string) => {
     sessionStorage.setItem("serviceType", type);
     sessionStorage.setItem("learningFocus", focus);
-    router.push("/dashboard/signup"); // 👈 go to Parent/Student page
+    router.push("/dashboard/signup");
   };
 
   return (
-    // <div className="min-h-screen bg-blue-900 flex items-center justify-center px-4 py-10">
-    <div className="min-h-screen bg-blue-900 flex flex-col items-center px-4 py-8">
-        <SignupLogo />
       <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-xl">
         <h1 className="text-2xl font-bold mb-6 text-center">Select a Service to Enroll In</h1>
 
@@ -49,13 +45,12 @@ export default function SelectServicePage() {
           
           <div className="flex justify-center mt-6">
             <button
-            onClick={() => router.push("/dashboard/review")}
+            onClick={() => router.push("/dashboard")}
             className="bg-white text-blue-600 border border-gray-300 px-6 py-2 rounded-md hover:bg-gray-100 transition">
                 ← Back
                 </button>
                 </div>
         </div>
       </div>
-    </div>
   );
 }

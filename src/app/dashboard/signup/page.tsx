@@ -1,6 +1,5 @@
 "use client";
 
-import SignupLogo from "@/app/components/SignupLogo";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
@@ -67,8 +66,6 @@ const handleRoleChange = (value: string) => {
 
   return (
     // <div className="min-h-screen bg-blue-900 flex items-center justify-center px-4 py-10">
-    <div className="min-h-screen bg-blue-900 flex flex-col items-center px-4 py-8">
-          <SignupLogo />
       <div className="bg-white p-6 rounded-lg shadow-md w-full max-w-xl">
         <h1 className="text-2xl font-bold mb-4 text-center">Who's Signing Up?</h1>
 
@@ -171,7 +168,6 @@ const handleRoleChange = (value: string) => {
         className="text-blue-500 hover:underline mt-4 block mx-auto">
             ← Back
             </button>
-            </div>
             </div>
             );
         }

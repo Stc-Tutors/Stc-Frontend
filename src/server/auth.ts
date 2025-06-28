@@ -44,6 +44,7 @@ export async function SigninAction(data: {
 
   if (resData && resData.data) {
     const exp = new Date(resData.data.expiresAt);
+    console.log("The token is ", resData.data.token);
     cookie.set("token", resData.data.token, {
       expires: exp,
       path: "/",

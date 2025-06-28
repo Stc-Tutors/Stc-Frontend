@@ -16,8 +16,8 @@ export function ToastError(error: string, duration: number = 5000) {
       : "UnExpected Error Occured. Please try again later",
     {
       // style: {
-      //   backgroundColor: "hsl(var(--destructive))",
-      //   color: "hsl(var(--destructive-foreground))",
+      //   backgroundColor: "var(--destructive)",
+      // //   color: "hsl(var(--destructive-foreground))",
       // },
       duration: duration,
     }
