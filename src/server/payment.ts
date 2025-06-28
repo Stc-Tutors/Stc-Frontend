@@ -34,7 +34,7 @@ export async function GetPaymentsAction(): Promise<[ApiResponse<Payment[]> | nul
   });
 
   const resData = res ? ((await res.json()) as ApiResponse<Payment[]>) : null;
-console.log("The response data is ", resData, error); 
+// console.log("The response data is ", resData, error); 
   return [resData, error];
 }
 

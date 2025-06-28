@@ -25,7 +25,7 @@ export async function EnrollAction(
   });
 
   const resData = res ? ((await res.json()) as ApiResponse<EnrollmentResponse>) : null;
-  console.log("The response data is ", resData, error);
+  // console.log("The response data is ", resData, error);
 
   return [resData, error];
 }
