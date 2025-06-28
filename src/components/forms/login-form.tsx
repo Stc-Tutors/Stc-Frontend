@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
 import { SigninAction } from "@/server/auth";
-import { ToastError, ToastSuccess } from "../ui/custom/toast";
+import { ToastSuccess } from "../ui/custom/toast";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { PasswordInput } from "../ui/custom/password-input";
@@ -39,70 +39,71 @@ export default function LoginForm() {
       router.push(ROUTES.DASHBOARD.HOME);
     }
     if (error) {
-      console.error("Login error:", error);
-      ToastError(error);
-    }
+      if (process.env.NODE_ENV === "development") {
+        console.error("Login error:", error);
+      }
+  }
     // form.reset();
   }
 
 
   return (
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <div className="flex flex-col gap-2">
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input {...field} type="email" placeholder="Enter your email" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem className="relative">
-                  <FormLabel>Password</FormLabel>
-
-                  <FormControl>
-                    <PasswordInput {...field} placeholder="Enter your password" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          <div className="text-right">
-            <Link
-              href={ROUTES.AUTH.FORGOT_PASSWORD}
-              className="underline text-xs underline-offset-4">
-              Forgot password?
-            </Link>
-          </div>
-
-          <Button disabled={form.formState.isSubmitting} type="submit" className="w-full">
-            {form.formState.isSubmitting && (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <div className="flex flex-col gap-2">
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input {...field} type="email" placeholder="Enter your email" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
-            Login
-          </Button>
+          />
 
-        </form>
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem className="relative">
+                <FormLabel>Password</FormLabel>
 
-        <div className="text-center text-sm mt-4">
-          Don&apos;t have an account?{" "}
-          <Link href={ROUTES.AUTH.REGISTER} className="underline underline-offset-4">
-            Register
+                <FormControl>
+                  <PasswordInput {...field} placeholder="Enter your password" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="text-right">
+          <Link
+            href={ROUTES.AUTH.FORGOT_PASSWORD}
+            className="underline text-xs underline-offset-4">
+            Forgot password?
           </Link>
         </div>
-      </Form>
+
+        <Button disabled={form.formState.isSubmitting} type="submit" className="w-full">
+          {form.formState.isSubmitting && (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          )}
+          Login
+        </Button>
+
+      </form>
+
+      <div className="text-center text-sm mt-4">
+        Don&apos;t have an account?{" "}
+        <Link href={ROUTES.AUTH.REGISTER} className="underline underline-offset-4">
+          Register
+        </Link>
+      </div>
+    </Form>
   )
 }
