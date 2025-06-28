@@ -1,7 +1,7 @@
 "use client"
 import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import PaystackPop from '@paystack/inline-js'
+// import PaystackPop from '@paystack/inline-js'
 
 import { useEnrollment } from "@/contexts/enrollment-context"
 import { Button } from "@/components/ui/button"
@@ -13,6 +13,8 @@ import ChildInfo from "./steps/child-info"
 import SubjectsSchedule from "./steps/subjects-schedule"
 import { ROUTES } from "@/config/routes"
 import { ToastError, ToastSuccess } from "./ui/custom/toast"
+
+const PaystackPop = typeof window !== "undefined" ? require("@paystack/inline-js") : null
 
 const steps = [
   { id: 1, title: "Service Selection", component: ServiceSelection },
@@ -29,20 +31,25 @@ export default function EnrollmentFlow() {
 
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSaving, setIsSaving] = useState(false)
+  const [isClient, setIsClient] = useState(false)
+
+   useEffect(() => {
+    setIsClient(true)
+  }, [])
 
   // Load existing enrollment if continuing
   useEffect(() => {
-    if (continueId) {
+    if (continueId && isClient) {
       loadEnrollment(continueId)
     }
-  }, [continueId, loadEnrollment])
+  }, [continueId, loadEnrollment, isClient])
 
   const currentStepData = steps.find((step) => step.id === currentStep)
   const CurrentStepComponent = currentStepData?.component
 
   const handleNext = async () => {
-    // Save enrollment after collecting child info and service details
-    if (currentStep === 3) {
+    
+    if (currentStep === steps.length) {
       setIsSaving(true)
       try {
         const result = await saveEnrollment()
@@ -50,17 +57,13 @@ export default function EnrollmentFlow() {
           setErrors({})
           const popup = new PaystackPop();
           popup.resumeTransaction(result.data.payment.access_code)
-          // Redirect to standalone review page
           router.push(ROUTES.DASHBOARD.HOME)
-          ToastSuccess("Enrollment successfully")
-          // router.push(`/dashboard/enroll/review/${result.enrollmentId}`)
+          ToastSuccess("Enrollment successful")
         } else {
-          // setErrors({ save: result.error || "Failed to save enrollment" })
           ToastError(result.error || "Failed to save enrollment")
         }
       } catch (error) {
         ToastError("An unexpected error occurred while saving enrollment")
-        // setErrors({ save: "An unexpected error occurred" })
       } finally {
         setIsSaving(false)
       }
@@ -81,6 +84,13 @@ export default function EnrollmentFlow() {
     setErrors(stepErrors)
     if (Object.keys(stepErrors).length === 0) {
       handleNext()
+    }
+  }
+
+  const handleSubmit = async () => {
+     if (isClient && typeof window !== "undefined") {
+      const event = new CustomEvent("validateStep")
+      window.dispatchEvent(event)
     }
   }
 
@@ -135,10 +145,7 @@ export default function EnrollmentFlow() {
           </Button>
 
           <Button
-            onClick={() => {
-              const event = new CustomEvent("validateStep")
-              window.dispatchEvent(event)
-            }}
+            onClick={handleSubmit}
             disabled={isLoading || isSaving}
             className="flex items-center space-x-2"
           >

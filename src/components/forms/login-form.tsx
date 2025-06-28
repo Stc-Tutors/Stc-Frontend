@@ -21,7 +21,7 @@ const formSchema = z.object({
 });
 
 export default function LoginForm() {
-const router = useRouter();
+  const router = useRouter();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -47,66 +47,62 @@ const router = useRouter();
 
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <div className="flex flex-col gap-2">
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input {...field} type="email" placeholder="Enter your email" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <div className="flex flex-col gap-2">
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input {...field} type="email" placeholder="Enter your email" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem className="relative">
+                  <FormLabel>Password</FormLabel>
+
+                  <FormControl>
+                    <PasswordInput {...field} placeholder="Enter your password" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="text-right">
+            <Link
+              href={ROUTES.AUTH.FORGOT_PASSWORD}
+              className="underline text-xs underline-offset-4">
+              Forgot password?
+            </Link>
+          </div>
+
+          <Button disabled={form.formState.isSubmitting} type="submit" className="w-full">
+            {form.formState.isSubmitting && (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             )}
-          />
+            Login
+          </Button>
 
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem className="relative">
-                <FormLabel>Password</FormLabel>
+        </form>
 
-                <FormControl>
-                  <PasswordInput {...field} placeholder="Enter your password" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-
-
-
-        <div className="text-right">
-          <Link
-            href={ROUTES.AUTH.FORGOT_PASSWORD}
-            className="underline text-xs underline-offset-4">
-            Forgot password?
+        <div className="text-center text-sm mt-4">
+          Don&apos;t have an account?{" "}
+          <Link href={ROUTES.AUTH.REGISTER} className="underline underline-offset-4">
+            Register
           </Link>
         </div>
-
-        <Button disabled={form.formState.isSubmitting} type="submit" className="w-full">
-          {form.formState.isSubmitting && (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          )}
-          Login
-        </Button>
-
-      </form>
-
-      <div className="text-center text-sm mt-4">
-        Don&apos;t have an account?{" "}
-        <Link href={ROUTES.AUTH.REGISTER} className="underline underline-offset-4">
-          Register
-        </Link>
-      </div>
-    </Form>
-
+      </Form>
   )
 }

@@ -1,4 +1,5 @@
 "use client"
+
 import { EnrollAction, EnrollmentResponse, GetEnrollmentsAction } from "@/server/enrollment"
 import { createContext, useContext, useState, type ReactNode } from "react"
 
@@ -51,7 +52,6 @@ type EnrollmentContextType = {
   updateSchedule: (schedule: Schedule[]) => void
   calculateCost: () => number
   saveEnrollment: () => Promise<{ success: boolean; data?: EnrollmentResponse; error?: string }>
-  submitPayment: (enrollmentId: string) => Promise<{ success: boolean; paymentUrl?: string; error?: string }>
   loadEnrollment: (id: string) => Promise<void>
   isLoading: boolean
   currentStep: number
@@ -131,44 +131,7 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const submitPayment = async (
-    enrollmentId: string,
-  ): Promise<{ success: boolean; paymentUrl?: string; error?: string }> => {
-    setIsLoading(true)
-
-    try {
-      const totalCost = calculateCost()
-
-      const response = await fetch("/api/payments/initiate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          enrollmentId,
-          amount: totalCost * 100,
-          email: enrollmentData.childInfo?.parentEmail || enrollmentData.childInfo?.phone || "",
-          metadata: {
-            enrollmentId,
-            childName: enrollmentData.childInfo?.fullName,
-          },
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error("Failed to initiate payment")
-      }
-
-      const { authorization_url } = await response.json()
-
-      return { success: true, paymentUrl: authorization_url }
-    } catch (error) {
-      console.error("Payment initiation error:", error)
-      return { success: false, error: error instanceof Error ? error.message : "Unknown error" }
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const loadEnrollment = async (id: string) => {
+   const loadEnrollment = async (id: string) => {
     setIsLoading(true)
     try {
       const [res, error] = await GetEnrollmentsAction()
@@ -192,7 +155,6 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
         updateSchedule,
         calculateCost,
         saveEnrollment,
-        submitPayment,
         loadEnrollment,
         isLoading,
         currentStep,
