@@ -1,10 +1,9 @@
 "use client"
 
-import Loading from "@/app/loading"
 import { MoveLeft } from "lucide-react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { Suspense, type ReactNode } from "react"
+import Loader from "../loading"
 
 interface AuthLayoutProps {
   title: string
@@ -15,19 +14,6 @@ interface AuthLayoutProps {
 }
 
 export default function AuthLayout({ title, subtitle, children, onBack, showBackButton = true }: AuthLayoutProps) {
-  const router = useRouter()
-
-  const handleBack = () => {
-    if (onBack) {
-      onBack()
-    } else if (typeof window !== "undefined" && window.history.length > 1) {
-      router.back()
-    } else {
-      router.push("/")
-    }
-  }
-
-
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Back Button */}
@@ -53,7 +39,7 @@ export default function AuthLayout({ title, subtitle, children, onBack, showBack
           </div>
 
           {/* Form Content */}
-          <Suspense fallback={<Loading />}>
+          <Suspense fallback={<Loader />}>
             <div className="">{children}</div>
           </Suspense>
         </div>
