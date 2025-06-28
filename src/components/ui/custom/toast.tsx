@@ -13,7 +13,7 @@ export function ToastError(error: string, duration: number = 5000) {
   return toast.error(
     typeof error === "string"
       ? error
-      : "UnExpected Error Occured. Please try again later",
+      : "Unexpected error occurred. Please try again later",
     {
       // style: {
       //   backgroundColor: "var(--destructive)",

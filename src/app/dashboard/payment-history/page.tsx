@@ -60,11 +60,11 @@ export default function PaymentHistoryPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "successful":
+      case PaymentStatus.COMPLETED:
         return "bg-green-100 text-green-800"
-      case "failed":
+      case PaymentStatus.FAILED:
         return "bg-red-100 text-red-800"
-      case "pending":
+      case PaymentStatus.PENDING:
         return "bg-yellow-100 text-yellow-800"
       default:
         return "bg-gray-100 text-gray-800"
@@ -173,9 +173,9 @@ export default function PaymentHistoryPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="successful">Successful</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="failed">Failed</SelectItem>
+                    <SelectItem value={PaymentStatus.COMPLETED}>Successful</SelectItem>
+                    <SelectItem value={PaymentStatus.PENDING}>Pending</SelectItem>
+                    <SelectItem value={PaymentStatus.FAILED}>Failed</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
