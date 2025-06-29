@@ -44,7 +44,7 @@ const Contact = () => {
   const socialLinks = [
     {
       icon: <FaWhatsapp size={20} />,
-      url: "https://wa.me/2347060554954",
+      url: "https://wa.me/2347089118528",
       label: "WhatsApp"
     },
     {
@@ -104,12 +104,12 @@ const Contact = () => {
             </div>
             <div className="flex items-center gap-4">
               <Mail className="text-[#38b6ff]" />
-              <span className="text-gray-700">statcomm.tc@gmail.com</span>
+              <span className="text-gray-700">stc.consult@gmail.com</span>
             </div>
-            <div className="flex items-center gap-4">
+            {/* <div className="flex items-center gap-4">
               <MapPin className="text-[#38b6ff]" />
               <span className="text-gray-700">Nigeria</span>
-            </div>
+            </div> */}
 
              {/* Updated Social Links Section */}
       <div className="flex gap-4 mt-6">
