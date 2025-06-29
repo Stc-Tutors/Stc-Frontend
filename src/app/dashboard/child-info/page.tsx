@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import PhoneInput, { CountryData } from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 
-import SignupLogo from "@/app/components/SignupLogo";
 
 // Countries and Flags
 const countries = [
@@ -128,10 +127,7 @@ export default function ChildInfoPage() {
   //   router.push("/dashboard/signup");
   // }
 
-  return (
-    // <div className="min-h-screen flex flex-col items-center justify-center bg-blue-900 py-8">
-    <div className="min-h-screen bg-blue-900 flex flex-col items-center px-4 py-8">
-          <SignupLogo />
+  return (    
       <div className="bg-white p-8 rounded-lg shadow-lg w-96">
         <h2 className="text-2xl font-bold text-center">Child Information</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -276,6 +272,5 @@ export default function ChildInfoPage() {
           </button>
         </div>
       </div>
-    </div>
   );
 }

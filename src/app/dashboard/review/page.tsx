@@ -1,198 +1,281 @@
 "use client";
-import { useState } from "react";
+
+import SignupLogo from "../../components/SignupLogo";
+
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
 
-type Profile = {
-  lastName: string;
-  firstName: string;
-  gender: string;
-  class: string;
-  preferredTutorGender: string;
-};
-
-type Location = {
-  lessonType: string;
-  address: string;
-  country: string;
-};
-
-type Schedule = {
-  lessonDays: string;
-  startTime: string;
-  duration: string;
-  hoursPerDay: string;
-  startDate: string;
-};
-
-type ChildData = {
-  profile: Profile;
-  location: Location;
-  schedule: Schedule;
-};
-
-export default function SchedulePage() {
+export default function RegisterPage() {
   const router = useRouter();
-  const [isEditing, setIsEditing] = useState(false);
+  const steps = ["/dashboard", "/dashboard/review", "/dashboard/select-service", "/dashboard/signup", "/dashboard/child-info", "/dashboard/subjects", "/dashboard/schedule", "/dashboard/payment"];
+  const [isClient, setIsClient] = useState(false);
+  const [errors, setErrors] = useState({
+    firstName: "",
+    surname: "",
+    email: "",
+    phone: "",
+    password: "",
+  });
 
-  const [children, setChildren] = useState<ChildData[]>([
-    {
-      profile: {
-        lastName: "Grey",
-        firstName: "Tofunmi",
-        gender: "Male",
-        class: "SS2",
-        preferredTutorGender: "Male",
-      },
-      location: {
-        lessonType: "Physical",
-        address: "22, Tild Street, Kas Gas bus stop, Ota, Ogun State",
-        country: "Nigeria",
-      },
-      schedule: {
-        lessonDays: "Mondays, Tuesdays, and Thursdays",
-        startTime: "2:00pm",
-        duration: "1 month",
-        hoursPerDay: "2 hours",
-        startDate: "1 week time",
-      },
-    },
-  ]);
+  const [formData, setFormData] = useState({
+    firstName: "",
+    middleName: "",
+    surname: "",
+    email: "",
+    phone: "",
+    password: "",
+  });
 
-  // Toggle edit mode
-  const toggleEdit = () => setIsEditing(!isEditing);
+  useEffect(() => {
+    setIsClient(true);
+    const savedData = typeof window !== "undefined" ? sessionStorage.getItem("registerFormData") : null;
+    if (savedData) {
+      setFormData(JSON.parse(savedData));
+    }
+  }, []);
 
-  // Handle changes for profile, location, and schedule
-  const handleInputChange = (
-    index: number,
-    section: keyof ChildData,
-    field: string,
-    value: string
-  ) => {
-    const updatedChildren = [...children];
-    updatedChildren[index] = {
-      ...updatedChildren[index],
-      [section]: {
-        ...updatedChildren[index][section],
-        [field]: value,
-      },
+  useEffect(() => {
+    if (isClient) {
+      sessionStorage.setItem("registerFormData", JSON.stringify(formData));
+    }
+  }, [formData, isClient]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => ({ ...prevData, [name]: value }));
+    // Clear error when user starts typing
+    if (errors[name as keyof typeof errors]) {
+      setErrors(prev => ({ ...prev, [name]: "" }));
+    }
+  };
+
+  const handlePhoneChange = (value: string) => {
+    setFormData((prevData) => ({ ...prevData, phone: value }));
+    if (errors.phone) {
+      setErrors(prev => ({ ...prev, phone: "" }));
+    }
+  };
+
+  const validateForm = () => {
+    let isValid = true;
+    const newErrors = {
+      firstName: "",
+      surname: "",
+      email: "",
+      phone: "",
+      password: "",
     };
-    setChildren(updatedChildren);
+
+    if (!formData.firstName.trim()) {
+      newErrors.firstName = "First name is required";
+      isValid = false;
+    }
+
+    if (!formData.surname.trim()) {
+      newErrors.surname = "Surname is required";
+      isValid = false;
+    }
+
+    if (!formData.email.trim()) {
+      newErrors.email = "Email is required";
+      isValid = false;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = "Please enter a valid email address";
+      isValid = false;
+    }
+
+    if (!formData.phone.trim()) {
+      newErrors.phone = "Phone number is required";
+      isValid = false;
+    } else if (formData.phone.replace(/\D/g, '').length < 10) {
+      newErrors.phone = "Please enter a valid phone number";
+      isValid = false;
+    }
+
+    if (!formData.password.trim()) {
+      newErrors.password = "Password is required";
+      isValid = false;
+    } else if (formData.password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
   };
 
-  // Add another child with empty fields
-  const addChild = () => {
-    setChildren([
-      ...children,
-      {
-        profile: { lastName: "", firstName: "", gender: "", class: "", preferredTutorGender: "" },
-        location: { lessonType: "", address: "", country: "" },
-        schedule: { lessonDays: "", startTime: "", duration: "", hoursPerDay: "", startDate: "" },
-      },
-    ]);
+  // const handleRegister = async () => {
+  //   const res = await fetch("http://localhost:4000/api/v1/auth/register", {
+  //     method: "POST",
+  //     headers: { "Content-Type": "application/json" },
+  //     body: JSON.stringify({
+  //       firstName: formData.firstName,
+  //       middleName: formData.middleName,
+  //       surname: formData.surname,
+  //       email: formData.email,
+  //       phone: formData.phone,
+  //       password: formData.password,
+  //     }),
+  //   });
+
+  //   const data = await res.json();
+  //   console.log(data);
+  //   return data;
+  // };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (validateForm()) {
+      sessionStorage.setItem("registerFormData", JSON.stringify(formData));
+      // await handleRegister();
+      router.push("/dashboard/review");
+    }
   };
+
+  const handleBack = () => {
+    const currentStepIndex = steps.findIndex((step) => step === window.location.pathname);
+    if (currentStepIndex > 0) {
+      router.push(steps[currentStepIndex - 1]);
+    }
+  };
+
+  const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <div className="min-h-screen flex justify-center bg-blue-900 py-12 px-6">
-      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-2xl">
-        <h2 className="text-center text-xl font-bold text-gray-900">Summary</h2>
+    <div className="min-h-screen bg-blue-900 flex flex-col items-center px-4 py-8">
+      <SignupLogo />
+    {/* <div className="min-h-screen flex flex-col items-center justify-center bg-blue-900"> */}
+      <div className="bg-white p-8 rounded-lg shadow-lg w-96">
+        <h2 className="text-2xl font-bold text-center">Register</h2>
+        <p className="text-2xl font-bold text-center">Welcome, great parent! </p>
+        <p className="text-gray-500 text-center mb-4">Create your parent account.</p>
 
-        {children.map((child, index) => (
-          <div key={index} className="mt-6 border-b pb-6">
-            {/* Profile Setup */}
-            <section>
-              <h3 className="font-semibold text-lg text-gray-700 flex justify-between">
-                Profile Setup ({index + 1})
-                <button onClick={toggleEdit} className="text-blue-600 hover:underline text-sm">
-                  {isEditing ? "Save ✓" : "Edit ✎"}
-                </button>
-              </h3>
-              <div className="bg-gray-100 p-4 rounded-lg mt-2">
-                {Object.keys(child.profile).map((key) => (
-                  <div key={key} className="flex justify-between py-1">
-                    <p className="text-gray-700">{key.replace(/([A-Z])/g, " $1")}:</p>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        className="border p-1 rounded w-1/2"
-                        value={child.profile[key as keyof Profile]}
-                        onChange={(e) =>
-                          handleInputChange(index, "profile", key, e.target.value)
-                        }
-                      />
-                    ) : (
-                      <p className="font-semibold">{child.profile[key as keyof Profile]}</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            {/* Location Section
-            <section className="mt-6">
-              <h3 className="font-semibold text-lg text-gray-700">Location</h3>
-              <div className="bg-gray-100 p-4 rounded-lg mt-2">
-                {Object.keys(child.location).map((key) => (
-                  <div key={key} className="flex justify-between py-1">
-                    <p className="text-gray-700">{key.replace(/([A-Z])/g, " $1")}:</p>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        className="border p-1 rounded w-1/2"
-                        value={child.location[key as keyof Location]}
-                        onChange={(e) =>
-                          handleInputChange(index, "location", key, e.target.value)
-                        }
-                      />
-                    ) : (
-                      <p className="font-semibold">{child.location[key as keyof Location]}</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </section> */}
-
-            {/* Schedule Section */}
-            <section className="mt-6">
-              <h3 className="font-semibold text-lg text-gray-700">Schedule</h3>
-              <div className="bg-gray-100 p-4 rounded-lg mt-2">
-                {Object.keys(child.schedule).map((key) => (
-                  <div key={key} className="flex justify-between py-1">
-                    <p className="text-gray-700">{key.replace(/([A-Z])/g, " $1")}:</p>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        className="border p-1 rounded w-1/2"
-                        value={child.schedule[key as keyof Schedule]}
-                        onChange={(e) =>
-                          handleInputChange(index, "schedule", key, e.target.value)
-                        }
-                      />
-                    ) : (
-                      <p className="font-semibold">{child.schedule[key as keyof Schedule]}</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </section>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <input
+              type="text"
+              name="firstName"
+              placeholder="First Name*"
+              value={formData.firstName}
+              onChange={handleChange}
+              className={`w-full p-2 border ${errors.firstName ? 'border-red-500' : 'border-gray-300'} rounded`}
+            />
+            {errors.firstName && <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>}
           </div>
-        ))}
+          
+          <input
+            type="text"
+            name="middleName"
+            placeholder="Middle Name"
+            value={formData.middleName}
+            onChange={handleChange}
+            className="w-full p-2 border border-gray-300 rounded"
+          />
+          
+          <div>
+            <input
+              type="text"
+              name="surname"
+              placeholder="Surname*"
+              value={formData.surname}
+              onChange={handleChange}
+              className={`w-full p-2 border ${errors.surname ? 'border-red-500' : 'border-gray-300'} rounded`}
+            />
+            {errors.surname && <p className="text-red-500 text-sm mt-1">{errors.surname}</p>}
+          </div>
+          
+          <div>
+            <input
+              type="email"
+              name="email"
+              placeholder="Email Address*"
+              value={formData.email}
+              onChange={handleChange}
+              className={`w-full p-2 border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded`}
+            />
+            {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+          </div>
+          
+          <div>
+            <PhoneInput
+              country={"us"}
+              value={formData.phone}
+              onChange={handlePhoneChange}
+              inputClass={`w-full p-2 border ${errors.phone ? 'border-red-500' : 'border-gray-300'} rounded`}
+            />
+            {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
+          </div>
 
-        {/* Add Another Child
-        <button
-          onClick={addChild}
-          className="w-full bg-gray-300 text-gray-700 py-2 mt-4 rounded hover:bg-gray-400"
-        >
-          + Add Another Child
-        </button> */}
+          <div>
+            <div className="relative">
+              <input
+              type={showPassword ? "text" : "password"}
+              name="password"
+              placeholder="Enter your password*"
+              value={formData.password}
+              onChange={(e) =>
+                setFormData({ ...formData, password: e.target.value })
+              }
+              className={`w-full p-2 border ${errors.password ? 'border-red-500' : 'border-gray-300'} rounded pr-10`}
+              />
+              <span
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-500">
+                {showPassword ? "👁‍🗨" : "👁"}
+                </span>
+                {errors.password && (
+                  <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+                  )}
+                  </div>
+            </div>
 
-        {/* Proceed to Payment */}
-        <button
-          onClick={() => router.push("/dashboard/select-service")}
-          className="mt-6 w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700"
-        >
-          Enroll Your Child → / Register New Services
-        </button>
+          <button 
+            type="submit" 
+            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
+          >
+            Continue
+          </button>
+        </form>
+
+        <div className="text-center mt-4">
+          <button className="text-blue-500 hover:underline" onClick={handleBack}>
+            ← Back
+          </button>
+        </div>
       </div>
     </div>
   );
 }
+
+
+
+
+
+
+// 'use client';
+
+// import { useState } from 'react';
+// import Countdown from '../components/Countdown';
+
+// import {motion} from "framer-motion";
+
+// export default function HomePage() {
+//   const [showContent, setShowContent] = useState(false);
+
+//   return (
+//     <div>
+//       {!showContent && <Countdown seconds={5} onComplete={() => setShowContent(true)} />}
+
+//       {showContent && (
+//         <motion.div className="flex justify-center items-center h-screen bg-[#0a1f44]"
+//         initial={{ opacity:0, scale:0.9}}
+//         animate={{ opacity:1, scale:1}}
+//         transition={{duration:1}}>
+//           <h1 className="text-white font-bold">Welcome to STC Tutors!</h1>
+//         </motion.div>
+//       )}
+//     </div>
+//   );
+// }
