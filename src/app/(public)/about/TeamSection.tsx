@@ -4,6 +4,36 @@ import TeamMember from './TeamMember';
 export default function TeamSection() {
   const team = [
     {
+        name: "Oladayo Ayodeji",
+        role: "Project Manager",
+        imageUrl: "/image/Mr Dayo.jpg",
+        socialLinks: {
+          linkedin: "https://www.linkedin.com/in/oladayostc/",
+          instagram: "https://www.instagram.com/oladayostc/"
+        }
+      },
+
+      {
+        name: "Wuraola Shoaga",
+        role: "Chief Technical Administrator",
+        imageUrl: "/image/Wura.jpg",
+        socialLinks: {
+          linkedin: "https://www.linkedin.com/in/wuraola-shoaga-b35387263",
+          twitter: "https://x.com/wu_ra_leeh?t=UvLy6SxRU3QM0XywoIihAA&s=09"
+        }
+      },
+      
+      {
+        name: "Aanuoluwapo Liasu",
+        role: "Lead Developer",
+        imageUrl: "/team/anu.jpg",
+        socialLinks: {
+          linkedin: "https://www.linkedin.com/in/laoj",
+          twitter: "https://x.com/SlimTallJosh"
+        }
+      },
+
+      {
       name: "Ayomide Alaka",
       role: "Product Designer",
       imageUrl: "/team/ayomide.jpg",
@@ -13,27 +43,24 @@ export default function TeamSection() {
       }
     },
 
-    {
-        name: "Shoaga Wuraola",
-        role: "Frontend-End Developer",
-        imageUrl: "/team/wuraola.jpg",
+      {
+        name: "Abiola Ayodeji",
+        role: "Administrative Officer",
+        imageUrl: "/team/abiola.jpg",
         socialLinks: {
-          linkedin: "https://linkedin.com/in/username",
-          twitter: "https://twitter.com/username"
+          linkedin: "https://www.linkedin.com/in/adeniji-abiola-a20b61187"
         }
       },
 
       {
-        name: "Ajayi Araoluwanimi",
-        role: "Back-End Developer",
-        imageUrl: "/team/ajayi.jpg",
+        name: "Tosin Sanni",
+        role: "Human Resources Officer",
+        imageUrl: "/image/Tosin.jpg",
         socialLinks: {
-          linkedin: "https://linkedin.com/in/username",
-          twitter: "https://twitter.com/username"
+          linkedin: "https://www.linkedin.com/sanni-oluwatsoin-31821a278"
         }
       },
 
-    // Add other team members...
   ];
 
   return (

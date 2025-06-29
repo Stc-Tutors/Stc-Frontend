@@ -84,15 +84,15 @@ const Hero = () => {
         variants={itemVariants}
       >
         <motion.h1 variants={itemVariants}>
-          We Bring <span className={styles.highlight}>Excellence</span> to Your
-          Doorstep
+          Empowering <span className={styles.highlight}>Learners,</span> Anywhere,
+          Anytime
         </motion.h1>
         <motion.p variants={itemVariants}>
-          We offer comprehensive solutions including{" "}
-          <strong>academic tutoring</strong>,{" "}
-          <strong>professional development</strong>,{" "}
-          <strong>technology training</strong>, skill acquisition, and personal
-          counseling.
+          Unlock academic success, professional growth, and digital skills through{" "}
+          <strong>expert-led tutoring</strong>,{" "}
+          <strong>tech training</strong>,{" "}
+          <strong>personal development</strong>,{" "}
+          <strong> and career support, </strong>all delivered virtually at your convenience.
         </motion.p>
         <motion.div
           className={styles.buttons}

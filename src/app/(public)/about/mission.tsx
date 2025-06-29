@@ -10,10 +10,11 @@ const MissionVision = () => {
                 We bridge the gap between students and educators
               </h2>
               <p className="mt-4 text-gray-700">
-                STC Edu. Consult connects students with qualified tutors and provides 
-                comprehensive educational services that promote academic excellence, 
-                personal growth, and lifelong learning in a secure and supportive virtual 
-                learning environment.
+                To connect learners with <span className="font-semibold"> qualified educators</span> and deliver accessible,  
+                <span className="font-semibold"> high-quality academic</span> and personal development programs 
+                through a secure and supportive <span className="font-semibold">virtual platform.</span> We aim 
+                to promote excellence, foster confidence, and empower individuals 
+                of all ages to thrive in school, in their careers, and life.
               </p>
             </div>
   
@@ -24,9 +25,9 @@ const MissionVision = () => {
                 We make quality tutoring accessible to everyone
               </h2>
               <p className="mt-4 text-gray-700">
-                Our vision is to be a global leader in online education, empowering individuals 
-                of all ages to achieve their academic and personal potential through innovative 
-                and accessible learning solutions.
+                To become a global leader in virtual education, making personalized tutoring, skill training, 
+                mentorship universally accessible, and equipping learners with the tools they need to succeed 
+                in a rapidly evolving world
               </p>
             </div>
           </div>
