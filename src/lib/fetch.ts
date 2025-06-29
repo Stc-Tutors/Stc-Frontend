@@ -26,15 +26,33 @@ export default async function fetchAPI<T>({
       headers.set("Authorization", `Bearer ${token}`);
     }
 
-    const res = await fetch(`${baseUrl}${url}`, { ...request, headers });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000); // 10 seconds timeout
+
+    const res = await fetch(`${baseUrl}${url}`, {
+       ...request, 
+       headers,
+        signal: controller.signal,
+       });
+
+    clearTimeout(timeout);
+
 
     // console.log("The response error is ", req)
     if (!res.ok) {
+      let errorMessage = 'Request failed';
+      try {
+        const data = await res.json();
+        errorMessage = data.message || errorMessage;
+      } catch {
+        errorMessage = res.statusText || errorMessage;
+      }
+
       if (res.status === 401) {
         throw new Error('Unauthorized');
       }
-      const data = await res.json();
-      throw new Error(data.message)
+
+      throw new Error(errorMessage)
     }
 
     return [res, null];
@@ -42,6 +60,14 @@ export default async function fetchAPI<T>({
     // if ((error as Error).message === 'Unauthorized') {
     //   redirect(ROUTES.AUTH.LOGIN);
     // }
+    let message = 'Something went wrong';
+    if (error instanceof Error) {
+      if (error.name === 'AbortError') {
+        message = 'Request timed out';
+      } else {
+        message = error.message;
+      }
+    } 
     return [null, (error as Error).message];
   }
 }

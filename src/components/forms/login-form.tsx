@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
 import { SigninAction } from "@/server/auth";
-import { ToastSuccess } from "../ui/custom/toast";
+import { ToastError, ToastSuccess } from "../ui/custom/toast";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { PasswordInput } from "../ui/custom/password-input";
@@ -39,6 +39,7 @@ export default function LoginForm() {
       router.push(ROUTES.DASHBOARD.HOME);
     }
     if (error) {
+      ToastError(error);
       if (process.env.NODE_ENV === "development") {
         console.error("Login error:", error);
       }
