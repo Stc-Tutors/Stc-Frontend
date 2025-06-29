@@ -72,9 +72,9 @@ export default function Footer() {
       {/* Footer Links Section */}
       <div className="container mx-auto mt-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Tutors Column */}
+          {/* Company Column */}
           <div>
-            <h2 className="text-xl font-semibold mb-4 border-b border-gray-700 pb-2">Tutors</h2>
+            <h2 className="text-xl font-semibold mb-4 border-b border-gray-700 pb-2">Company</h2>
             <ul className="space-y-2">
               {["Home", "About", "Services", "Contact"].map((item) => (
                 <li key={item}>
@@ -89,7 +89,7 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Company Column */}
+          {/* Company Column
           <div>
             <h2 className="text-xl font-semibold mb-4 border-b border-gray-700 pb-2">Company</h2>
             <ul className="space-y-2">
@@ -104,25 +104,20 @@ export default function Footer() {
                 </li>
               ))}
             </ul>
-          </div>
-
-          {/* Contact Column 
+          </div> */}
+          
+          {/* Partners Section */}
           <div>
-            <h2 className="text-xl font-semibold mb-4 border-b border-gray-700 pb-2">Contact</h2>
-            <ul className="space-y-2">
-              {["Parents", "Homeschooling", "Home Tutoring"].map((item) => (
-                <li key={item}>
-                  <Link
-                    href={`/contact/${item.toLowerCase().replace(" ", "-")}`}
-                    className="hover:text-blue-300 transition-colors"
-                  >
-                    {item}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>*/}
-        </div>
+            <h2 className="text-xl font-semibold mb-4 border-b border-gray-700 pb-2">Partners</h2>
+            <a href="https://appsandscripts.tech" target="_blank" rel="noopener noreferrer">
+            <img
+            src="/image/apps&scripts.jpg"
+            alt="Apps & Scripts"
+            className="w-20 h-auto hover:opacity-80 transition"/>
+            </a>
+            </div>
+            
+            </div>
       </div>
 
       {/* Copyright Section */}

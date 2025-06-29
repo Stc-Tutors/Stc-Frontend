@@ -4,6 +4,8 @@ import Image from 'next/image';
 import { useRef, useState } from 'react';
 import styles from './TutorsSection.module.css';
 
+import { useRouter } from 'next/navigation';
+
 const tutors = [
   {
     id: 1,
@@ -50,6 +52,7 @@ const tutors = [
 const TutorsSection = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const carouselRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   const nextSlide = () => {
     setCurrentIndex((prevIndex) => 
@@ -78,15 +81,16 @@ const TutorsSection = () => {
           className={styles.content}
         >
           <div className={styles.textContent}>
-            <p className={styles.bigheading}>Over 1200+ vetted and carefuly picked tutors</p>
+            <p className={styles.bigheading}>Building a Network of 1000+ Carefully Vetted Tutors</p>
             <h1 className={styles.heading}>Get expert tutoring from qualified educators</h1>
             <p className={styles.subheading}>
-              Learn with confidence from our carefully selected tutors who meet the highest standards of expertise and quality
+              We’re curating a strong pool of dedicated, qualified educators, each selected through a rigorous screening 
+              process to ensure high-quality, student-focused learning experiences.
             </p>
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className={styles.ctaButton}
+              className={styles.ctaButton} onClick={() => router.push("/signup")}
             >
               Find Tutor
             </motion.button>

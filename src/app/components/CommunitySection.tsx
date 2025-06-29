@@ -2,8 +2,10 @@
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import styles from './CommunitySection.module.css';
+import { useRouter } from 'next/navigation';
 
 const CommunitySection = () => {
+  const router = useRouter();
   return (
     <section className={styles.community}>
       <div className={styles.container}>
@@ -19,16 +21,16 @@ const CommunitySection = () => {
             <p className={styles.eyebrow}>Be part of a dynamic learning community</p>
             <h2 className={styles.title}>
               Join our community of<br />
-              <span className={styles.highlight}>8000+ learners</span>
+              <span className={styles.highlight}>learners globally</span>
             </h2>
             <p className={styles.description}>
-              Our vibrant network of over 8,000 learners, expert instructors, and industry 
-              professionals creates an enriching environment for growth and collaboration
+            Be part of a dynamic network of students, expert tutors, and industry professionals working together 
+            to inspire growth, foster collaboration, and unlock future-ready skills.
             </p>
             <motion.button
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.98 }}
-              className={styles.ctaButton}
+              className={styles.ctaButton} onClick={() => router.push("/signup")}
             >
               Start Learning
             </motion.button>

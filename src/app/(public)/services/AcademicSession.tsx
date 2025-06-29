@@ -8,8 +8,7 @@ const services = [
     title: "Academic Tutoring",
     number: "1+1=",
     description: [
-      "Get Expert Academic Support",
-      "Get personalized tutoring from experienced educators across all subjects. From basic concepts to advanced topics, we ensure comprehensive understanding and improved grades."
+      "We offer personalized tutoring across different levels of basic education from Basic school to post-high school across different curricula, helping students master core subjects, boost performance, and build lasting academic confidence"
     ],
     image: "/image/tutoring.jpg",
     link: "/services/academic-tutoring"
@@ -18,10 +17,9 @@ const services = [
   {
     id: 2,
     title: "Exam Preparation",
-    //number: "3.14",
     description: [
       "Ace Your Exams",
-      "Comprehensive test prep for SAT, ACT, GRE, and more with proven strategies and mock tests."
+      "Prepare with confidence for major international exams, including IGCSE, A-Levels, WAEC, JAMB, SAT, ACT, NECO, and others. Our targeted prep programs include practice tests, strategy sessions, and expert guidance."
     ],
     image:"/image/exam prep.jpg",
     link: "/services/exam-preparation"
@@ -29,35 +27,32 @@ const services = [
 
   {
     id: 3,
-    title: "Adult Education",
-    //number: "4/58",
-    description: [
-      "Learning Has No Age Limit",
-      "Flexible education programs designed for adults seeking to advance their knowledge or complete their academic journey. Study at your own pace with dedicated support"
-    ],
-    image: "/image/adult education.jpg",
-    link: "/services/adult-education"
-  },
-
-  {
-    id: 4,
     title: "Tech Training",
-    //number: "3.14",
     description: [
       "Master Modern Technology",
-      "Stay ahead in the tech industry with hands-on training in the latest tools, programming languages, and industry trends."
+      "Get certified by equipping learners between the ages of 5 and 20 with essential digital skills from coding and robotics to video editing and app development. Ideal for students and teens ready to thrive in today’s tech-driven world."
     ],
     image:"/image/tech.jpg",
     link: "/services/tech-training"
   },
 
   {
+    id: 4,
+    title: "Adult Education",
+    description: [
+      "Learning Has No Age Limit",
+      "It’s never too late to learn. Our adult education programs are tailored for personal development, literacy improvement, and practical skill-building for everyday life and career advancement."
+    ],
+    image: "/image/adult education.jpg",
+    link: "/services/adult-education"
+  },
+
+  {
     id: 5,
     title: "Language and Culture",
-    //number: "3.14",
     description: [
       "Speak Any Language With Confidence",
-      "Achieve fluency with expert language coaches and immersive learning techniques tailored to your pae and goals."
+      "Master new languages with the help of experienced instructors. We offer courses in French, Spanish, Portuguese, Swahili, Zulu, and major Nigerian languages and culture like Yoruba, Hausa, and Igbo, designed for beginners to advanced learners."
     ],
     image:"/image/culture.jpg",
     link: "/services/language-culture"
@@ -66,7 +61,6 @@ const services = [
   {
     id: 6,
     title: "Music Training",
-    //number: "3.14",
     description: [
       "Explore Your Musical Inherent With Professional Guidance",
       "Learn to play an instrument, improve your voals, or compose music under the guidance of experienced tutors."
@@ -78,7 +72,6 @@ const services = [
   {
     id: 7,
     title: "Soft Skill Development",
-    //number: "3.14",
     description: [
       "Build Professional Excellence",
       "Gain practical skills and hands-on experience to excel in your career with expert-led job training programs."
@@ -90,10 +83,9 @@ const services = [
   {
     id: 8,
     title: "Career Coaching",
-    //number: "3.14",
     description: [
       "Guidance At Your Convenience",
-      "Get personalized career coaching and mentorship to navigate career transitions and achieve professional success."
+      "We help learners prepare for future opportunities with CV reviews, interview prep, public speaking, digital literacy, and personalized coaching. Perfect for teens, graduates, and job seekers."
     ],
     image:"/image/career.jpg",
     link: "/services/career-coaching"
@@ -102,7 +94,6 @@ const services = [
   {
     id: 9,
     title: "Self-Development",
-    //number: "3.14",
     description: [
       "Shape Your Career Path",
       "Enhance your personal and professional growth with courses focused on leadership, productivity, and mindset development."
