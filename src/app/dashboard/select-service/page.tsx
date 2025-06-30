@@ -49,7 +49,7 @@ export default function SelectServicePage() {
           
           <div className="flex justify-center mt-6">
             <button
-            onClick={() => router.push("/dashboard/review")}
+            onClick={() => router.push("/dashboard/select-service")}
             className="bg-white text-blue-600 border border-gray-300 px-6 py-2 rounded-md hover:bg-gray-100 transition">
                 ← Back
                 </button>

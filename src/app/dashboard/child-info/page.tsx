@@ -3,16 +3,30 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import PhoneInput, { CountryData } from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
+import allCountries from "world-countries";
+import Select from "react-select";
 
 import SignupLogo from "@/app/components/SignupLogo";
 
 // Countries and Flags
-const countries = [
-  { name: "United States", code: "us", dialCode: "+1" },
-  { name: "United Kingdom", code: "gb", dialCode: "+44" },
-  { name: "Nigeria", code: "ng", dialCode: "+234" },
-  { name: "Canada", code: "ca", dialCode: "+1" },
-];
+// const countries = [
+//   { name: "United States", code: "us", dialCode: "+1" },
+//   { name: "United Kingdom", code: "gb", dialCode: "+44" },
+//   { name: "Nigeria", code: "ng", dialCode: "+234" },
+//   { name: "Canada", code: "ca", dialCode: "+1" },
+// ];
+
+const countries = allCountries.map((country) => ({
+  name: country.name.common,
+  code: country.cca2.toLowerCase(),
+  dialCode: country.idd.root + (country.idd.suffixes?.[0] || ''),
+}));
+
+const countryOptions = countries.map((country) => ({
+  value: country.name,
+  label: country.name,
+}));
+
 
 /*
 // Education Levels
@@ -32,7 +46,7 @@ const gradeLevels: Record<string, string[]> = {
   Canada: ["Grade 1-6", "Grade 7-9", "Grade 10-12"],
 };*/
 
-const languages = ["English", "French", "Spanish", "Mandarin", "Arabic"];
+const languages = ["English"];
 
 export default function ChildInfoPage() {
   const router = useRouter();
@@ -198,20 +212,18 @@ export default function ChildInfoPage() {
           </select>
 
           {/* Country of Residence Dropdown*/}
-          <select
-            name="countryOfResidence"
-            value={formData.countryOfResidence}
-            onChange={handleChange}
-            className="w-full p-2 border border-gray-300 rounded"
-            required
-          >
-            <option value="">Select Country of Residence</option>
-            {countries.map((country) => (
-              <option key={country.code} value={country.name}>
-                {country.name}
-              </option>
-            ))}
-          </select>  
+          <Select
+          options={countryOptions}
+          value={countryOptions.find((c) => c.value === formData.countryOfResidence)}
+          onChange={(selectedOption) =>
+            setFormData((prev) => ({
+              ...prev,
+              countryOfResidence: selectedOption?.value || '',
+            }))
+          }
+          placeholder="Select Country of Residence"
+          isSearchable
+          />
 
           {/* Curriculum Selection 
           <select

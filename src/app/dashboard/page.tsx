@@ -106,25 +106,6 @@ export default function RegisterPage() {
     return isValid;
   };
 
-  // const handleRegister = async () => {
-  //   const res = await fetch("http://localhost:4000/api/v1/auth/register", {
-  //     method: "POST",
-  //     headers: { "Content-Type": "application/json" },
-  //     body: JSON.stringify({
-  //       firstName: formData.firstName,
-  //       middleName: formData.middleName,
-  //       surname: formData.surname,
-  //       email: formData.email,
-  //       phone: formData.phone,
-  //       password: formData.password,
-  //     }),
-  //   });
-
-  //   const data = await res.json();
-  //   console.log(data);
-  //   return data;
-  // };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
