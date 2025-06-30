@@ -4,10 +4,10 @@ import Image from "next/image";
 
 export default function SignupLogoHeader() {
   return (
-    <div className="w-full flex items-start justify-start px-4 py-4">
-      <Link href="/" className="block">
+    <div className="w-fit flex items-start justify-start px-4 py-4">
+      <Link href="/dashboard" className="block">
         <Image
-          src="/image/logo_white.png"
+          src="/image/logo_black.png"
           alt="STC Tutors"
           width={160}
           height={40}

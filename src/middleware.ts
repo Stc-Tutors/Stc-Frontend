@@ -14,10 +14,10 @@ export async function middleware(request: Request) {
     "/contact",
     "/privacy-policy",
     "/services",
-    // "/dashboard",
+    "/program",
   ];
 
-  const isPublicPage = pathname === "/" || publicPaths.some(publicPath => 
+  const isPublicPage = pathname === "/" || publicPaths.some(publicPath =>
     publicPath !== "/" && pathname.startsWith(publicPath)
   );
 
@@ -25,6 +25,10 @@ export async function middleware(request: Request) {
     .get("cookie")
     ?.split("; ")
     .find(row => row.startsWith("token="));
+  // const cookieStore = cookies();
+  // console.log("The middleware cookie store is ", cookieStore);
+  // const token = cookieStore.get("token")?.value;
+  // console.log("The middleware token is ", token);
   const isAuthenticated = !!token;
 
   if (isAuthPage && isAuthenticated) {

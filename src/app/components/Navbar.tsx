@@ -47,7 +47,7 @@ const Navbar = () => {
               </li>
             ))}
           </ul>
-          <Link href="/dashboard" className={styles.ctaButton}>Get Started</Link>
+          <Link href={ROUTES.AUTH.REGISTER} className={styles.ctaButton}>Get Started</Link>
         </nav>
 
         {/* Mobile Menu Button */}
