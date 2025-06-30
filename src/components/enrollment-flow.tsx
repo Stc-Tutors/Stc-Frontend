@@ -1,7 +1,7 @@
 "use client"
 import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-// import PaystackPop from '@paystack/inline-js'
+import PaystackPop from '@paystack/inline-js'
 
 import { useEnrollment } from "@/contexts/enrollment-context"
 import { Button } from "@/components/ui/button"
@@ -14,7 +14,7 @@ import SubjectsSchedule from "./steps/subjects-schedule"
 import { ROUTES } from "@/config/routes"
 import { ToastError, ToastSuccess } from "./ui/custom/toast"
 
-const PaystackPop = typeof window !== "undefined" ? require("@paystack/inline-js") : null
+// const PaystackPop = typeof window !== "undefined" ? require("@paystack/inline-js") : null
 
 const steps = [
   { id: 1, title: "Service Selection", component: ServiceSelection },
