@@ -13,6 +13,7 @@ export interface EnrollmentResponse {
 export async function EnrollAction(
   data: any
 ): Promise<[ApiResponse<EnrollmentResponse> | null, string | null]> {
+  // console.log("The data is ", data);
   const [res, error] = await fetchAPI({
     url: "/enrollments",
     request: {

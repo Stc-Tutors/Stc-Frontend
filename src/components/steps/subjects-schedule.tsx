@@ -97,7 +97,7 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
 
   useEffect(() => {
   const newCost = calculateCost();
-  console.log("Calculated cost:", newCost);
+  // console.log("Calculated cost:", newCost);
   setTotalCost(newCost);
 }, [schedule, serviceData.selectedSubjects, calculateCost]);
 
