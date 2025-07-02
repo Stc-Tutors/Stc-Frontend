@@ -107,6 +107,7 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
       updateServiceDetails({totalCost})
       const dataToSave = {
         ...enrollmentData.childInfo,
+        ...enrollmentData.serviceDetails,
         ...enrollmentData,
       }
 
