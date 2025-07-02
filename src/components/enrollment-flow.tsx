@@ -12,6 +12,7 @@ import ChildInfo from "./steps/child-info"
 import SubjectsSchedule from "./steps/subjects-schedule"
 import { ROUTES } from "@/config/routes"
 import { ToastError, ToastSuccess } from "./ui/custom/toast"
+import PaystackPop from "@paystack/inline-js"
 
 
 const steps = [
@@ -53,8 +54,8 @@ export default function EnrollmentFlow() {
         const result = await saveEnrollment()
         if (result.success && result.data) {
           setErrors({})
-          // const popup = new PaystackPop();
-          // popup.resumeTransaction(result.data.payment.access_code)
+          const popup = new PaystackPop();
+          popup.resumeTransaction(result.data.payment.access_code)
           router.push(ROUTES.DASHBOARD.PAYMENT_HISTORY)
           ToastSuccess("Enrollment successful")
         } else {

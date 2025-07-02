@@ -108,6 +108,7 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
       const dataToSave = {
         ...enrollmentData.childInfo,
         ...enrollmentData.serviceDetails,
+        ...enrollmentData.schedule,
         ...enrollmentData,
       }
 

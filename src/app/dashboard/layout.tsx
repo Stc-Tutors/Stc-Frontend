@@ -2,7 +2,7 @@
 
 import React, { Suspense } from 'react';
 import DashboardHeader from '@/components/dashboard-header';
-import Loading from '../loading';
+import Loader from '@/components/loading';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   // const router = useRouter();
@@ -16,12 +16,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   // if (isLoading || (!user && typeof window !== "undefined")) {
   //   return (
-  //     <Loading/>
+  //     <Loader/>
   //   );
   // }
 
   return (
-    <Suspense fallback={<Loading />}>
+    <Suspense fallback={<Loader />}>
     <div className="flex-1 flex flex-col bg-gray-50">
       <DashboardHeader />
       <div className="max-w-7xl mx-auto flex-1 w-full flex flex-col items-center py-8">
