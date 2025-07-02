@@ -50,7 +50,7 @@ const handleSubmit = async () => {
     totalMonthly: totalMonthly,
   }
 
-  console.log(data);
+  // console.log(data);
 }
 
   

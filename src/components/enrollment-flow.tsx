@@ -1,7 +1,6 @@
 "use client"
 import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import PaystackPop from '@paystack/inline-js'
 
 import { useEnrollment } from "@/contexts/enrollment-context"
 import { Button } from "@/components/ui/button"
@@ -14,7 +13,6 @@ import SubjectsSchedule from "./steps/subjects-schedule"
 import { ROUTES } from "@/config/routes"
 import { ToastError, ToastSuccess } from "./ui/custom/toast"
 
-// const PaystackPop = typeof window !== "undefined" ? require("@paystack/inline-js") : null
 
 const steps = [
   { id: 1, title: "Service Selection", component: ServiceSelection },
@@ -27,7 +25,7 @@ export default function EnrollmentFlow() {
   const searchParams = useSearchParams()
   const continueId = searchParams.get("continue")
 
-  const { currentStep, setCurrentStep, isLoading, saveEnrollment, loadEnrollment, enrollmentData } = useEnrollment()
+  const { currentStep, setCurrentStep, isLoading, saveEnrollment, loadEnrollment } = useEnrollment()
 
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSaving, setIsSaving] = useState(false)
@@ -55,8 +53,8 @@ export default function EnrollmentFlow() {
         const result = await saveEnrollment()
         if (result.success && result.data) {
           setErrors({})
-          const popup = new PaystackPop();
-          popup.resumeTransaction(result.data.payment.access_code)
+          // const popup = new PaystackPop();
+          // popup.resumeTransaction(result.data.payment.access_code)
           router.push(ROUTES.DASHBOARD.HOME)
           ToastSuccess("Enrollment successful")
         } else {

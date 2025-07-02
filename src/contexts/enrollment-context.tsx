@@ -119,7 +119,7 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
       }
 
       
-      console.log("Enrollment saved successfully:", res.data)
+      // console.log("Enrollment saved successfully:", res.data)
       // setEnrollmentData((prev) => ({ ...prev, id: enrollmentId }))
 
       return { success: true, data:res.data }
