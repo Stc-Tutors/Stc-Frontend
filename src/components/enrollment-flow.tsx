@@ -55,7 +55,7 @@ export default function EnrollmentFlow() {
           setErrors({})
           // const popup = new PaystackPop();
           // popup.resumeTransaction(result.data.payment.access_code)
-          router.push(ROUTES.DASHBOARD.HOME)
+          router.push(ROUTES.DASHBOARD.PAYMENT_HISTORY)
           ToastSuccess("Enrollment successful")
         } else {
           ToastError(result.error || "Failed to save enrollment")
