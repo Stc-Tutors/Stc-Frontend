@@ -7,11 +7,11 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ArrowLeft, Search, Download } from "lucide-react"
-import Loading from "../../loading"
 import { GetPaymentsAction } from "@/server/payment"
 import { Payment, PaymentStatus } from "@/types/payment"
-import PaystackPop from '@paystack/inline-js'
-import { FaMoneyBill } from "react-icons/fa"
+// import PaystackPop from '@paystack/inline-js'
+// import { FaMoneyBill } from "react-icons/fa"
+import Loader from "@/components/loading"
 
 
 
@@ -75,11 +75,13 @@ export default function PaymentHistoryPage() {
     }
   }
 
-  const handlePayment = (reference: string) => {
-    const popup = new PaystackPop();
-    popup.resumeTransaction(reference)
-    loadPayments()
-  }
+  // const handlePayment = (reference: string) => {
+  //   if (typeof window !== "undefined") {
+  //   const popup = new PaystackPop();
+  //   popup.resumeTransaction(reference)
+  //   loadPayments()
+  //   }
+  // }
 
   const handleDownloadReceipt = async (paymentId: string) => {
     try {
@@ -101,7 +103,7 @@ export default function PaymentHistoryPage() {
   }
 
   if (isLoading) {
-    return <Loading />
+    return <Loader />
   }
 
   return (
@@ -237,12 +239,12 @@ export default function PaymentHistoryPage() {
                           View
                         </Button> */}
 
-                        {payment.status === PaymentStatus.PENDING && (
+                        {/* {payment.status === PaymentStatus.PENDING && (
                           <Button variant="outline" size="sm" onClick={() => handlePayment(payment.transactionId)}>
                             <FaMoneyBill className="w-4 h-4 mr-1" />
                             Make Payments
                           </Button>
-                        )}
+                        )} */}
                         {payment.status === PaymentStatus.COMPLETED && (
                           <Button variant="outline" size="sm" onClick={() => handleDownloadReceipt(payment.id)}>
                             <Download className="w-4 h-4 mr-1" />
