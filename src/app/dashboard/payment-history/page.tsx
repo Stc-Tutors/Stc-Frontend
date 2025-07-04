@@ -7,9 +7,11 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ArrowLeft, Search, Download } from "lucide-react"
-import Loading from "../../loading"
 import { GetPaymentsAction } from "@/server/payment"
 import { Payment, PaymentStatus } from "@/types/payment"
+// import PaystackPop from '@paystack/inline-js'
+// import { FaMoneyBill } from "react-icons/fa"
+import Loader from "@/components/loading"
 
 
 
@@ -21,22 +23,24 @@ export default function PaymentHistoryPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
 
-  useEffect(() => {
-    const loadPayments = async () => {
-      try {
-       const [data, error] = await GetPaymentsAction()
-        if (error) {
-          console.error("Failed to load payments:", error)
-          return
-        }
-        setPayments(data?.data || [])
-      } catch (error) {
+  const loadPayments = async () => {
+    try {
+      const [data, error] = await GetPaymentsAction()
+      if (error) {
         console.error("Failed to load payments:", error)
-      } finally {
-        setIsLoading(false)
+        return
       }
-    }
 
+      console.log("Payments data:", data)
+      setPayments(data?.data || [])
+    } catch (error) {
+      console.error("Failed to load payments:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
     loadPayments()
   }, [])
 
@@ -71,6 +75,14 @@ export default function PaymentHistoryPage() {
     }
   }
 
+  // const handlePayment = (reference: string) => {
+  //   if (typeof window !== "undefined") {
+  //   const popup = new PaystackPop();
+  //   popup.resumeTransaction(reference)
+  //   loadPayments()
+  //   }
+  // }
+
   const handleDownloadReceipt = async (paymentId: string) => {
     try {
       const response = await fetch(`/api/payments/${paymentId}/receipt`)
@@ -91,8 +103,8 @@ export default function PaymentHistoryPage() {
   }
 
   if (isLoading) {
-     return <Loading/>
-   }
+    return <Loader />
+  }
 
   return (
     <div className="w-full flex-1 bg-gray-50 py-8">
@@ -227,6 +239,12 @@ export default function PaymentHistoryPage() {
                           View
                         </Button> */}
 
+                        {/* {payment.status === PaymentStatus.PENDING && (
+                          <Button variant="outline" size="sm" onClick={() => handlePayment(payment.transactionId)}>
+                            <FaMoneyBill className="w-4 h-4 mr-1" />
+                            Make Payments
+                          </Button>
+                        )} */}
                         {payment.status === PaymentStatus.COMPLETED && (
                           <Button variant="outline" size="sm" onClick={() => handleDownloadReceipt(payment.id)}>
                             <Download className="w-4 h-4 mr-1" />

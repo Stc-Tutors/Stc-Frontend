@@ -43,6 +43,7 @@ export default async function fetchAPI<T>({
       let errorMessage = 'Request failed';
       try {
         const data = await res.json();
+        console.log("The response error is ", data)
         errorMessage = data.message || errorMessage;
       } catch {
         errorMessage = res.statusText || errorMessage;
