@@ -26,8 +26,8 @@ const Navbar = () => {
   }, [mobileOpen]);
 
   return (
-    <header className="header">
-      <div className="container">
+    <header className="navHeader">
+      <div className="navContainer">
         {/* Logo that acts as home link */}
         <Link href="/" className="logo">
           <Image src="/image/logo_black.png" alt="STC Tutors" width={160} height={45} priority />

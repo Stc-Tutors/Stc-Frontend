@@ -1,9 +1,9 @@
-.section {
+.Testimonialsection {
   padding: 5rem 1rem;
   background-color: #f9fafb;
 }
 
-.container {
+.Testimonialcontainer {
   max-width: 1200px;
   margin: 0 auto;
   display: flex;
@@ -11,25 +11,25 @@
   align-items: center;
 }
 
-.header {
+.Testimonialheader {
   text-align: center;
   margin-bottom: 3rem;
 }
 
-.title {
+.Testimonialtitle {
   font-size: 1.5rem;
   font-weight: 600; 
   color: var(--color-primary);
   margin-bottom: 0.5rem;
 }
 
-.subtitle {
+.Testimonialsubtitle {
   font-size: 3rem;
   color:#111827;
   font-weight: bolder;
 }
 
-.carousel {
+.Testimonialcarousel {
   display: flex;
   align-items: center;
   gap: 2rem;

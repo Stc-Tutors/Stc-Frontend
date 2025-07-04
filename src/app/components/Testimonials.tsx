@@ -2,7 +2,7 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 import Image from 'next/image';
-import styles from './Testimonials.module.css';
+import './Testimonials.css';
 
 const testimonials = [
   {
@@ -40,29 +40,29 @@ const Testimonials = () => {
   };
 
   return (
-    <section className={styles.section}>
-      <div className={styles.container}>
+    <section className="Testimonialsection">
+      <div className="Testimonialcontainer">
         {/* Centered Header */}
-        <div className={styles.header}>
-          <h2 className={styles.title}>Testimonials</h2>
-          <p className={styles.subtitle}>What our customers say</p>
+        <div className="Testimonialheader">
+          <h2 className="Testimonialtitle">Testimonials</h2>
+          <p className="Testimonialsubtitle">What our customers say</p>
         </div>
 
         {/* Carousel */}
-        <div className={styles.carousel}>
+        <div className="Testimonialcarousel">
           <button 
             onClick={prevTestimonial}
-            className={styles.navButton}
+            className="navButton"
             aria-label="Previous testimonial"
           >
             &lt;
           </button>
 
-          <div className={styles.testimonialWrapper}>
+          <div className="testimonialWrapper">
             {testimonials.map((testimonial, index) => (
               <motion.div
                 key={testimonial.id}
-                className={styles.testimonialCard}
+                className="testimonialCard"
                 initial={{ opacity: 0 }}
                 animate={{ 
                   opacity: index === currentIndex ? 1 : 0,
@@ -73,26 +73,26 @@ const Testimonials = () => {
                   display: index === currentIndex ? 'flex' : 'none',
                 }}
               >
-                <div className={styles.profileImage}>
+                <div className="profileImage">
                   <Image
                     src={testimonial.image}
                     alt={testimonial.author}
                     width={100}
                     height={100}
-                    className={styles.image}
+                    className="image"
                     style={{
                       width: "100%",
                       height: "auto"
                     }}
                   />
                 </div>
-                <div className={styles.testimonialContent}>
-                  <blockquote className={styles.quote}>
+                <div className="testimonialContent">
+                  <blockquote className="quote">
                     {testimonial.quote}
                   </blockquote>
-                  <div className={styles.authorInfo}>
-                    <p className={styles.author}>{testimonial.author}</p>
-                    <p className={styles.program}>{testimonial.program}</p>
+                  <div className="authorInfo">
+                    <p className="author">{testimonial.author}</p>
+                    <p className="program">{testimonial.program}</p>
                   </div>
                 </div>
               </motion.div>
@@ -101,7 +101,7 @@ const Testimonials = () => {
 
           <button 
             onClick={nextTestimonial}
-            className={styles.navButton}
+            className="navButton"
             aria-label="Next testimonial"
           >
             &gt;
@@ -109,12 +109,12 @@ const Testimonials = () => {
         </div>
 
         {/* Pagination Dots */}
-        <div className={styles.pagination}>
+        <div className="pagination">
           {testimonials.map((_, index) => (
             <button
               key={index}
               onClick={() => setCurrentIndex(index)}
-              className={`${styles.dot} ${index === currentIndex ? styles.activeDot : ''}`}
+              className={`dot ${index === currentIndex ? "activeDot" : ''}`}
               aria-label={`View testimonial ${index + 1}`}
             />
           ))}
