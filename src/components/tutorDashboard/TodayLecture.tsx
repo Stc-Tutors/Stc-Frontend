@@ -15,6 +15,7 @@ const lectures = [
     image: "/image/lecture-thumbnail.jpg",
     subject: "Mathematics",
   },
+
   {
     title: "English full Course with Verbs",
     rating: 4.9,
@@ -23,6 +24,7 @@ const lectures = [
     image: "/image/lecture-thumbnail.jpg",
     subject: "English",
   },
+
   {
     title: "Biology Intro Course",
     rating: 4.7,
@@ -30,6 +32,24 @@ const lectures = [
     price: "$19.0",
     image: "/image/lecture-thumbnail.jpg",
     subject: "Biology",
+  },
+
+  {
+    title: "Computer Science Intro Course",
+    rating: 4.7,
+    students: "741,200 students",
+    price: "$19.0",
+    image: "/image/lecture-thumbnail.jpg",
+    subject: "Computer Science",
+  },
+
+  {
+    title: "Civic Education Intro Course",
+    rating: 4.7,
+    students: "741,200 students",
+    price: "$19.0",
+    image: "/image/lecture-thumbnail.jpg",
+    subject: "Civic Education",
   },
 ];
 
