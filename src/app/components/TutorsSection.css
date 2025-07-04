@@ -42,7 +42,7 @@
     margin-bottom: 2rem;
   }
   
-  .ctaButton {
+  .tutorcta {
     background-color: var(--color-primary);
     color: white;
     border: none;
@@ -55,7 +55,7 @@
     box-shadow: 0 4px 6px rgba(79, 70, 229, 0.1);
   }
   
-  .ctaButton:hover {
+  .tutorcta:hover {
     background-color: var(--color-primary);
     box-shadow: 0 6px 12px rgba(56, 128, 225, 1);
   }

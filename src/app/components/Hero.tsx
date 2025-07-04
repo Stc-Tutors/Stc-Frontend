@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import styles from "./Hero.module.css";
+import "./Hero.css";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { ROUTES } from "@/config/routes";
@@ -32,14 +32,14 @@ const Hero = () => {
 
   return (
     <motion.section
-      className={styles.hero}
+      className="hero"
       initial="hidden"
       animate="visible"
       variants={containerVariants}
     >
       {/* Left Side - Image */}
       <motion.div
-        className={styles.imageContainer}
+        className="imageContainer"
         variants={itemVariants}
       >
         <Image
@@ -47,7 +47,7 @@ const Hero = () => {
           alt="Student learning online"
           width={500}
           height={500}
-          className={styles.heroImage}
+          className="heroImage"
           priority
         />
 
@@ -80,11 +80,11 @@ const Hero = () => {
 
       {/* Right Side - Text */}
       <motion.div
-        className={styles.textContainer}
+        className="textContainer"
         variants={itemVariants}
       >
         <motion.h1 variants={itemVariants}>
-          Empowering <span className={styles.highlight}>Learners,</span> Anywhere,
+          Empowering <span className="highlight">Learners,</span> Anywhere,
           Anytime
         </motion.h1>
         <motion.p variants={itemVariants}>
@@ -95,12 +95,12 @@ const Hero = () => {
           <strong> and career support, </strong>all delivered virtually at your convenience.
         </motion.p>
         <motion.div
-          className={styles.buttons}
+          className="buttons"
           variants={itemVariants}
         >
           <Link href={ROUTES.AUTH.REGISTER} passHref>
             <motion.button
-              className={styles.primaryButton}
+              className="primaryButton"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -120,7 +120,7 @@ const Hero = () => {
           {/* Login Button */}
           <Link href={ROUTES.AUTH.LOGIN} passHref>
             <motion.button
-              className={styles.secondaryButton}
+              className="secondaryButton"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}>
               Login

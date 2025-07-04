@@ -1,6 +1,6 @@
 "use client";
 import { motion } from 'framer-motion';
-import styles from './Features.module.css';
+import './Features.css';
 
 const steps = [
   {
@@ -22,20 +22,20 @@ const steps = [
 
 const Features = () => {
   return (
-    <section className={styles.section}>
-      <div className={styles.container}>
+    <section className="section">
+      <div className="featuresContainer">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
-          className={styles.header}
+          className="featuresHeader"
         >
-          <h2 className={styles.title}>Want to know how?</h2>
-          <p className={styles.subtitle}>Get excellent results in three simple steps</p>
+          <h2 className="title">Want to know how?</h2>
+          <p className="subtitle">Get excellent results in three simple steps</p>
         </motion.div>
 
-        <div className={styles.stepsContainer}>
+        <div className="stepsContainer">
           {steps.map((step, index) => (
             <motion.div
               key={step.title}
@@ -43,12 +43,12 @@ const Features = () => {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: index * 0.15 }}
               viewport={{ once: true }}
-              className={styles.stepCard}
+              className="stepCard"
             >
-              <div className={styles.stepNumber}>{index + 1}</div>
-              <div className={styles.stepIcon}>{step.icon}</div>
-              <h3 className={styles.stepTitle}>{step.title}</h3>
-              <p className={styles.stepDescription}>{step.description}</p>
+              <div className="stepNumber">{index + 1}</div>
+              <div className="stepIcon">{step.icon}</div>
+              <h3 className="stepTitle">{step.title}</h3>
+              <p className="stepDescription">{step.description}</p>
             </motion.div>
           ))}
         </div>

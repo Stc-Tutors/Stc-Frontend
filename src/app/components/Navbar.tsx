@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import styles from "./Navbar.module.css";
+import "./Navbar.css"
 import { ROUTES } from "@/config/routes";
 
 const Navbar = () => {
@@ -26,33 +26,33 @@ const Navbar = () => {
   }, [mobileOpen]);
 
   return (
-    <header className={styles.header}>
-      <div className={styles.container}>
+    <header className="header">
+      <div className="container">
         {/* Logo that acts as home link */}
-        <Link href="/" className={styles.logo}>
+        <Link href="/" className="logo">
           <Image src="/image/logo_black.png" alt="STC Tutors" width={160} height={45} priority />
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className={styles.desktopNav}>
+        <nav className="desktopNav">
           <ul>
             {links.map((link) => (
               <li key={link.path}>
                 <Link
                   href={link.path}
-                  className={`${styles.link} ${pathname.startsWith(link.path) ? styles.active : ""}`}
+                  className={`link ${pathname.startsWith(link.path) ? "active" : ""}`}
                 >
                   {link.label}
                 </Link>
               </li>
             ))}
           </ul>
-          <Link href={ROUTES.AUTH.REGISTER} className={styles.ctaButton}>Get Started</Link>
+          <Link href={ROUTES.AUTH.REGISTER} className="navbarCta">Get Started</Link>
         </nav>
 
         {/* Mobile Menu Button */}
         <button
-          className={`${styles.menuButton} ${mobileOpen ? styles.open : ""}`}
+          className={`menuButton ${mobileOpen ? "open" : ""}`}
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-label="Menu"
         >
@@ -62,14 +62,14 @@ const Navbar = () => {
         </button>
 
         {/* Mobile Menu Overlay */}
-        <div className={`${styles.mobileNav} ${mobileOpen ? styles.show : ""}`}>
-          <div className={styles.mobileContent}>
+        <div className={`mobileNav ${mobileOpen ? "show" : ""}`}>
+          <div className="mobileContent">
             <ul>
               {links.map((link) => (
                 <li key={link.path}>
                   <Link
                     href={link.path}
-                    className={`${styles.mobileLink} ${pathname.startsWith(link.path) ? styles.active : ""}`}
+                    className={`mobileLink ${pathname.startsWith(link.path) ? "active" : ""}`}
                     onClick={() => setMobileOpen(false)}
                   >
                     {link.label}
@@ -79,7 +79,7 @@ const Navbar = () => {
               <li>
                 <Link
                   href={ROUTES.AUTH.REGISTER}
-                  className={styles.mobileCta}
+                  className="mobileCta"
                   onClick={() => setMobileOpen(false)}
                 >
                   Get Started

@@ -3,12 +3,12 @@
   background-color:  #f3f4f6ee;
 }
 
-.container {
+.featuresContainer {
   max-width: 1200px;
   margin: 0 auto;
 }
 
-.header {
+.featuresHeader {
   text-align: center;
   margin-bottom: 4rem;
 }

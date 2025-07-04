@@ -2,7 +2,7 @@
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { useRef, useState } from 'react';
-import styles from './TutorsSection.module.css';
+import './TutorsSection.css';
 
 import { useRouter } from 'next/navigation';
 
@@ -71,35 +71,35 @@ const TutorsSection = () => {
   };
 
   return (
-    <section className={styles.section}>
-      <div className={styles.container}>
+    <section className="section">
+      <div className="container">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
-          className={styles.content}
+          className="content"
         >
-          <div className={styles.textContent}>
-            <p className={styles.bigheading}>Building a Network of 1000+ Carefully Vetted Tutors</p>
-            <h1 className={styles.heading}>Get expert tutoring from qualified educators</h1>
-            <p className={styles.subheading}>
+          <div className="textContent">
+            <p className="bigheading">Building a Network of 1000+ Carefully Vetted Tutors</p>
+            <h1 className="heading">Get expert tutoring from qualified educators</h1>
+            <p className="subheading">
               We’re curating a strong pool of dedicated, qualified educators, each selected through a rigorous screening 
               process to ensure high-quality, student-focused learning experiences.
             </p>
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className={styles.ctaButton} onClick={() => router.push("/signup")}
+              className="tutorcta" onClick={() => router.push("/signup")}
             >
               Find Tutor
             </motion.button>
           </div>
 
-          <div className={styles.carouselContainer}>
+          <div className="carouselContainer">
             <div 
               ref={carouselRef}
-              className={styles.carousel}
+              className="carousel"
               style={{ 
                 transform: `translateX(-${currentIndex * 100}%)` 
               }}
@@ -108,32 +108,32 @@ const TutorsSection = () => {
                 <motion.div 
                   key={tutor.id}
                   whileHover={{ y: -5 }}
-                  className={styles.tutorCard}
+                  className="tutorCard"
                 >
-                  <div className={styles.tutorImage}>
+                  <div className="tutorImage">
                     <Image
                       src={tutor.image}
                       alt={tutor.name}
                       width={280}
                       height={350}
-                      className={styles.image}
+                      className="image"
                     />
                   </div>
-                  <div className={styles.tutorInfo}>
+                  <div className="tutorInfo">
                     <h3>{tutor.name}</h3>
-                    <p className={styles.subject}>{tutor.subject}</p>
-                    <div className={styles.rating}>
+                    <p className="subject">{tutor.subject}</p>
+                    <div className="rating">
                       {[...Array(5)].map((_, i) => (
                         <span 
                           key={i} 
-                          className={i < Math.floor(tutor.rating) ? styles.starFilled : styles.starEmpty}
+                          className={i < Math.floor(tutor.rating) ? "starFilled" : "starEmpty"}
                         >
                           ★
                         </span>
                       ))}
-                      <span className={styles.ratingValue}>{tutor.rating}</span>
+                      <span className="ratingValue">{tutor.rating}</span>
                     </div>
-                    <p className={styles.experience}>{tutor.experience}</p>
+                    <p className="experience">{tutor.experience}</p>
                   </div>
                 </motion.div>
               ))}
@@ -141,25 +141,25 @@ const TutorsSection = () => {
 
             <button 
               onClick={prevSlide}
-              className={`${styles.carouselButton} ${styles.prevButton}`}
+              className="carouselButton prevButton"
               aria-label="Previous tutor"
             >
               &lt;
             </button>
             <button 
               onClick={nextSlide}
-              className={`${styles.carouselButton} ${styles.nextButton}`}
+              className="carouselButton nextButton"
               aria-label="Next tutor"
             >
               &gt;
             </button>
 
-            <div className={styles.dots}>
+            <div className="dots">
               {tutors.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => goToSlide(index)}
-                  className={`${styles.dot} ${index === currentIndex ? styles.activeDot : ''}`}
+                  className={`dot ${index === currentIndex ? "activeDot" : ''}`}
                   aria-label={`Go to slide ${index + 1}`}
                 />
               ))}
