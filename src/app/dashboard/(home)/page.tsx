@@ -1,12 +1,12 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Separator } from "@/components/ui/separator"
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
 import {
   ChevronDown,
   ChevronUp,
@@ -19,76 +19,76 @@ import {
   GraduationCap,
   Globe,
   Phone,
-  Mail
-} from "lucide-react"
-import { useUser } from "@/contexts/user-context"
-import { GetEnrollmentsAction } from "@/server/enrollment"
-import { type Student, EnrollmentStatus } from "@/types/student"
+  Mail,
+} from "lucide-react";
+import { useUser } from "@/contexts/user-context";
+import { GetEnrollmentsAction } from "@/server/enrollment";
+import { type Student, EnrollmentStatus } from "@/types/student";
 
 export default function DashboardPage() {
-  const router = useRouter()
-  const { user } = useUser()
-  const [expandedCards, setExpandedCards] = useState<number[]>([])
-  const [children, setChildren] = useState<Student[]>([])
-  const [loading, setLoading] = useState(true)
+  const router = useRouter();
+  const { user } = useUser();
+  const [expandedCards, setExpandedCards] = useState<number[]>([]);
+  const [children, setChildren] = useState<Student[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchChildren = async () => {
       try {
-        const [res, error] = await GetEnrollmentsAction()
+        const [res, error] = await GetEnrollmentsAction();
         if (error || !res?.data) {
-          return
+          return;
         }
-        setChildren(res.data)
+        setChildren(res.data);
       } catch (error) {
-        console.error("Failed to fetch children data:", error)
+        console.error("Failed to fetch children data:", error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
-    fetchChildren()
-  }, [])
+    };
+    fetchChildren();
+  }, []);
 
   const toggleCardExpansion = (index: number) => {
-    setExpandedCards((prev) => (prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]))
-  }
+    setExpandedCards(prev => (prev.includes(index) ? prev.filter(i => i !== index) : [...prev, index]));
+  };
 
   const getInitials = (fullName: string) => {
-    const names = fullName.split(" ")
-    return names.length >= 2 ? `${names[0].charAt(0)}${names[names.length - 1].charAt(0)}` : fullName.charAt(0)
-  }
+    const names = fullName.split(" ");
+    return names.length >= 2 ? `${names[0].charAt(0)}${names[names.length - 1].charAt(0)}` : fullName.charAt(0);
+  };
 
   const getStatusColor = (status: EnrollmentStatus) => {
     switch (status) {
       case EnrollmentStatus.ENROLLED:
-        return "bg-green-100 text-green-800"
+        return "bg-green-100 text-green-800";
       case EnrollmentStatus.PENDING:
-        return "bg-yellow-100 text-yellow-800"
+        return "bg-yellow-100 text-yellow-800";
       case EnrollmentStatus.COMPLETED:
-        return "bg-blue-100 text-blue-800"
+        return "bg-blue-100 text-blue-800";
       case EnrollmentStatus.CANCELLED:
-        return "bg-red-100 text-red-800"
+        return "bg-red-100 text-red-800";
       default:
-        return "bg-gray-100 text-gray-800"
+        return "bg-gray-100 text-gray-800";
     }
-  }
+  };
 
   const calculateStats = () => {
-    const totalChildren = children.length
-    const activeSessions = children.filter((child) => child.enrollmentStatus === EnrollmentStatus.ENROLLED).length
+    const totalChildren = children.length;
+    const activeSessions = children.filter(child => child.enrollmentStatus === EnrollmentStatus.ENROLLED).length;
     const totalWeeklyHours = children.reduce((total, child) => {
       return (
         total +
         child.schedule.reduce((childTotal, schedule) => {
-          return childTotal + schedule.days.length * (schedule.duration / 60)
+          return childTotal + schedule.days.length * (schedule.duration / 60);
         }, 0)
-      )
-    }, 0)
+      );
+    }, 0);
 
-    return { totalChildren, activeSessions, totalWeeklyHours }
-  }
+    return { totalChildren, activeSessions, totalWeeklyHours };
+  };
 
-  const { totalChildren, activeSessions, totalWeeklyHours } = calculateStats()
+  const { totalChildren, activeSessions, totalWeeklyHours } = calculateStats();
 
   if (!user) {
     return (
@@ -98,7 +98,7 @@ export default function DashboardPage() {
           <p className="mt-4 text-gray-600">Loading...</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -175,7 +175,7 @@ export default function DashboardPage() {
       {/* Children Cards */}
       {loading ? (
         <div className="space-y-6">
-          {[1, 2, 3].map((i) => (
+          {[1, 2, 3].map(i => (
             <Card key={i} className="animate-pulse">
               <CardContent className="p-6">
                 <div className="flex items-center space-x-4">
@@ -204,7 +204,7 @@ export default function DashboardPage() {
       ) : (
         <div className="space-y-6">
           {children.map((child, index) => {
-            const isExpanded = expandedCards.includes(index)
+            const isExpanded = expandedCards.includes(index);
             return (
               <Card key={child.id || index} className="overflow-hidden hover:shadow-lg transition-shadow">
                 <CardHeader className="pb-4">
@@ -217,7 +217,7 @@ export default function DashboardPage() {
                       </Avatar>
                       <div>
                         <CardTitle className="text-xl text-gray-900">{child.fullName}</CardTitle>
-                        <div className="flex items-center space-x-2 mt-2">
+                        <div className="flex flex-wrap items-center space-x-2 mt-2">
                           <Badge variant="secondary" className="text-xs">
                             {child.serviceDetails.ageLevel}
                           </Badge>
@@ -392,7 +392,9 @@ export default function DashboardPage() {
                                 </div>
                                 <div className="flex justify-between">
                                   <span className="text-gray-600">Days:</span>
-                                  <span className="font-medium text-gray-900">{schedule.days.join(", ")}</span>
+                                  <span className="font-medium text-gray-900 text-right">
+                                    {schedule.days.join(", ")}
+                                  </span>
                                 </div>
                                 <div className="flex justify-between">
                                   <span className="text-gray-600">Time:</span>
@@ -417,7 +419,7 @@ export default function DashboardPage() {
                   )}
                 </CardContent>
               </Card>
-            )
+            );
           })}
         </div>
       )}
@@ -426,7 +428,8 @@ export default function DashboardPage() {
       {children.length > 0 && (
         <div className="mt-8 text-center">
           <Button
-            onClick={() => router.push("/dashboard/select-service")}
+            // onClick={() => router.push("/dashboard/select-service")}
+            onClick={() => router.push("/dashboard/enroll")}
             size="lg"
             className="bg-blue-600 hover:bg-blue-700"
           >
@@ -436,5 +439,5 @@ export default function DashboardPage() {
         </div>
       )}
     </main>
-  )
+  );
 }

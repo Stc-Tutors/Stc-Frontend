@@ -1,99 +1,99 @@
-"use client"
-import { useState, useEffect } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+"use client";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
-import { useEnrollment } from "@/contexts/enrollment-context"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
-import { ChevronLeft, ChevronRight } from "lucide-react"
-import ServiceSelection from "./steps/service-selection"
-import ChildInfo from "./steps/child-info"
-import SubjectsSchedule from "./steps/subjects-schedule"
-import { ROUTES } from "@/config/routes"
-import { ToastError, ToastSuccess } from "./ui/custom/toast"
-import PaystackPop from "@paystack/inline-js"
-
+import { useEnrollment } from "@/contexts/enrollment-context";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import ServiceSelection from "./steps/service-selection";
+import ChildInfo from "./steps/child-info";
+import SubjectsSchedule from "./steps/subjects-schedule";
+import { ROUTES } from "@/config/routes";
+import { ToastError, ToastSuccess } from "./ui/custom/toast";
+import PaystackPop from "@paystack/inline-js";
+import EnrollmentReview from "./steps/review";
 
 const steps = [
   { id: 1, title: "Service Selection", component: ServiceSelection },
   { id: 2, title: "Child Information", component: ChildInfo },
   { id: 3, title: "Subjects & Schedule", component: SubjectsSchedule },
-]
+  { id: 4, title: "Review & Submit", component: EnrollmentReview },
+];
 
 export default function EnrollmentFlow() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const continueId = searchParams.get("continue")
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const continueId = searchParams.get("continue");
 
-  const { currentStep, setCurrentStep, isLoading, saveEnrollment, loadEnrollment } = useEnrollment()
+  const { currentStep, setCurrentStep, isLoading, saveEnrollment, loadEnrollment } = useEnrollment();
 
-  const [errors, setErrors] = useState<Record<string, string>>({})
-  const [isSaving, setIsSaving] = useState(false)
-  const [isClient, setIsClient] = useState(false)
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSaving, setIsSaving] = useState(false);
+  const [isClient, setIsClient] = useState(false);
 
-   useEffect(() => {
-    setIsClient(true)
-  }, [])
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   // Load existing enrollment if continuing
   useEffect(() => {
     if (continueId && isClient) {
-      loadEnrollment(continueId)
+      loadEnrollment(continueId);
     }
-  }, [continueId, loadEnrollment, isClient])
+  }, [continueId, loadEnrollment, isClient]);
 
-  const currentStepData = steps.find((step) => step.id === currentStep)
-  const CurrentStepComponent = currentStepData?.component
+  const currentStepData = steps.find(step => step.id === currentStep);
+  const CurrentStepComponent = currentStepData?.component;
 
   const handleNext = async () => {
-    
     if (currentStep === steps.length) {
-      setIsSaving(true)
+      setIsSaving(true);
       try {
-        const result = await saveEnrollment()
+        const result = await saveEnrollment();
         if (result.success && result.data) {
-          setErrors({})
+          setErrors({});
           const popup = new PaystackPop();
-          popup.resumeTransaction(result.data.payment.access_code)
-          router.push(ROUTES.DASHBOARD.PAYMENT_HISTORY)
-          ToastSuccess("Enrollment successful")
+          popup.resumeTransaction(result.data.payment.access_code);
+          router.push(ROUTES.DASHBOARD.PAYMENT_HISTORY);
+          ToastSuccess("Enrollment successful");
         } else {
-          ToastError(result.error || "Failed to save enrollment")
+          ToastError(result.error || "Failed to save enrollment");
         }
       } catch (error) {
-        ToastError("An unexpected error occurred while saving enrollment")
+        ToastError("An unexpected error occurred while saving enrollment");
       } finally {
-        setIsSaving(false)
+        setIsSaving(false);
       }
     } else if (currentStep < steps.length) {
-      setCurrentStep(currentStep + 1)
-      setErrors({})
+      setCurrentStep(currentStep + 1);
+      setErrors({});
     }
-  }
+  };
 
   const handlePrevious = () => {
     if (currentStep > 1) {
-      setCurrentStep(currentStep - 1)
-      setErrors({})
+      setCurrentStep(currentStep - 1);
+      setErrors({});
     }
-  }
+  };
 
   const handleStepValidation = (stepErrors: Record<string, string>) => {
-    setErrors(stepErrors)
+    setErrors(stepErrors);
     if (Object.keys(stepErrors).length === 0) {
-      handleNext()
+      handleNext();
     }
-  }
+  };
 
   const handleSubmit = async () => {
-     if (isClient && typeof window !== "undefined") {
-      const event = new CustomEvent("validateStep")
-      window.dispatchEvent(event)
+    if (isClient && typeof window !== "undefined") {
+      const event = new CustomEvent("validateStep");
+      window.dispatchEvent(event);
     }
-  }
+  };
 
-  const progress = (currentStep / steps.length) * 100
+  const progress = (currentStep / steps.length) * 100;
 
   return (
     <div className="w-full flex-1 bg-gray-50 py-8">
@@ -143,11 +143,7 @@ export default function EnrollmentFlow() {
             <span>Previous</span>
           </Button>
 
-          <Button
-            onClick={handleSubmit}
-            disabled={isLoading || isSaving}
-            className="flex items-center space-x-2"
-          >
+          <Button onClick={handleSubmit} disabled={isLoading || isSaving} className="flex items-center space-x-2">
             <span>{currentStep === steps.length ? (isSaving ? "Saving..." : "Save & Continue") : "Next"}</span>
             <ChevronRight className="w-4 h-4" />
           </Button>
@@ -160,5 +156,5 @@ export default function EnrollmentFlow() {
         )}
       </div>
     </div>
-  )
+  );
 }
