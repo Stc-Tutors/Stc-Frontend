@@ -15,6 +15,7 @@ import CardsSection from "@/components/tutorDashboard/CardsSection";
 import PerformanceChart from "@/components/tutorDashboard/PerformanceChart";
 import CalendarPreview from "@/components/tutorDashboard/CalendarPreview";
 import TodayLectures from "@/components/tutorDashboard/TodayLecture";
+import LessonProgress from "@/components/tutorDashboard/LessonProgress";
 
 
 export default function TutorOverviewPage() {
@@ -60,6 +61,7 @@ export default function TutorOverviewPage() {
       
       <CalendarPreview />
       <TodayLectures />
+      <LessonProgress />
 
         </section>
     {/* Classes Table + Calendar */}
