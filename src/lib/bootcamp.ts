@@ -23,7 +23,7 @@ export const bootcampAgeLevels: Record<string, string[]> = {
     "Graphics DESIGN",
     "Smart Robotics and Embedded Tech",
   ],
-  "Ages 17 and above": [
+  "17-20 years": [
     "Build with AI (Vision/NLP)",
     "Full-Stack Web Dev Bootcamp",
     "Robotics & Embedded Systems",

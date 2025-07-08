@@ -20,6 +20,7 @@ export interface IServiceDetails {
   selectedSubjects: string[];
   serviceType: string;
   tutorGender: string;
+  curriculum?: string;
   totalCost: number;
 }
 

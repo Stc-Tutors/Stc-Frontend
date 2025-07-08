@@ -17,6 +17,8 @@ export type ChildInfo = {
   parentName?: string;
   parentPhone?: string;
   parentEmail?: string;
+  countryCode?: string;
+  countryFlag?: string;
 };
 
 export type ServiceDetails = {
@@ -26,6 +28,7 @@ export type ServiceDetails = {
   selectedSubjects: string[];
   learningGoals: string;
   tutorGender: string;
+  curriculum: string;
   totalCost?: number;
 };
 

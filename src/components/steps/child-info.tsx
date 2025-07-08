@@ -6,14 +6,28 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import allCountries from "world-countries";
+import { SearchableCombobox } from "../ui/searchable-combobox"
+import { CountrySelect } from "@/components/ui/country-select"
+
 
 interface StepProps {
   onNext: (errors: Record<string, string>) => void
   errors: Record<string, string>
 }
 
-const countries = ["United States", "United Kingdom", "Nigeria", "Canada", "Australia"]
-const languages = ["English", "French", "Spanish", "Mandarin", "Arabic"]
+// const countries = ["United States", "United Kingdom", "Nigeria", "Canada", "Australia"]
+const countries = allCountries.map((country) => ({
+  name: country.name.common,
+  code: country.cca2.toLowerCase(),
+  dialCode: country.idd.root + (country.idd.suffixes?.[0] || ''),
+}));
+
+const countryOptions = countries.map((country) => ({
+  value: country.name,
+  label: country.name,
+}));
+const languages = ["English"]
 
 export default function ChildInfoStep({ onNext, errors }: StepProps) {
   const { enrollmentData, updateChildInfo } = useEnrollment()
@@ -24,6 +38,8 @@ export default function ChildInfoStep({ onNext, errors }: StepProps) {
     dateOfBirth: enrollmentData.childInfo?.dateOfBirth || "",
     phone: enrollmentData.childInfo?.phone || "",
     countryOfResidence: enrollmentData.childInfo?.countryOfResidence || "",
+    countryCode: enrollmentData.childInfo?.countryCode || "",
+    countryFlag: enrollmentData.childInfo?.countryFlag || "",
     primaryLanguage: enrollmentData.childInfo?.primaryLanguage || "",
     parentName: enrollmentData.childInfo?.parentName || "",
     parentPhone: enrollmentData.childInfo?.parentPhone || "",
@@ -190,24 +206,20 @@ export default function ChildInfoStep({ onNext, errors }: StepProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="countryOfResidence">Country of Residence *</Label>
-              <Select
-                value={formData.countryOfResidence}
-                onValueChange={(value) => handleChange("countryOfResidence", value)}
-              >
-                <SelectTrigger className={errors.countryOfResidence ? "border-red-500" : ""}>
-                  <SelectValue placeholder="Select country" />
-                </SelectTrigger>
-                <SelectContent>
-                  {countries.map((country) => (
-                    <SelectItem key={country} value={country}>
-                      {country}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.countryOfResidence && <p className="text-red-600 text-sm">{errors.countryOfResidence}</p>}
-            </div>
+  <Label htmlFor="countryOfResidence">Country of Residence *</Label>
+  <CountrySelect
+    value={formData.countryOfResidence}
+    onChange={(name, dialCode, flag) => {
+      handleChange("countryOfResidence", name)
+      handleChange("countryCode", dialCode)
+      handleChange("countryFlag", flag) // ✅ optional: if you want to store flag
+    }}
+  />
+  {errors.countryOfResidence && (
+    <p className="text-red-600 text-sm">{errors.countryOfResidence}</p>
+  )}
+</div>
+
 
             <div className="space-y-2">
               <Label htmlFor="primaryLanguage">Primary Teaching Language *</Label>
