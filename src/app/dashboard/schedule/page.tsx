@@ -28,6 +28,7 @@ export default function SchedulingPage() {
 
   const [childName, setChildName] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [curriculum, setCurriculum] = useState("");
 
 
   // useEffect(() => {
@@ -68,7 +69,11 @@ export default function SchedulingPage() {
   }
 
   if (info) {
-    const { selectedSubjects, learningFocus } = JSON.parse(info);
+    const parsedInfo = JSON.parse(info);
+    const { selectedSubjects, learningFocus, curriculum } = parsedInfo;
+
+    setCurriculum(curriculum || "");
+
     if (learningFocus === "Tech for Kids") {
       setIsTechForKids(true);
       setSubjects(
@@ -135,6 +140,7 @@ export default function SchedulingPage() {
   }
 
   sessionStorage.setItem("schedule", JSON.stringify(subjects));
+  sessionStorage.setItem("totalAmount", totalMonthly.toString());
   router.push("/dashboard/payment");
 };
 
@@ -147,8 +153,15 @@ export default function SchedulingPage() {
     }, 0);
   };
 
-  const totalWeekly = calculateTotal();
-  const totalMonthly = totalWeekly * 4;
+  // const totalWeekly = calculateTotal();
+  // const totalMonthly = totalWeekly * 4;
+
+  // const totalMonthly = isTechForKids ? 25000 : calculateTotal() * 4;
+
+  const totalMonthly =
+  isTechForKids && curriculum === "Nigerian" ? 25000 :
+  isTechForKids ? 50000 :
+  calculateTotal() * 4;
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -292,16 +305,30 @@ export default function SchedulingPage() {
                     <p>Days: {subject.days.join(", ") || "None"}</p>
                     <p>Duration/day: {subject.duration} mins</p>
                     <p>Time: {subject.time}</p>
-                    <p>Monthly Total: ₦{(cost * 4).toLocaleString()}</p>
+
+                    {isTechForKids && (
+                      <p>Monthly Total: ₦{totalMonthly.toLocaleString()}</p>
+                    )}
                   </div>
                 );
               })}
+
+              {isTechForKids && (
+                <div className="text-sm font-semibold mt-4">
+                  Total for Tech Bootcamp: ₦{totalMonthly.toLocaleString()}
+                  </div>
+                )}
+              
               <div className="text-sm text-gray-500 mt-2">
-                Est. Monthly: ₦{totalMonthly.toLocaleString()}
+              Est. Monthly: ₦{isTechForKids ? curriculum === "Nigerian" ?
+              "25,000" : "50,000" :
+              totalMonthly.toLocaleString()}
               </div>
+              {!isTechForKids && (
+
               <div className="text-sm text-gray-500">
                 Based on selected days and durations
-              </div>
+              </div>)}
             </div>
           </div>
         )}

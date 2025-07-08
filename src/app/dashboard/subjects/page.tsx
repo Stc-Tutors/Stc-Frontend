@@ -455,6 +455,20 @@ export default function SubjectsPage() {
         {/* Tech for Kids - Age Level and Track */}
         {learningFocus === "Tech for Kids" && (
           <>
+          {/*Curriculum for Tech for Kids*/}
+            <select 
+            value={curriculum}
+            onChange={(e) => setCurriculum(e.target.value)}
+            className="w-full p-2 border mt-2 rounded"
+            required
+            >
+              <option value="">Select Country/Curriculum</option>
+              <option value="Nigerian">Nigeria</option>
+              <option value="British">UK</option>
+              <option value="American">USA</option>
+              <option value="Canada">Canada</option>
+            </select>
+            
             <select
               value={ageLevel}
               onChange={(e) => {
