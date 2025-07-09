@@ -17,11 +17,15 @@ interface StepProps {
 
 export default function EnrollmentReview({ onNext, errors }: StepProps) {
   const { enrollmentData, setCurrentStep, calculateCost } = useEnrollment();
+  // const { enrollmentData, setCurrentStep } = useEnrollment();
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [acceptPrivacy, setAcceptPrivacy] = useState(false);
 
   const { childInfo, serviceDetails, schedule } = enrollmentData;
-  const totalCost = calculateCost();
+  // const totalCost = calculateCost();
+  // const totalCost = enrollmentData.totalCost || 0;
+  const totalCost = enrollmentData.totalCost || calculateCost();
+
 
   useEffect(() => {
     const handleValidation = () => {

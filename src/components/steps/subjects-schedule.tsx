@@ -499,10 +499,21 @@ useEffect(() => {
   updateSchedule(schedule);
 }, [schedule]);
 
-  useEffect(() => {
-    const newCost = isTechService ? techBootcampCost : calculateCost();
-    setTotalCost(newCost);
-  }, [schedule, serviceData.selectedSubjects, serviceData.curriculum]);
+  // useEffect(() => {
+  //   const newCost = isTechService ? techBootcampCost : calculateCost();
+  //   setTotalCost(newCost);
+  // }, [schedule, serviceData.selectedSubjects, serviceData.curriculum]);
+
+useEffect(() => {
+  const newCost = isTechService ? techBootcampCost : calculateCost();
+
+  setTotalCost(newCost);
+
+  // ✅ Save to enrollmentData context so it reflects in Review step
+  updateServiceDetails({ ...serviceData });
+  updateSchedule(schedule);
+  enrollmentData.totalCost = newCost;
+}, [schedule, serviceData.selectedSubjects, serviceData.curriculum]);
 
   useEffect(() => {
     const validate = () => {
@@ -575,6 +586,13 @@ useEffect(() => {
                     <SelectItem value="British">UK</SelectItem>
                     <SelectItem value="American">USA</SelectItem>
                     <SelectItem value="Canada">Canada</SelectItem>
+                    <SelectItem value="Ghanaian">Ghana</SelectItem>
+                    <SelectItem value="SouthAfrican">South Africa</SelectItem>
+                    <SelectItem value="Kenyan">Kenya</SelectItem>
+                    <SelectItem value="Zambian">Zambia</SelectItem>
+                    <SelectItem value="Irish">Ireland</SelectItem>
+                    <SelectItem value="Swiss">Switzerland</SelectItem>
+                    <SelectItem value="Chinese">China</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
