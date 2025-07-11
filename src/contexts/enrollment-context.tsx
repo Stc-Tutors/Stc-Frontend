@@ -59,6 +59,7 @@ type EnrollmentContextType = {
   isLoading: boolean;
   currentStep: number;
   setCurrentStep: (step: number) => void;
+  setTotalCost: (amount: number) => void;
 };
 
 const EnrollmentContext = createContext<EnrollmentContextType | undefined>(undefined);
@@ -149,6 +150,14 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  {/*NEW*/}
+  const setTotalCost = (amount: number) => {
+    setEnrollmentData((prev) => ({
+      ...prev,
+      totalCost: amount,
+    }))
+  }
+
   return (
     <EnrollmentContext.Provider
       value={{
@@ -162,6 +171,8 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
         isLoading,
         currentStep,
         setCurrentStep,
+        // setEnrollmentData,
+        setTotalCost
       }}
     >
       {children}

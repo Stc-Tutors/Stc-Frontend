@@ -2,6 +2,9 @@
 
 import Image from 'next/image';
 import Head from 'next/head';
+import Link from "next/link";
+import { BookOpen } from "lucide-react";
+
 // import YouTubePlayer from '@/app/components/YouTubePlayer';
 
 import { useRouter } from 'next/navigation';
@@ -27,6 +30,17 @@ export default function TechTraining() {
             Empower young minds with future-ready tech skills, one virtual lesson at a time.
           </p>
         </section>
+
+        {/* Enroll */}
+        <div className="my-8 flex justify-center">
+          <a
+          href="/signup"
+          className="inline-flex items-center gap-2 bg-[#38b6ff] text-white px-6 py-3 rounded-lg text-base md:text-lg hover:bg-[#1c2574] transition duration-200"
+          >
+            <BookOpen className="w-5 h-5" />
+            Enroll
+            </a>
+            </div>
 
         {/* Overview */}
         <section className="mb-12">
@@ -138,12 +152,12 @@ export default function TechTraining() {
               ← Back
               </button>
 
-            <a
-            href="/signup"
+            <Link
+            href="/"
             className="inline-block bg-[#38b6ff] text-white px-8 py-4 rounded-lg text-lg hover:bg-[#1c2574]"
-          >
-            Start Tech Training Now
-          </a>
+            >
+              Start Tech Training Now
+              </Link>
           </div>
           
           <p className="mt-2 text-gray-600">Ignite your child's tech journey today!</p>

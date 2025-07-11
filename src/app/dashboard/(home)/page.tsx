@@ -266,6 +266,20 @@ export default function DashboardPage() {
                     ))}
                   </div>
 
+                  {/* Resume Enrollment Button if PENDING */}
+                  {child.enrollmentStatus === "PENDING" && (
+                    <div className="mt-4">
+                      <Button
+                      size="sm"
+                      onClick={() =>
+                        router.push(`/dashboard/enroll?edit=true&childId=${child.id}`)
+                      }
+                      className="bg-yellow-500 hover:bg-yellow-600 text-white">
+                        Resume Enrollment
+                        </Button>
+                        </div>
+                      )}
+
                   {/* Expanded Details */}
                   {isExpanded && (
                     <div className="mt-6 pt-6 border-t space-y-6">

@@ -439,8 +439,10 @@ const durationOptions = [
 ];
 
 export default function SubjectsSchedule({ onNext, errors }: StepProps) {
-  const { enrollmentData, updateServiceDetails, updateSchedule, calculateCost } = useEnrollment();
-  const [totalCost, setTotalCost] = useState(enrollmentData.totalCost || 0);
+  // const { enrollmentData, updateServiceDetails, updateSchedule, calculateCost } = useEnrollment();
+  // const [totalCost, setTotalCost] = useState(enrollmentData.totalCost || 0);
+  const { enrollmentData, updateServiceDetails, updateSchedule, calculateCost, setTotalCost } = useEnrollment();
+  const [totalCost, setLocalTotalCost] = useState(enrollmentData.totalCost || 0);
 
   const [serviceData, setServiceData] = useState({
     ageLevel: enrollmentData.serviceDetails?.ageLevel || "",
@@ -504,15 +506,23 @@ useEffect(() => {
   //   setTotalCost(newCost);
   // }, [schedule, serviceData.selectedSubjects, serviceData.curriculum]);
 
-useEffect(() => {
-  const newCost = isTechService ? techBootcampCost : calculateCost();
+  {/*OLD*/}
+// useEffect(() => {
+//   const newCost = isTechService ? techBootcampCost : calculateCost();
 
-  setTotalCost(newCost);
+//   setTotalCost(newCost);
+
+  useEffect(() => {
+  const computedCost = isTechService ? techBootcampCost : calculateCost();
+  setLocalTotalCost(computedCost);
+  setTotalCost(computedCost);
+
+  // setTotalCost(newCost);
 
   // ✅ Save to enrollmentData context so it reflects in Review step
-  updateServiceDetails({ ...serviceData });
-  updateSchedule(schedule);
-  enrollmentData.totalCost = newCost;
+  // updateServiceDetails({ ...serviceData });
+  // updateSchedule(schedule);
+  // enrollmentData.totalCost = newCost;
 }, [schedule, serviceData.selectedSubjects, serviceData.curriculum]);
 
   useEffect(() => {
@@ -526,7 +536,9 @@ useEffect(() => {
 
       if (Object.keys(stepErrors).length === 0) {
         updateServiceDetails(serviceData);
-        // updateSchedule(schedule);
+        updateSchedule(schedule);
+        // enrollmentData.totalCost = isTechService ? techBootcampCost : calculateCost();
+        setTotalCost (isTechService ? techBootcampCost : calculateCost());
       }
 
       onNext(stepErrors);
