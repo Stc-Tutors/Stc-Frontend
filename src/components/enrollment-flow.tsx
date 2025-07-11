@@ -29,6 +29,23 @@ export default function EnrollmentFlow() {
 
   const { currentStep, setCurrentStep, isLoading, saveEnrollment, loadEnrollment } = useEnrollment();
 
+  const stepMap: Record<string, number> = {
+    service: 0,
+    role: 1,
+    child: 2,
+    subjects: 3,
+    review: 4,
+    // payment: 5,
+  };
+    
+  useEffect(() => {
+    const step = searchParams.get("step");
+    if (step && stepMap[step] !==undefined) {
+      setCurrentStep(stepMap[step]);
+    }
+  },[searchParams,setCurrentStep]);
+  // const { currentStep, setCurrentStep, isLoading, saveEnrollment, loadEnrollment } = useEnrollment();
+
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [isClient, setIsClient] = useState(false);

@@ -272,7 +272,8 @@ export default function DashboardPage() {
                       <Button
                       size="sm"
                       onClick={() =>
-                        router.push(`/dashboard/enroll?edit=true&childId=${child.id}`)
+                        // router.push(`/dashboard/enroll?edit=true&childId=${child.id}`)
+                        router.push(`/dashboard/enroll?edit=true&childId=${child.id}&step=review`)
                       }
                       className="bg-yellow-500 hover:bg-yellow-600 text-white">
                         Resume Enrollment
