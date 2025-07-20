@@ -28,8 +28,8 @@ import Image from "next/image";
 // };
 
 const sidebarLinks = [
-  { label: "Dashboard", icon: Home, href: "/lms-home/tutor/overview" },
-  { label: "Schedule", icon: Calendar, href: "/lms-home/tutor/schedule" },
+  { label: "Dashboard", icon: Home, href: "/lms-home/student/overview" },
+  { label: "Schedule", icon: Calendar, href: "/lms-home/student/scheduling" },
   { label: "Classroom", icon: Users, href: "#" },
   { label: "Messages", icon: MessageSquare, href: "#" },
   { label: "Assessment", icon: BookOpen, href: "#" },

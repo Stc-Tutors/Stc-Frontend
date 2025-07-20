@@ -33,13 +33,13 @@ export default function TechTraining() {
 
         {/* Enroll */}
         <div className="my-8 flex justify-center">
-          <a
-          href="/signup"
+          <Link
+          href="/auth/register"
           className="inline-flex items-center gap-2 bg-[#38b6ff] text-white px-6 py-3 rounded-lg text-base md:text-lg hover:bg-[#1c2574] transition duration-200"
           >
             <BookOpen className="w-5 h-5" />
             Enroll
-            </a>
+            </Link>
             </div>
 
         {/* Overview */}

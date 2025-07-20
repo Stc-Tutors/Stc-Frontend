@@ -11,14 +11,14 @@ import {
 } from "recharts";
 import { CalendarDays } from "lucide-react";
 import {motion} from "framer-motion";
-import CardsSection from "@/components/tutorDashboard/CardsSection";
-import PerformanceChart from "@/components/tutorDashboard/PerformanceChart";
-import CalendarPreview from "@/components/tutorDashboard/CalendarPreview";
-import TodayLectures from "@/components/tutorDashboard/TodayLecture";
-import LessonProgress from "@/components/tutorDashboard/LessonProgress";
+import CardsSection from "@/components/studentDashboard/CardsSection";
+import PerformanceChart from "@/components/studentDashboard/PerformanceChart";
+import CalendarPreview from "@/components/studentDashboard/CalendarPreview";
+import TodayLectures from "@/components/studentDashboard/TodayLecture";
+import LessonProgress from "@/components/studentDashboard/LessonProgress";
+import YourClasses from "@/components/studentDashboard/YourClasses";
 
-
-export default function TutorOverviewPage() {
+export default function StudentOverviewPage() {
   const [chartData, setChartData] = useState([
     { name: "Mon", students: 5 },
     { name: "Tue", students: 8 },
@@ -57,43 +57,14 @@ export default function TutorOverviewPage() {
     <CardsSection />
 
     <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-      <PerformanceChart />
-      
+      <PerformanceChart />     
       <CalendarPreview />
       <TodayLectures />
       <LessonProgress />
-
         </section>
-    {/* Classes Table + Calendar */}
-    <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-      {/* Your Classes */}
-      <div className="bg-white p-4 rounded-lg shadow-sm">
-        <h3 className="font-semibold text-gray-800 mb-2">Your Classes</h3>
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-left text-gray-500 border-b">
-              <th className="pb-2">Course</th>
-              <th className="pb-2">Day</th>
-              <th className="pb-2">Time</th>
-            </tr>
-          </thead>
-          <tbody>
-            {[
-              { course: "Physics - Grade 10", day: "Tuesday", time: "2:00 PM" },
-              { course: "Chemistry - Grade 11", day: "Thursday", time: "11:00 AM" },
-            ].map((cls, i) => (
-              <tr key={i} className="border-b">
-                <td className="py-2">{cls.course}</td>
-                <td>{cls.day}</td>
-                <td>{cls.time}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
 
-      
-
-    </section>
+        <section className="grid grid-cols-1 lg:grid-cols-1 gap-4">
+          <YourClasses />
+          </section>
   </div>
 )};
