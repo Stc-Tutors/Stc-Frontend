@@ -47,13 +47,13 @@ export default function TeamMember({
       <p className="text-indigo-600 mb-4">{role}</p>
 
       {/* Social Links - Appear on hover */}
-      <div className="flex justify-center space-x-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+      <div className="flex justify-center space-x-3 transition-opacity duration-300">
         {socialLinks.linkedin && (
           <a 
             href={socialLinks.linkedin} 
             target="_blank" 
             rel="noopener noreferrer"
-            className="text-gray-400 hover:text-blue-600 transition-colors"
+            className="text-blue-400 hover:text-blue-600 transition-colors"
             aria-label={`${name}'s LinkedIn`}
           >
             <FaLinkedin size={18} />
@@ -64,7 +64,7 @@ export default function TeamMember({
             href={socialLinks.twitter} 
             target="_blank" 
             rel="noopener noreferrer"
-            className="text-gray-400 hover:text-blue-400 transition-colors"
+            className="text-blue-300 hover:text-blue-400 transition-colors"
             aria-label={`${name}'s Twitter`}
           >
             <FaTwitter size={18} />
