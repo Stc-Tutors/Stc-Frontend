@@ -17,6 +17,7 @@ import CalendarPreview from "@/components/studentDashboard/CalendarPreview";
 import TodayLectures from "@/components/studentDashboard/TodayLecture";
 import LessonProgress from "@/components/studentDashboard/LessonProgress";
 import YourClasses from "@/components/studentDashboard/YourClasses";
+import ActionDropdown from "@/components/studentDashboard/ActionDropdown";
 
 export default function StudentOverviewPage() {
   const [chartData, setChartData] = useState([

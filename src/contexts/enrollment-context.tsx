@@ -92,18 +92,39 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
     updateServiceDetails({ totalCost });
   };
 
+  // const calculateCost = () => {
+  //   if (!enrollmentData.schedule) return 0;
+
+  //   const ratePerHour = 1000;
+  //   const totalWeekly = enrollmentData.schedule.reduce((total, subject) => {
+  //     const hoursPerDay = subject.duration / 60;
+  //     const totalHours = subject.days.length * hoursPerDay;
+  //     return total + totalHours * ratePerHour;
+  //   }, 0);
+
+  //   return totalWeekly * 4;
+  // };
+
   const calculateCost = () => {
-    if (!enrollmentData.schedule) return 0;
+  const serviceType = enrollmentData.serviceDetails?.serviceType;
+  const curriculum = enrollmentData.serviceDetails?.curriculum;
 
-    const ratePerHour = 1000;
-    const totalWeekly = enrollmentData.schedule.reduce((total, subject) => {
-      const hoursPerDay = subject.duration / 60;
-      const totalHours = subject.days.length * hoursPerDay;
-      return total + totalHours * ratePerHour;
-    }, 0);
+  if (serviceType === "tech-bootcamp") {
+    // ✅ Fixed cost logic for tech bootcamp
+    return curriculum === "Nigerian" ? 25000 : 50000;
+  }
 
-    return totalWeekly * 4;
-  };
+  if (!enrollmentData.schedule) return 0;
+
+  const ratePerHour = 1000;
+  const totalWeekly = enrollmentData.schedule.reduce((total, subject) => {
+    const hoursPerDay = subject.duration / 60;
+    const totalHours = subject.days.length * hoursPerDay;
+    return total + totalHours * ratePerHour;
+  }, 0);
+
+  return totalWeekly * 4;
+};
 
   const saveEnrollment = async (): Promise<{ success: boolean; data?: EnrollmentResponse; error?: string }> => {
     setIsLoading(true);
@@ -117,6 +138,7 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
         ...enrollmentData.schedule,
         ...enrollmentData,
       };
+      //  console.log("Data to be sent to the backend:", dataToSave);
 
       const [res, error] = await EnrollAction(dataToSave);
 
