@@ -34,6 +34,8 @@ export default function EnrollmentReview({ onNext, errors }: StepProps) {
   useEffect(() => {
     const handleValidation = () => {
       const stepErrors: Record<string, string> = {};
+      // console.log("Validation Errors:", stepErrors);
+
 
       if (!acceptTerms) {
         stepErrors.terms = "Please accept the terms and conditions";
