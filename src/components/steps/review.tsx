@@ -24,7 +24,11 @@ export default function EnrollmentReview({ onNext, errors }: StepProps) {
   const { childInfo, serviceDetails, schedule } = enrollmentData;
   // const totalCost = calculateCost();
   // const totalCost = enrollmentData.totalCost || 0;
-  const totalCost = enrollmentData.totalCost || calculateCost();
+
+  // const totalCost = enrollmentData.totalCost || calculateCost();
+  const totalCost = enrollmentData.totalCost ?? 0;
+// console.log("✅ Review Page - Total Cost:", totalCost, "Service Type:", serviceDetails?.serviceType);
+
 
 
   useEffect(() => {
@@ -56,8 +60,7 @@ export default function EnrollmentReview({ onNext, errors }: StepProps) {
       scheduleItem.duration === 60
         ? "1 hour"
         : scheduleItem.duration === 30
-        ? "30 minutes"
-        : scheduleItem.duration === 90
+        ? "30 minutes"        : scheduleItem.duration === 90
         ? "1 hr 30 mins"
         : scheduleItem.duration === 120
         ? "2 hours"

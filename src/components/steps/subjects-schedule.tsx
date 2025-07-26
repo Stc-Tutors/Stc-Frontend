@@ -458,6 +458,7 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
   console.log("Service Type:", serviceType);
 
 
+  const isNigerian = serviceData.curriculum.trim().toLowerCase() === "nigerian";
   const techBootcampCost = isTechService && serviceData.curriculum === "Nigerian" ? 25000 : 50000;
 
   // useEffect(() => {
@@ -478,7 +479,7 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
   //   });
   // }, [serviceData.selectedSubjects, isTechService]);
   
-  {/*updated*/}
+  {/*Auto-update schedule when subjects changes*/}
   useEffect(() => {
   setSchedule((prev) => {
     const updated = serviceData.selectedSubjects.map((subject) => {
@@ -512,18 +513,40 @@ useEffect(() => {
 
 //   setTotalCost(newCost);
 
-  useEffect(() => {
-  const computedCost = isTechService ? techBootcampCost : calculateCost();
+//   useEffect(() => {
+//   const computedCost = isTechService ? techBootcampCost : calculateCost();
+//   setLocalTotalCost(computedCost);
+//   setTotalCost(computedCost);
+
+//   // setTotalCost(newCost);
+
+//   // ✅ Save to enrollmentData context so it reflects in Review step
+//   // updateServiceDetails({ ...serviceData });
+//   // updateSchedule(schedule);
+//   // enrollmentData.totalCost = newCost;
+// }, [schedule, serviceData.selectedSubjects, serviceData.curriculum]);
+
+{/*UPDATED CALCULATE COST*/}
+useEffect(() => {
+  let computedCost = 0;
+
+  if (isTechService) {
+    if (!serviceData.curriculum) {
+      computedCost = 0; // No country selected
+    } else if (serviceData.curriculum === "Nigerian") {
+      computedCost = 25000;
+    } else {
+      computedCost = 50000;
+    }
+  } else {
+    computedCost = calculateCost();
+  }
+
   setLocalTotalCost(computedCost);
   setTotalCost(computedCost);
+  // console.log("✅ Computed Cost:", computedCost, "Curriculum:", serviceData.curriculum);
+}, [schedule, serviceData.selectedSubjects, serviceData.curriculum, isTechService]);
 
-  // setTotalCost(newCost);
-
-  // ✅ Save to enrollmentData context so it reflects in Review step
-  // updateServiceDetails({ ...serviceData });
-  // updateSchedule(schedule);
-  // enrollmentData.totalCost = newCost;
-}, [schedule, serviceData.selectedSubjects, serviceData.curriculum]);
 
   useEffect(() => {
     const validate = () => {

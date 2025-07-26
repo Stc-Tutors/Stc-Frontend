@@ -136,6 +136,7 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
         ...enrollmentData.childInfo,
         ...enrollmentData.serviceDetails,
         ...enrollmentData.schedule,
+        totalCost,
         ...enrollmentData,
       };
       //  console.log("Data to be sent to the backend:", dataToSave);
