@@ -455,7 +455,7 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
   const [schedule, setSchedule] = useState<Schedule[]>(enrollmentData.schedule || []);
   const serviceType = enrollmentData.serviceDetails?.serviceType;
   const isTechService = serviceType === "tech-bootcamp";
-  console.log("Service Type:", serviceType);
+  // console.log("Service Type:", serviceType);
 
 
   const isNigerian = serviceData.curriculum.trim().toLowerCase() === "nigerian";

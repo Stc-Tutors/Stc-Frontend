@@ -89,7 +89,8 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
       schedule,
     }));
     const totalCost = calculateCost();
-    updateServiceDetails({ totalCost });
+    setTotalCost(totalCost);
+    // updateServiceDetails({ totalCost });
   };
 
   // const calculateCost = () => {
@@ -109,10 +110,16 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
   const serviceType = enrollmentData.serviceDetails?.serviceType;
   const curriculum = enrollmentData.serviceDetails?.curriculum;
 
+  // if (serviceType === "tech-bootcamp") {
+  //   // ✅ Fixed cost logic for tech bootcamp
+  //   return curriculum === "Nigerian" ? 25000 : 50000;
+  // }
+
   if (serviceType === "tech-bootcamp") {
-    // ✅ Fixed cost logic for tech bootcamp
-    return curriculum === "Nigerian" ? 25000 : 50000;
-  }
+  const normalizedCurriculum = (curriculum || "").trim().toLowerCase();
+  return normalizedCurriculum === "nigerian" ? 25000 : 50000;
+}
+
 
   if (!enrollmentData.schedule) return 0;
 
@@ -131,7 +138,8 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
 
     try {
       const totalCost = calculateCost();
-      updateServiceDetails({ totalCost });
+      setTotalCost(totalCost);
+      // updateServiceDetails({ totalCost });
       const dataToSave = {
         ...enrollmentData.childInfo,
         ...enrollmentData.serviceDetails,
