@@ -60,6 +60,8 @@ type EnrollmentContextType = {
   currentStep: number;
   setCurrentStep: (step: number) => void;
   setTotalCost: (amount: number) => void;
+  setEnrollmentData:
+  React.Dispatch<React.SetStateAction<Partial<EnrollmentData>>>; 
 };
 
 const EnrollmentContext = createContext<EnrollmentContextType | undefined>(undefined);
@@ -138,18 +140,24 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
 
     try {
       const totalCost = calculateCost();
+      console.log("Total cost before saving:", totalCost)
       setTotalCost(totalCost);
+      console.log("Final childInfo going to backend", enrollmentData.childInfo)
+
       // updateServiceDetails({ totalCost });
+      console.log("Child info:", enrollmentData.childInfo)
       const dataToSave = {
-        ...enrollmentData.childInfo,
-        ...enrollmentData.serviceDetails,
-        ...enrollmentData.schedule,
+        childInfo:enrollmentData.childInfo,
+        serviceDetails: {...enrollmentData.serviceDetails,
         totalCost,
-        ...enrollmentData,
-      };
-      //  console.log("Data to be sent to the backend:", dataToSave);
+      },
+      schedule:enrollmentData.schedule,
+    };
+      
+       console.log("Data to be sent to the backend:", dataToSave);
 
       const [res, error] = await EnrollAction(dataToSave);
+      console.log("API respond from backend:", res);
 
       if (!res || error) {
         throw new Error(error || "Failed to save enrollment");
@@ -201,9 +209,9 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
         loadEnrollment,
         isLoading,
         currentStep,
-        setCurrentStep,
-        // setEnrollmentData,
-        setTotalCost
+        setCurrentStep,      
+        setTotalCost,
+        setEnrollmentData,
       }}
     >
       {children}
