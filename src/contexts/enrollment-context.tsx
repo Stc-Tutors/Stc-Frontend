@@ -60,8 +60,7 @@ type EnrollmentContextType = {
   currentStep: number;
   setCurrentStep: (step: number) => void;
   setTotalCost: (amount: number) => void;
-  setEnrollmentData:
-  React.Dispatch<React.SetStateAction<Partial<EnrollmentData>>>; 
+  setEnrollmentData: React.Dispatch<React.SetStateAction<Partial<EnrollmentData>>>;
 };
 
 const EnrollmentContext = createContext<EnrollmentContextType | undefined>(undefined);
@@ -109,52 +108,50 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
   // };
 
   const calculateCost = () => {
-  const serviceType = enrollmentData.serviceDetails?.serviceType;
-  const curriculum = enrollmentData.serviceDetails?.curriculum;
+    const serviceType = enrollmentData.serviceDetails?.serviceType;
+    const curriculum = enrollmentData.serviceDetails?.curriculum;
 
-  // if (serviceType === "tech-bootcamp") {
-  //   // ✅ Fixed cost logic for tech bootcamp
-  //   return curriculum === "Nigerian" ? 25000 : 50000;
-  // }
+    // if (serviceType === "tech-bootcamp") {
+    //   // ✅ Fixed cost logic for tech bootcamp
+    //   return curriculum === "Nigerian" ? 25000 : 50000;
+    // }
 
-  if (serviceType === "tech-bootcamp") {
-  const normalizedCurriculum = (curriculum || "").trim().toLowerCase();
-  return normalizedCurriculum === "nigerian" ? 25000 : 50000;
-}
+    if (serviceType === "tech-bootcamp") {
+      const normalizedCurriculum = (curriculum || "").trim().toLowerCase();
+      return normalizedCurriculum === "nigerian" ? 25000 : 50000;
+    }
 
+    if (!enrollmentData.schedule) return 0;
 
-  if (!enrollmentData.schedule) return 0;
+    const ratePerHour = 1000;
+    const totalWeekly = enrollmentData.schedule.reduce((total, subject) => {
+      const hoursPerDay = subject.duration / 60;
+      const totalHours = subject.days.length * hoursPerDay;
+      return total + totalHours * ratePerHour;
+    }, 0);
 
-  const ratePerHour = 1000;
-  const totalWeekly = enrollmentData.schedule.reduce((total, subject) => {
-    const hoursPerDay = subject.duration / 60;
-    const totalHours = subject.days.length * hoursPerDay;
-    return total + totalHours * ratePerHour;
-  }, 0);
-
-  return totalWeekly * 4;
-};
+    return totalWeekly * 4;
+  };
 
   const saveEnrollment = async (): Promise<{ success: boolean; data?: EnrollmentResponse; error?: string }> => {
     setIsLoading(true);
 
     try {
       const totalCost = calculateCost();
-      console.log("Total cost before saving:", totalCost)
+      console.log("Total cost before saving:", totalCost);
       setTotalCost(totalCost);
-      console.log("Final childInfo going to backend", enrollmentData.childInfo)
+      console.log("Final childInfo going to backend", enrollmentData.childInfo);
 
-      // updateServiceDetails({ totalCost });
-      console.log("Child info:", enrollmentData.childInfo)
+      updateServiceDetails({ totalCost });
+      console.log("Child info:", enrollmentData.childInfo);
       const dataToSave = {
-        childInfo:enrollmentData.childInfo,
-        serviceDetails: {...enrollmentData.serviceDetails,
-        totalCost,
-      },
-      schedule:enrollmentData.schedule,
-    };
-      
-       console.log("Data to be sent to the backend:", dataToSave);
+        ...enrollmentData.childInfo,
+        serviceDetails: enrollmentData.serviceDetails,
+        schedule: enrollmentData.schedule,
+        // ...enrollmentData,
+      };
+
+      console.log("Data to be sent to the backend:", dataToSave);
 
       const [res, error] = await EnrollAction(dataToSave);
       console.log("API respond from backend:", res);
@@ -189,13 +186,15 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  {/*NEW*/}
+  {
+    /*NEW*/
+  }
   const setTotalCost = (amount: number) => {
-    setEnrollmentData((prev) => ({
+    setEnrollmentData(prev => ({
       ...prev,
       totalCost: amount,
-    }))
-  }
+    }));
+  };
 
   return (
     <EnrollmentContext.Provider
@@ -209,7 +208,7 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
         loadEnrollment,
         isLoading,
         currentStep,
-        setCurrentStep,      
+        setCurrentStep,
         setTotalCost,
         setEnrollmentData,
       }}
