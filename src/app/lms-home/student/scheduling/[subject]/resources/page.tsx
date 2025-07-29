@@ -220,7 +220,7 @@ export default function ResourcesMaterials() {
       {/* Top Navigation */}
       <div className="flex items-center gap-2 mb-6">
         <ArrowLeft
-          className="w-5 h-5 cursor-pointer"
+          className="w-5 h-5 cursor-pointer hover:text-blue-500"
           onClick={() => router.back()}
         />
         <p className="text-gray-500 text-sm">

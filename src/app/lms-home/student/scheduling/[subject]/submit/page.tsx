@@ -114,9 +114,9 @@ export default function SubmitAssignmentPage() {
     console.log("Submitting", formData.get("file"), formData.get("description"));
     alert("Submitted successfully!");
   };
-
+  
   const handleBack = () => {
-    router.push(`/lms-home/student/schedule/${subject}`);
+    router.push(`/lms-home/student/scheduling`);
   };
 
   return (
@@ -125,7 +125,7 @@ export default function SubmitAssignmentPage() {
         {/* Back Button */}
         <button
           onClick={handleBack}
-          className="flex items-center text-gray-600 hover:text-gray-800 mb-2"
+          className="flex items-center text-gray-600 hover:text-blue-500 mb-2 cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back
