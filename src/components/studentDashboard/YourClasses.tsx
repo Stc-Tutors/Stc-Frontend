@@ -3,6 +3,10 @@
 import Image from "next/image";
 import { MoreHorizontal } from "lucide-react";
 import { useState } from "react";
+import Link from "next/link";
+
+const formatSubject = (subject: string) =>
+  encodeURIComponent(subject.trim().toLowerCase().replace(/\s+/g, "-"));
 
 const mockClasses = [
   {
@@ -65,7 +69,9 @@ export default function YourClasses() {
       <table className="w-full text-sm text-left">
         <thead>
           <tr className="text-gray-500 border-b">
-            <th className="pb-2">Tutor</th>
+            <th className="pb-2">
+              Tutor's Name <span className="text-xs">▲▼</span>
+              </th>
             <th className="pb-2">Class Grade</th>
             <th className="pb-2">
               Subject <span className="text-xs">▲▼</span>
@@ -107,10 +113,37 @@ export default function YourClasses() {
                 {openIndex === i && (
                   <div className="absolute right-0 mt-2 w-40 bg-white border rounded-md shadow z-10">
                     <ul className="text-sm text-gray-700">
-                      <li className="hover:bg-blue-50 hover:text-blue-500 px-4 py-2 cursor-pointer">View Details</li>
-                      <li className="hover:bg-blue-50 hover:text-blue-500 px-4 py-2 cursor-pointer">Cancel Class</li>
-                      <li className="hover:bg-blue-50 hover:text-blue-500 px-4 py-2 cursor-pointer">Reschedule Class</li>
-                      <li className="hover:bg-blue-50 hover:text-blue-500 px-4 py-2 cursor-pointer">View Tutor Profile</li>
+                      <li>
+                        <Link href={`/lms-home/student/classes/${formatSubject(cls.subject)}/details`}>
+                        <div className="hover:bg-blue-50 hover:text-blue-500 px-4 py-2 cursor-pointer">
+                          View Details
+                          </div>
+                          </Link>
+                          </li>
+
+                      <li>
+                        <Link href={`/lms-home/student/classes/${formatSubject(cls.subject)}/cancel`}>
+                        <div className="hover:bg-blue-50 hover:text-blue-500 px-4 py-2 cursor-pointer">
+                          Cancel Class
+                          </div>
+                          </Link>
+                          </li>
+
+                      <li>
+                        <Link href={`/lms-home/student/classes/${formatSubject(cls.subject)}/reschedule`}>
+                        <div className="hover:bg-blue-50 hover:text-blue-500 px-4 py-2 cursor-pointer">
+                          Reschedule Class
+                          </div>
+                          </Link>
+                          </li>
+
+                      <li>
+                        <Link href={`/lms-home/student/classes/${formatSubject(cls.subject)}/tutors`}>
+                        <div className="hover:bg-blue-50 hover:text-blue-500 px-4 py-2 cursor-pointer">
+                          View Tutor Profile
+                          </div>
+                          </Link>
+                          </li>
                     </ul>
                   </div>
                 )}

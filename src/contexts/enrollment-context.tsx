@@ -60,6 +60,7 @@ type EnrollmentContextType = {
   currentStep: number;
   setCurrentStep: (step: number) => void;
   setTotalCost: (amount: number) => void;
+  setEnrollmentData: React.Dispatch<React.SetStateAction<Partial<EnrollmentData>>>;
 };
 
 const EnrollmentContext = createContext<EnrollmentContextType | undefined>(undefined);
@@ -89,10 +90,37 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
       schedule,
     }));
     const totalCost = calculateCost();
-    updateServiceDetails({ totalCost });
+    setTotalCost(totalCost);
+    // updateServiceDetails({ totalCost });
   };
 
+  // const calculateCost = () => {
+  //   if (!enrollmentData.schedule) return 0;
+
+  //   const ratePerHour = 1000;
+  //   const totalWeekly = enrollmentData.schedule.reduce((total, subject) => {
+  //     const hoursPerDay = subject.duration / 60;
+  //     const totalHours = subject.days.length * hoursPerDay;
+  //     return total + totalHours * ratePerHour;
+  //   }, 0);
+
+  //   return totalWeekly * 4;
+  // };
+
   const calculateCost = () => {
+    const serviceType = enrollmentData.serviceDetails?.serviceType;
+    const curriculum = enrollmentData.serviceDetails?.curriculum;
+
+    // if (serviceType === "tech-bootcamp") {
+    //   // ✅ Fixed cost logic for tech bootcamp
+    //   return curriculum === "Nigerian" ? 25000 : 50000;
+    // }
+
+    if (serviceType === "tech-bootcamp") {
+      const normalizedCurriculum = (curriculum || "").trim().toLowerCase();
+      return normalizedCurriculum === "nigerian" ? 25000 : 50000;
+    }
+
     if (!enrollmentData.schedule) return 0;
 
     const ratePerHour = 1000;
@@ -110,15 +138,23 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
 
     try {
       const totalCost = calculateCost();
+      console.log("Total cost before saving:", totalCost);
+      setTotalCost(totalCost);
+      console.log("Final childInfo going to backend", enrollmentData.childInfo);
+
       updateServiceDetails({ totalCost });
+      console.log("Child info:", enrollmentData.childInfo);
       const dataToSave = {
         ...enrollmentData.childInfo,
-        ...enrollmentData.serviceDetails,
-        ...enrollmentData.schedule,
-        ...enrollmentData,
+        serviceDetails: enrollmentData.serviceDetails,
+        schedule: enrollmentData.schedule,
+        // ...enrollmentData,
       };
 
+      console.log("Data to be sent to the backend:", dataToSave);
+
       const [res, error] = await EnrollAction(dataToSave);
+      console.log("API respond from backend:", res);
 
       if (!res || error) {
         throw new Error(error || "Failed to save enrollment");
@@ -150,13 +186,15 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  {/*NEW*/}
+  {
+    /*NEW*/
+  }
   const setTotalCost = (amount: number) => {
-    setEnrollmentData((prev) => ({
+    setEnrollmentData(prev => ({
       ...prev,
       totalCost: amount,
-    }))
-  }
+    }));
+  };
 
   return (
     <EnrollmentContext.Provider
@@ -171,8 +209,8 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
         isLoading,
         currentStep,
         setCurrentStep,
-        // setEnrollmentData,
-        setTotalCost
+        setTotalCost,
+        setEnrollmentData,
       }}
     >
       {children}

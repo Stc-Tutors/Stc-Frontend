@@ -10,7 +10,6 @@ const tabs = [
   { label: "Schedule", icon: Calendar },
   { label: "Exam", icon: FileText },
   { label: "Resource Library", icon: BookOpen },
-  // { label: "Course List", icon: ClipboardList },
 ];
 
 const classData = [

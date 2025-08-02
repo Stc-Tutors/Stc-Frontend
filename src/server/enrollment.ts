@@ -1,19 +1,15 @@
 "use server";
 
 import fetchAPI, { type ApiResponse } from "@/lib/fetch";
-import { Student, } from "@/types/student";
+import { Student } from "@/types/student";
 import { PaymentRequest } from "@/types/payment";
-
 
 export interface EnrollmentResponse {
   student: Student;
   payment: PaymentRequest;
 }
 
-export async function EnrollAction(
-  data: any
-): Promise<[ApiResponse<EnrollmentResponse> | null, string | null]> {
-  // console.log("The data is ", data);
+export async function EnrollAction(data: any): Promise<[ApiResponse<EnrollmentResponse> | null, string | null]> {
   const [res, error] = await fetchAPI({
     url: "/enrollments",
     request: {
@@ -26,13 +22,10 @@ export async function EnrollAction(
   });
 
   const resData = res ? ((await res.json()) as ApiResponse<EnrollmentResponse>) : null;
-  // console.log("The response data is ", resData, error);
-
   return [resData, error];
 }
 
-export async function GetEnrollmentsAction(
-): Promise<[ApiResponse<Student[]> | null, string | null]> {
+export async function GetEnrollmentsAction(): Promise<[ApiResponse<Student[]> | null, string | null]> {
   const [res, error] = await fetchAPI({
     url: "/enrollments",
     request: {

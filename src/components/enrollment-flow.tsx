@@ -68,7 +68,9 @@ export default function EnrollmentFlow() {
     if (currentStep === steps.length) {
       setIsSaving(true);
       try {
+        console.log("About to save enrollment...");
         const result = await saveEnrollment();
+        console.log("API response from saveEnrollments:", result)
         if (result.success && result.data) {
           setErrors({});
           const popup = new PaystackPop();

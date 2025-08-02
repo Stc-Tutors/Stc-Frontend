@@ -99,11 +99,12 @@ export default function ChildInfoStep({ onNext, errors }: StepProps) {
       }
 
       if (Object.keys(stepErrors).length === 0) {
-        updateChildInfo(formData as any)
+        updateChildInfo(formData)
       }
 
-      onNext(stepErrors)
-    }
+      // updateChildInfo(formData); // ✅ Always save the data before continuing
+      onNext(stepErrors);
+    };
 
     window.addEventListener("validateStep", handleValidation)
     return () => window.removeEventListener("validateStep", handleValidation)
