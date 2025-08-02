@@ -1,6 +1,6 @@
 "use client";
 import { useState } from 'react';
-import CourseCard from '../components/CourseCard';
+import CourseCard from '../../../components/CourseCard';
 
 export default function Home() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(true);

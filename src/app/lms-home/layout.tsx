@@ -34,10 +34,10 @@ const sidebarLinks = [
   { label: "Messages", icon: MessageSquare, href: "#" },
   { label: "Assessment", icon: BookOpen, href: "/lms-home/student/assessment" },
   { label: "Analytics", icon: BarChart2, href: "/lms-home/student/analytics" },
-  { label: "Courses", icon: NotebookPen, href: "#" },
+  { label: "Courses", icon: NotebookPen, href: "/lms-home/student/courses" },
   { label: "Profile", icon: UserRound, href: "/lms-home/tutor/profile" },
   { label: "Support", icon: Headphones, href: "#" },
-  { label: "Notifications", icon: Bell, href: "#", badge: true },
+  { label: "Notifications", icon: Bell, href: "/lms-home/student/notification", badge: true },
 ];
 
 export default function LMSLayout({ children }: { children: React.ReactNode }) {
