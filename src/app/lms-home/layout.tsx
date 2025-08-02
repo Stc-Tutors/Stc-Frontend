@@ -33,7 +33,7 @@ const sidebarLinks = [
   { label: "Classroom", icon: Users, href: "#" },
   { label: "Messages", icon: MessageSquare, href: "#" },
   { label: "Assessment", icon: BookOpen, href: "/lms-home/student/assessment" },
-  { label: "Analytics", icon: BarChart2, href: "#" },
+  { label: "Analytics", icon: BarChart2, href: "/lms-home/student/analytics" },
   { label: "Courses", icon: NotebookPen, href: "#" },
   { label: "Profile", icon: UserRound, href: "/lms-home/tutor/profile" },
   { label: "Support", icon: Headphones, href: "#" },
