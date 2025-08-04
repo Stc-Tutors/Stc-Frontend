@@ -90,7 +90,7 @@ const TutorsSection = () => {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="tutorcta" onClick={() => router.push("/signup")}
+              className="tutorcta" onClick={() => router.push("/lms-home/student/overview")}
             >
               Find Tutor
             </motion.button>

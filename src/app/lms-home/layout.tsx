@@ -102,7 +102,7 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
                                 
                                 {/* Notifications */}
                                 <Link
-                                href="#"
+                                href="/lms-home/student/notification"
                                 className="flex items-center gap-3 text-gray-600 hover:text-[#38b6ff] hover:translate-x-3">
                                     <Bell className="w-5 h-5" />
                                     Notifications
