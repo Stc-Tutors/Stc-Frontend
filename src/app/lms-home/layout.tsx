@@ -35,7 +35,7 @@ const sidebarLinks = [
   { label: "Assessment", icon: BookOpen, href: "/lms-home/student/assessment" },
   { label: "Analytics", icon: BarChart2, href: "/lms-home/student/analytics" },
   { label: "Courses", icon: NotebookPen, href: "/lms-home/student/courses" },
-  { label: "Profile", icon: UserRound, href: "/lms-home/tutor/profile" },
+  { label: "Profile", icon: UserRound, href: "/lms-home/student/profile" },
   { label: "Support", icon: Headphones, href: "#" },
   { label: "Notifications", icon: Bell, href: "/lms-home/student/notification", badge: true },
 ];

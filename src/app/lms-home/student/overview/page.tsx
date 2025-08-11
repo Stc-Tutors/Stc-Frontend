@@ -18,6 +18,7 @@ import TodayLectures from "@/components/studentDashboard/TodayLecture";
 import LessonProgress from "@/components/studentDashboard/LessonProgress";
 import YourClasses from "@/components/studentDashboard/YourClasses";
 import ActionDropdown from "@/components/studentDashboard/ActionDropdown";
+import Timetable from "@/components/studentDashboard/TimeTable";
 
 export default function StudentOverviewPage() {
   const [chartData, setChartData] = useState([
@@ -65,7 +66,7 @@ export default function StudentOverviewPage() {
         </section>
 
         <section className="grid grid-cols-1 lg:grid-cols-1 gap-4">
-          <YourClasses />
+          <Timetable />
           </section>
   </div>
 )};

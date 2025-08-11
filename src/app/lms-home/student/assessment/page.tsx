@@ -21,16 +21,16 @@ export default function ExamPage() {
         className="flex items-center text-gray-700 mb-4 cursor-pointer hover:text-blue-500"
       >
         <ArrowLeft className="w-4 h-4 mr-2" />
-        <span>Exam</span>
+        <span>Assessment</span>
       </button>
 
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-3">
           <CalendarDays className="text-blue-500" />
-          <h2 className="text-lg font-semibold text-gray-800">My Exams</h2>
+          <h2 className="text-lg font-semibold text-gray-800">Assessment</h2>
         </div>
-        <Button className="bg-blue-500 hover:bg-blue-600 text-white">Exam Calendar</Button>
+        <Button className="bg-blue-500 hover:bg-blue-600 text-white">Assessment Calendar</Button>
       </div>
 
       {/* Table Head */}

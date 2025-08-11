@@ -16,12 +16,14 @@ const classData = [
   {
     subject: "Mathematics",
     teacher: "Mrs. Adeola",
+    profilePic: "/images/tutors/adeola.jpg",
     status: "Upcoming",
     date: "July 20, 2025",
   },
   {
     subject: "English",
     teacher: "Mr. Johnson",
+    profilePic: "/images/tutors/johnson.jpg",
     status: "Submitted",
     date: "July 12, 2025",
   },
@@ -147,9 +149,9 @@ export default function SchedulePage() {
             <thead className="text-gray-500 border-b">
               <tr>
                 <th className="py-2 text-left">Subject</th>
-                <th className="py-2 text-left">Teacher</th>
+                <th className="py-2 text-left">Tutors</th>
                 <th className="py-2 text-left">Status</th>
-                <th className="py-2 text-left">Submission Date</th>
+                <th className="py-2 text-left">Submission</th>
                 <th className="py-2 text-left">Action</th>
               </tr>
             </thead>
@@ -162,7 +164,20 @@ export default function SchedulePage() {
                 return (
                 <tr key={index} className="border-b">
                   <td className="py-3">{cls.subject}</td>
-                  <td>{cls.teacher}</td>
+                  <td className="flex items-center gap-2 py-3">
+                    <img
+                    src={cls.profilePic}
+                    alt={cls.teacher}
+                    className="w-8 h-8 rounded-full object-cover border"/>
+                    <Link
+                    href={`/lms-home/student/tutor/${encodeURIComponent(
+                      cls.teacher.toLowerCase().replace(/\s+/g, "-")
+                    )}`}
+                    className="text-blue-600 hover:underline">
+                      {cls.teacher}
+                      </Link>
+                      </td>
+                      
                   <td>
                     <span
                     className={`px-2 py-1 rounded-full text-xs font-medium ${
@@ -193,7 +208,7 @@ export default function SchedulePage() {
                                 <li>
                                   <Link href={`/lms-home/student/scheduling/${formattedSubject}/attempt`}>
                                   <div className="px-4 py-2 hover:bg-blue-50 cursor-pointer">
-                                    Attempt Assignment
+                                    Assessment
                                     </div>
                                     </Link>
                                     </li>
