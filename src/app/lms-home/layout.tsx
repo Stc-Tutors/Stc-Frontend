@@ -37,7 +37,7 @@ const sidebarLinks = [
   { label: "Courses", icon: NotebookPen, href: "/lms-home/student/courses" },
   { label: "Profile", icon: UserRound, href: "/lms-home/tutor/profile" },
   { label: "Support", icon: Headphones, href: "#" },
-  { label: "Notifications", icon: Bell, href: "#", badge: true },
+  { label: "Notifications", icon: Bell, href: "/lms-home/student/notification", badge: true },
 ];
 
 export default function LMSLayout({ children }: { children: React.ReactNode }) {
@@ -102,7 +102,7 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
                                 
                                 {/* Notifications */}
                                 <Link
-                                href="/lms-home/student/notifications"
+                                href="/lms-home/student/notification"
                                 className="flex items-center gap-3 text-gray-600 hover:text-[#38b6ff] hover:translate-x-3">
                                     <Bell className="w-5 h-5" />
                                     Notifications
