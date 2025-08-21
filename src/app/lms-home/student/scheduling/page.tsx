@@ -111,7 +111,7 @@ export default function SchedulePage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-2">
-        <Link href="/lms-home/student/overview">
+        <Link href="/lms-home/student/dashboard">
           <ChevronLeft className="hover:text-gray-900 w-5 h-5 text-gray-600 cursor-pointer" />
         </Link>
         <h1 className="hover:text-gray-900 text-xl font-bold text-gray-600 cursor-pointer">Schedule</h1>
