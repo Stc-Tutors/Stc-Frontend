@@ -16,7 +16,7 @@ export default function TutorPage() {
                     <Image src="/stock.webp" width={50} height={50}  alt=""/> 
                 </div>
                 <div>
-                    <h1 className="font-bold text-2xl mb-2">Willaim Krutz</h1>
+                    <h1 className="font-bold text-2xl mb-2">Williams Krutz</h1>
                     <p className="text-gray-500">Mathematics instructor at SC Tutor</p>
                 </div>   
              </div>

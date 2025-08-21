@@ -112,177 +112,308 @@
 
 
 
-'use client';
+// "use client";
 
-import { ArrowLeft, Download } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
+// import {
+//   ArrowLeft,
+//   FileText,
+//   Headphones,
+//   Video,
+// } from "lucide-react";
+// import { useRouter } from "next/navigation";
 
-const resources = [
-  {
-    title: 'Mathematics Formular Sheet',
-    fileType: 'PDF',
-    size: '2MB',
-    added: 'Added yesterday',
-    url: '/sample.pdf', // Replace with actual file URLs
-  },
-  {
-    title: 'Mathematics Formular Sheet',
-    fileType: 'PDF',
-    size: '2MB',
-    added: 'Added yesterday',
-    url: '/sample.pdf',
-  },
-  {
-    title: 'Mathematics Formular Sheet',
-    fileType: 'PDF',
-    size: '2MB',
-    added: 'Added yesterday',
-    url: '/sample.pdf',
-  },
-  {
-    title: 'Mathematics Formular Sheet',
-    fileType: 'PDF',
-    size: '2MB',
-    added: 'Added yesterday',
-    url: '/sample.pdf',
-  },
-  {
-    title: 'Mathematics Formular Sheet',
-    fileType: 'PDF',
-    size: '2MB',
-    added: 'Added yesterday',
-    url: '/sample.pdf',
-  },
-  {
-    title: 'Mathematics Formular Sheet',
-    fileType: 'PDF',
-    size: '2MB',
-    added: 'Added yesterday',
-    url: '/sample.pdf',
-  },
-  {
-    title: 'Mathematics Formular Sheet',
-    fileType: 'PDF',
-    size: '2MB',
-    added: 'Added yesterday',
-    url: '/sample.pdf',
-  },
-  {
-    title: 'Mathematics Formular Sheet',
-    fileType: 'PDF',
-    size: '2MB',
-    added: 'Added yesterday',
-    url: '/sample.pdf',
-  },
-  {
-    title: 'Mathematics Formular Sheet',
-    fileType: 'PDF',
-    size: '2MB',
-    added: 'Added yesterday',
-    url: '/sample.pdf',
-  },
-  {
-    title: 'Mathematics Formular Sheet',
-    fileType: 'PDF',
-    size: '2MB',
-    added: 'Added yesterday',
-    url: '/sample.pdf',
-  },
-  {
-    title: 'Mathematics Formular Sheet',
-    fileType: 'PDF',
-    size: '2MB',
-    added: 'Added yesterday',
-    url: '/sample.pdf',
-  },
-  {
-    title: 'Mathematics Formular Sheet',
-    fileType: 'PDF',
-    size: '2MB',
-    added: 'Added yesterday',
-    url: '/sample.pdf',
-  },
-  {
-    title: 'Mathematics Formular Sheet',
-    fileType: 'PDF',
-    size: '2MB',
-    added: 'Added yesterday',
-    url: '/sample.pdf',
-  },
-];
+// const resources = [
+//   {
+//     title: "Mathematics Formula Sheet",
+//     size: "2MB",
+//     added: "Added yesterday",
+//     pdfUrl: "/resources/math.pdf",
+//     audioUrl: "/resources/math.mp3",
+//     videoUrl: "/resources/math.mp4",
+//   },
+//   {
+//     title: "English Comprehensive Sheet",
+//     size: "2MB",
+//     added: "Added yesterday",
+//     pdfUrl: "/resources/english.pdf",
+//     audioUrl: "/resources/english.mp3",
+//     videoUrl: "/resources/english.mp4",
+//   },
+//   {
+//     title: "Biology: Reproductive System",
+//     size: "3MB",
+//     added: "Added today",
+//     pdfUrl: "/resources/biology.pdf",
+//     audioUrl: "/resources/biology.mp3",
+//     videoUrl: "/resources/biology.mp4",
+//   },
+//   {
+//     title: "Physics: Velocity",
+//     size: "2.5MB",
+//     added: "Added 2 days ago",
+//     pdfUrl: "/resources/physics.pdf",
+//     audioUrl: "/resources/physics.mp3",
+//     videoUrl: "/resources/physics.mp4",
+//   },
+//   {
+//     title: 'Home Economics: Grooming',
+//     size: "2.5MB",
+//     added: "Added yesterday",
+//     pdfUrl: "/resources/home economics.pdf",
+//     audioUrl: "/resources/home economics.mp3",
+//     videoUrl: "/resources/home economics.mp4",
+//   },
+//   {
+//     title: 'Computer Science: Binary',
+//     size: "20MB",
+//     added: "Added yesterday",
+//     pdfUrl: "/resources/computer science.pdf",
+//     audioUrl: "/resources/computer science.mp3",
+//     videoUrl: "/resources/computer science.mp4",
+//   },
+//   {
+//     title: 'Agricultural Science: Mixed Farming and Crop Farming',
+//     size: "10MB",
+//     added: "Added yesterday",
+//     pdfUrl: "/resources/agricultural science.pdf",
+//     audioUrl: "/resources/agricultural science.mp3",
+//     videoUrl: "/resources/agricultural science.mp4",
+//   },
+//   {
+//     title: 'Civic Education',
+//     size: "5MB",
+//     added: "Added yesterday",
+//     pdfUrl: "/resources/civic education.pdf",
+//     audioUrl: "/resources/civic education.mp3",
+//     videoUrl: "/resources/civic education.mp4",
+//   },
+//   {
+//     title: 'Government: Democracy',
+//     size: "6MB",
+//     added: "Added yesterday",
+//     pdfUrl: "/resources/government.pdf",
+//     audioUrl: "/resources/government.mp3",
+//     videoUrl: "/resources/government.mp4",
+//   },
+//   {
+//     title: 'Book Keeping',
+//     size: "2MB",
+//     added: "Added 3 days ago",
+//     pdfUrl: "/resources/book keeping.pdf",
+//     audioUrl: "/resources/book keeping.mp3",
+//     videoUrl: "/resources/book keeping.mp4",
+//   },
+//   {
+//     title: 'Literature-in-English: Figures of Speech',
+//     size: "2MB",
+//     added: "Added yesterday",
+//     pdfUrl: "/resources/literature-in-english.pdf",
+//     audioUrl: "/resources/literature-in-english.mp3",
+//     videoUrl: "/resources/literature-in-english.mp4",
+//   },
+//   {
+//     title: 'Accounting',
+//     size: "2MB",
+//     added: "Added yesterday",
+//     pdfUrl: "/resources/acconting.pdf",
+//     audioUrl: "/resources/acconting.mp3",
+//     videoUrl: "/resources/acconting.mp4",
+//   },
+//   {
+//     title: 'Social Studies: Family',
+//     size: "2MB",
+//     added: "Added yesterday",
+//     pdfUrl: "/resources/social studies.pdf",
+//     audioUrl: "/resources/social studies.mp3",
+//     videoUrl: "/resources/social studies.mp4",
+//   },
+// ];
 
-export default function ResourcesMaterials() {
+// export default function ResourcesMaterials() {
+//   const router = useRouter();
+
+//   return (
+//     <div className="min-h-screen bg-white p-4 md:p-8">
+//       {/* Top Navigation */}
+//       <div className="flex items-center gap-2 mb-6">
+//         <ArrowLeft
+//           className="w-5 h-5 cursor-pointer hover:text-blue-500"
+//           onClick={() => router.back()}
+//         />
+//         <p className="text-gray-500 text-sm">
+//           Course Details{" "}
+//           <span className="text-black font-semibold">/ Resources</span>
+//         </p>
+//       </div>
+
+//       {/* Heading */}
+//       <div className="flex items-center gap-2 mb-4">
+//         <FileText className="h-6 w-6 text-blue-500" />
+//         <h2 className="text-lg font-semibold text-blue-500">
+//           Lecture Materials
+//         </h2>
+//       </div>
+
+//       {/* Resource List */}
+//       <div className="space-y-4">
+//         {resources.map((resource, index) => (
+//           <div
+//             key={index}
+//             className="flex flex-col md:flex-row md:items-center justify-between bg-white px-4 py-3 rounded-md shadow-sm hover:bg-gray-100 transition"
+//           >
+//             {/* Subject Info */}
+//             <div className="mb-2 md:mb-0">
+//               <h3 className="text-sm font-medium text-gray-800">
+//                 {resource.title}
+//               </h3>
+//               <p className="text-xs text-gray-500">{resource.added}</p>
+//             </div>
+
+//             {/* File Type Links */}
+//             <div className="flex gap-4">
+//               {/* PDF */}
+//               <a
+//                 href={resource.pdfUrl}
+//                 download
+//                 className="flex items-center gap-1 text-blue-500 text-sm hover:underline"
+//               >
+//                 <FileText className="w-5 h-5" />
+//                 {resource.size}
+//               </a>
+//               {/* Audio */}
+//               <a
+//                 href={resource.audioUrl}
+//                 download
+//                 className="flex items-center gap-1 text-green-500 text-sm hover:underline"
+//               >
+//                 <Headphones className="w-5 h-5" />
+//                 Audio
+//               </a>
+//               {/* Video */}
+//               <a
+//                 href={resource.videoUrl}
+//                 download
+//                 className="flex items-center gap-1 text-red-500 text-sm hover:underline"
+//               >
+//                 <Video className="w-5 h-5" />
+//                 Video
+//               </a>
+//             </div>
+//           </div>
+//         ))}
+//       </div>
+//     </div>
+//   );
+// }
+
+
+// app/subjects/[subject]/resources/page.tsx
+"use client";
+
+import { useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { FileAudio, FileVideo, FileText, ArrowLeft } from "lucide-react";
+
+type Resource = {
+  id: number;
+  title: string;
+  type: "audio" | "video" | "pdf";
+  url: string;
+};
+
+const mockData: Record<string, Resource[]> = {
+  mathematics: [
+    { id: 1, title: "Algebra Basics", type: "audio", url: "/math/algebra.mp3" },
+    { id: 2, title: "Geometry Lecture", type: "video", url: "/math/geometry.mp4" },
+    { id: 3, title: "Calculus Notes", type: "pdf", url: "/math/calculus.pdf" },
+  ],
+  biology: [
+    { id: 4, title: "Cell Structure", type: "audio", url: "/bio/cell.mp3" },
+    { id: 5, title: "DNA Replication", type: "video", url: "/bio/dna.mp4" },
+    { id: 6, title: "Genetics Notes", type: "pdf", url: "/bio/genetics.pdf" },
+  ],
+};
+
+export default function SubjectResourcesPage() {
+  const params = useParams();
   const router = useRouter();
+  const subject = params.subject as string;
+
+  const [activeTab, setActiveTab] = useState<"audio" | "video" | "pdf">("audio");
+
+  const resources = mockData[subject] || [];
+  const filteredResources = resources.filter((res) => res.type === activeTab);
+
+  const handleBack = () => {
+    router.push(`/lms-home/student/scheduling`);
+  };
 
   return (
-    <div className="min-h-screen bg-white p-4 md:p-8">
-      {/* Top Navigation */}
-      <div className="flex items-center gap-2 mb-6">
-        <ArrowLeft
-          className="w-5 h-5 cursor-pointer hover:text-blue-500"
-          onClick={() => router.back()}
-        />
-        <p className="text-gray-500 text-sm">
-          Course Details <span className="text-black font-semibold">/ Resources</span>
-        </p>
-      </div>
+    <div className="p-6">
+      <button
+          onClick={handleBack}
+          className="flex items-center text-gray-600 hover:text-blue-500 mb-2 cursor-pointer">
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back
+        </button>
 
-      {/* Heading */}
-      <div className="flex items-center gap-2 mb-4">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-6 w-6 text-blue-500"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
+      <h1 className="text-2xl font-bold capitalize mb-4">
+        {subject} - Resources & Materials
+      </h1>
+
+      {/* Tabs */}
+      <div className="flex gap-4 border-b pb-2 mb-4">
+        <button
+          className={`flex items-center gap-2 px-3 py-1 rounded ${
+            activeTab === "pdf" ? "bg-blue-500 text-white" : "bg-gray-200"
+          }`}
+          onClick={() => setActiveTab("pdf")}
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V7m-6-4h4a2 2 0 012 2v0a2 2 0 01-2 2h-4m-6 0H5a2 2 0 01-2-2v0a2 2 0 012-2h4"
-          />
-        </svg>
-        <h2 className="text-lg font-semibold text-blue-500">Lecture Materials</h2>
+          <FileText size={18} /> DOCUMENT
+        </button>
+
+          <button
+          className={`flex items-center gap-2 px-3 py-1 rounded ${
+            activeTab === "video" ? "bg-blue-500 text-white" : "bg-gray-200"
+          }`}
+          onClick={() => setActiveTab("video")}
+        >
+          <FileVideo size={18} /> Video
+        </button>
+
+        <button
+          className={`flex items-center gap-2 px-3 py-1 rounded ${
+            activeTab === "audio" ? "bg-blue-500 text-white" : "bg-gray-200"
+          }`}
+          onClick={() => setActiveTab("audio")}
+        >
+          <FileAudio size={18} /> Audio
+        </button>     
       </div>
 
       {/* Resource List */}
-      <div className="space-y-4">
-        {resources.map((resource, index) => (
-          <div
-            key={index}
-            className="flex items-center justify-between bg-white-100 px-4 py-3 rounded-md shadow-sm hover:bg-gray-200 transition"
-          >
-            <div className="flex items-center gap-3">
-              {/* Icon */}
-              <div className="bg-white p-2 rounded-full border">
-                <img
-                  src="/pdf-icon.png" // Replace with your own icon if needed
-                  alt="PDF"
-                  className="w-6 h-6"
-                />
-              </div>
-              <div>
-                <h3 className="text-sm font-medium text-gray-800">{resource.title}</h3>
-                <p className="text-xs text-gray-500">
-                  {resource.fileType} • {resource.added}
-                </p>
-              </div>
-            </div>
-
-            {/* Download Button */}
-            <a
-              href={resource.url}
-              download
-              className="flex items-center gap-1 text-blue-500 text-sm hover:underline"
+      {filteredResources.length > 0 ? (
+        <ul className="space-y-3">
+          {filteredResources.map((res) => (
+            <li
+              key={res.id}
+              className="border rounded p-3 flex justify-between items-center"
             >
-              <Download className="w-4 h-4" />
-              {resource.size}
-            </a>
-          </div>
-        ))}
-      </div>
+              <span>{res.title}</span>
+              <a
+                href={res.url}
+                className="text-blue-500 underline"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Open
+              </a>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p>No {activeTab} files available for {subject}.</p>
+      )}
     </div>
   );
 }

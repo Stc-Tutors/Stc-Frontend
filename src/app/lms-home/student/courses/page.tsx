@@ -1,6 +1,7 @@
 "use client";
 import { useState } from 'react';
-import CourseCard from '../../../components/CourseCard';
+import Link from 'next/link';
+import CourseCard from '../../../../components/studentDashboard/CourseCard';
 
 export default function Home() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(true);
@@ -15,7 +16,12 @@ export default function Home() {
         {/* Top bar */}
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold">All courses</h2>
-          <button className="bg-blue-500 text-white px-4 py-2 rounded">Course List</button>
+          
+          <Link href="/lms-home/student/courses/list">
+          <button className="bg-blue-500 text-white hover:text-gray-800 px-4 py-2 rounded cursor-pointer">
+            Course List
+            </button>
+            </Link>
         </div>
 
         {/* Tabs */}

@@ -1,4 +1,3 @@
-// components/analytics/DownloadReport.tsx
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -17,14 +16,14 @@ export default function DownloadReport() {
   };
 
   return (
-    <div className="bg-blue-100 text-blue-800 rounded-xl p-4 flex items-center justify-between shadow-md">
+    <div className="bg-white-100 text-gray-700 rounded-xl p-4 flex items-center justify-between shadow-md">
       <div>
         <h4 className="font-semibold text-lg">Attendance Report</h4>
       </div>
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button className="bg-blue-600 hover:bg-blue-700 text-white flex gap-2">
+          <Button className="mt-4 w-full flex items-center justify-center gap-2 bg-sky-500 text-white px-4 py-2 rounded-md hover:bg-sky-600">
             <Download className="w-4 h-4" />
             Download Report
           </Button>
