@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { ChevronLeft, MoreHorizontal } from "lucide-react";
-import { Calendar, FileText, BookOpen, ClipboardList } from "lucide-react";
+import { ArrowLeft, CalendarSync, MoreHorizontal } from "lucide-react";
+import { Calendar, FileText, BookOpen} from "lucide-react";
 import Link from "next/link";
 import CardsSection from "@/components/studentDashboard/CardsSection";
+import { useRouter } from "next/navigation";
 
 const tabs = [
   { label: "Schedule", icon: Calendar },
@@ -87,6 +88,12 @@ export default function SchedulePage() {
   const [openDropdownIndex, setOpenDropdownIndex] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState("Schedule");
 
+  const router = useRouter();
+
+  const handleBack = () => {
+    router.push(`/lms-home/student/dashboard`);
+  };
+
   const dropdownRef = useRef<HTMLDivElement | null>(null);
 
   // Close dropdown on outside click
@@ -109,12 +116,18 @@ export default function SchedulePage() {
   
   return (
     <div className="space-y-6">
+      {/**************************BACK**************************/}
+      <button
+        onClick={handleBack}
+        className="flex items-center text-1xl-gray-700 mb-4 cursor-pointer hover:text-blue-500">
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          <span className="text-1xl font-bold">BACK</span>
+      </button>
+
       {/* Header */}
-      <div className="flex items-center gap-2">
-        <Link href="/lms-home/student/dashboard">
-          <ChevronLeft className="hover:text-gray-900 w-5 h-5 text-gray-600 cursor-pointer" />
-        </Link>
-        <h1 className="hover:text-gray-900 text-xl font-bold text-gray-600 cursor-pointer">Schedule</h1>
+      <div className="flex items-center gap-3">
+        <CalendarSync className="text-blue-500"/>
+        <h1 className="text-lg font-semibold text-gray-800">Schedule</h1>
       </div>
 
       {/* Cards Section */}

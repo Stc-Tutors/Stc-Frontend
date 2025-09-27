@@ -10,18 +10,17 @@ export default function ExamPage() {
   const { subject } = useParams();
 
   const handleBack = () => {
-    router.push(`/lms-home/student/scheduling`);
+    router.push(`/lms-home/student/dashboard`);
   };
 
   return (
     <div className="min-h-screen bg-white px-6 py-4">
-      {/* Back nav */}
+      {/**************************BACK**************************/}
       <button
         onClick={handleBack}
-        className="flex items-center text-gray-700 mb-4 cursor-pointer hover:text-blue-500"
-      >
-        <ArrowLeft className="w-4 h-4 mr-2" />
-        <span>Assessment</span>
+        className="flex items-center text-1xl-gray-700 mb-4 cursor-pointer hover:text-blue-500">
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          <span className="text-1xl font-bold">BACK</span>
       </button>
 
       {/* Header */}

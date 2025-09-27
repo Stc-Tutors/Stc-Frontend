@@ -1,5 +1,6 @@
 "use client";
-import { Bell, UserCircle } from 'lucide-react';
+import { ArrowLeft, Bell, UserCircle } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 const notifications = [
   {
@@ -35,8 +36,24 @@ const notifications = [
 ];
 
 export default function NotificationPage() {
+
+  const router = useRouter();
+  
+    const handleBack = () => {
+      router.push(`/lms-home/student/dashboard`);
+    };
+    
   return (
     <div className="min-h-screen bg-gray-100 relative">
+       {/* Back Button */}
+      <button
+        onClick={handleBack}
+        className="flex items-center text-gray-700 mb-4 hover:text-blue-500"
+      >
+        <ArrowLeft className="w-4 h-4 mr-2" />
+        <span className="text-sm font-bold">BACK</span>
+      </button>
+
       {/* Main content */}
       <main className="max-w-4xl mx-auto px-4 py-10">
         <div className="flex justify-between items-center mb-6">

@@ -2,6 +2,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import CourseCard from '../../../../components/studentDashboard/CourseCard';
+import { ArrowLeft } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function Home() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(true);
@@ -10,9 +12,24 @@ export default function Home() {
     setIsDropdownOpen(!isDropdownOpen);
   };
 
+  const router = useRouter();
+  
+    const handleBack = () => {
+      router.push(`/lms-home/student/dashboard`);
+    };
+
   return (
     <div className="flex">
       <div className="flex-1 bg-gray-50 p-8">
+        {/* Back Button */}
+      <button
+        onClick={handleBack}
+        className="flex items-center text-gray-700 mb-4 hover:text-blue-500"
+      >
+        <ArrowLeft className="w-4 h-4 mr-2" />
+        <span className="text-sm font-bold">BACK</span>
+      </button>
+
         {/* Top bar */}
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold">All courses</h2>

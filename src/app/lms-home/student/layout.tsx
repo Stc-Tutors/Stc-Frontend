@@ -30,7 +30,7 @@ import Image from "next/image";
 const sidebarLinks = [
   { label: "Dashboard", icon: Home, href: "/lms-home/student/dashboard" },
   { label: "Schedule", icon: Calendar, href: "/lms-home/student/scheduling" },
-  { label: "Classroom", icon: Users, href: "#" },
+  { label: "Classroom", icon: Users, href: "/lms-home/student/classroom" },
   { label: "Messages", icon: MessageSquare, href: "/lms-home/student/messages" },
   { label: "Assessment", icon: BookOpen, href: "/lms-home/student/assessment" },
   { label: "Analytics", icon: BarChart2, href: "/lms-home/student/analytics" },

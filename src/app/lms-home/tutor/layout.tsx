@@ -19,6 +19,8 @@ import {
   NotebookPen,
   Bell,
   LogOut,
+  FileUser,
+  CircleUserRound
 } from "lucide-react";
 import Image from "next/image";
 
@@ -28,16 +30,17 @@ import Image from "next/image";
 // };
 
 const sidebarLinks = [
-  { label: "Dashboard", icon: Home, href: "/lms-home/student/dashboard" },
-  { label: "Schedule", icon: Calendar, href: "/lms-home/student/scheduling" },
+  { label: "Dashboard", icon: Home, href: "/lms-home/tutor/dashboard" },
+  { label: "Schedule", icon: Calendar, href: "/lms-home/tutor/scheduling" },
   { label: "Classroom", icon: Users, href: "#" },
-  { label: "Messages", icon: MessageSquare, href: "/lms-home/student/messages" },
-  { label: "Assessment", icon: BookOpen, href: "/lms-home/student/assessment" },
+  { label: "Messages", icon: MessageSquare, href: "/lms-home/tutor/messages" },
+  { label: "Your Account", icon: CircleUserRound, href: "/lms-home/tutor/your-account" },
+  { label: "Resources", icon: FileUser, href: "/lms-home/tutor/resources" },
   { label: "Analytics", icon: BarChart2, href: "/lms-home/student/analytics" },
-  { label: "Courses", icon: NotebookPen, href: "/lms-home/student/courses" },
-  { label: "Profile", icon: UserRound, href: "/lms-home/student/profile" },
+  { label: "Create Courses", icon: NotebookPen, href: "/lms-home/tutor/create-courses" },
+  { label: "Profile", icon: UserRound, href: "/lms-home/tutor/profile" },
   { label: "Support", icon: Headphones, href: "#" },
-  { label: "Notifications", icon: Bell, href: "/lms-home/student/notification", badge: true },
+  { label: "Notifications", icon: Bell, href: "/lms-home/tutor/notification", badge: true },
 ];
 
 export default function LMSLayout({ children }: { children: React.ReactNode }) {
@@ -91,7 +94,7 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
                         ))}
                         </nav>
                         
-                        <div className="p-4 border-t space-y-4">
+                        <div className="p-4 border-t space-y-6">
                             {/* Support */}
                             <Link
                             href="#"

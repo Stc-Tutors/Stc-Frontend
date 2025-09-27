@@ -70,7 +70,7 @@ export default function CoursesPage() {
         <div className="flex items-center justify-between">
           {/* Back Breadcrumb */}
           <button
-            onClick={() => router.push("/lms-home/student/schedule")}
+            onClick={() => router.push("/lms-home/student/scheduling")}
             className="text-gray-600 hover:text-blue-800 flex items-center gap-1"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -179,7 +179,7 @@ export default function CoursesPage() {
                 <Button
                   variant="default"
                   className="bg-blue-600 hover:bg-blue-700 text-white"
-                  onClick={() => router.push(`/courses/${course.id}`)}
+                  onClick={() => router.push(`lms-home/student/courses/${course.id}`)}
                 >
                   View Detail
                 </Button>

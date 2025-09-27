@@ -1,7 +1,10 @@
-import { PlayCircle, CheckSquare, Trophy } from "lucide-react";
+"use client";
+
+import { PlayCircle, CheckSquare, Trophy, ArrowLeft } from "lucide-react";
 import DownloadReport from "@/components/studentDashboard/DownloadReport";
 import AnalyticsChart from "@/components/studentDashboard/AnalyticsChart";
 import { Card } from "@/components/ui/card";
+import { useRouter } from "next/navigation";
 
 const cards = [
   {
@@ -28,10 +31,24 @@ const cards = [
 ];
 
 export default function AnalyticsPage() {
+  const router = useRouter();
+
+  const handleBack = () => {
+    router.push(`/lms-home/student/dashboard`);
+  };
+
   return (
     <div className="p-6 space-y-6">
+      {/**************************BACK**************************/}
+      <button
+        onClick={handleBack}
+        className="flex items-center text-1xl-gray-700 mb-4 cursor-pointer hover:text-blue-500">
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          <span className="text-1xl font-bold">BACK</span>
+      </button>
+
       {/* Page Header */}
-      <h2 className="text-2xl font-semibold text-gray-800">Analytics</h2>
+      <h2 className="text-lg font-semibold text-gray-800">Analytics</h2>
 
       {/* All 4 cards in one row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
