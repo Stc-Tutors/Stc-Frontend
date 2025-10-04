@@ -32,6 +32,7 @@
     "cmdk": "^1.1.1",
     "framer-motion": "^12.6.2",
     "keen-slider": "^6.8.6",
+    "lightningcss": "^1.30.2",
     "lucide-react": "^0.485.0",
     "next": "^14.2.28",
     "rc-progress": "^4.0.0",
