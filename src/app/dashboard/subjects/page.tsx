@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import SignupLogo from "@/app/components/SignupLogo";
 import { bootcampAgeLevels } from "@/lib/bootcamp";
+import { useEnrollment } from "@/contexts/enrollment-context";
 
 type CurriculumType = "Nigerian" | "British" | "American" | "Canada" | "";
 
@@ -212,6 +213,8 @@ const educationData: GradeSubjects = {
 export default function SubjectsPage() {
   const router = useRouter();
 
+  const { updateServiceDetails } = useEnrollment();
+
   const [learningFocus, setLearningFocus] = useState("");
   const [curriculum, setCurriculum] = useState("");
   const [educationLevel, setEducationLevel] = useState("");
@@ -267,6 +270,26 @@ export default function SubjectsPage() {
     router.push("/dashboard/schedule");
   };
 
+//   const handleSubmit = () => {
+//   updateServiceDetails({
+//     serviceType:
+//       learningFocus === "Academic Tutoring"
+//         ? "academic-tutoring"
+//         : learningFocus === "Exam Preparation"
+//         ? "exam-preparation"
+//         : "tech-bootcamp",
+
+//     learningFocus,
+//     curriculum,
+//     ageLevel,
+//     selectedSubjects,
+//     learningGoals,
+//     tutorGender,
+//   });
+
+//   router.push("/dashboard/schedule");
+// };
+
   const techTrackOptions =
     learningFocus === "Tech for Kids" && ageLevel
       ? bootcampAgeLevels[ageLevel] || []
@@ -302,13 +325,13 @@ export default function SubjectsPage() {
           required
         >
           <option value="">Select Learning Focus</option>
-          <option value="Subject Tutoring">Subject Tutoring</option>
-          <option value="Exam Preparation">Exam Preparation</option>
-          <option value="Tech for Kids">Tech for Kids</option>
+          <option value="academic-tutoring">Academic Tutoring</option>
+          <option value="exam-preparation">Exam Preparation</option>
+          <option value="tech-bootcamp">Tech for Kids</option>
         </select>
 
         {/* ------------------ Subject Tutoring ------------------ */}
-{learningFocus === "Subject Tutoring" && (
+{learningFocus === "academic-tutoring" && (
   <>
     {/* Curriculum */}
     <select
@@ -392,7 +415,7 @@ export default function SubjectsPage() {
 )}
 
 {/* ------------------ Exam Preparation ------------------ */}
-{learningFocus === "Exam Preparation" && (
+{learningFocus === "exam-preparation" && (
   <>
     {/* Country */}
     <select
@@ -453,7 +476,7 @@ export default function SubjectsPage() {
   </>
 )}
         {/* Tech for Kids - Age Level and Track */}
-        {learningFocus === "Tech for Kids" && (
+        {learningFocus === "tech-bootcamp" && (
           <>
           {/*Curriculum for Tech for Kids*/}
             <select 

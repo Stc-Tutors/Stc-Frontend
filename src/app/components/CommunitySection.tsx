@@ -30,7 +30,13 @@ const CommunitySection = () => {
             <motion.button
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.98 }}
-              className="communitycta" onClick={() => router.push("/signup")}
+              className="communitycta" 
+              onClick={() =>
+                window.open(
+                  "https://docs.google.com/forms/d/e/1FAIpQLSeVT8PHj3bAWD_Wcony7JFiHeY4TeV1P7giBN_w9UZZZ5bl9A/viewform",
+                  "_blank"
+                )
+              }
             >
               Start Learning
             </motion.button>

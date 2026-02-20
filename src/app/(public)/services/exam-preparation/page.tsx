@@ -167,7 +167,7 @@ export default function ExamPreparation() {
             </button>
 
             <a
-              href="/signup"
+              href="/services/exam-preparation/register-form"
               className="inline-block bg-green-600 text-white px-8 py-4 rounded-lg text-lg hover:bg-green-700">
               Start Exam Prep Now
             </a>

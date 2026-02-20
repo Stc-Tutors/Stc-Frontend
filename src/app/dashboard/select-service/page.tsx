@@ -42,7 +42,16 @@ export default function SelectServicePage() {
             <h2 className="font-semibold text-lg mb-2">💻 Tech for Kids</h2>
             <p className="text-sm text-gray-600">Bootcamps in coding, robotics, design & more</p>
           </div>
-          
+
+          {/* Tech for Adults
+          <div
+            onClick={() => handleSelect("tech-bootcamp", "Tech for Adults")}
+            className="cursor-pointer border p-4 rounded hover:shadow-lg transition bg-green-50"
+          >
+            <h2 className="font-semibold text-lg mb-2">💻 Tech for Adults</h2>
+            <p className="text-sm text-gray-600">Bootcamps in coding, robotics, design & more</p>
+          </div> */}
+
           <div className="flex justify-center mt-6">
             <button
             onClick={() => router.push("/dashboard")}

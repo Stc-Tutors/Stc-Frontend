@@ -164,7 +164,7 @@ export default function AcademicTutoring() {
               
               {/* Start Tutoring Button */}
               <a
-              href="/signup"
+              href="/services/academic-tutoring/register-form"
               className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
                 Start Academic Tutoring Now
                 </a>
