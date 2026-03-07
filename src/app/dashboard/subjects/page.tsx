@@ -209,6 +209,7 @@ const educationData: GradeSubjects = {
   },
 };
 
+export const dynamic = "force-dynamic"
 
 export default function SubjectsPage() {
   const router = useRouter();
