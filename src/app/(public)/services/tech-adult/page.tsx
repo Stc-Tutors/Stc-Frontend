@@ -204,7 +204,7 @@ export default function TechAdult() {
             href="/services/tech-adult/register-form"
             className="inline-block bg-[#38b6ff] text-white px-8 py-4 rounded-lg text-lg hover:bg-[#1c2574]"
             >
-              Enroll Now or Chat with Us on Whatsapp
+              Enroll Now
               </Link>
           </div>
         </section>

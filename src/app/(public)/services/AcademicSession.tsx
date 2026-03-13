@@ -27,7 +27,7 @@ const services = [
 
   {
     id: 3,
-    title: "Tech Training",
+    title: "Tech Training for Kids",
     description: [
       "Master Modern Technology",
       "Get certified by equipping learners between the ages of 5 and 20 with essential digital skills from coding and robotics to video editing and app development. Ideal for students and teens ready to thrive in today’s tech-driven world."
@@ -38,28 +38,17 @@ const services = [
 
   {
     id: 4,
-    title: "Adult Education",
+    title: "Tech Training for Adults",
     description: [
-      "Learning Has No Age Limit",
-      "It’s never too late to learn. Our adult education programs are tailored for personal development, literacy improvement, and practical skill-building for everyday life and career advancement."
+      "Master Modern Technology",
+      "Get certified by equipping learners between the ages of 25 and above with essential digital skills from coding and robotics to video editing and app development. Ideal for students and teens ready to thrive in today’s tech-driven world."
     ],
-    image: "/image/adult education.jpg",
-    link: "/services/adult-education"
+    image:"/image/adult-learners.jpg",
+    link: "/services/tech-adult"
   },
 
   {
     id: 5,
-    title: "Language and Culture",
-    description: [
-      "Speak Any Language With Confidence",
-      "Master new languages with the help of experienced instructors. We offer courses in French, Spanish, Portuguese, Swahili, Zulu, and major Nigerian languages and culture like Yoruba, Hausa, and Igbo, designed for beginners to advanced learners."
-    ],
-    image:"/image/culture.jpg",
-    link: "/services/language-culture"
-  },
-
-  {
-    id: 6,
     title: "Music Training",
     description: [
       "Explore Your Musical Inherent With Professional Guidance",
@@ -70,7 +59,29 @@ const services = [
   },
 
   {
+    id: 6,
+    title: "Adult Education",
+    description: [
+      "Learning Has No Age Limit",
+      "It’s never too late to learn. Our adult education programs are tailored for personal development, literacy improvement, and practical skill-building for everyday life and career advancement."
+    ],
+    image: "/image/adult education.jpg",
+    link: "/services/adult-education"
+  },
+
+  {
     id: 7,
+    title: "Language and Culture",
+    description: [
+      "Speak Any Language With Confidence",
+      "Master new languages with the help of experienced instructors. We offer courses in French, Spanish, Portuguese, Swahili, Zulu, and major Nigerian languages and culture like Yoruba, Hausa, and Igbo, designed for beginners to advanced learners."
+    ],
+    image:"/image/culture.jpg",
+    link: "/services/language-culture"
+  },
+
+  {
+    id: 8,
     title: "Soft Skill Development",
     description: [
       "Build Professional Excellence",
@@ -81,7 +92,7 @@ const services = [
   },
 
   {
-    id: 8,
+    id: 9,
     title: "Career Coaching",
     description: [
       "Guidance At Your Convenience",
@@ -92,7 +103,7 @@ const services = [
   },
 
   {
-    id: 9,
+    id: 10,
     title: "Self-Development",
     description: [
       "Shape Your Career Path",
@@ -100,17 +111,6 @@ const services = [
     ],
     image:"/image/self development.jpg",
     link: "/services/self-development"
-  },
-
-  {
-    id: 10,
-    title: "Tech Training for Adults",
-    description: [
-      "Master Modern Technology",
-      "Get certified by equipping learners between the ages of 25 and above with essential digital skills from coding and robotics to video editing and app development. Ideal for students and teens ready to thrive in today’s tech-driven world."
-    ],
-    image:"/image/adult-learners.jpg",
-    link: "/services/tech-adult"
   },
 ];
 
