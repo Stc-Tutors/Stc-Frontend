@@ -9,13 +9,17 @@ export async function middleware(request: Request) {
 
   const isAuthPage = pathname.startsWith("/auth");
   const publicPaths = [
-    "/",
-    "/about",
-    "/contact",
-    "/privacy-policy",
-    "/services",
-    "/program",
-  ];
+  "/",
+  "/about",
+  "/contact",
+  "/privacy-policy",
+  "/services",
+  "/program",
+  "/exams",
+  "/test",
+  "/wallet",
+  "/results",
+];
 
   const isPublicPage = pathname === "/" || publicPaths.some(publicPath =>
     publicPath !== "/" && pathname.startsWith(publicPath)
