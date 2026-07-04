@@ -1,9 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 
 export default function ExamsPage() {
+  const router = useRouter();
+
   const [countries, setCountries] = useState([]);
   const [exams, setExams] = useState([]);
   const [subjects, setSubjects] = useState([]);
@@ -15,6 +18,7 @@ export default function ExamsPage() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [starting, setStarting] = useState(false);
 
   useEffect(() => {
     api.getCountries()
@@ -42,6 +46,22 @@ export default function ExamsPage() {
   function handleSelectSubject(subject) {
     setSelectedSubject(subject);
     api.getTopics(subject.id).then(setTopics).catch((err) => setError(err.message));
+  }
+
+  async function handleStartTest(scopeType, scopeId) {
+    setStarting(true);
+    try {
+      const result = await api.startTest({
+        user_id: 1, // temporary — will come from real login later
+        scope_type: scopeType,
+        scope_id: scopeId
+      });
+      sessionStorage.setItem(`attempt_${result.attempt_id}`, JSON.stringify(result));
+      router.push(`/test/${result.attempt_id}`);
+    } catch (err) {
+      alert(err.message);
+      setStarting(false);
+    }
   }
 
   if (loading) return <div className="p-8">Loading...</div>;
@@ -112,12 +132,25 @@ export default function ExamsPage() {
           <h2 className="font-semibold mb-2">4. Select Topic (or take the full subject)</h2>
           <div className="flex gap-2 flex-wrap">
             {topics.map((topic) => (
-              <button key={topic.id} className="px-4 py-2 rounded border bg-white">
-                {topic.name}
+              <button
+                key={topic.id}
+                disabled={starting}
+                onClick={() => handleStartTest('topic', topic.id)}
+                className="px-4 py-2 rounded border bg-white hover:bg-gray-100 disabled:opacity-50"
+              >
+                {topic.name} (2 coins)
               </button>
             ))}
             {topics.length === 0 && <p className="text-gray-500">No topics yet for this subject.</p>}
           </div>
+
+          <button
+            disabled={starting}
+            onClick={() => handleStartTest('subject', selectedSubject.id)}
+            className="mt-3 px-4 py-2 rounded bg-green-600 text-white disabled:opacity-50"
+          >
+            Take Full {selectedSubject.name} Subject Test (5 coins)
+          </button>
         </div>
       )}
     </div>
