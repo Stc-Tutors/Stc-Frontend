@@ -1,5 +1,6 @@
 'use client';
 
+import { getSession, clearSession } from '@/lib/auth';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
@@ -19,6 +20,16 @@ export default function ExamsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [starting, setStarting] = useState(false);
+  const [session, setSession] = useState(null);
+
+  useEffect(() => {
+    const s = getSession();
+    if (!s) {
+      router.push('/exams/login');
+      return;
+    }
+    setSession(s);
+  }, []);
 
   useEffect(() => {
     api.getCountries()
@@ -52,7 +63,7 @@ export default function ExamsPage() {
     setStarting(true);
     try {
       const result = await api.startTest({
-        user_id: 1, // temporary — will come from real login later
+        user_id: session.user.id,
         scope_type: scopeType,
         scope_id: scopeId
       });
@@ -64,12 +75,26 @@ export default function ExamsPage() {
     }
   }
 
-  if (loading) return <div className="p-8">Loading...</div>;
+  if (loading || !session) return <div className="p-8">Loading...</div>;
   if (error) return <div className="p-8 text-red-600">Error: {error}</div>;
 
   return (
     <div className="max-w-4xl mx-auto p-8">
       <h1 className="text-2xl font-bold mb-6">Choose Your Exam</h1>
+
+      {session && (
+        <div className="mb-4 flex justify-between items-center">
+          <p className="text-sm text-gray-600">
+            Logged in as {session.user.name} • {session.user.coin_balance ?? ''} coins
+          </p>
+          <button
+            onClick={() => { clearSession(); router.push('/exams/login'); }}
+            className="text-sm text-red-600 underline"
+          >
+            Log out
+          </button>
+        </div>
+      )}
 
       <div className="mb-6">
         <h2 className="font-semibold mb-2">1. Select Country</h2>
