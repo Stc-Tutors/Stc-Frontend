@@ -1,3 +1,4 @@
+import WelcomeModal from '../components/WelcomeModal';
 import Hero from '../components/Hero';
 import CommunitySection from '../components/CommunitySection';
 import TutorsSection from '../components/TutorsSection';
@@ -9,6 +10,7 @@ import Footer from '../components/Footer';
 export default function HomePage() {
   return (
     <>
+      <WelcomeModal />
       <main>
         <Hero />
         <CommunitySection />

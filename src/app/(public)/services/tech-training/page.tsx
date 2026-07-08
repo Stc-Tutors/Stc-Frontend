@@ -159,8 +159,6 @@ export default function TechTraining() {
               Start Tech Training Now
               </Link>
           </div>
-          
-          <p className="mt-2 text-gray-600">Ignite your child's tech journey today!</p>
         </section>
       </main>
     </>

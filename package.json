@@ -48,7 +48,7 @@
     "recharts": "^3.0.2",
     "sharp": "^0.34.2",
     "sonner": "^2.0.7",
-    "swiper": "^11.2.6",
+    "swiper": "^11.2.10",
     "tailwind-merge": "^3.3.0",
     "world-countries": "^5.1.0",
     "zod": "^3.25.28"

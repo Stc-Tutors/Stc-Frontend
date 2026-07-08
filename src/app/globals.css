@@ -132,3 +132,24 @@
 .form-control {
   width: 100% !important;
 }
+
+.swiper-button-prev {
+  left: 45px !important;
+  color: #38b6ff !important;
+}
+
+.swiper-button-next {
+  right: 45px !important;
+  color: #38b6ff !important;
+}
+
+.swiper-pagination-bullet-active {
+  background: #38b6ff !important;
+}
+
+@media (max-width: 768px) {
+  .swiper-button-prev,
+  .swiper-button-next {
+    display: none !important;
+  }
+}

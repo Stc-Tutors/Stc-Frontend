@@ -172,8 +172,6 @@ export default function ExamPreparation() {
               Start Exam Prep Now
             </a>
           </div>
-
-          <p className="mt-2 text-gray-600">Secure your spot—limited seats for top exam performance!</p>
         </section>
       </main>
     </>

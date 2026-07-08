@@ -98,6 +98,7 @@ const Hero = () => {
           className="buttons"
           variants={itemVariants}
         >
+          {/* Get Started Button
           <Link href={ROUTES.AUTH.REGISTER} passHref>
             <motion.button
               className="primaryButton"
@@ -106,7 +107,18 @@ const Hero = () => {
             >
               Get Started
             </motion.button>
+          </Link> */}
+
+          <Link href="/services">
+            <motion.button
+              className="primaryButton"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              Get Started
+            </motion.button>
           </Link>
+          
           {/* <Link href="/subjects" passHref>
             <motion.button 
               className={styles.secondaryButton}
@@ -117,8 +129,17 @@ const Hero = () => {
             </motion.button>
           </Link> */}
 
-          {/* Login Button */}
+          {/* Login Button
           <Link href={ROUTES.AUTH.LOGIN} passHref>
+            <motion.button
+              className="secondaryButton"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}>
+              Login
+            </motion.button>
+          </Link> */}
+
+          <Link href="/services">
             <motion.button
               className="secondaryButton"
               whileHover={{ scale: 1.05 }}

@@ -38,13 +38,13 @@ const services = [
 
   {
     id: 4,
-    title: "Tech Training for Adults",
+    title: "Digital Skills Development",
     description: [
       "Master Modern Technology",
       "Get certified by equipping learners between the ages of 25 and above with essential digital skills from coding and robotics to video editing and app development. Ideal for students and teens ready to thrive in today’s tech-driven world."
     ],
     image:"/image/adult-learners.jpg",
-    link: "/services/tech-adult"
+    link: "/services/digital-skills"
   },
 
   {

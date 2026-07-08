@@ -13,7 +13,6 @@ export default function TechAdult() {
   {
     id: 1,
     title: "Freelancer Launch Pack",
-    price: "₦80,000",
     summary: "Build the foundation for a successful freelance career.",
     includes: "Copywriting, Virtual Assistance & Project Management Tools.",
     extra: "Learn how to manage clients, build your portfolio, and start earning online.",
@@ -21,7 +20,6 @@ export default function TechAdult() {
   {
     id: 2,
     title: "Social Media Management Bundle",
-    price: "₦85,000",
     summary: "Master the art of creating, designing, and managing content that drives engagement and sales.",
     includes: "Content Creation, Graphics Design, Video Editing & Social Media Management.",
     extra: "Perfect for aspiring social media managers, brand strategists, and entrepreneurs.",
@@ -29,7 +27,6 @@ export default function TechAdult() {
   {
     id: 3,
     title: "Digital Business Bundle",
-    price: "₦85,000",
     summary: "Learn how to grow and automate your business online.",
     includes: "Social Media Strategy, Branding, and Ads Management.",
     extra: "Ideal for business owners and digital entrepreneurs who want to scale online.",
@@ -37,7 +34,6 @@ export default function TechAdult() {
   {
     id: 4,
     title: "Tech Essentials Pack",
-    price: "₦90,000",
     summary: "Build the tech foundation that keeps you ahead in the modern workforce.",
     includes: "Web Design, Data Analytics & Digital Marketing.",
     extra: "Perfect for professionals transitioning into tech roles.",
@@ -55,7 +51,7 @@ export default function TechAdult() {
         <section className="text-center mb-12">
           <div className="relative h-64 w-full bg-gray-200">
             {/* Placeholder for hero image */}
-            <Image src="/image/tech kids.png" alt="Tech Training for Kids" layout="fill" objectFit="cover" />
+            <Image src="/image/skill-adult.png" alt="Digital Skills Training" layout="fill" objectFit="cover" />
           </div>
           <h1 className="text-4xl font-bold mt-6 text-[#1c2574]">Digital Skills Training Program</h1>
           <p className="text-xl text-[#38b6ff] mt-2">
@@ -122,7 +118,7 @@ export default function TechAdult() {
             {courseBundles.map(bundle => (
               <div key={bundle.id} className="border rounded-lg p-6 bg-white shadow-md">
                 <h3 className="text-xl font-bold text-[#1c2574]">{bundle.title}</h3>
-                <p className="text-lg text-[#38b6ff] mt-2">{bundle.price}</p>
+                {/* <p className="text-lg text-[#38b6ff] mt-2">{bundle.price}</p> */}
                 <p className="mt-2">{bundle.summary}</p>
                 <ul className="list-disc list-inside mt-2 space-y-1">
                   {bundle.includes.split(', ').map((item, idx) => (
@@ -178,7 +174,7 @@ export default function TechAdult() {
           </div>
         </section>
 
-        {/* Next Cohort */}
+        {/* Next Cohort
         <section className="mb-12">
           <h2 className="text-2xl font-semibold mb-4">📅 Next Cohort: February 2026 — Limited Slots Available</h2>
           <p className='mb-4'>
@@ -188,7 +184,7 @@ export default function TechAdult() {
             <p>💬 Learn from Anywhere</p>
             <p>🎓 No Experience Needed</p>
           </p>
-        </section>
+        </section> */}
 
         {/* Call to Action */}
         <section className="text-center mb-12">

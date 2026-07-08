@@ -47,7 +47,10 @@ const Navbar = () => {
               </li>
             ))}
           </ul>
-          <Link href={ROUTES.AUTH.REGISTER} className="navbarCta">Get Started</Link>
+          {/* <Link href={ROUTES.AUTH.REGISTER} className="navbarCta">Get Started</Link> */}
+          <Link href="/services" className="navbarCta">
+            Get Started
+          </Link>
         </nav>
 
         {/* Mobile Menu Button */}

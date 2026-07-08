@@ -169,8 +169,6 @@ export default function AcademicTutoring() {
                 Start Academic Tutoring Now
                 </a>
                 </div>
-                
-                <p className="mt-2 text-gray-600">First session 20% off when you sign up today.</p>
                 </section>
                 </main>
                 </>
