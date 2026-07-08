@@ -16,7 +16,8 @@ export async function middleware(request: Request) {
     "/services",
     "/program",
     "/lms-home/parent/dashboard",
-    "/lms-home/student/dashboard"
+    "/lms-home/student/dashboard",
+    "/lms-home/tutor/dashboard",
   ];
 
   const isPublicPage = pathname === "/" || publicPaths.some(publicPath =>
