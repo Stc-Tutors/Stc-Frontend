@@ -18,7 +18,7 @@ export default async function fetchAPI<T>({
   request,
 }: FetchApiTypes): Promise<[Response | null, null | string]> {
   try {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value;
 
     const headers = new Headers(request.headers || {});

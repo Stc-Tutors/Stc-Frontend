@@ -45,7 +45,7 @@ async function getRoleFromToken(token: string): Promise<UserRole | null> {
   }
 }
 
-export async function middleware(request: Request) {
+export async function proxy(request: Request) {
   const pathname = new URL(request.url).pathname;
 
   const isAuthPage = pathname.startsWith("/auth");
