@@ -9,13 +9,14 @@ import { ToastError, ToastSuccess } from "../ui/custom/toast";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { PasswordInput } from "../ui/custom/password-input";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { ROUTES } from "@/config/routes";
 import { UserRole } from "@/types/user";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 
 const formSchema = z.object({
@@ -25,6 +26,7 @@ const formSchema = z.object({
   middleName: z.string().optional(),
   lastName: z.string().min(1, { message: "Surname/LastName is required" }),
   phone: z.string().min(10, { message: "Phone number must be at least 10 digits" }),
+  role: z.enum([UserRole.PARENT, UserRole.STUDENT]),
   confirmPassword: z.string().min(6, { message: "Confirm password is required" })
 }).superRefine(({ confirmPassword, password }, ctx) => {
   if (confirmPassword !== password) {
@@ -38,6 +40,9 @@ const formSchema = z.object({
 
 export default function RegisterForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const service = searchParams.get("service");
+  const ref = searchParams.get("ref");
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -47,15 +52,16 @@ export default function RegisterForm() {
       phone: "",
       password: "",
       confirmPassword: "",
+      role: UserRole.PARENT,
     },
   });
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
-    const [res, error] = await RegisterAction({ ...data, role: UserRole.PARENT });
+    const [res, error] = await RegisterAction(ref ? { ...data, ref } : data);
 
     if (res) {
       ToastSuccess(res.message);
-      router.push(ROUTES.AUTH.LOGIN);
+      router.push(service ? `${ROUTES.AUTH.LOGIN}?service=${service}` : ROUTES.AUTH.LOGIN);
     }
     if (error) {
       ToastError(error);
@@ -127,6 +133,33 @@ export default function RegisterForm() {
 
           <FormField
             control={form.control}
+            name="role"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>I am registering as a</FormLabel>
+                <FormControl>
+                  <RadioGroup
+                    onValueChange={field.onChange}
+                    value={field.value}
+                    className="flex gap-6"
+                  >
+                    <label className="flex items-center gap-2 text-sm">
+                      <RadioGroupItem value={UserRole.PARENT} />
+                      Parent (enrolling a child)
+                    </label>
+                    <label className="flex items-center gap-2 text-sm">
+                      <RadioGroupItem value={UserRole.STUDENT} />
+                      Student (enrolling myself)
+                    </label>
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
             name="password"
             render={({ field }) => (
               <FormItem className="relative">
@@ -161,12 +194,20 @@ export default function RegisterForm() {
           Register
         </Button>
       </form>
-      <div className="text-center text-sm mt-4">
-        Already have an account?{" "}
-        <Link href={ROUTES.AUTH.LOGIN} className="underline underline-offset-4 text-stcblue hover:text-blue-800 transition-colors"
-        >
-          Log In
-        </Link>
+      <div className="text-center text-sm mt-4 space-y-1">
+        <p>
+          Already have an account?{" "}
+          <Link href={ROUTES.AUTH.LOGIN} className="underline underline-offset-4 text-stcblue hover:text-blue-800 transition-colors"
+          >
+            Log In
+          </Link>
+        </p>
+        <p>
+          Want to teach with us?{" "}
+          <Link href="/auth/apply-tutor" className="underline underline-offset-4 text-stcblue hover:text-blue-800 transition-colors">
+            Apply as a tutor
+          </Link>
+        </p>
       </div>
     </Form>
   )

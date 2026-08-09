@@ -1,37 +1,121 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { PlayCircle, CheckSquare, Trophy, ArrowLeft } from "lucide-react";
 import DownloadReport from "@/components/studentDashboard/DownloadReport";
 import AnalyticsChart from "@/components/studentDashboard/AnalyticsChart";
 import { Card } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
+import { GetEnrollmentsAction } from "@/server/enrollment";
+import { GetStudentCoursesAction } from "@/server/course-enrollment";
+import { GetCourseLessonsAction } from "@/server/lesson";
+import { GetCourseAssignmentsAction } from "@/server/assignment";
+import { GetStudentAttendanceAction } from "@/server/attendance";
+import { GetMySubmissionsAction } from "@/server/submission";
+import { GetNotificationsAction } from "@/server/notification";
+import { CourseEnrollmentStatus } from "@/types/course-enrollment";
+import { LessonStatus } from "@/types/lesson";
+import { AttendanceStatus } from "@/types/attendance";
+import { Assignment } from "@/types/assignment";
+import { Course } from "@/types/course";
+import { Notification } from "@/types/notification";
 
-const cards = [
-  {
-    title: "Enrolled Courses",
-    value: 1957,
-    icon: PlayCircle,
-    iconColor: "text-blue-500",
-    bgColor: "bg-blue-100",
-  },
-  {
-    title: "Active Courses",
-    value: 1957,
-    icon: CheckSquare,
-    iconColor: "text-purple-500",
-    bgColor: "bg-purple-100",
-  },
-  {
-    title: "Completed Courses",
-    value: 112,
-    icon: Trophy,
-    iconColor: "text-green-500",
-    bgColor: "bg-green-100",
-  },
-];
+interface ProgressCard {
+  title: string;
+  color: string;
+  strokeColor: string;
+  percent: number;
+}
 
 export default function AnalyticsPage() {
   const router = useRouter();
+  const [counts, setCounts] = useState({ enrolled: 0, active: 0, completed: 0 });
+  const [progress, setProgress] = useState<ProgressCard[]>([]);
+  const [announcements, setAnnouncements] = useState<Notification[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      const [enrollmentsRes] = await GetEnrollmentsAction();
+      const studentId = enrollmentsRes?.data?.[0]?.id;
+
+      const [notificationsRes] = await GetNotificationsAction();
+      setAnnouncements((notificationsRes?.data ?? []).slice(0, 3));
+
+      if (!studentId) {
+        setIsLoading(false);
+        return;
+      }
+
+      const [courseEnrollmentsRes] = await GetStudentCoursesAction(studentId);
+      const enrollments = courseEnrollmentsRes?.data ?? [];
+      const courses = enrollments
+        .map((e) => (typeof e.course === "string" ? null : (e.course as Course)))
+        .filter((c): c is Course => !!c);
+
+      setCounts({
+        enrolled: enrollments.length,
+        active: enrollments.filter((e) => e.status === CourseEnrollmentStatus.ACTIVE).length,
+        completed: enrollments.filter((e) => e.status === CourseEnrollmentStatus.COMPLETED).length,
+      });
+
+      const [lessonLists, assignmentLists, [attendanceRes], [submissionsRes]] = await Promise.all([
+        Promise.all(courses.map((c) => GetCourseLessonsAction(c.id))),
+        Promise.all(courses.map((c) => GetCourseAssignmentsAction(c.id))),
+        GetStudentAttendanceAction(studentId),
+        GetMySubmissionsAction(),
+      ]);
+
+      const allLessons = lessonLists.flatMap(([res]) => res?.data ?? []);
+      const allAssignments: Assignment[] = assignmentLists.flatMap(([res]) => res?.data ?? []);
+      const attendance = attendanceRes?.data ?? [];
+      const submissions = submissionsRes?.data ?? [];
+
+      const lessonsPct =
+        allLessons.length === 0
+          ? 0
+          : Math.round((allLessons.filter((l) => l.status === LessonStatus.COMPLETED).length / allLessons.length) * 100);
+
+      const attendancePct =
+        attendance.length === 0
+          ? 0
+          : Math.round(
+              (attendance.filter((a) => a.status === AttendanceStatus.PRESENT || a.status === AttendanceStatus.LATE).length /
+                attendance.length) *
+                100
+            );
+
+      const gradedSubmissions = submissions.filter((s) => typeof s.score === "number");
+      const testPerformancePct =
+        gradedSubmissions.length === 0
+          ? 0
+          : Math.round(
+              gradedSubmissions.reduce((sum, s) => {
+                const maxScore = typeof s.assignment === "string" ? 100 : s.assignment.maxScore || 100;
+                return sum + ((s.score ?? 0) / maxScore) * 100;
+              }, 0) / gradedSubmissions.length
+            );
+
+      const assignmentCompletionPct =
+        allAssignments.length === 0 ? 0 : Math.round((submissions.length / allAssignments.length) * 100);
+
+      setProgress([
+        { title: "Lessons", color: "text-blue-500", strokeColor: "#3b82f6", percent: lessonsPct },
+        { title: "Attendance Record", color: "text-orange-500", strokeColor: "#f97316", percent: attendancePct },
+        { title: "Test Performance", color: "text-purple-500", strokeColor: "#a855f7", percent: testPerformancePct },
+        { title: "Assignment Completion", color: "text-green-500", strokeColor: "#22c55e", percent: assignmentCompletionPct },
+      ]);
+
+      setIsLoading(false);
+    };
+    load();
+  }, []);
+
+  const cards = [
+    { title: "Enrolled Courses", value: counts.enrolled, icon: PlayCircle, iconColor: "text-blue-500", bgColor: "bg-blue-100" },
+    { title: "Active Courses", value: counts.active, icon: CheckSquare, iconColor: "text-purple-500", bgColor: "bg-purple-100" },
+    { title: "Completed Courses", value: counts.completed, icon: Trophy, iconColor: "text-green-500", bgColor: "bg-green-100" },
+  ];
 
   const handleBack = () => {
     router.push(`/lms-home/student/dashboard`);
@@ -50,7 +134,7 @@ export default function AnalyticsPage() {
       {/* Page Header */}
       <h2 className="text-lg font-semibold text-gray-800">Analytics</h2>
 
-      {/* All 4 cards in one row */}
+      {/* All cards in one row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {cards.map(({ title, value, icon: Icon, iconColor, bgColor }) => (
           <div
@@ -62,7 +146,7 @@ export default function AnalyticsPage() {
             </div>
             <div>
               <p className="text-2xl font-semibold text-gray-800">
-                {value.toLocaleString()}
+                {isLoading ? "…" : value.toLocaleString()}
               </p>
               <p className="text-sm text-gray-600">{title}</p>
             </div>
@@ -83,61 +167,49 @@ export default function AnalyticsPage() {
         <Card className="bg-white rounded-lg shadow-sm p-4">
           <div className="flex justify-between items-center mb-3">
             <h3 className="font-semibold text-gray-800">Announcement</h3>
-            <button className="text-sm text-blue-600 hover:underline">View all</button>
+            <button
+              onClick={() => router.push("/lms-home/student/notification")}
+              className="text-sm text-blue-600 hover:underline"
+            >
+              View all
+            </button>
           </div>
 
           <div className="space-y-4">
-            {[
-              {
-                day: "Wed",
-                date: "12",
-                subject: "Mathematics",
-                text: "A new workshop on Algebraic Expressions has been uploaded. Please complete before Friday, June 27.",
-              },
-              {
-                day: "Wed",
-                date: "12",
-                subject: "English",
-                text: "This week's focus is persuasive writing techniques. Be sure to read the assigned material.",
-              },
-              {
-                day: "Wed",
-                date: "12",
-                subject: "Physics",
-                text: "Your Forces and Motion quiz is scheduled for Thursday, June 20 at 2:00 PM.",
-              },
-            ].map((item, idx) => (
-              <div key={idx} className="flex gap-3">
-                {/* Date block */}
-                <div className="text-center">
-                  <p className="text-sm font-medium text-gray-500">{item.day}</p>
-                  <p className="text-lg font-bold text-gray-800">{item.date}</p>
-                </div>
+            {isLoading ? (
+              <p className="text-sm text-gray-500">Loading...</p>
+            ) : announcements.length === 0 ? (
+              <p className="text-sm text-gray-500">No announcements yet.</p>
+            ) : (
+              announcements.map((item) => (
+                <div key={item.id} className="flex gap-3">
+                  {/* Date block */}
+                  <div className="text-center">
+                    <p className="text-sm font-medium text-gray-500">
+                      {new Date(item.createdAt).toLocaleDateString(undefined, { weekday: "short" })}
+                    </p>
+                    <p className="text-lg font-bold text-gray-800">{new Date(item.createdAt).getDate()}</p>
+                  </div>
 
-                {/* Content */}
-                <div>
-                  <p className="font-semibold text-gray-800">{item.subject}</p>
-                  <p className="text-sm text-gray-600">{item.text}</p>
+                  {/* Content */}
+                  <div>
+                    <p className="font-semibold text-gray-800">{item.title}</p>
+                    <p className="text-sm text-gray-600">{item.body}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </Card>
       </div>
 
       {/* ====== BOTTOM SECTION: Circular Progress Cards ====== */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { title: "Lessons", color: "text-blue-500" },
-          { title: "Attendance Record", color: "text-orange-500" },
-          { title: "Test Performance", color: "text-purple-500" },
-          { title: "Assignment Completion", color: "text-green-500" },
-        ].map((card, idx) => (
-          <Card key={idx} className="bg-white rounded-lg shadow-sm p-4 flex flex-col items-center">
+        {progress.map((card) => (
+          <Card key={card.title} className="bg-white rounded-lg shadow-sm p-4 flex flex-col items-center">
             <p className="font-semibold text-gray-800">{card.title}</p>
             <p className="text-sm text-gray-500 mb-2">This Semester</p>
 
-            {/* Circle Progress Placeholder */}
             <div className="relative w-20 h-20 flex items-center justify-center mb-2">
               <svg className="w-full h-full transform -rotate-90">
                 <circle
@@ -152,29 +224,15 @@ export default function AnalyticsPage() {
                   cx="50%"
                   cy="50%"
                   r="36%"
-                  stroke="currentColor"
-                  className={card.color}
+                  stroke={card.strokeColor}
                   strokeWidth="6"
                   fill="transparent"
                   strokeDasharray={`${2 * Math.PI * 36}%`}
-                  strokeDashoffset={`${2 * Math.PI * 36 * (1 - 0.9)}%`}
+                  strokeDashoffset={`${2 * Math.PI * 36 * (1 - card.percent / 100)}%`}
                   strokeLinecap="round"
                 />
               </svg>
-              <span className="absolute text-lg font-semibold text-gray-800">90%</span>
-            </div>
-
-            {/* Legend */}
-            <div className="flex gap-2 text-xs text-gray-600">
-              <span className="flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-blue-500"></span> English
-              </span>
-              <span className="flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-orange-500"></span> Mathematics
-              </span>
-              <span className="flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-green-500"></span> Biology
-              </span>
+              <span className="absolute text-lg font-semibold text-gray-800">{isLoading ? "…" : `${card.percent}%`}</span>
             </div>
           </Card>
         ))}

@@ -1,77 +1,36 @@
-import {
-  PlayCircle,
-  CheckSquare,
-  Trophy,
-  Users,
-  ClipboardList,
-  Clock3,
-  MessageCircleMore,
-  FileCheck,
-  TrophyIcon,
-  Shapes,
-} from "lucide-react";
+"use client";
 
-const cards = [
-  {
-    title: "Lecture (219.3GB)",
-    value: 1957,
-    icon: PlayCircle,
-    iconColor: "text-orange-500",
-    bgColor: "bg-orange-100",
-  },
-  {
-    title: "Enrolled Students",
-    value: 1957,
-    icon: Users,
-    iconColor: "text-pink-500",
-    bgColor: "bg-pink-100",
-  },
-  {
-    title: "Course Language",
-    value: "English",
-    icon: ClipboardList,
-    iconColor: "text-gray-900",
-    bgColor: "bg-gray-100",
-  },
-  {
-    title: "Hours",
-    value: "19:37:51",
-    icon: Clock3,
-    iconColor: "text-purple-500",
-    bgColor: "bg-purple-100",
-  },
-  
-  {
-    title: "Notifications",
-    value: 1957,
-    icon: MessageCircleMore,
-    iconColor: "text-purple-500",
-    bgColor: "bg-purple-100",
-  },
-  {
-    title: "Course level",
-    value: "Beginner",
-    icon: Shapes,
-    iconColor: "text-green-500",
-    bgColor: "bg-green-100",
-  },
-  {
-    title: "Attached File",
-    value: 142,
-    icon: FileCheck,
-    iconColor: "text-orange-500",
-    bgColor: "bg-orange-100",
-  },
-  {
-    title: "Finished course",
-    value: "19:37:51",
-    icon: TrophyIcon,
-    iconColor: "text-gray-900",
-    bgColor: "bg-gray-100",
-  },
-];
+import { useEffect, useState } from "react";
+import { BookOpen, Users, CheckSquare, FileEdit } from "lucide-react";
+import { GetMyCoursesAction, GetMyCourseStudentsAction } from "@/server/course";
+import { CourseStatus } from "@/types/course";
 
-export default function CardsSection() {
+export default function TutorsCard() {
+  const [stats, setStats] = useState({ total: 0, published: 0, draft: 0, students: 0 });
+
+  useEffect(() => {
+    const load = async () => {
+      const [coursesRes] = await GetMyCoursesAction();
+      const [studentsRes] = await GetMyCourseStudentsAction();
+      const courses = coursesRes?.data ?? [];
+
+      setStats({
+        total: courses.length,
+        published: courses.filter((c) => c.status === CourseStatus.PUBLISHED).length,
+        draft: courses.filter((c) => c.status === CourseStatus.DRAFT).length,
+        students: studentsRes?.data?.length ?? 0,
+      });
+    };
+    load();
+  }, []);
+
+  const cards = [
+    { title: "My Courses", value: stats.total, icon: BookOpen, iconColor: "text-orange-500", bgColor: "bg-orange-100" },
+    { title: "Enrolled Students", value: stats.students, icon: Users, iconColor: "text-pink-500", bgColor: "bg-pink-100" },
+    { title: "Published Courses", value: stats.published, icon: CheckSquare, iconColor: "text-green-500", bgColor: "bg-green-100" },
+    { title: "Draft Courses", value: stats.draft, icon: FileEdit, iconColor: "text-purple-500", bgColor: "bg-purple-100" },
+  ];
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {cards.map(({ title, value, icon: Icon, iconColor, bgColor }) => (

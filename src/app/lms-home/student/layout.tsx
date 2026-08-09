@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import "keen-slider/keen-slider.min.css";
+import { GetEnrollmentsAction } from "@/server/enrollment";
 
 import {
   Home,
@@ -19,8 +20,14 @@ import {
   NotebookPen,
   Bell,
   LogOut,
+  CreditCard,
+  ClipboardList,
+  ClipboardCheck,
+  Gift,
 } from "lucide-react";
 import Image from "next/image";
+import { UserProfileDropdown } from "@/components/user-profile-dropdown";
+import AccessRestrictionGate from "@/components/shared/AccessRestrictionGate";
 
 // export const metadata = {
 //   title: "STC Tutors LMS",
@@ -29,22 +36,59 @@ import Image from "next/image";
 
 const sidebarLinks = [
   { label: "Dashboard", icon: Home, href: "/lms-home/student/dashboard" },
+  { label: "Enrollment", icon: ClipboardList, href: "/lms-home/student/enrollment" },
   { label: "Schedule", icon: Calendar, href: "/lms-home/student/scheduling" },
   { label: "Classroom", icon: Users, href: "/lms-home/student/classroom" },
   { label: "Messages", icon: MessageSquare, href: "/lms-home/student/messages" },
   { label: "Assessment", icon: BookOpen, href: "/lms-home/student/assessment" },
   { label: "Analytics", icon: BarChart2, href: "/lms-home/student/analytics" },
+  { label: "Attendance", icon: ClipboardCheck, href: "/lms-home/student/attendance" },
   { label: "Courses", icon: NotebookPen, href: "/lms-home/student/courses" },
+  { label: "Subscription", icon: CreditCard, href: "/lms-home/student/subscription" },
+  { label: "Payments", icon: CreditCard, href: "/lms-home/student/payments" },
+  { label: "Refer & Earn", icon: Gift, href: "/lms-home/student/refer-earn" },
   { label: "Profile", icon: UserRound, href: "/lms-home/student/profile" },
-  { label: "Support", icon: Headphones, href: "#" },
+  { label: "Support", icon: Headphones, href: "/lms-home/student/complaints" },
   { label: "Notifications", icon: Bell, href: "/lms-home/student/notification", badge: true },
 ];
 
+// Paths a student must still be able to reach before they've registered for
+// any service - the registration wizard itself, and the admin-confirmation
+// review flow (which implies a Student record already exists).
+const ENROLLMENT_PATH = "/lms-home/student/enrollment";
+const COMPLETE_PROFILE_PATH = "/lms-home/student/complete-profile";
+const NEW_ENROLLMENT_PATH = "/lms-home/student/enrollment/new";
+
 export default function LMSLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  // A student with no registered service can't use any other LMS feature -
+  // keep sending them back to the registration wizard until they have one.
+  useEffect(() => {
+    if (pathname.startsWith(ENROLLMENT_PATH) || pathname.startsWith(COMPLETE_PROFILE_PATH)) return;
+    (async () => {
+      const [res] = await GetEnrollmentsAction();
+      if (res?.data && res.data.length === 0) {
+        router.replace(NEW_ENROLLMENT_PATH);
+      }
+    })();
+  }, [pathname, router]);
+
+  // The registration wizard is a bare full-screen step - no sidebar/topbar
+  // chrome, so a student with nothing registered yet can't wander off via
+  // the sidebar before completing it.
+  if (pathname === NEW_ENROLLMENT_PATH) {
+    return (
+      <AccessRestrictionGate role="STUDENT">
+        <>{children}</>
+      </AccessRestrictionGate>
+    );
+  }
+
   return (
+    <AccessRestrictionGate role="STUDENT">
     <div className="flex h-screen bg-gray-100 relative">
       {/* Sidebar */}
       <aside
@@ -97,7 +141,7 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
                         <div className="p-4 border-t space-y-4">
                             {/* Support */}
                             <Link
-                            href="#"
+                            href="/lms-home/student/complaints"
                             className="flex items-center gap-3 text-gray-600 hover:text-[#38b6ff] hover:translate-x-3">
                                 <Headphones className="w-5 h-5" />
                                 Support
@@ -114,7 +158,7 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
                                     
                                     {/* Logout */}
                                     <Link
-                                    href="#"
+                                    href="/api/auth/logout"
                                     className="flex items-center gap-3 text-gray-600 hover:text-[#38b6ff] hover:translate-x-3">
                                         <LogOut className="w-5 h-5" />
                                         Logout
@@ -148,30 +192,22 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
 
           {/* Icons */}
           <div className="flex items-center gap-2">
-            {[
-              { icon: Bell, label: "Notifications" },
-              { icon: UserRound, label: "User" },
-            ].map(({ icon: Icon, label }, i) => (
-              <div
-                key={i}
-                className="group relative p-2 rounded-full hover:bg-gray-100 cursor-pointer transition"
-              >
-                <Icon className="w-5 h-5 text-gray-600" />
+            <Link
+              href="/lms-home/student/messages"
+              title="Messages"
+              className="group relative p-2 rounded-full hover:bg-gray-100 cursor-pointer transition"
+            >
+              <MessageSquare className="w-5 h-5 text-gray-600" />
+            </Link>
 
-                {/* Tooltip */}
-                <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-xs text-white bg-gray-700 px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition pointer-events-none">
-                  {label}
-                </div>
-              </div>
-            ))}
+            <Link
+              href="/lms-home/student/notification"
+              className="group relative p-2 rounded-full hover:bg-gray-100 cursor-pointer transition"
+            >
+              <Bell className="w-5 h-5 text-gray-600" />
+            </Link>
 
-            <Image
-              src="/image/testimonial3.jpg"
-              alt="Avatar"
-              width={32}
-              height={32}
-              className="rounded-full cursor-pointer"
-            />
+            <UserProfileDropdown />
           </div>
         </header>
 
@@ -179,6 +215,7 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
         <main className="flex-1 overflow-y-auto p-6">{children}</main>
       </div>
     </div>
+    </AccessRestrictionGate>
   );
 }
 

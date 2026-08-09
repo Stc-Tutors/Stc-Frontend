@@ -1,18 +1,25 @@
-declare module "@paystack/inline-js"
+declare module "@paystack/inline-js" {
+  interface PaystackTransaction {
+    reference: string;
+    status: string;
+    message: string;
+    transaction: string;
+    trxref: string;
+  }
 
-interface PaystackPop {
-  new (): PaystackPopInstance;
-  resumeTransaction(accessCode: string): void;
-  // Add other PaystackPop methods you use, if any
-}
+  interface ResumeTransactionOptions {
+    onSuccess?: (transaction: PaystackTransaction) => void;
+    onCancel?: () => void;
+    onLoad?: (response: unknown) => void;
+    onError?: (error: { message: string }) => void;
+  }
 
-interface PaystackPopInstance {
-  resumeTransaction(accessCode: string): void;
-  // Add other instance methods if needed
-}
+  interface PaystackPopInstance {
+    resumeTransaction(accessCode: string, options?: ResumeTransactionOptions): void;
+  }
 
-declare global {
-  interface Window {
-    PaystackPop: PaystackPop;
+  export default class PaystackPop {
+    constructor();
+    resumeTransaction(accessCode: string, options?: ResumeTransactionOptions): void;
   }
 }

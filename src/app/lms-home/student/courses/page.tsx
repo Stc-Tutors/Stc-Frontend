@@ -1,22 +1,49 @@
 "use client";
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import CourseCard from '../../../../components/studentDashboard/CourseCard';
-import { ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { ArrowLeft } from 'lucide-react';
+import CourseCard from '../../../../components/studentDashboard/CourseCard';
+import { GetEnrollmentsAction } from '@/server/enrollment';
+import { GetStudentCoursesAction } from '@/server/course-enrollment';
+import { CourseEnrollmentStatus } from '@/types/course-enrollment';
+import { Course } from '@/types/course';
 
 export default function Home() {
-  const [isDropdownOpen, setIsDropdownOpen] = useState(true);
-
-  const toggleDropdown = () => {
-    setIsDropdownOpen(!isDropdownOpen);
-  };
-
   const router = useRouter();
-  
-    const handleBack = () => {
-      router.push(`/lms-home/student/dashboard`);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [counts, setCounts] = useState({ enrolled: 0, active: 0, completed: 0 });
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      const [enrollmentsRes] = await GetEnrollmentsAction();
+      const studentId = enrollmentsRes?.data?.[0]?.id;
+      if (!studentId) {
+        setIsLoading(false);
+        return;
+      }
+
+      const [courseEnrollmentsRes] = await GetStudentCoursesAction(studentId);
+      const enrollments = courseEnrollmentsRes?.data ?? [];
+      const myCourses = enrollments
+        .map((e) => (typeof e.course === "string" ? null : e.course))
+        .filter((c): c is Course => !!c);
+
+      setCourses(myCourses);
+      setCounts({
+        enrolled: enrollments.length,
+        active: enrollments.filter((e) => e.status === CourseEnrollmentStatus.ACTIVE).length,
+        completed: enrollments.filter((e) => e.status === CourseEnrollmentStatus.COMPLETED).length,
+      });
+      setIsLoading(false);
     };
+    load();
+  }, []);
+
+  const handleBack = () => {
+    router.push(`/lms-home/student/dashboard`);
+  };
 
   return (
     <div className="flex">
@@ -32,45 +59,41 @@ export default function Home() {
 
         {/* Top bar */}
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold">All courses</h2>
-          
+          <h2 className="text-2xl font-bold">My Courses</h2>
+
           <Link href="/lms-home/student/courses/list">
           <button className="bg-blue-500 text-white hover:text-gray-800 px-4 py-2 rounded cursor-pointer">
-            Course List
+            Browse Courses
             </button>
             </Link>
         </div>
 
         {/* Tabs */}
         <div className="flex space-x-6 mb-4">
-          <button
-            onClick={toggleDropdown}
-            className={`pb-1 cursor-pointer border-b-2 transition-all duration-300 ${
-              isDropdownOpen ? 'text-blue-600 border-blue-600' : 'text-gray-500 border-transparent'
-            }`}
-          >
-            Enrolled courses (20)
-          </button>
-
-          <span className="text-gray-500 cursor-pointer">Active courses (0)</span>
-          <span className="text-gray-500 cursor-pointer">Completed courses (4)</span>
+          <span className="pb-1 text-blue-600 border-b-2 border-blue-600">
+            Enrolled courses ({counts.enrolled})
+          </span>
+          <span className="text-gray-500">Active courses ({counts.active})</span>
+          <span className="text-gray-500">Completed courses ({counts.completed})</span>
         </div>
 
-        {/* Dropdown with transition */}
-        <div
-          className={`transition-all duration-300 overflow-hidden ${
-            isDropdownOpen ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'
-          }`}
-        >
+        {isLoading ? (
+          <p className="text-sm text-gray-500">Loading your courses...</p>
+        ) : courses.length === 0 ? (
+          <p className="text-sm text-gray-500">
+            You are not enrolled in any courses yet. Browse courses to get started.
+          </p>
+        ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            <CourseCard />
-            <CourseCard />
-            <CourseCard />
-            <CourseCard />
-            <CourseCard />
-            <CourseCard />
+            {courses.map((course) => (
+              <CourseCard
+                key={course.id}
+                course={course}
+                onClick={() => router.push(`/lms-home/student/courses/${course.id}`)}
+              />
+            ))}
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

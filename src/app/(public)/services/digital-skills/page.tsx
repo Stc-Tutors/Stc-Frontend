@@ -2,8 +2,8 @@
 
 import Image from 'next/image';
 import Head from 'next/head';
-import Link from "next/link";
 import { BookOpen } from "lucide-react";
+import RegisterCTA from "@/components/register-cta";
 
 import { useRouter } from 'next/navigation';
 
@@ -61,13 +61,12 @@ export default function TechAdult() {
 
         {/* Enroll */}
         <div className="my-8 flex justify-center">
-          <Link
-          href="/services/tech-adult/register-form"
-          className="inline-flex items-center gap-2 bg-[#38b6ff] text-white px-6 py-3 rounded-lg text-base md:text-lg hover:bg-[#1c2574] transition duration-200"
-          >
-            <BookOpen className="w-5 h-5" />
-            Enroll
-            </Link>
+          <RegisterCTA
+            serviceType="digital-skills"
+            label="Enroll"
+            icon={<BookOpen className="w-5 h-5" />}
+            className="bg-[#38b6ff] hover:bg-[#1c2574] text-base md:text-lg"
+          />
             </div>
 
         {/* Overview */}
@@ -196,12 +195,11 @@ export default function TechAdult() {
               ← Back
               </button>
 
-            <Link
-            href="/services/tech-adult/register-form"
-            className="inline-block bg-[#38b6ff] text-white px-8 py-4 rounded-lg text-lg hover:bg-[#1c2574]"
-            >
-              Enroll Now
-              </Link>
+            <RegisterCTA
+              serviceType="digital-skills"
+              label="Enroll Now"
+              className="bg-[#38b6ff] hover:bg-[#1c2574] px-8 py-4 text-lg"
+            />
           </div>
         </section>
       </main>

@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import "keen-slider/keen-slider.min.css";
+import { SelectedStudentProvider } from "@/contexts/selected-student-context";
 
 import {
   Home,
@@ -12,17 +13,22 @@ import {
   Search,
   Menu,
   MessageSquare,
-  BookOpen,
   BarChart2,
   UserRound,
   Headphones,
-  NotebookPen,
   Bell,
   LogOut,
-  FileUser,
-  CircleUserRound
+  CreditCard,
+  ClipboardList,
+  UserPlus,
+  Gift,
+  ShoppingBag,
+  CalendarDays,
 } from "lucide-react";
 import Image from "next/image";
+import { UserProfileDropdown } from "@/components/user-profile-dropdown";
+import { ChildSwitcherDropdown } from "@/components/child-switcher-dropdown";
+import AccessRestrictionGate from "@/components/shared/AccessRestrictionGate";
 
 // export const metadata = {
 //   title: "STC Tutors LMS",
@@ -31,16 +37,20 @@ import Image from "next/image";
 
 const sidebarLinks = [
   { label: "Dashboard", icon: Home, href: "/lms-home/parent/dashboard" },
-  { label: "Schedule", icon: Calendar, href: "/lms-home/tutor/scheduling" },
-  { label: "Classroom", icon: Users, href: "#" },
-  { label: "Messages", icon: MessageSquare, href: "/lms-home/tutor/messages" },
-  { label: "Your Account", icon: CircleUserRound, href: "/lms-home/tutor/your-account" },
-  { label: "Resources", icon: FileUser, href: "/lms-home/tutor/resources" },
+  { label: "Enrollment", icon: ClipboardList, href: "/lms-home/parent/enrollment" },
+  { label: "Marketplace", icon: ShoppingBag, href: "/lms-home/parent/marketplace" },
+  { label: "Schedule", icon: Calendar, href: "/lms-home/parent/scheduling" },
+  { label: "Classroom", icon: Users, href: "/lms-home/parent/scheduling" },
+  { label: "Assessment", icon: CalendarDays, href: "/lms-home/parent/assessment" },
+  { label: "Messages", icon: MessageSquare, href: "/lms-home/parent/messages" },
   { label: "Analytics", icon: BarChart2, href: "/lms-home/parent/analytics" },
-  { label: "Create Courses", icon: NotebookPen, href: "/lms-home/tutor/create-courses" },
-  { label: "Profile", icon: UserRound, href: "/lms-home/tutor/profile" },
-  { label: "Support", icon: Headphones, href: "#" },
-  { label: "Notifications", icon: Bell, href: "/lms-home/tutor/notification", badge: true },
+  { label: "Subscription", icon: CreditCard, href: "/lms-home/parent/subscription" },
+  { label: "Payments", icon: CreditCard, href: "/lms-home/parent/payments" },
+  { label: "Refer & Earn", icon: Gift, href: "/lms-home/parent/refer-earn" },
+  { label: "Add Child", icon: UserPlus, href: "/lms-home/parent/add-child" },
+  { label: "Profile", icon: UserRound, href: "/lms-home/parent/profile" },
+  { label: "Support", icon: Headphones, href: "/lms-home/parent/complaints" },
+  { label: "Notifications", icon: Bell, href: "/lms-home/parent/notification", badge: true },
 ];
 
 export default function LMSLayout({ children }: { children: React.ReactNode }) {
@@ -48,6 +58,8 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
+    <AccessRestrictionGate role="PARENT">
+    <SelectedStudentProvider>
     <div className="flex h-screen bg-gray-100 relative">
       {/* Sidebar */}
       <aside
@@ -100,7 +112,7 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
                         <div className="p-4 border-t space-y-6">
                             {/* Support */}
                             <Link
-                            href="#"
+                            href="/lms-home/parent/complaints"
                             className="flex items-center gap-3 text-gray-600 hover:text-[#38b6ff] hover:translate-x-3">
                                 <Headphones className="w-5 h-5" />
                                 Support
@@ -108,7 +120,7 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
                                 
                                 {/* Notifications */}
                                 <Link
-                                href="/lms-home/student/notification"
+                                href="/lms-home/parent/notification"
                                 className="flex items-center gap-3 text-gray-600 hover:text-[#38b6ff] hover:translate-x-3">
                                     <Bell className="w-5 h-5" />
                                     Notifications
@@ -117,7 +129,7 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
                                     
                                     {/* Logout */}
                                     <Link
-                                    href="#"
+                                    href="/api/auth/logout"
                                     className="flex items-center gap-3 text-gray-600 hover:text-[#38b6ff] hover:translate-x-3">
                                         <LogOut className="w-5 h-5" />
                                         Logout
@@ -151,30 +163,24 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
 
           {/* Icons */}
           <div className="flex items-center gap-2">
-            {[
-              { icon: Bell, label: "Notifications" },
-              { icon: UserRound, label: "User" },
-            ].map(({ icon: Icon, label }, i) => (
-              <div
-                key={i}
-                className="group relative p-2 rounded-full hover:bg-gray-100 cursor-pointer transition"
-              >
-                <Icon className="w-5 h-5 text-gray-600" />
+            <ChildSwitcherDropdown />
 
-                {/* Tooltip */}
-                <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-xs text-white bg-gray-700 px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition pointer-events-none">
-                  {label}
-                </div>
-              </div>
-            ))}
+            <Link
+              href="/lms-home/parent/messages"
+              title="Messages"
+              className="group relative p-2 rounded-full hover:bg-gray-100 cursor-pointer transition"
+            >
+              <MessageSquare className="w-5 h-5 text-gray-600" />
+            </Link>
 
-            <Image
-              src="/image/testimonial3.jpg"
-              alt="Avatar"
-              width={32}
-              height={32}
-              className="rounded-full cursor-pointer"
-            />
+            <Link
+              href="/lms-home/parent/notification"
+              className="group relative p-2 rounded-full hover:bg-gray-100 cursor-pointer transition"
+            >
+              <Bell className="w-5 h-5 text-gray-600" />
+            </Link>
+
+            <UserProfileDropdown />
           </div>
         </header>
 
@@ -182,6 +188,8 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
         <main className="flex-1 overflow-y-auto p-6">{children}</main>
       </div>
     </div>
+    </SelectedStudentProvider>
+    </AccessRestrictionGate>
   );
 }
 

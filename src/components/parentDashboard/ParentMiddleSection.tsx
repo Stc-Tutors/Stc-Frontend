@@ -1,23 +1,56 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { CalendarDays, Bell, HelpCircle } from "lucide-react";
+import { Bell, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import ParentCalendar from "./parentCalendar";
 import TodayLectures from "../studentDashboard/TodayLecture";
+import { GetEnrollmentsAction, GetLinkedStudentsAction } from "@/server/enrollment";
+import { GetStudentCoursesAction } from "@/server/course-enrollment";
+import { GetNotificationsAction } from "@/server/notification";
+import { Notification } from "@/types/notification";
 
-const data = [
-  { name: "Mon", performance: 65 },
-  { name: "Tue", performance: 75 },
-  { name: "Wed", performance: 60 },
-  { name: "Thu", performance: 80 },
-  { name: "Fri", performance: 70 },
-  { name: "Sat", performance: 85 },
-  { name: "Sun", performance: 78 },
-];
+interface ChildProgress {
+  name: string;
+  progress: number;
+}
 
 export default function ParentMiddleSection() {
+  const [data, setData] = useState<ChildProgress[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      const [linkedRes] = await GetLinkedStudentsAction();
+      const [ownRes] = await GetEnrollmentsAction();
+      const students = [...(linkedRes?.data ?? []), ...(ownRes?.data ?? [])];
+
+      const courseEnrollmentLists = await Promise.all(
+        students.map((s) => GetStudentCoursesAction(s.id))
+      );
+
+      setData(
+        students.map((s, i) => {
+          const enrollments = courseEnrollmentLists[i][0]?.data ?? [];
+          const avg =
+            enrollments.length === 0
+              ? 0
+              : Math.round(enrollments.reduce((sum, e) => sum + e.progressPercent, 0) / enrollments.length);
+          return { name: s.fullName, progress: avg };
+        })
+      );
+
+      const [notificationsRes] = await GetNotificationsAction();
+      setNotifications((notificationsRes?.data ?? []).slice(0, 3));
+
+      setIsLoading(false);
+    };
+    load();
+  }, []);
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
       {/* LEFT — PERFORMANCE OVERVIEW */}
@@ -25,18 +58,24 @@ export default function ParentMiddleSection() {
       <Card className="lg:col-span-2">
         <CardHeader className="flex items-center justify-between">
           <CardTitle>Performance Overview</CardTitle>
-          <p className="text-sm text-gray-500">This Month</p>
+          <p className="text-sm text-gray-500">Avg. course progress</p>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={250}>
-            <LineChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Line type="monotone" dataKey="performance" stroke="#2563eb" strokeWidth={2} />
-            </LineChart>
-          </ResponsiveContainer>
+          {isLoading ? (
+            <p className="text-sm text-gray-500">Loading...</p>
+          ) : data.length === 0 ? (
+            <p className="text-sm text-gray-500">No enrolled children yet.</p>
+          ) : (
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={data}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                <YAxis domain={[0, 100]} tickFormatter={(tick) => `${tick}%`} />
+                <Tooltip formatter={(value: number) => [`${value}%`, "Progress"]} />
+                <Bar dataKey="progress" fill="#2563eb" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
         </CardContent>
       </Card>
 
@@ -55,19 +94,21 @@ export default function ParentMiddleSection() {
             <CardTitle>Recent Notifications</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {[
-              "Mathematics lesson completed successfully",
-              "New payment confirmation available",
-              "Upcoming class reminder for Science Track",
-            ].map((n, idx) => (
-              <div key={idx} className="flex items-start gap-3">
-                <Bell className="w-5 h-5 text-blue-500 mt-0.5" />
-                <div>
-                  <p className="text-sm text-gray-700">{n}</p>
-                  <p className="text-xs text-gray-400 mt-1">2 hrs ago</p>
+            {isLoading ? (
+              <p className="text-sm text-gray-500">Loading...</p>
+            ) : notifications.length === 0 ? (
+              <p className="text-sm text-gray-500">No notifications yet.</p>
+            ) : (
+              notifications.map((n) => (
+                <div key={n.id} className="flex items-start gap-3">
+                  <Bell className="w-5 h-5 text-blue-500 mt-0.5" />
+                  <div>
+                    <p className="text-sm text-gray-700">{n.body}</p>
+                    <p className="text-xs text-gray-400 mt-1">{new Date(n.createdAt).toLocaleString()}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </CardContent>
         </Card>
 
@@ -79,10 +120,13 @@ export default function ParentMiddleSection() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-gray-500 mb-4">
-              Having trouble with your dashboard or a course?  
+              Having trouble with your dashboard or a course?
               Our support team is here for assistance.
             </p>
-            <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+            <Button
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+              onClick={() => (window.location.href = "/lms-home/parent/messages")}
+            >
               Message Support
             </Button>
           </CardContent>

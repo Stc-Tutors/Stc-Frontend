@@ -9,24 +9,36 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { User, GraduationCap, Calendar, Clock, Edit } from "lucide-react";
+import { SERVICE_TYPE_LABELS } from "@/constants/taxonomy";
+import { ArchitecturalPath } from "@/types/service-catalog";
+import { useCustomFormFields } from "@/hooks/use-custom-form-fields";
+import DynamicQuestionField from "@/components/forms/dynamic-question-field";
 
 interface StepProps {
   onNext: (errors: Record<string, string>) => void;
   errors: Record<string, string>;
+  forcedUserType?: "parent" | "student";
 }
 
+const STAGE = "student-registration:review" as const;
+
 export default function EnrollmentReview({ onNext, errors }: StepProps) {
-  const { enrollmentData, setCurrentStep, calculateCost } = useEnrollment();
+  const { enrollmentData, setCurrentStep, calculateCost, updateCustomFieldResponse } = useEnrollment();
   // const { enrollmentData, setCurrentStep } = useEnrollment();
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [acceptPrivacy, setAcceptPrivacy] = useState(false);
 
-  const { childInfo, serviceDetails, schedule } = enrollmentData;
+  const { childInfo, serviceDetails, schedule, selectedService } = enrollmentData;
+  const isCourseModule = selectedService?.architecturalPath === ArchitecturalPath.COURSE_MODULE;
+
+  const { fields: customFields } = useCustomFormFields(STAGE, serviceDetails?.serviceType);
+  const customFieldResponses = enrollmentData.customFieldResponses ?? {};
   // const totalCost = calculateCost();
   // const totalCost = enrollmentData.totalCost || 0;
 
   // const totalCost = enrollmentData.totalCost || calculateCost();
   const totalCost = enrollmentData.totalCost ?? 0;
+  const billingWeeks = serviceDetails?.billingWeeks || 4;
 // console.log("✅ Review Page - Total Cost:", totalCost, "Service Type:", serviceDetails?.serviceType);
 
 
@@ -45,19 +57,23 @@ export default function EnrollmentReview({ onNext, errors }: StepProps) {
         stepErrors.privacy = "Please accept the privacy policy";
       }
 
+      for (const field of customFields) {
+        if (field.required) {
+          const value = customFieldResponses[field.id];
+          const isEmpty = value === undefined || value === null || value === "" || (Array.isArray(value) && value.length === 0);
+          if (isEmpty) stepErrors[`custom_${field.id}`] = `${field.label} is required`;
+        }
+      }
+
       onNext(stepErrors);
     };
 
     window.addEventListener("validateStep", handleValidation);
     return () => window.removeEventListener("validateStep", handleValidation);
-  }, [acceptTerms, acceptPrivacy, onNext]);
+  }, [acceptTerms, acceptPrivacy, customFields, customFieldResponses, onNext]);
 
   const formatScheduleText = (scheduleItem: any) => {
-    if (serviceDetails?.serviceType === "tech-bootcamp") {
-      return "Monday - Friday, 4:00pm - 5:00pm (1 hour)";
-    }
-
-    const days = scheduleItem.days.join(", ");
+    const days = scheduleItem.days.length > 0 ? scheduleItem.days.join(", ") : "Days to be confirmed";
     const duration =
       scheduleItem.duration === 60
         ? "1 hour"
@@ -71,18 +87,8 @@ export default function EnrollmentReview({ onNext, errors }: StepProps) {
     return `${days} at ${scheduleItem.time} (${duration})`;
   };
 
-  const getServiceTitle = (serviceType: string) => {
-    switch (serviceType) {
-      case "academic-tutoring":
-        return "Academic Tutoring";
-      case "exam-preparation":
-        return "Exam Preparation";
-      case "tech-bootcamp":
-        return "Tech for Kids";
-      default:
-        return serviceType;
-    }
-  };
+  const getServiceTitle = (serviceType: string) =>
+    selectedService?.serviceName || SERVICE_TYPE_LABELS[serviceType] || serviceType;
 
   return (
     <div className="space-y-6">
@@ -195,7 +201,7 @@ export default function EnrollmentReview({ onNext, errors }: StepProps) {
 
             <div>
               <p className="text-sm text-gray-600">
-                Selected {serviceDetails?.serviceType === "tech-bootcamp" ? "Tech Tracks" : "Subjects"}
+                {isCourseModule ? "Selected Course" : "Selected Subjects"}
               </p>
               <div className="flex flex-wrap gap-2 mt-1">
                 {serviceDetails?.selectedSubjects?.map(subject => (
@@ -206,10 +212,52 @@ export default function EnrollmentReview({ onNext, errors }: StepProps) {
               </div>
             </div>
 
+            {(serviceDetails?.gradeLevel || serviceDetails?.classYear) && (
+              <div>
+                <p className="text-sm text-gray-600">Grade Level / Class</p>
+                <p className="font-medium">
+                  {[serviceDetails.gradeLevel, serviceDetails.classYear].filter(Boolean).join(" / ")}
+                </p>
+              </div>
+            )}
+
+            {serviceDetails?.examCategory && (
+              <div>
+                <p className="text-sm text-gray-600">Exam Category</p>
+                <p className="font-medium">{serviceDetails.examCategory}</p>
+              </div>
+            )}
+
+            {serviceDetails?.language && (
+              <div>
+                <p className="text-sm text-gray-600">Language</p>
+                <p className="font-medium">{serviceDetails.language}</p>
+              </div>
+            )}
+
             <div>
               <p className="text-sm text-gray-600">Preferred Tutor Gender</p>
               <p className="font-medium">{serviceDetails?.tutorGender}</p>
             </div>
+
+            {serviceDetails?.classFormat && (
+              <div>
+                <p className="text-sm text-gray-600">Class Format</p>
+                <p className="font-medium">
+                  {serviceDetails.classFormat === "one-on-one" ? "One-on-One" : "Group Class"}
+                  {serviceDetails.classFormat === "one-on-one" && serviceDetails.startDate && (
+                    <> - starting {new Date(serviceDetails.startDate).toLocaleDateString(undefined, { weekday: "short", year: "numeric", month: "long", day: "numeric" })}</>
+                  )}
+                </p>
+              </div>
+            )}
+
+            {serviceDetails?.classGroupId && (
+              <div>
+                <p className="text-sm text-gray-600">Class Group</p>
+                <p className="font-medium">Joining an existing cohort - final placement confirmed after enrollment</p>
+              </div>
+            )}
 
             {serviceDetails?.learningGoals && (
               <div>
@@ -256,27 +304,27 @@ export default function EnrollmentReview({ onNext, errors }: StepProps) {
             <div className="space-y-3">
               <h4 className="font-semibold">Cost Breakdown</h4>
               <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>Rate per hour:</span>
-                  <span>₦1,000</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span>Total weekly hours:</span>
-                  <span>
-                    {schedule?.reduce((total, item) => {
-                      const hoursPerDay = item.duration / 60;
-                      return total + item.days.length * hoursPerDay;
-                    }, 0)}{" "}
-                    hours
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span>Weekly cost:</span>
-                  <span>₦{(totalCost / 4).toLocaleString()}</span>
-                </div>
+                {!isCourseModule && (
+                  <>
+                    <div className="flex justify-between text-sm">
+                      <span>Total weekly hours:</span>
+                      <span>
+                        {schedule?.reduce((total, item) => {
+                          const hoursPerDay = item.duration / 60;
+                          return total + item.days.length * hoursPerDay;
+                        }, 0)}{" "}
+                        hours
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span>Weekly cost:</span>
+                      <span>₦{(totalCost / billingWeeks).toLocaleString()}</span>
+                    </div>
+                  </>
+                )}
                 <Separator />
                 <div className="flex justify-between font-semibold text-lg">
-                  <span>Monthly Total:</span>
+                  <span>{isCourseModule ? "Total:" : `Total (${billingWeeks} week${billingWeeks === 1 ? "" : "s"}):`}</span>
                   <span className="text-green-600">₦{totalCost.toLocaleString()}</span>
                 </div>
               </div>
@@ -328,6 +376,25 @@ export default function EnrollmentReview({ onNext, errors }: StepProps) {
         </CardContent>
       </Card>
 
+      {customFields.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Additional Information</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {customFields.map((field) => (
+              <DynamicQuestionField
+                key={field.id}
+                field={field}
+                value={customFieldResponses[field.id]}
+                onChange={(value) => updateCustomFieldResponse(field.id, value)}
+                error={errors[`custom_${field.id}`]}
+              />
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
       {/* Payment Summary */}
       <Card className="border-green-200 bg-green-50">
         <CardContent className="p-6">
@@ -338,7 +405,11 @@ export default function EnrollmentReview({ onNext, errors }: StepProps) {
             </div>
             <div className="text-right">
               <p className="text-2xl font-bold text-green-800">₦{totalCost.toLocaleString()}</p>
-              <p className="text-sm text-green-600">per month</p>
+              {!isCourseModule && (
+                <p className="text-sm text-green-600">
+                  for {billingWeeks} week{billingWeeks === 1 ? "" : "s"}
+                </p>
+              )}
             </div>
           </div>
         </CardContent>

@@ -5,6 +5,7 @@ import Head from 'next/head';
 
 
 import { useRouter } from 'next/navigation';
+import RegisterCTA from '@/components/register-cta';
 // import YouTubePlayer from '../../components/YouTubePlayer';
 
 export default function ExamPreparation() {
@@ -166,11 +167,11 @@ export default function ExamPreparation() {
               ← Back
             </button>
 
-            <a
-              href="/services/exam-preparation/register-form"
-              className="inline-block bg-green-600 text-white px-8 py-4 rounded-lg text-lg hover:bg-green-700">
-              Start Exam Prep Now
-            </a>
+            <RegisterCTA
+              serviceType="exam-preparation"
+              label="Start Exam Prep Now"
+              className="bg-green-600 hover:bg-green-700 px-8 py-4 text-lg"
+            />
           </div>
         </section>
       </main>

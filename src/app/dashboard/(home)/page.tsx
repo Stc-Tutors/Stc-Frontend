@@ -79,7 +79,7 @@ export default function DashboardPage() {
     const totalWeeklyHours = children.reduce((total, child) => {
       return (
         total +
-        child.schedule.reduce((childTotal, schedule) => {
+        (child.schedule ?? []).reduce((childTotal, schedule) => {
           return childTotal + schedule.days.length * (schedule.duration / 60);
         }, 0)
       );
@@ -219,10 +219,10 @@ export default function DashboardPage() {
                         <CardTitle className="text-xl text-gray-900">{child.fullName}</CardTitle>
                         <div className="flex flex-wrap items-center space-x-2 mt-2">
                           <Badge variant="secondary" className="text-xs">
-                            {child.serviceDetails.ageLevel}
+                            {child.serviceDetails?.ageLevel}
                           </Badge>
                           <Badge variant="outline" className="text-xs">
-                            {child.serviceDetails.serviceType}
+                            {child.serviceDetails?.serviceType}
                           </Badge>
                           <Badge className={`text-xs ${getStatusColor(child.enrollmentStatus)}`}>
                             {child.enrollmentStatus}
@@ -244,7 +244,7 @@ export default function DashboardPage() {
                 <CardContent className="pt-0">
                   {/* Quick Schedule Overview */}
                   <div className="space-y-3">
-                    {child.schedule.map((schedule, scheduleIndex) => (
+                    {(child.schedule ?? []).map((schedule, scheduleIndex) => (
                       <div key={scheduleIndex} className="bg-gray-50 rounded-lg p-4">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                           <div className="flex items-center space-x-2">
@@ -266,17 +266,18 @@ export default function DashboardPage() {
                     ))}
                   </div>
 
-                  {/* Resume Enrollment Button if PENDING */}
-                  {child.enrollmentStatus === "PENDING" && (
+                  {/* Resume Enrollment Button if DRAFT (mid-form) or PENDING (submitted, unpaid) */}
+                  {(child.enrollmentStatus === "DRAFT" || child.enrollmentStatus === "PENDING") && (
                     <div className="mt-4">
                       <Button
                       size="sm"
                       onClick={() =>
-                        // router.push(`/dashboard/enroll?edit=true&childId=${child.id}`)
-                        router.push(`/dashboard/enroll?edit=true&childId=${child.id}&step=review`)
+                        router.push(
+                          `/dashboard/enroll?continue=${child.id}&step=${child.enrollmentStatus === "PENDING" ? "review" : "subjects"}`
+                        )
                       }
                       className="bg-yellow-500 hover:bg-yellow-600 text-white">
-                        Resume Enrollment
+                        {child.enrollmentStatus === "DRAFT" ? "Continue Registration" : "Resume Enrollment"}
                         </Button>
                         </div>
                       )}
@@ -298,7 +299,7 @@ export default function DashboardPage() {
                           <div className="flex justify-between">
                             <span className="text-gray-600">Date of Birth:</span>
                             <span className="font-medium text-gray-900">
-                              {new Date(child.dateOfBirth).toLocaleDateString()}
+                              {new Date(child.dateOfBirth ?? 0).toLocaleDateString()}
                             </span>
                           </div>
                           <div className="flex justify-between">
@@ -357,29 +358,29 @@ export default function DashboardPage() {
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                             <div className="flex justify-between">
                               <span className="text-gray-600">Learning Focus:</span>
-                              <span className="font-medium text-gray-900">{child.serviceDetails.learningFocus}</span>
+                              <span className="font-medium text-gray-900">{child.serviceDetails?.learningFocus}</span>
                             </div>
                             <div className="flex justify-between">
                               <span className="text-gray-600">Preferred Tutor:</span>
-                              <span className="font-medium text-gray-900">{child.serviceDetails.tutorGender}</span>
+                              <span className="font-medium text-gray-900">{child.serviceDetails?.tutorGender}</span>
                             </div>
                             <div className="flex justify-between">
                               <span className="text-gray-600">Total Cost:</span>
                               <span className="font-medium text-gray-900 flex items-center">
-                                ₦{child.serviceDetails.totalCost}
+                                ₦{child.serviceDetails?.totalCost}
                               </span>
                             </div>
                           </div>
 
                           <div>
                             <span className="text-gray-600 text-sm">Learning Goals:</span>
-                            <p className="font-medium text-gray-900 mt-1">{child.serviceDetails.learningGoals}</p>
+                            <p className="font-medium text-gray-900 mt-1">{child.serviceDetails?.learningGoals}</p>
                           </div>
 
                           <div>
                             <span className="text-gray-600 text-sm">Selected Subjects:</span>
                             <div className="flex flex-wrap gap-2 mt-2">
-                              {child.serviceDetails.selectedSubjects.map((subject, idx) => (
+                              {child.serviceDetails?.selectedSubjects.map((subject, idx) => (
                                 <Badge key={idx} variant="outline" className="text-xs">
                                   {subject}
                                 </Badge>
@@ -398,7 +399,7 @@ export default function DashboardPage() {
                           Detailed Schedule
                         </h4>
                         <div className="space-y-3">
-                          {child.schedule.map((schedule, scheduleIndex) => (
+                          {(child.schedule ?? []).map((schedule, scheduleIndex) => (
                             <div key={scheduleIndex} className="border rounded-lg p-4">
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                                 <div className="flex justify-between">

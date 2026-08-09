@@ -1,7 +1,8 @@
 "use client"
 import { ROUTES } from "@/config/routes"
-import { GetUserAction } from "@/server/user"
+import { GetUserAction, GetMyPermissionsAction } from "@/server/user"
 import { User } from "@/types/user"
+import { AdminPermission, MyPermissions } from "@/types/admin-permission"
 import { useRouter } from "next/navigation"
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
 
@@ -11,6 +12,8 @@ type UserContextType = {
   updateUser: (updates: Partial<User>) => void
   logout: () => void
   isLoading: boolean
+  permissions: MyPermissions | null
+  hasPermission: (permission: AdminPermission) => boolean
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined)
@@ -19,6 +22,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [permissions, setPermissions] = useState<MyPermissions | null>(null)
 
 
     useEffect(() => {
@@ -26,7 +30,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       setIsLoading(true)
       try {
       const [res, error] = await GetUserAction()
-      
+
         if (!res || error) {
           console.error("Failed to fetch user:", error)
           setUser(null)
@@ -43,8 +47,19 @@ export function UserProvider({ children }: { children: ReactNode }) {
       }
     }
 
+    const fetchPermissions = async () => {
+      const [res] = await GetMyPermissionsAction()
+      setPermissions(res?.data ?? [])
+    }
+
     fetchUser()
+    fetchPermissions()
   }, [])
+
+  const hasPermission = (permission: AdminPermission): boolean => {
+    if (permissions === "*") return true
+    return permissions?.includes(permission) ?? false
+  }
 
   const updateUser = (updates: Partial<User>) => {
     if (user) {
@@ -70,6 +85,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
     updateUser,
     logout,
     isLoading,
+    permissions,
+    hasPermission,
   }
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>

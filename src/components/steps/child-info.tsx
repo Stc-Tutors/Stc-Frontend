@@ -3,48 +3,90 @@ import { useState, useEffect } from "react"
 import { useEnrollment } from "@/contexts/enrollment-context"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import allCountries from "world-countries";
 import { SearchableCombobox } from "../ui/searchable-combobox"
-import { CountrySelect } from "@/components/ui/country-select"
+import { GetTaxonomyOptionsAction } from "@/server/taxonomy-option"
+import { ITaxonomyOption, TaxonomyOptionKind } from "@/types/service-catalog"
+import { useCustomFormFields } from "@/hooks/use-custom-form-fields"
+import DynamicQuestionField from "@/components/forms/dynamic-question-field"
 
 
 interface StepProps {
   onNext: (errors: Record<string, string>) => void
   errors: Record<string, string>
+  // Set when this flow is embedded under a role-specific LMS route
+  // (/lms-home/student/enrollment/new or /lms-home/parent/enrollment/new) -
+  // the route already answers "who is signing up", so the toggle is hidden
+  // and userType is seeded from this instead of defaulting to "parent".
+  forcedUserType?: "parent" | "student"
 }
 
-// const countries = ["United States", "United Kingdom", "Nigeria", "Canada", "Australia"]
-const countries = allCountries.map((country) => ({
-  name: country.name.common,
-  code: country.cca2.toLowerCase(),
-  dialCode: country.idd.root + (country.idd.suffixes?.[0] || ''),
-}));
+const STAGE = "student-registration:child-info" as const;
 
-const countryOptions = countries.map((country) => ({
-  value: country.name,
-  label: country.name,
-}));
-const languages = ["English"]
+// Below this age, a self-registering "student" still needs a parent/guardian
+// on file (contact + consent). 16, not 18 - see child-info step ticket.
+const PARENT_INFO_REQUIRED_UNDER_AGE = 16;
 
-export default function ChildInfoStep({ onNext, errors }: StepProps) {
-  const { enrollmentData, updateChildInfo } = useEnrollment()
+function calculateAge(dateOfBirth: string): number | null {
+  if (!dateOfBirth) return null;
+  const dob = new Date(dateOfBirth);
+  if (Number.isNaN(dob.getTime())) return null;
+  const today = new Date();
+  let age = today.getFullYear() - dob.getFullYear();
+  const monthDiff = today.getMonth() - dob.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+    age--;
+  }
+  return age;
+}
+
+export default function ChildInfoStep({ onNext, errors, forcedUserType }: StepProps) {
+  const { enrollmentData, updateChildInfo, updateCustomFieldResponse } = useEnrollment()
   const [formData, setFormData] = useState({
-    userType: enrollmentData.childInfo?.userType || "parent",
+    userType: forcedUserType || enrollmentData.childInfo?.userType || "parent",
     fullName: enrollmentData.childInfo?.fullName || "",
     gender: enrollmentData.childInfo?.gender || "",
     dateOfBirth: enrollmentData.childInfo?.dateOfBirth || "",
     phone: enrollmentData.childInfo?.phone || "",
     countryOfResidence: enrollmentData.childInfo?.countryOfResidence || "",
-    countryCode: enrollmentData.childInfo?.countryCode || "",
-    countryFlag: enrollmentData.childInfo?.countryFlag || "",
     primaryLanguage: enrollmentData.childInfo?.primaryLanguage || "",
     parentName: enrollmentData.childInfo?.parentName || "",
     parentPhone: enrollmentData.childInfo?.parentPhone || "",
     parentEmail: enrollmentData.childInfo?.parentEmail || "",
   })
+
+  // Task 2 - Country of residence / Primary language now come from the
+  // admin-managed taxonomy-options catalog (GET /public/taxonomy-options)
+  // instead of world-countries free text / a hardcoded single-language list.
+  const [countries, setCountries] = useState<ITaxonomyOption[]>([])
+  const [languages, setLanguages] = useState<ITaxonomyOption[]>([])
+  const [isLoadingOptions, setIsLoadingOptions] = useState(true)
+
+  useEffect(() => {
+    Promise.all([
+      GetTaxonomyOptionsAction(TaxonomyOptionKind.COUNTRY),
+      GetTaxonomyOptionsAction(TaxonomyOptionKind.LANGUAGE),
+    ]).then(([[countryRes], [languageRes]]) => {
+      setCountries(countryRes?.data ?? [])
+      setLanguages(languageRes?.data ?? [])
+      setIsLoadingOptions(false)
+    })
+  }, [])
+
+  const countryOptions = countries.map((c) => ({ value: c.value, label: c.label }))
+  const languageOptions = languages.map((l) => ({ value: l.value, label: l.label }))
+
+  const { fields: customFields } = useCustomFormFields(STAGE, enrollmentData.serviceDetails?.serviceType)
+  const customFieldResponses = enrollmentData.customFieldResponses ?? {}
+
+  const age = calculateAge(formData.dateOfBirth)
+  // A self-registering student only needs a parent/guardian on file while
+  // under PARENT_INFO_REQUIRED_UNDER_AGE. Until a DOB is entered we don't
+  // know their age yet, so default to requiring it (dateOfBirth's own
+  // "required" error blocks progression either way).
+  const isMinorStudent = formData.userType === "student" && (age === null || age < PARENT_INFO_REQUIRED_UNDER_AGE)
 
   const handleChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -83,8 +125,8 @@ export default function ChildInfoStep({ onNext, errors }: StepProps) {
         stepErrors.primaryLanguage = "Please select primary teaching language"
       }
 
-      // Additional validation for students (16+)
-      if (formData.userType === "student") {
+      // Additional validation for students under PARENT_INFO_REQUIRED_UNDER_AGE
+      if (isMinorStudent) {
         if (!formData.parentName.trim()) {
           stepErrors.parentName = "Parent/Guardian name is required"
         }
@@ -98,6 +140,14 @@ export default function ChildInfoStep({ onNext, errors }: StepProps) {
         }
       }
 
+      for (const field of customFields) {
+        if (field.required) {
+          const value = customFieldResponses[field.id]
+          const isEmpty = value === undefined || value === null || value === "" || (Array.isArray(value) && value.length === 0)
+          if (isEmpty) stepErrors[`custom_${field.id}`] = `${field.label} is required`
+        }
+      }
+
       if (Object.keys(stepErrors).length === 0) {
         updateChildInfo(formData)
       }
@@ -108,11 +158,12 @@ export default function ChildInfoStep({ onNext, errors }: StepProps) {
 
     window.addEventListener("validateStep", handleValidation)
     return () => window.removeEventListener("validateStep", handleValidation)
-  }, [formData, onNext, updateChildInfo])
+  }, [formData, customFields, customFieldResponses, isMinorStudent, onNext, updateChildInfo])
 
   return (
     <div className="space-y-6 w-full">
-      {/* User Type Selection */}
+      {/* User Type Selection - hidden when the route already determines this */}
+      {!forcedUserType && (
       <Card>
         <CardHeader>
           <CardTitle>Who is signing up?</CardTitle>
@@ -145,6 +196,7 @@ export default function ChildInfoStep({ onNext, errors }: StepProps) {
           {errors.userType && <p className="text-red-600 text-sm mt-2">{errors.userType}</p>}
         </CardContent>
       </Card>
+      )}
 
       {/* Student/Child Information */}
       <Card>
@@ -207,50 +259,40 @@ export default function ChildInfoStep({ onNext, errors }: StepProps) {
             </div>
 
             <div className="space-y-2">
-  <Label htmlFor="countryOfResidence">Country of Residence *</Label>
-  <CountrySelect
-    value={formData.countryOfResidence}
-    onChange={(name, dialCode, flag) => {
-      handleChange("countryOfResidence", name)
-      handleChange("countryCode", dialCode)
-      handleChange("countryFlag", flag) // ✅ optional: if you want to store flag
-    }}
-  />
-  {errors.countryOfResidence && (
-    <p className="text-red-600 text-sm">{errors.countryOfResidence}</p>
-  )}
-</div>
-
+              <Label htmlFor="countryOfResidence">Country of Residence *</Label>
+              <SearchableCombobox
+                options={countryOptions}
+                value={formData.countryOfResidence}
+                onChange={(value) => handleChange("countryOfResidence", value)}
+                placeholder={isLoadingOptions ? "Loading countries..." : "Select country"}
+              />
+              {errors.countryOfResidence && (
+                <p className="text-red-600 text-sm">{errors.countryOfResidence}</p>
+              )}
+            </div>
 
             <div className="space-y-2">
               <Label htmlFor="primaryLanguage">Primary Teaching Language *</Label>
-              <Select
+              <SearchableCombobox
+                options={languageOptions}
                 value={formData.primaryLanguage}
-                onValueChange={(value) => handleChange("primaryLanguage", value)}
-              >
-                <SelectTrigger className={errors.primaryLanguage ? "border-red-500" : ""}>
-                  <SelectValue placeholder="Select language" />
-                </SelectTrigger>
-                <SelectContent>
-                  {languages.map((language) => (
-                    <SelectItem key={language} value={language}>
-                      {language}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                onChange={(value) => handleChange("primaryLanguage", value)}
+                placeholder={isLoadingOptions ? "Loading languages..." : "Select language"}
+              />
               {errors.primaryLanguage && <p className="text-red-600 text-sm">{errors.primaryLanguage}</p>}
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Parent/Guardian Information (for students 16+) */}
-      {formData.userType === "student" && (
+      {/* Parent/Guardian Information (for students under PARENT_INFO_REQUIRED_UNDER_AGE) */}
+      {isMinorStudent && (
         <Card>
           <CardHeader>
             <CardTitle>Parent/Guardian Information</CardTitle>
-            <p className="text-sm text-gray-600">We need parent/guardian details for students under 18</p>
+            <p className="text-sm text-gray-600">
+              We need parent/guardian details for students under {PARENT_INFO_REQUIRED_UNDER_AGE}
+            </p>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -291,6 +333,25 @@ export default function ChildInfoStep({ onNext, errors }: StepProps) {
                 {errors.parentEmail && <p className="text-red-600 text-sm">{errors.parentEmail}</p>}
               </div>
             </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {customFields.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Additional Information</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {customFields.map((field) => (
+              <DynamicQuestionField
+                key={field.id}
+                field={field}
+                value={customFieldResponses[field.id]}
+                onChange={(value) => updateCustomFieldResponse(field.id, value)}
+                error={errors[`custom_${field.id}`]}
+              />
+            ))}
           </CardContent>
         </Card>
       )}

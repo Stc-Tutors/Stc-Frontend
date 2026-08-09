@@ -1,12 +1,47 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Settings, MessageSquare, CalendarDays } from "lucide-react";
-import { useState } from "react";
+import { MessageSquare, CalendarDays } from "lucide-react";
+import { useEffect, useState } from "react";
 import { ChevronDown } from "lucide-react";
+import { GetLinkedStudentsAction, GetEnrollmentsAction } from "@/server/enrollment";
+import { Student } from "@/types/student";
 
-export default function ParentAnalyticsHeader() {
-  const [selectedStudent, setSelectedStudent] = useState("Emmanuel Jobe");
+interface ParentAnalyticsHeaderProps {
+  onStudentChange?: (studentId: string) => void;
+}
+
+export default function ParentAnalyticsHeader({ onStudentChange }: ParentAnalyticsHeaderProps) {
+  const [students, setStudents] = useState<Student[]>([]);
+  const [selectedId, setSelectedId] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      const [linkedRes] = await GetLinkedStudentsAction();
+      const [ownRes] = await GetEnrollmentsAction();
+
+      const byId = new Map<string, Student>();
+      [...(linkedRes?.data ?? []), ...(ownRes?.data ?? [])].forEach((s) => byId.set(s.id, s));
+      const all = Array.from(byId.values());
+
+      setStudents(all);
+      if (all[0]) {
+        setSelectedId(all[0].id);
+        onStudentChange?.(all[0].id);
+      }
+      setIsLoading(false);
+    };
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleSelect = (id: string) => {
+    setSelectedId(id);
+    onStudentChange?.(id);
+  };
+
+  const selected = students.find((s) => s.id === selectedId);
 
   return (
     <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
@@ -35,18 +70,30 @@ export default function ParentAnalyticsHeader() {
 
       {/* Student + Track Row */}
       <div className="mt-6 flex flex-wrap items-center gap-4">
-        {/* Dropdown for Student */}
         <div className="relative">
-          <button className="flex items-center justify-between px-4 py-2 border border-gray-300 rounded-lg min-w-[180px] text-gray-700 bg-white hover:bg-gray-50">
-            {selectedStudent}
-            <ChevronDown size={16} className="ml-2 text-gray-500" />
-          </button>
+          <select
+            value={selectedId}
+            onChange={(e) => handleSelect(e.target.value)}
+            disabled={students.length === 0}
+            className="appearance-none flex items-center justify-between px-4 py-2 border border-gray-300 rounded-lg min-w-[180px] text-gray-700 bg-white hover:bg-gray-50"
+          >
+            {students.length === 0 && <option>{isLoading ? "Loading..." : "No students linked"}</option>}
+            {students.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.fullName}
+              </option>
+            ))}
+          </select>
+          <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
         </div>
 
-        {/* Grade and Track */}
-        <p className="text-gray-600 text-sm">
-          Grade 9 <span className="mx-2 text-gray-400">•</span> Science Track
-        </p>
+        {selected && (
+          <p className="text-gray-600 text-sm">
+            {selected.serviceDetails?.ageLevel}
+            <span className="mx-2 text-gray-400">•</span>
+            {selected.serviceDetails?.selectedSubjects?.join(", ")}
+          </p>
+        )}
       </div>
     </div>
   );

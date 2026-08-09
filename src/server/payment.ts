@@ -1,12 +1,13 @@
 "use server";
 
 import fetchAPI, { type ApiResponse } from "@/lib/fetch";
-import { Payment, PaymentRequest } from "@/types/payment";
+import { CreatePaymentPayload, Payment, PaymentRequest } from "@/types/payment";
 
-export async function InitiatePaymentAction(data: any
+export async function InitiatePaymentAction(
+  data: CreatePaymentPayload
 ): Promise<[ApiResponse<PaymentRequest> | null, string | null]> {
   const [res, error] = await fetchAPI({
-    url: "/users/me",
+    url: "/payments/initialize",
     request: {
       method: "POST",
       headers: {
@@ -35,5 +36,28 @@ export async function GetPaymentsAction(): Promise<[ApiResponse<Payment[]> | nul
 
 const resData = res ? ((await res.json()) as ApiResponse<Payment[]>) : null;
 return [resData, error];
+}
+
+// Best-effort, client-triggered fallback for when Paystack's webhook hasn't
+// (yet, or ever) reached the backend - call right after Paystack's checkout
+// reports success (or from a manual "I've paid" action) so the enrollment
+// doesn't sit at Pending waiting on a webhook that may never arrive. Safe to
+// call more than once for the same reference (see stcbe's
+// PaymentService.verifyTransaction).
+export async function VerifyPaymentAction(
+  reference: string
+): Promise<[ApiResponse<{ status: string }> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: `/payments/verify/${reference}`,
+    request: {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    },
+  });
+
+  const resData = res ? ((await res.json()) as ApiResponse<{ status: string }>) : null;
+  return [resData, error];
 }
 

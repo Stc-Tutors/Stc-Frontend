@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-import { useEnrollment } from "@/contexts/enrollment-context";
+import { useEnrollment, type ServiceType } from "@/contexts/enrollment-context";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -12,8 +12,10 @@ import ChildInfo from "./steps/child-info";
 import SubjectsSchedule from "./steps/subjects-schedule";
 import { ROUTES } from "@/config/routes";
 import { ToastError, ToastSuccess } from "./ui/custom/toast";
-import PaystackPop from "@paystack/inline-js";
 import EnrollmentReview from "./steps/review";
+import { GetServicesAction } from "@/server/service-catalog";
+import { EnrollmentStatus } from "@/types/student";
+import { VerifyPaymentAction } from "@/server/payment";
 
 const steps = [
   { id: 1, title: "Service Selection", component: ServiceSelection },
@@ -22,12 +24,24 @@ const steps = [
   { id: 4, title: "Review & Submit", component: EnrollmentReview },
 ];
 
-export default function EnrollmentFlow() {
+interface EnrollmentFlowProps {
+  // Set when embedded under a role-specific LMS route - see ChildInfo step
+  // for how this hides the "who is signing up" toggle.
+  forcedUserType?: "parent" | "student";
+  // Where "Cancel" and the post-payment redirect should land. Both default
+  // to the legacy /dashboard targets so the /dashboard/enroll redirect shim
+  // (which still renders this component while redirecting) keeps working.
+  dashboardPath?: string;
+  paymentHistoryPath?: string;
+}
+
+export default function EnrollmentFlow({ forcedUserType, dashboardPath, paymentHistoryPath }: EnrollmentFlowProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const continueId = searchParams.get("continue");
 
-  const { currentStep, setCurrentStep, isLoading, saveEnrollment, loadEnrollment } = useEnrollment();
+  const { currentStep, setCurrentStep, isLoading, saveEnrollment, loadEnrollment, enrollmentData, updateServiceDetails, updateSelectedService } =
+    useEnrollment();
 
   const stepMap: Record<string, number> = {
     service: 0,
@@ -37,14 +51,32 @@ export default function EnrollmentFlow() {
     review: 4,
     // payment: 5,
   };
-    
+
   useEffect(() => {
     const step = searchParams.get("step");
     if (step && stepMap[step] !==undefined) {
       setCurrentStep(stepMap[step]);
     }
   },[searchParams,setCurrentStep]);
-  // const { currentStep, setCurrentStep, isLoading, saveEnrollment, loadEnrollment } = useEnrollment();
+
+  // Pre-select a service from a `?service=<slug>` deep link (e.g. the public
+  // marketing pages' Register card) and skip straight to Child Info, since
+  // the service is already decided. Looks the slug up against the live
+  // service catalog (GET /api/public/services) rather than the old
+  // hardcoded SERVICE_TYPE_LABELS map, so newly added services work too.
+  useEffect(() => {
+    const presetService = searchParams.get("service") as ServiceType | null;
+    if (!presetService || enrollmentData.serviceDetails?.serviceType) return;
+    GetServicesAction().then(([res]) => {
+      const service = res?.data?.find((s) => s.slug === presetService);
+      if (service) {
+        updateServiceDetails({ serviceType: service.slug, learningFocus: service.serviceName });
+        updateSelectedService(service);
+        setCurrentStep(2);
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
@@ -68,15 +100,37 @@ export default function EnrollmentFlow() {
     if (currentStep === steps.length) {
       setIsSaving(true);
       try {
-        console.log("About to save enrollment...");
         const result = await saveEnrollment();
-        console.log("API response from saveEnrollments:", result)
         if (result.success && result.data) {
           setErrors({});
+          // Task 3/5 - a cohort/group placement can land the student on a
+          // waitlist instead of a confirmed seat; payment is still initiated
+          // either way, but call that out distinctly rather than implying a
+          // guaranteed spot.
+          if (result.data.student?.enrollmentStatus === EnrollmentStatus.WAITLISTED) {
+            ToastSuccess("You've been placed on a waitlist until a seat opens up. You can still complete payment now to hold your spot.");
+          }
+          const { default: PaystackPop } = await import("@paystack/inline-js");
           const popup = new PaystackPop();
-          popup.resumeTransaction(result.data.payment.access_code);
-          router.push(ROUTES.DASHBOARD.PAYMENT_HISTORY);
-          ToastSuccess("Enrollment successful");
+          popup.resumeTransaction(result.data.payment.access_code, {
+            onSuccess: async () => {
+              // Paystack's own popup reporting success doesn't mean our
+              // backend has heard about it yet - that only happens via
+              // Paystack's webhook, which may be slow, misconfigured, or
+              // (in local dev) unreachable entirely. Verify directly so the
+              // enrollment doesn't sit at "Pending" despite being paid.
+              await VerifyPaymentAction(result.data!.payment.reference);
+              ToastSuccess("Enrollment successful");
+              router.push(paymentHistoryPath || ROUTES.DASHBOARD.PAYMENT_HISTORY);
+            },
+            onCancel: () => {
+              ToastError("Payment was not completed. You can finish it anytime from Payment History.");
+              router.push(paymentHistoryPath || ROUTES.DASHBOARD.PAYMENT_HISTORY);
+            },
+            onError: (error) => {
+              ToastError(error?.message || "Payment failed. Please try again.");
+            },
+          });
         } else {
           ToastError(result.error || "Failed to save enrollment");
         }
@@ -123,7 +177,11 @@ export default function EnrollmentFlow() {
             <h1 className="text-2xl font-bold text-gray-900">
               {continueId ? "Continue Enrollment" : "Enroll Your Child"}
             </h1>
-            <Button variant="ghost" onClick={() => router.push(ROUTES.DASHBOARD.HOME)} className="text-gray-600">
+            <Button
+              variant="ghost"
+              onClick={() => router.push(dashboardPath || ROUTES.DASHBOARD.HOME)}
+              className="text-gray-600"
+            >
               Cancel
             </Button>
           </div>
@@ -146,7 +204,9 @@ export default function EnrollmentFlow() {
             <CardTitle>{currentStepData?.title}</CardTitle>
           </CardHeader>
           <CardContent>
-            {CurrentStepComponent && <CurrentStepComponent onNext={handleStepValidation} errors={errors} />}
+            {CurrentStepComponent && (
+              <CurrentStepComponent onNext={handleStepValidation} errors={errors} forcedUserType={forcedUserType} />
+            )}
           </CardContent>
         </Card>
 

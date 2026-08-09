@@ -1,108 +1,78 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
-  ResponsiveContainer,
-  Legend,
-} from "recharts";
-import { Button } from "@/components/ui/button";
+import { GetMySubmissionsAction } from "@/server/submission";
+import { Submission, SubmissionStatus } from "@/types/submission";
+import { Assignment } from "@/types/assignment";
 
-const subjectData = [
-  { subject: "English", Parent: 78, Student: 85 },
-  { subject: "Math", Parent: 82, Student: 88 },
-  { subject: "Science", Parent: 76, Student: 80 },
-  { subject: "History", Parent: 90, Student: 92 },
-  { subject: "Arts", Parent: 70, Student: 75 },
-];
+interface AcademicPerformanceReportProps {
+  studentId?: string;
+}
 
-const gradeTrendData = [
-  { month: "Jan", Parent: 80, Student: 84 },
-  { month: "Feb", Parent: 82, Student: 85 },
-  { month: "Mar", Parent: 76, Student: 83 },
-  { month: "Apr", Parent: 79, Student: 86 },
-  { month: "May", Parent: 83, Student: 88 },
-];
+export default function AcademicPerformanceReport({ studentId }: AcademicPerformanceReportProps) {
+  const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-export default function AcademicPerformanceReport() {
+  useEffect(() => {
+    const load = async () => {
+      const [res] = await GetMySubmissionsAction();
+      setSubmissions(res?.data ?? []);
+      setIsLoading(false);
+    };
+    load();
+  }, []);
+
+  const graded = submissions.filter(
+    (s) => s.status === SubmissionStatus.GRADED && (typeof s.student === "string" ? s.student : s.student.id) === studentId
+  );
+
+  const average =
+    graded.length === 0
+      ? null
+      : Math.round(
+          (graded.reduce((sum, s) => {
+            const assignment = s.assignment as Assignment;
+            return sum + (s.score ?? 0) / (assignment.maxScore || 1);
+          }, 0) /
+            graded.length) *
+            100
+        );
+
   return (
     <Card>
-      <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between">
-        <div>
-          <CardTitle>Academic Performance Report</CardTitle>
-          <p className="text-gray-500 text-sm mt-1">
-            Overview of student academic progress this semester
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3 mt-3 md:mt-0">
-          <select className="border rounded-md px-3 py-2 text-sm focus:outline-none">
-            <option>Current Semester</option>
-            <option>Previous Semester</option>
-          </select>
-          <Button className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4">
-            Export Report
-          </Button>
-        </div>
+      <CardHeader>
+        <CardTitle>Academic Performance Report</CardTitle>
+        <p className="text-gray-500 text-sm mt-1">Graded assignments for the selected child</p>
       </CardHeader>
 
-      <CardContent className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Subject Performance Chart */}
-        <div className="border rounded-lg p-4">
-          <h3 className="text-sm font-semibold mb-3">Subject Performance</h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <LineChart data={subjectData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="subject" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Line
-                type="monotone"
-                dataKey="Parent"
-                stroke="#8884d8"
-                strokeWidth={2}
-              />
-              <Line
-                type="monotone"
-                dataKey="Student"
-                stroke="#82ca9d"
-                strokeWidth={2}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* Grade Trend Chart */}
-        <div className="border rounded-lg p-4">
-          <h3 className="text-sm font-semibold mb-3">Grade Trend</h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <LineChart data={gradeTrendData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Line
-                type="monotone"
-                dataKey="Parent"
-                stroke="#FF7B00"
-                strokeWidth={2}
-              />
-              <Line
-                type="monotone"
-                dataKey="Student"
-                stroke="#00B5FF"
-                strokeWidth={2}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
+      <CardContent>
+        {isLoading ? (
+          <p className="text-sm text-gray-500">Loading...</p>
+        ) : !studentId ? (
+          <p className="text-sm text-gray-500">Select a child to view their academic performance.</p>
+        ) : graded.length === 0 ? (
+          <p className="text-sm text-gray-500">No graded assignments yet.</p>
+        ) : (
+          <div className="space-y-4">
+            {average !== null && (
+              <p className="text-2xl font-semibold text-gray-800">{average}% average</p>
+            )}
+            <div className="divide-y">
+              {graded.map((s) => {
+                const assignment = s.assignment as Assignment;
+                return (
+                  <div key={s.id} className="flex justify-between py-2 text-sm">
+                    <span className="text-gray-700">{assignment.title}</span>
+                    <span className="font-medium">
+                      {s.score}/{assignment.maxScore}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

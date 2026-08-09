@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import "keen-slider/keen-slider.min.css";
+import { GetMyTutorProfileAction } from "@/server/tutor-profile";
 
 import {
   Home,
@@ -16,13 +17,17 @@ import {
   BarChart2,
   UserRound,
   Headphones,
-  NotebookPen,
   Bell,
   LogOut,
   FileUser,
-  CircleUserRound
+  CircleUserRound,
+  Target,
+  FolderUp,
+  Gift,
+  AlertCircle
 } from "lucide-react";
 import Image from "next/image";
+import { UserProfileDropdown } from "@/components/user-profile-dropdown";
 
 // export const metadata = {
 //   title: "STC Tutors LMS",
@@ -32,20 +37,50 @@ import Image from "next/image";
 const sidebarLinks = [
   { label: "Dashboard", icon: Home, href: "/lms-home/tutor/dashboard" },
   { label: "Schedule", icon: Calendar, href: "/lms-home/tutor/scheduling" },
-  { label: "Classroom", icon: Users, href: "#" },
+  { label: "Classroom", icon: Users, href: "/lms-home/tutor/dashboard" },
+  { label: "Student Progress", icon: Target, href: "/lms-home/tutor/student-progress" },
+  { label: "Assignments", icon: BookOpen, href: "/lms-home/tutor/assignments" },
   { label: "Messages", icon: MessageSquare, href: "/lms-home/tutor/messages" },
   { label: "Your Account", icon: CircleUserRound, href: "/lms-home/tutor/your-account" },
-  { label: "Resources", icon: FileUser, href: "/lms-home/tutor/resources" },
-  { label: "Analytics", icon: BarChart2, href: "/lms-home/student/analytics" },
-  { label: "Create Courses", icon: NotebookPen, href: "/lms-home/tutor/create-courses" },
+  { label: "Refer & Earn", icon: Gift, href: "/lms-home/tutor/refer-earn" },
+  { label: "Analytics", icon: BarChart2, href: "/lms-home/tutor/analytics" },
+  { label: "Resources", icon: FolderUp, href: "/lms-home/tutor/resources" },
   { label: "Profile", icon: UserRound, href: "/lms-home/tutor/profile" },
-  { label: "Support", icon: Headphones, href: "#" },
+  { label: "Profile Details", icon: FileUser, href: "/lms-home/tutor/profile-details" },
+  { label: "Complaints", icon: AlertCircle, href: "/lms-home/tutor/complaints" },
+  { label: "Support", icon: Headphones, href: "/lms-home/tutor/messages" },
   { label: "Notifications", icon: Bell, href: "/lms-home/tutor/notification", badge: true },
 ];
 
+const ONBOARDING_PATH = "/lms-home/tutor/onboarding";
+
 export default function LMSLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  useEffect(() => {
+    if (pathname === ONBOARDING_PATH) return;
+    (async () => {
+      const [res] = await GetMyTutorProfileAction();
+      if (res?.data && res.data.teachingCombinations.length === 0) {
+        router.replace(ONBOARDING_PATH);
+      }
+    })();
+  }, [pathname, router]);
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchTerm.trim()) return;
+    router.push(`/lms-home/tutor/student-list?q=${encodeURIComponent(searchTerm.trim())}`);
+  };
+
+  // First-login onboarding is a bare full-screen step - no sidebar/topbar
+  // chrome, so a brand-new tutor can't wander off before picking preferences.
+  if (pathname === ONBOARDING_PATH) {
+    return <>{children}</>;
+  }
 
   return (
     <div className="flex h-screen bg-gray-100 relative">
@@ -100,7 +135,7 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
                         <div className="p-4 border-t space-y-6">
                             {/* Support */}
                             <Link
-                            href="#"
+                            href="/lms-home/tutor/messages"
                             className="flex items-center gap-3 text-gray-600 hover:text-[#38b6ff] hover:translate-x-3">
                                 <Headphones className="w-5 h-5" />
                                 Support
@@ -108,7 +143,7 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
                                 
                                 {/* Notifications */}
                                 <Link
-                                href="/lms-home/student/notification"
+                                href="/lms-home/tutor/notification"
                                 className="flex items-center gap-3 text-gray-600 hover:text-[#38b6ff] hover:translate-x-3">
                                     <Bell className="w-5 h-5" />
                                     Notifications
@@ -117,7 +152,7 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
                                     
                                     {/* Logout */}
                                     <Link
-                                    href="#"
+                                    href="/api/auth/logout"
                                     className="flex items-center gap-3 text-gray-600 hover:text-[#38b6ff] hover:translate-x-3">
                                         <LogOut className="w-5 h-5" />
                                         Logout
@@ -138,43 +173,37 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
           </button>
 
           {/* SearchBar */}
-          <div className="relative w-full max-w-xs">
+          <form onSubmit={handleSearchSubmit} className="relative w-full max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
               type="text"
               id="search"
               name="search"
-              placeholder="Search..."
+              placeholder="Search your students..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-1.5 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm"
             />
-          </div>
+          </form>
 
           {/* Icons */}
           <div className="flex items-center gap-2">
-            {[
-              { icon: Bell, label: "Notifications" },
-              { icon: UserRound, label: "User" },
-            ].map(({ icon: Icon, label }, i) => (
-              <div
-                key={i}
-                className="group relative p-2 rounded-full hover:bg-gray-100 cursor-pointer transition"
-              >
-                <Icon className="w-5 h-5 text-gray-600" />
+            <Link
+              href="/lms-home/tutor/messages"
+              title="Messages"
+              className="group relative p-2 rounded-full hover:bg-gray-100 cursor-pointer transition"
+            >
+              <MessageSquare className="w-5 h-5 text-gray-600" />
+            </Link>
 
-                {/* Tooltip */}
-                <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-xs text-white bg-gray-700 px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition pointer-events-none">
-                  {label}
-                </div>
-              </div>
-            ))}
+            <Link
+              href="/lms-home/tutor/notification"
+              className="group relative p-2 rounded-full hover:bg-gray-100 cursor-pointer transition"
+            >
+              <Bell className="w-5 h-5 text-gray-600" />
+            </Link>
 
-            <Image
-              src="/image/testimonial3.jpg"
-              alt="Avatar"
-              width={32}
-              height={32}
-              className="rounded-full cursor-pointer"
-            />
+            <UserProfileDropdown />
           </div>
         </header>
 

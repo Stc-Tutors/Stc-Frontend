@@ -1,71 +1,77 @@
 "use client";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-
-const courses = [
-  {
-    id: "1",
-    title: "Data Analysis & Fundamentals",
-    instructor: "Prof. Allison Peters",
-    description: "This beginner-friendly course provides a comprehensive introduction to the fundamentals of data analysis...",
-    video: "/your-video-file.mp4",
-    duration: "12:45",
-    lecture: "Lecture 1",
-  },
-  {
-    id: "2",
-    title: "Mathematics for Beginners",
-    instructor: "Dr. James Carter",
-    description: "Step-by-step guide to essential math concepts for beginners...",
-    video: "/math-video.mp4",
-    duration: "09:32",
-    lecture: "Lecture 1",
-  },
-  {
-    id: "3",
-    title: "Chemistry Basics",
-    instructor: "Dr. Linda Wong",
-    description: "Understand atoms, molecules, and reactions in simple terms...",
-    video: "/chemistry-video.mp4",
-    duration: "11:20",
-    lecture: "Lecture 1",
-  },
-];
+import { GetCourseAction } from "@/server/course";
+import { Course, CourseTutor } from "@/types/course";
 
 export default function CourseDetailPage() {
   const { id } = useParams();
-  const course = courses.find((c) => c.id === id);
+  const [course, setCourse] = useState<Course | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  if (!course) return <div className="p-6">Course not found</div>;
+  useEffect(() => {
+    const load = async () => {
+      const [res, err] = await GetCourseAction(id as string);
+      if (err || !res?.data) {
+        setError(err || "Course not found");
+      } else {
+        setCourse(res.data);
+      }
+      setIsLoading(false);
+    };
+    load();
+  }, [id]);
+
+  if (isLoading) return <div className="p-6">Loading...</div>;
+  if (error || !course) return <div className="p-6">{error || "Course not found"}</div>;
+
+  const tutor = course.tutor as CourseTutor;
+  const tutorName = typeof course.tutor === "string" ? "" : `${tutor?.firstName ?? ""} ${tutor?.lastName ?? ""}`.trim();
 
   return (
     <div className="min-h-screen bg-gray-50 p-6 max-w-4xl mx-auto">
-      {/* Course Section */}
       <div className="mb-10">
-        <h3 className="text-lg font-medium text-gray-700 mb-4">
-          {course.title}
-        </h3>
-        <p className="text-gray-600 mb-6">
-          <strong>{course.instructor}</strong>
+        <h3 className="text-lg font-medium text-gray-700 mb-4">{course.title}</h3>
+        {tutorName && (
+          <p className="text-gray-600 mb-2">
+            <strong>{tutorName}</strong>
+          </p>
+        )}
+        <p className="text-sm text-gray-500">
+          {course.category} &middot; {course.language}
         </p>
       </div>
 
-      {/* Video Section */}
       <div className="mb-10 bg-white rounded-lg shadow-md overflow-hidden">
-        <div className="aspect-w-16 aspect-h-9 bg-black">
-          <video className="w-full h-full object-cover" controls poster="/video-poster.jpg">
-            <source src={course.video} type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
-        </div>
         <div className="p-6">
-          <h3 className="text-xl font-semibold text-gray-800 mb-2">
-            {course.lecture}
-          </h3>
-          <div className="flex items-center text-gray-600 mb-4">
-            <span className="mr-4">{course.lecture}</span>
-            <span>Duration: {course.duration}</span>
-          </div>
+          <h3 className="text-xl font-semibold text-gray-800 mb-2">About this course</h3>
           <p className="text-gray-600 mb-4">{course.description}</p>
+          <p className="text-sm font-medium text-gray-700">
+            Price: {course.currency} {course.price}
+            {course.capacity ? ` · Capacity: ${course.capacity}` : ""}
+          </p>
+
+          {!!course.schedule?.length && (
+            <p className="text-sm text-gray-600 mt-2">
+              Schedule: {course.schedule[0].days?.join(", ")} at {course.schedule[0].time} (
+              {course.schedule[0].duration} min)
+            </p>
+          )}
+
+          {!!course.curriculumOutline?.length && (
+            <div className="mt-4">
+              <h4 className="text-sm font-semibold mb-2">Curriculum</h4>
+              <ol className="list-decimal list-inside text-sm text-gray-600 space-y-1">
+                {course.curriculumOutline.map((item, i) => (
+                  <li key={i}>
+                    {item.title}
+                    {item.description && <span className="text-gray-400"> — {item.description}</span>}
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
         </div>
       </div>
     </div>

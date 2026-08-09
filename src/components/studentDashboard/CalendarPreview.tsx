@@ -1,13 +1,26 @@
 "use client";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { GetEnrollmentsAction, GetLinkedStudentsAction } from "@/server/enrollment";
+import { GetStudentCoursesAction } from "@/server/course-enrollment";
+import { GetCourseLessonsAction } from "@/server/lesson";
+import { Course } from "@/types/course";
+import { Lesson } from "@/types/lesson";
+import { formatScheduleTime } from "@/lib/datetime";
+
+interface Row {
+  lesson: Lesson;
+  course: Course;
+}
 
 export default function CalendarPreview() {
   const days = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [lessons, setLessons] = useState<Row[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -30,18 +43,53 @@ export default function CalendarPreview() {
   const isSelected = (date: Date) =>
     selectedDate && date.toDateString() === selectedDate.toDateString();
 
+  const hasLesson = (date: Date) =>
+    lessons.some((row) => new Date(row.lesson.scheduledDate).toDateString() === date.toDateString());
+
   const handleMonthChange = (offset: number) => {
     const newDate = new Date(currentDate);
     newDate.setMonth(currentDate.getMonth() + offset);
     setCurrentDate(newDate);
   };
 
-//   useEffect(() => {
-//   if (selectedDate) {
-//     // fetch lessons from backend
-//     // fetch(/api/lessons?date=${selectedDate.toISOString()})
-//   }
-// }, [selectedDate]);
+  useEffect(() => {
+    const load = async () => {
+      const [linkedRes] = await GetLinkedStudentsAction();
+      const [ownRes] = await GetEnrollmentsAction();
+      const byId = new Map<string, true>();
+      [...(linkedRes?.data ?? []), ...(ownRes?.data ?? [])].forEach((s) => byId.set(s.id, true));
+
+      const courseEnrollmentLists = await Promise.all(
+        Array.from(byId.keys()).map((id) => GetStudentCoursesAction(id))
+      );
+
+      const courses = new Map<string, Course>();
+      courseEnrollmentLists.forEach(([res]) => {
+        (res?.data ?? []).forEach((e) => {
+          if (typeof e.course !== "string") courses.set(e.course.id, e.course);
+        });
+      });
+
+      const lessonLists = await Promise.all(
+        Array.from(courses.keys()).map((courseId) => GetCourseLessonsAction(courseId))
+      );
+
+      const allRows: Row[] = [];
+      lessonLists.forEach(([res], i) => {
+        const courseId = Array.from(courses.keys())[i];
+        const course = courses.get(courseId)!;
+        (res?.data ?? []).forEach((lesson) => allRows.push({ lesson, course }));
+      });
+
+      setLessons(allRows);
+      setIsLoading(false);
+    };
+    load();
+  }, []);
+
+  const selectedDayLessons = selectedDate
+    ? lessons.filter((row) => new Date(row.lesson.scheduledDate).toDateString() === selectedDate.toDateString())
+    : [];
 
   return (
     <div className="bg-white p-4 rounded-lg shadow-sm">
@@ -82,7 +130,7 @@ export default function CalendarPreview() {
             {dateObj ? (
               <div
                 onClick={() => setSelectedDate(dateObj)}
-                className={`w-7 h-7 flex items-center justify-center rounded-full cursor-pointer transition
+                className={`relative w-7 h-7 flex items-center justify-center rounded-full cursor-pointer transition
                   ${
                     isSelected(dateObj)
                       ? "bg-blue-500 text-white"
@@ -92,6 +140,9 @@ export default function CalendarPreview() {
                   }`}
               >
                 {dateObj.getDate()}
+                {hasLesson(dateObj) && !isSelected(dateObj) && (
+                  <span className="absolute bottom-0.5 w-1 h-1 rounded-full bg-orange-500" />
+                )}
               </div>
             ) : (
               <div className="w-7 h-7" /> // Empty slot
@@ -102,10 +153,25 @@ export default function CalendarPreview() {
 
       {/* Selected Date Preview */}
       {selectedDate && (
-        <p className="mt-4 text-sm text-gray-600">
-          Selected:{" "}
-          <span className="font-medium">{selectedDate.toDateString()}</span>
-        </p>
+        <div className="mt-4 border-t pt-3">
+          <p className="text-sm text-gray-600 mb-2">
+            <span className="font-medium">{selectedDate.toDateString()}</span>
+          </p>
+          {isLoading ? (
+            <p className="text-xs text-gray-400">Loading...</p>
+          ) : selectedDayLessons.length === 0 ? (
+            <p className="text-xs text-gray-400">No classes on this day.</p>
+          ) : (
+            <ul className="space-y-1">
+              {selectedDayLessons.map(({ lesson, course }) => (
+                <li key={lesson.id} className="text-xs text-gray-700">
+                  <span className="font-medium">{course.title}</span> — {lesson.title} (
+                  {formatScheduleTime(lesson.scheduledDate)})
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       )}
     </div>
   );

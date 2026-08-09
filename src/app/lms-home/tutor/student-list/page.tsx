@@ -1,201 +1,57 @@
 "use client";
 
+import { Suspense, useEffect, useState } from "react";
 import { ArrowLeft, MoreHorizontal } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import TutorsCard from "@/components/tutorDashboard/TutorsCard"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useRouter, useParams } from "next/navigation";
-import { useState } from "react";
-
-const students = [
-  {
-    id: "123487",
-    name: "Peter Jay",
-    grade: "Beginner",
-    subject: "Biology",
-    curriculum: "Nigeria",
-    avatar: "/avatar.png",
-  },
-  {
-    id: "123488",
-    name: "Sarah Lee",
-    grade: "Intermediate",
-    subject: "Math",
-    curriculum: "UK",
-    avatar: "/avatar.png",
-  },
-  {
-    id: "123487",
-    name: "Detrickola Williams",
-    grade: "Beginner",
-    subject: "Biology",
-    curriculum: "Nigeria",
-    avatar: "/avatar.png",
-  },
-  {
-    id: "123488",
-    name: "Sarah Lee",
-    grade: "Intermediate",
-    subject: "Math",
-    curriculum: "UK",
-    avatar: "/avatar.png",
-  },
-  {
-    id: "123487",
-    name: "Detrickola Williams",
-    grade: "Beginner",
-    subject: "Biology",
-    curriculum: "Nigeria",
-    avatar: "/avatar.png",
-  },
-  {
-    id: "123487",
-    name: "Peter Jay",
-    grade: "Beginner",
-    subject: "Biology",
-    curriculum: "Nigeria",
-    avatar: "/avatar.png",
-  },
-  {
-    id: "123488",
-    name: "Sarah Lee",
-    grade: "Intermediate",
-    subject: "Math",
-    curriculum: "UK",
-    avatar: "/avatar.png",
-  },
-  {
-    id: "123487",
-    name: "Detrickola Williams",
-    grade: "Beginner",
-    subject: "Biology",
-    curriculum: "Nigeria",
-    avatar: "/avatar.png",
-  },
-  {
-    id: "123488",
-    name: "Sarah Lee",
-    grade: "Intermediate",
-    subject: "Math",
-    curriculum: "UK",
-    avatar: "/avatar.png",
-  },
-  {
-    id: "123487",
-    name: "Detrickola Williams",
-    grade: "Beginner",
-    subject: "Biology",
-    curriculum: "Nigeria",
-    avatar: "/avatar.png",
-  },
-  {
-    id: "123487",
-    name: "Peter Jay",
-    grade: "Beginner",
-    subject: "Biology",
-    curriculum: "Nigeria",
-    avatar: "/avatar.png",
-  },
-  {
-    id: "123488",
-    name: "Sarah Lee",
-    grade: "Intermediate",
-    subject: "Math",
-    curriculum: "UK",
-    avatar: "/avatar.png",
-  },
-  {
-    id: "123487",
-    name: "Detrickola Williams",
-    grade: "Beginner",
-    subject: "Biology",
-    curriculum: "Nigeria",
-    avatar: "/avatar.png",
-  },
-  {
-    id: "123488",
-    name: "Sarah Lee",
-    grade: "Intermediate",
-    subject: "Math",
-    curriculum: "UK",
-    avatar: "/avatar.png",
-  },
-  {
-    id: "123487",
-    name: "Detrickola Williams",
-    grade: "Beginner",
-    subject: "Biology",
-    curriculum: "Nigeria",
-    avatar: "/avatar.png",
-  },
-  {
-    id: "123487",
-    name: "Peter Jay",
-    grade: "Beginner",
-    subject: "Biology",
-    curriculum: "Nigeria",
-    avatar: "/avatar.png",
-  },
-  {
-    id: "123488",
-    name: "Sarah Lee",
-    grade: "Intermediate",
-    subject: "Math",
-    curriculum: "UK",
-    avatar: "/avatar.png",
-  },
-  {
-    id: "123487",
-    name: "Detrickola Williams",
-    grade: "Beginner",
-    subject: "Biology",
-    curriculum: "Nigeria",
-    avatar: "/avatar.png",
-  },
-  {
-    id: "123488",
-    name: "Sarah Lee",
-    grade: "Intermediate",
-    subject: "Math",
-    curriculum: "UK",
-    avatar: "/avatar.png",
-  },
-  {
-    id: "123487",
-    name: "Detrickola Williams",
-    grade: "Beginner",
-    subject: "Biology",
-    curriculum: "Nigeria",
-    avatar: "/avatar.png",
-  },
-];
+import { useRouter, useSearchParams } from "next/navigation";
+import { GetMyCourseStudentsAction } from "@/server/course";
+import { Student, studentAvatarUrl } from "@/types/student";
 
 export default function StudentsPage() {
+  return (
+    <Suspense fallback={<p className="p-6 text-sm text-gray-500">Loading...</p>}>
+      <StudentsPageInner />
+    </Suspense>
+  );
+}
+
+function StudentsPageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const query = (searchParams.get("q") || "").toLowerCase();
+  const [students, setStudents] = useState<Student[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      const [res] = await GetMyCourseStudentsAction();
+      setStudents(res?.data ?? []);
+      setIsLoading(false);
+    };
+    load();
+  }, []);
+
+  const filteredStudents = query
+    ? students.filter((s) => s.fullName?.toLowerCase().includes(query))
+    : students;
 
   const handleBack = () => {
     router.push(`/lms-home/tutor/dashboard`);
   };
 
   // ---- Pagination ----
-  const pageSize = 10;
+  const pageSize = 12;
   const [page, setPage] = useState(1);
-  const totalPages = Math.ceil(students.length / pageSize);
+  const totalPages = Math.max(1, Math.ceil(filteredStudents.length / pageSize));
   const start = (page - 1) * pageSize;
-  const current = students.slice(start, start + pageSize);
+  const current = filteredStudents.slice(start, start + pageSize);
 
   const goTo = (p: number) => {
     if (p < 1 || p > totalPages) return;
@@ -215,176 +71,94 @@ export default function StudentsPage() {
         <div className="space-y-6 mb-6">
             <TutorsCard/>
         </div>
-      <h1 className="text-2xl font-bold mb-6">Your Students</h1>
+      <h1 className="text-2xl font-bold mb-6">
+        Your Students{query ? <span className="text-base font-normal text-gray-500"> — search: "{query}"</span> : ""}
+      </h1>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Student ID</TableHead>
-            <TableHead>Names</TableHead>
-            <TableHead>Class Grade</TableHead>
-            <TableHead>Subject</TableHead>
-            <TableHead>Curriculum</TableHead>
-            <TableHead className="text-right">Action</TableHead>
-          </TableRow>
-        </TableHeader>
+      {isLoading ? (
+        <p className="text-sm text-gray-500 py-4">Loading students...</p>
+      ) : students.length === 0 ? (
+        <p className="text-sm text-gray-500 py-4">
+          No students yet. Once someone enrolls in one of your courses, they will show up here.
+        </p>
+      ) : filteredStudents.length === 0 ? (
+        <p className="text-sm text-gray-500 py-4">No students match "{query}".</p>
+      ) : (
+        <>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            {current.map((student) => (
+              <div
+                key={student.id}
+                className="relative bg-white border rounded-2xl shadow-sm p-4 flex flex-col items-center gap-2 text-center hover:shadow-md transition"
+              >
+                <div className="absolute top-2 right-2">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger>
+                      <MoreHorizontal className="h-5 w-5 cursor-pointer text-gray-400 hover:text-gray-700" />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => router.push(`/lms-home/tutor/student-list/${student.id}`)}>
+                        View enrollment
+                      </DropdownMenuItem>
+                      {student.studentUser && (
+                        <DropdownMenuItem onClick={() => router.push(`/lms-home/profile/${student.studentUser}`)}>
+                          View profile
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
 
-        <TableBody>
-          {students.map((student) => (
-            <TableRow key={student.id}>
-              <TableCell>{student.id}</TableCell>
-              <TableCell className="flex items-center gap-2">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={student.avatar} />
-                  <AvatarFallback>{student.name[0]}</AvatarFallback>
+                <Avatar className="h-16 w-16">
+                  <AvatarImage src={studentAvatarUrl(student.user)} alt={student.fullName} />
+                  <AvatarFallback>{student.fullName?.[0]}</AvatarFallback>
                 </Avatar>
-                {student.name}
-              </TableCell>
-              <TableCell>{student.grade}</TableCell>
-              <TableCell>{student.subject}</TableCell>
-              <TableCell>{student.curriculum}</TableCell>
-              <TableCell className="text-right">
-                <DropdownMenu>
-                  <DropdownMenuTrigger>
-                    <MoreHorizontal className="h-5 w-5 cursor-pointer" />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => router.push(`/lms-home/tutor/student-list/${student.id}`)}>
-                       View student profile
-                       </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+                <p className="font-medium truncate w-full">{student.fullName}</p>
+                <p className="text-xs text-gray-500 truncate w-full">
+                  {student.serviceDetails?.selectedSubjects?.join(", ") || "No subjects yet"}
+                </p>
+                <p className="text-xs text-gray-400">{student.serviceDetails?.ageLevel}</p>
+                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-50 text-blue-600">
+                  {student.enrollmentStatus}
+                </span>
+              </div>
+            ))}
+          </div>
 
-      {/* Pagination */}
-        <div className="mt-6 flex items-center justify-center gap-2">
-          <button
-            className="px-3 py-1.5 rounded border text-sm disabled:opacity-50"
-            onClick={() => goTo(page - 1)}
-            disabled={page === 1}
-          >
-            Prev
-          </button>
-
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+          {/* Pagination */}
+          <div className="mt-6 flex items-center justify-center gap-2">
             <button
-              key={p}
-              onClick={() => goTo(p)}
-              className={`px-3 py-1.5 rounded border text-sm ${
-                p === page
-                  ? "bg-blue-600 text-white border-blue-600"
-                  : "hover:bg-gray-50"
-              }`}
+              className="px-3 py-1.5 rounded border text-sm disabled:opacity-50"
+              onClick={() => goTo(page - 1)}
+              disabled={page === 1}
             >
-              {p}
+              Prev
             </button>
-          ))}
 
-          <button
-            className="px-3 py-1.5 rounded border text-sm disabled:opacity-50"
-            onClick={() => goTo(page + 1)}
-            disabled={page === totalPages}
-          >
-            Next
-          </button>
-        </div>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+              <button
+                key={p}
+                onClick={() => goTo(p)}
+                className={`px-3 py-1.5 rounded border text-sm ${
+                  p === page
+                    ? "bg-blue-600 text-white border-blue-600"
+                    : "hover:bg-gray-50"
+                }`}
+              >
+                {p}
+              </button>
+            ))}
+
+            <button
+              className="px-3 py-1.5 rounded border text-sm disabled:opacity-50"
+              onClick={() => goTo(page + 1)}
+              disabled={page === totalPages}
+            >
+              Next
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 }
-
-
-
-// "use client";
-
-// import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-// import { Button } from "@/components/ui/button";
-// import Image from "next/image";
-// import { useState } from "react";
-
-// interface Student {
-//   id: number;
-//   name: string;
-//   subject: string;
-//   progress: number;
-//   avatar: string;
-// }
-
-// const students: Student[] = [
-//   { id: 1, name: "John Doe", subject: "Mathematics", progress: 75, avatar: "/avatar1.png" },
-//   { id: 2, name: "Jane Smith", subject: "Physics", progress: 60, avatar: "/avatar2.png" },
-//   { id: 3, name: "Michael Brown", subject: "English", progress: 90, avatar: "/avatar3.png" },
-//   // ...more
-// ];
-
-// export default function StudentCards() {
-//   const [currentPage, setCurrentPage] = useState(1);
-//   const studentsPerPage = 6;
-
-//   const indexOfLast = currentPage * studentsPerPage;
-//   const indexOfFirst = indexOfLast - studentsPerPage;
-//   const currentStudents = students.slice(indexOfFirst, indexOfLast);
-
-//   const totalPages = Math.ceil(students.length / studentsPerPage);
-
-//   return (
-//     <div className="p-6">
-//       {/* Grid of Cards */}
-//       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-//         {currentStudents.map((student) => (
-//           <Card key={student.id} className="rounded-2xl shadow-md">
-//             <CardHeader className="flex items-center gap-3">
-//               <Image
-//                 src={student.avatar}
-//                 alt={student.name}
-//                 width={40}
-//                 height={40}
-//                 className="rounded-full"
-//               />
-//               <CardTitle>{student.name}</CardTitle>
-//             </CardHeader>
-//             <CardContent>
-//               <p className="text-gray-600">{student.subject}</p>
-//               <p className="text-sm text-blue-600 font-medium">
-//                 Progress: {student.progress}%
-//               </p>
-//               <Button className="mt-3 w-full">View Profile</Button>
-//             </CardContent>
-//           </Card>
-//         ))}
-//       </div>
-
-//       {/* Pagination */}
-//       <div className="flex justify-center items-center gap-2 mt-6">
-//         <Button
-//           variant="outline"
-//           disabled={currentPage === 1}
-//           onClick={() => setCurrentPage((p) => p - 1)}
-//         >
-//           Prev
-//         </Button>
-
-//         {Array.from({ length: totalPages }, (_, i) => (
-//           <Button
-//             key={i + 1}
-//             variant={currentPage === i + 1 ? "default" : "outline"}
-//             onClick={() => setCurrentPage(i + 1)}
-//           >
-//             {i + 1}
-//           </Button>
-//         ))}
-
-//         <Button
-//           variant="outline"
-//           disabled={currentPage === totalPages}
-//           onClick={() => setCurrentPage((p) => p + 1)}
-//         >
-//           Next
-//         </Button>
-//       </div>
-//     </div>
-//   );
-// }

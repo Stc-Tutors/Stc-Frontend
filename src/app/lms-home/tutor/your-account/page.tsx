@@ -1,72 +1,326 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CreditCard, DollarSign, Wallet, TrendingUp, MoreVertical } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { CreditCard, DollarSign, Wallet, TrendingUp, PiggyBank } from "lucide-react";
 import RevenueChart from "@/components/tutorDashboard/RevenueCharts";
+import {
+  GetMyPayoutProfileAction,
+  GetMyPayoutRequestsAction,
+  ListMyRatesAction,
+  ConfirmTutorRateAction,
+  RejectTutorRateAction,
+  CounterTutorRateAction,
+  SetPayoutBankDetailsAction,
+  RequestPayoutAction,
+  ListPayoutBanksAction,
+  GetMyBalanceAction,
+} from "@/server/payout";
+import { Bank, PayoutRequest, PayoutRequestStatus, RateStatus, TutorBalance, TutorPayoutProfile } from "@/types/payout";
+import { TutorRate } from "@/types/tutor-rate";
+
+const STATUS_COLORS: Record<PayoutRequestStatus, string> = {
+  [PayoutRequestStatus.PENDING]: "text-orange-500",
+  [PayoutRequestStatus.APPROVED]: "text-blue-500",
+  [PayoutRequestStatus.PROCESSING]: "text-blue-500",
+  [PayoutRequestStatus.PAID]: "text-green-600",
+  [PayoutRequestStatus.REJECTED]: "text-red-500",
+  [PayoutRequestStatus.FAILED]: "text-red-500",
+};
 
 /* ------------------- Dashboard Page ------------------- */
 export default function DashboardPage() {
+  const [profile, setProfile] = useState<TutorPayoutProfile | null>(null);
+  const [requests, setRequests] = useState<PayoutRequest[]>([]);
+  const [rates, setRates] = useState<TutorRate[]>([]);
+  const [banks, setBanks] = useState<Bank[]>([]);
+  const [balance, setBalance] = useState<TutorBalance | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [message, setMessage] = useState<string | null>(null);
+  const [bankCode, setBankCode] = useState("");
+  const [accountNumber, setAccountNumber] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [isRequesting, setIsRequesting] = useState(false);
+  const [counterDrafts, setCounterDrafts] = useState<Record<string, string>>({});
+
+  const load = async () => {
+    const [profileRes] = await GetMyPayoutProfileAction();
+    const [requestsRes] = await GetMyPayoutRequestsAction();
+    const [balanceRes] = await GetMyBalanceAction();
+    const [ratesRes] = await ListMyRatesAction();
+    setProfile(profileRes?.data ?? null);
+    setRequests(requestsRes?.data ?? []);
+    setBalance(balanceRes?.data ?? null);
+    setRates(ratesRes?.data ?? []);
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    load();
+    ListPayoutBanksAction().then(([res]) => setBanks(res?.data ?? []));
+  }, []);
+
+  const totalPaid = requests.filter((r) => r.status === PayoutRequestStatus.PAID).reduce((sum, r) => sum + r.amount, 0);
+  const pendingAmount = requests
+    .filter((r) => [PayoutRequestStatus.PENDING, PayoutRequestStatus.APPROVED, PayoutRequestStatus.PROCESSING].includes(r.status))
+    .reduce((sum, r) => sum + r.amount, 0);
+  const lastPaid = requests.filter((r) => r.status === PayoutRequestStatus.PAID)[0];
+  const thisMonthPaid = requests
+    .filter(
+      (r) =>
+        r.status === PayoutRequestStatus.PAID &&
+        r.paidAt &&
+        new Date(r.paidAt).getMonth() === new Date().getMonth() &&
+        new Date(r.paidAt).getFullYear() === new Date().getFullYear()
+    )
+    .reduce((sum, r) => sum + r.amount, 0);
+
+  // Proposals genuinely awaiting a response from THIS tutor - not just "has a
+  // proposed* value set", since confirming/rejecting doesn't clear those
+  // fields, only rateStatus flips back to CONFIRMED. proposedBy !== r.tutor
+  // additionally excludes the tutor's own counter-offers (those are awaiting
+  // the admin, not the tutor).
+  const pendingRates = rates.filter((r) => r.rateStatus === RateStatus.PROPOSED && r.proposedBy !== r.tutor);
+  // The tutor's own counter-offers, awaiting an admin's response.
+  const myCounters = rates.filter((r) => r.rateStatus === RateStatus.PROPOSED && r.proposedBy === r.tutor);
+  const hasConfirmedRate = rates.some((r) => r.ratePerHour != null || r.flatRate != null);
+
+  const rateScopeLabel = (r: TutorRate) => {
+    const parts = [r.serviceType, r.curriculum, r.subject, r.gradeLevel, r.country].filter(Boolean);
+    return parts.length > 0 ? parts.join(" / ") : "Default rate";
+  };
+
+  const handleConfirmRate = async (rateId: string) => {
+    const [, error] = await ConfirmTutorRateAction(rateId);
+    setMessage(error || "Rate confirmed");
+    if (!error) load();
+  };
+
+  const handleRejectRate = async (rateId: string) => {
+    const [, error] = await RejectTutorRateAction(rateId);
+    setMessage(error || "Rate rejected");
+    if (!error) load();
+  };
+
+  const handleCounterRate = async (r: TutorRate) => {
+    const value = Number(counterDrafts[r.id]);
+    if (!counterDrafts[r.id] || Number.isNaN(value) || value < 0) {
+      setMessage("Enter a valid non-negative counter-offer");
+      return;
+    }
+    const isFlat = r.proposedFlatRate != null;
+    const [, error] = await CounterTutorRateAction(r.id, isFlat ? { flatRate: value } : { ratePerHour: value });
+    setMessage(error || "Counter-offer submitted");
+    if (!error) {
+      setCounterDrafts((prev) => ({ ...prev, [r.id]: "" }));
+      load();
+    }
+  };
+
+  const handleSaveBankDetails = async () => {
+    const bank = banks.find((b) => b.code === bankCode);
+    if (!bank || !accountNumber) {
+      setMessage("Select a bank and enter your account number");
+      return;
+    }
+    setIsSaving(true);
+    const [, error] = await SetPayoutBankDetailsAction({
+      bankName: bank.name,
+      bankCode: bank.code,
+      accountNumber,
+    });
+    setIsSaving(false);
+    setMessage(error || "Bank details saved successfully");
+    if (!error) load();
+  };
+
+  const handleRequestPayout = async () => {
+    setIsRequesting(true);
+    const [, error] = await RequestPayoutAction();
+    setIsRequesting(false);
+    setMessage(error || "Payout requested successfully");
+    if (!error) load();
+  };
+
   return (
     <div className="p-6 space-y-6">
+      {message && <p className="text-sm text-blue-600">{message}</p>}
+
       {/* Top Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard
-          title="Total Revenue"
-          value="$13,804.00"
-          icon={DollarSign}
-          color="bg-orange-100 text-orange-600"
-        />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
         <StatCard
           title="Current Balance"
-          value="$16,593.00"
-          icon={Wallet}
-          color="bg-purple-100 text-purple-600"
+          value={`${balance?.currency ?? "NGN"} ${(balance?.currentBalance ?? 0).toLocaleString()}`}
+          icon={PiggyBank}
+          color="bg-emerald-100 text-emerald-600"
         />
+        <StatCard title="Total Paid Out" value={`₦${totalPaid.toLocaleString()}`} icon={DollarSign} color="bg-orange-100 text-orange-600" />
+        <StatCard title="Pending Amount" value={`₦${pendingAmount.toLocaleString()}`} icon={Wallet} color="bg-purple-100 text-purple-600" />
         <StatCard
-          title="Total Withdrawals"
-          value="$13,184.00"
+          title="Confirmed Rates"
+          value={rates.filter((r) => r.ratePerHour != null || r.flatRate != null).length}
           icon={TrendingUp}
           color="bg-blue-100 text-blue-600"
         />
-        <StatCard
-          title="Today Revenue"
-          value="$162.00"
-          icon={CreditCard}
-          color="bg-green-100 text-green-600"
-        />
+        <StatCard title="This Month" value={`₦${thisMonthPaid.toLocaleString()}`} icon={CreditCard} color="bg-green-100 text-green-600" />
       </div>
+      {balance && balance.hoursSincePaid > 0 && (
+        <p className="text-xs text-gray-500">
+          Balance reflects {balance.hoursSincePaid.toFixed(1)} unpaid hour(s) since your last payout
+          {balance.hasPendingRequest ? " (a payout request is already pending review)." : "."}
+        </p>
+      )}
+      {balance && balance.unpriced.length > 0 && (
+        <p className="text-xs text-amber-600">
+          {balance.unpriced.length} course(s) have hours excluded from your balance because no rate has been
+          confirmed for them yet - contact an admin to have them priced.
+        </p>
+      )}
 
       {/* Chart + Withdraw Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Chart Placeholder */}
-        <Card className="col-span-2">
-        <RevenueChart />
-        </Card>
+        {/* Chart */}
+        <div className="col-span-2">
+          <RevenueChart />
+        </div>
 
         {/* Withdraw */}
         <Card>
           <CardHeader>
-            <CardTitle>Withdraw your money</CardTitle>
+            <CardTitle>Payout Settings</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="border rounded-lg p-3 flex items-center justify-between">
-              <span className="font-medium">Visa **** 4855</span>
-              <span className="text-sm text-gray-500">04/24</span>
-            </div>
-            <div className="border rounded-lg p-3 flex items-center justify-between">
-              <span className="font-medium">Mastercard **** 2855</span>
-              <span className="text-sm text-gray-500">04/24</span>
-            </div>
-            <div className="border rounded-lg p-3 flex items-center justify-between">
-              <span className="font-medium">PayPal</span>
-            </div>
+            {isLoading ? (
+              <p className="text-sm text-gray-500">Loading...</p>
+            ) : (
+              <>
+                {pendingRates.length > 0 && (
+                  <div className="border rounded-lg p-3 space-y-3">
+                    {pendingRates.map((r) => (
+                      <div key={r.id} className="space-y-2 text-sm">
+                        <p>
+                          {rateScopeLabel(r)}: new rate proposed —{" "}
+                          <span className="font-semibold">
+                            {r.currency}{" "}
+                            {r.proposedFlatRate != null ? `${r.proposedFlatRate} flat` : `${r.proposedRatePerHour}/hr`}
+                          </span>
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <Button size="sm" onClick={() => handleConfirmRate(r.id)}>Accept</Button>
+                          <Button size="sm" variant="outline" onClick={() => handleRejectRate(r.id)}>Reject</Button>
+                        </div>
+                        {r.negotiable && (
+                          <div className="flex items-center gap-2">
+                            <Input
+                              type="number"
+                              min={0}
+                              placeholder="Your counter-offer"
+                              value={counterDrafts[r.id] ?? ""}
+                              onChange={(e) => setCounterDrafts((prev) => ({ ...prev, [r.id]: e.target.value }))}
+                              className="h-8 max-w-[160px]"
+                            />
+                            <Button size="sm" variant="outline" onClick={() => handleCounterRate(r)}>
+                              Propose different rate
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
 
-            <p className="text-lg font-bold">$16,593.00</p>
-            <p className="text-sm font-light">Current Balance</p>
-            <button className="w-full bg-blue-600 text-white rounded-lg py-2 hover:bg-blue-700">
-              Request Withdrawal
-            </button>
+                {myCounters.length > 0 && (
+                  <div className="border rounded-lg p-3 space-y-2">
+                    {myCounters.map((r) => (
+                      <div key={r.id} className="flex items-center justify-between gap-2 text-sm">
+                        <p>
+                          {rateScopeLabel(r)}: your counter-offer of{" "}
+                          <span className="font-semibold">
+                            {r.currency}{" "}
+                            {r.proposedFlatRate != null ? `${r.proposedFlatRate} flat` : `${r.proposedRatePerHour}/hr`}
+                          </span>{" "}
+                          is awaiting admin review
+                        </p>
+                        <Button size="sm" variant="outline" onClick={() => handleRejectRate(r.id)}>Withdraw</Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {profile?.accountNumber ? (
+                  <div className="border rounded-lg p-3 flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">{profile.bankName}</p>
+                      <p className="text-sm text-gray-500">
+                        {profile.accountName} · {profile.accountNumber}
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <p className="text-sm text-gray-600">Add your bank details to receive payouts.</p>
+                    <select
+                      value={bankCode}
+                      onChange={(e) => setBankCode(e.target.value)}
+                      className="w-full border rounded-md p-2 text-sm"
+                    >
+                      <option value="">Select bank</option>
+                      {banks.map((b) => (
+                        <option key={b.code} value={b.code}>{b.name}</option>
+                      ))}
+                    </select>
+                    <Input
+                      placeholder="Account number"
+                      value={accountNumber}
+                      onChange={(e) => setAccountNumber(e.target.value)}
+                    />
+                    <Button size="sm" onClick={handleSaveBankDetails} disabled={isSaving}>
+                      {isSaving ? "Saving..." : "Save bank details"}
+                    </Button>
+                  </div>
+                )}
+
+                <p className="text-lg font-bold">₦{pendingAmount.toLocaleString()}</p>
+                <p className="text-sm font-light">Pending payout requests</p>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <button
+                      className="w-full bg-blue-600 text-white rounded-lg py-2 hover:bg-blue-700 disabled:opacity-50"
+                      disabled={isRequesting || !hasConfirmedRate || !profile?.paystackRecipientCode}
+                    >
+                      {isRequesting ? "Requesting..." : "Request Payout"}
+                    </button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Confirm withdrawal request</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will submit a payout request for your unpaid hours
+                        {profile?.bankName ? ` to ${profile.bankName} · ${profile.accountNumber}` : ""}. An admin will need
+                        to review and approve it before funds are transferred.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleRequestPayout}>Confirm request</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -74,10 +328,10 @@ export default function DashboardPage() {
       {/* Transaction History */}
       <Card>
         <CardHeader>
-          <CardTitle>Transaction History</CardTitle>
+          <CardTitle>Payout History</CardTitle>
         </CardHeader>
         <CardContent>
-          <TransactionHistory />
+          <TransactionHistory requests={requests} isLoading={isLoading} lastPaid={lastPaid} />
         </CardContent>
       </Card>
     </div>
@@ -100,71 +354,49 @@ function StatCard({ title, value, icon: Icon, color }: any) {
 }
 
 /* ------------------- Transaction History ------------------- */
-function TransactionHistory() {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
-  const dropdownRefs = useRef<(HTMLDivElement | null)[]>([]);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRefs.current.some(ref => ref?.contains(event.target as Node))) {
-        return; // clicked inside
-      }
-      setOpenIndex(null); // clicked outside → close
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const rows = [1, 2, 3, 4, 5]; // mock data
+function TransactionHistory({
+  requests,
+  isLoading,
+  lastPaid,
+}: {
+  requests: PayoutRequest[];
+  isLoading: boolean;
+  lastPaid?: PayoutRequest;
+}) {
+  if (isLoading) return <p className="text-sm text-gray-500 py-4">Loading payout history...</p>;
+  if (requests.length === 0) return <p className="text-sm text-gray-500 py-4">No payout requests yet.</p>;
 
   return (
-    <div className="bg-white rounded-lg">
+    <div className="bg-white rounded-lg overflow-x-auto">
       <table className="w-full text-left border-collapse">
         <thead>
           <tr className="border-b text-sm text-gray-500">
-            <th className="py-2 px-4">Invoice</th>
-            <th className="py-2 px-4">Method</th>
-            <th className="py-2 px-4">Date</th>
-            <th className="py-2 px-4">Location</th>
+            <th className="py-2 px-4">Period</th>
+            <th className="py-2 px-4">Hours</th>
+            <th className="py-2 px-4">Amount</th>
+            <th className="py-2 px-4">Requested</th>
             <th className="py-2 px-4">Status</th>
-            <th className="py-2 px-4">Action</th>
           </tr>
         </thead>
         <tbody>
-          {rows.map((i, idx) => (
-            <tr key={i} className="border-b text-sm">
-              <td className="py-2 px-4">1234{i}</td>
-              <td className="py-2 px-4">Visa</td>
-              <td className="py-2 px-4">June 12 2025</td>
-              <td className="py-2 px-4 text-blue-500">STC Tutors</td>
-              <td className="py-2 px-4 text-orange-500">Pending</td>
-              <td className="relative py-2 px-4">
-                {/* Action Button */}
-                <button
-                  onClick={() => setOpenIndex(openIndex === idx ? null : idx)}
-                  className="p-1 hover:bg-gray-100 rounded"
-                >
-                  <MoreVertical className="w-5 h-5 text-gray-600" />
-                </button>
-
-                {/* Dropdown */}
-                {openIndex === idx && (
-                  <div
-                    ref={(el) => {
-                      dropdownRefs.current[idx] = el;
-                    }}
-                    className="absolute right-4 mt-2 w-32 bg-white border rounded shadow-md z-10"
-                  >
-                    <button className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100">
-                      Cancel
-                    </button>
-                  </div>
-                )}
+          {requests.map((r) => (
+            <tr key={r.id} className="border-b text-sm">
+              <td className="py-2 px-4">
+                {new Date(r.periodStart).toLocaleDateString()} - {new Date(r.periodEnd).toLocaleDateString()}
               </td>
+              <td className="py-2 px-4">{r.hoursWorked.toFixed(1)}</td>
+              <td className="py-2 px-4">₦{r.amount.toLocaleString()}</td>
+              <td className="py-2 px-4">{r.paidAt ? new Date(r.paidAt).toLocaleDateString() : "—"}</td>
+              <td className={`py-2 px-4 font-medium ${STATUS_COLORS[r.status]}`}>{r.status}</td>
             </tr>
           ))}
         </tbody>
       </table>
+      {lastPaid && (
+        <p className="text-xs text-gray-400 px-4 py-2">
+          Last paid ₦{lastPaid.amount.toLocaleString()} on {lastPaid.paidAt ? new Date(lastPaid.paidAt).toLocaleDateString() : "—"}
+        </p>
+      )}
     </div>
   );
 }
