@@ -27,7 +27,10 @@ export default async function fetchAPI<T>({
     }
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10000); // 10 seconds timeout
+    // Render's free tier can take 30-50s to cold-start after going idle -
+    // long enough that a short timeout here reads as a hung/failed login on
+    // the very first request after a period of inactivity.
+    const timeout = setTimeout(() => controller.abort(), 45000);
 
     const res = await fetch(`${baseUrl}${url}`, {
        ...request, 
