@@ -1,8 +1,8 @@
 // Frontend mirror of stcbe's Service Taxonomy Standardization contract
 // (core/interfaces/service.ts, taxonomy-option.ts, custom-form-field.ts,
 // class-group.ts) - the DB-backed catalog that replaced the old hardcoded
-// SERVICE_TYPE_LABELS/SERVICE_TOPICS/CURRICULA/INSTRUCTION_LANGUAGES lists
-// in src/constants/taxonomy.ts for the enrollment flow.
+// SERVICE_TOPICS/CURRICULA/INSTRUCTION_LANGUAGES lists in
+// src/constants/taxonomy.ts for the enrollment flow.
 
 import { CurriculumNodeType } from "./curriculum";
 

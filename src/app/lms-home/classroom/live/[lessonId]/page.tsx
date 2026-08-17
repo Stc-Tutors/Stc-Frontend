@@ -7,7 +7,7 @@ import { GetLessonAction } from "@/server/lesson";
 import { GetCourseAction } from "@/server/course";
 import { Lesson } from "@/types/lesson";
 import { Course } from "@/types/course";
-import VirtualClassroomFrame from "@/components/classroom/VirtualClassroomFrame";
+import LiveClassRedirect from "@/components/classroom/LiveClassRedirect";
 import { getJoinWindow } from "@/lib/class-join-window";
 
 export default function LiveClassroomPage() {
@@ -75,7 +75,7 @@ export default function LiveClassroomPage() {
               {course && <p className="text-sm text-gray-500">{course.title}</p>}
             </div>
             {joinWindow?.isJoinable ? (
-              <VirtualClassroomFrame meetingUrl={lesson.meetingUrl} />
+              <LiveClassRedirect meetingUrl={lesson.meetingUrl} />
             ) : (
               <div className="bg-gray-50 border border-dashed border-gray-300 rounded-lg py-16 flex flex-col items-center gap-3 text-center">
                 <Clock className="w-8 h-8 text-gray-400" />

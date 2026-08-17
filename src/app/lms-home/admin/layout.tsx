@@ -38,7 +38,7 @@ import {
   History,
   FileCheck2,
 } from "lucide-react";
-import Image from "next/image";
+import BrandLogo from "@/components/shared/BrandLogo";
 import { UserProfileDropdown } from "@/components/user-profile-dropdown";
 import { useUser } from "@/contexts/user-context";
 import { AdminPermission } from "@/types/admin-permission";
@@ -191,13 +191,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       >
         <div className="flex items-center justify-between p-4 border-b">
           <Link href="/">
-            <Image
-              src="/image/logo_black.png"
-              alt="STC Logo"
-              width={120}
-              height={40}
-              className="object-contain"
-            />
+            <BrandLogo width={120} height={40} className="object-contain" />
           </Link>
           <button
             onClick={() => setIsSidebarOpen(false)}

@@ -5,10 +5,13 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import "./Navbar.css"
 import { ROUTES } from "@/config/routes";
+import { useTenantBranding } from "@/contexts/tenant-branding-context";
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
+  const { tenant } = useTenantBranding();
+  const logoUrl = tenant?.branding?.logoUrl;
 
   const links = [
     { path: "/about", label: "About" },
@@ -30,7 +33,12 @@ const Navbar = () => {
       <div className="navContainer">
         {/* Logo that acts as home link */}
         <Link href="/" className="logo">
-          <Image src="/image/logo_black.png" alt="STC Tutors" width={160} height={45} priority />
+          {logoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={logoUrl} alt={tenant?.branding?.displayName || tenant?.name || "Logo"} className="h-11 w-auto" />
+          ) : (
+            <Image src="/image/logo_black.png" alt="STC Tutors" width={160} height={45} priority />
+          )}
         </Link>
 
         {/* Desktop Navigation */}

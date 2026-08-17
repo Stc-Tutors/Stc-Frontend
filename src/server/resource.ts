@@ -2,6 +2,7 @@
 
 import fetchAPI, { type ApiResponse } from "@/lib/fetch";
 import { CourseResource, ResourceStatus } from "@/types/resource";
+import { PaymentRequest } from "@/types/payment";
 
 export async function GetResourcesByCourseAction(
   courseId: string
@@ -77,5 +78,18 @@ export async function RejectResourceAction(
   });
 
   const resData = res ? ((await res.json()) as ApiResponse<CourseResource>) : null;
+  return [resData, error];
+}
+
+// Starts a Paystack charge for a PAID resource - same
+// resumeTransaction(access_code) popup pattern used for course/subject
+// enrollment payments elsewhere in this app (see the marketplace page).
+export async function InitiateResourceUnlockAction(id: string): Promise<[ApiResponse<PaymentRequest> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: `/resources/${id}/unlock`,
+    request: { method: "POST", headers: { "Content-Type": "application/json" } },
+  });
+
+  const resData = res ? ((await res.json()) as ApiResponse<PaymentRequest>) : null;
   return [resData, error];
 }

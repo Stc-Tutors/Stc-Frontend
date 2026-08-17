@@ -6,13 +6,15 @@ import { ArrowLeft, LibraryBig } from "lucide-react";
 import { GetEnrollmentsAction, GetLinkedStudentsAction } from "@/server/enrollment";
 import { GetStudentCoursesAction } from "@/server/course-enrollment";
 import { GetCourseLessonsAction } from "@/server/lesson";
-import { GetResourcesByCourseAction } from "@/server/resource";
+import { GetResourcesByCourseAction, InitiateResourceUnlockAction } from "@/server/resource";
+import { VerifyPaymentAction } from "@/server/payment";
 import { Course, CourseTutor } from "@/types/course";
 import { Lesson, LessonStatus } from "@/types/lesson";
-import { CourseResource } from "@/types/resource";
+import { CourseResource, ResourceAccessTier } from "@/types/resource";
 import SecureVideoPlayer from "@/components/classroom/SecureVideoPlayer";
 import JoinClassLink from "@/components/classroom/JoinClassLink";
 import ResourceCard from "@/components/studentDashboard/ResourceCard";
+import { ToastError, ToastSuccess } from "@/components/ui/custom/toast";
 
 export default function ClassroomPage() {
   const router = useRouter();
@@ -49,6 +51,12 @@ export default function ClassroomPage() {
     load();
   }, []);
 
+  const reloadResources = async () => {
+    if (!selectedCourseId) return;
+    const [resourcesRes] = await GetResourcesByCourseAction(selectedCourseId);
+    setResources(resourcesRes?.data ?? []);
+  };
+
   useEffect(() => {
     if (!selectedCourseId) return;
     const load = async () => {
@@ -58,11 +66,34 @@ export default function ClassroomPage() {
       const recorded = courseLessons.find((l) => l.recordingUrl) ?? courseLessons[0] ?? null;
       setSelectedLessonId(recorded?.id ?? null);
 
-      const [resourcesRes] = await GetResourcesByCourseAction(selectedCourseId);
-      setResources(resourcesRes?.data ?? []);
+      await reloadResources();
     };
     load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCourseId]);
+
+  const handleUnlockResource = async (resource: CourseResource) => {
+    const [res, error] = await InitiateResourceUnlockAction(resource.id);
+    if (error || !res?.data) {
+      ToastError(error || "Could not start payment");
+      return;
+    }
+    const { default: PaystackPop } = await import("@paystack/inline-js");
+    const popup = new PaystackPop();
+    popup.resumeTransaction(res.data.access_code, {
+      onSuccess: async () => {
+        await VerifyPaymentAction(res.data!.reference);
+        ToastSuccess("Unlocked - reloading...");
+        await reloadResources();
+      },
+      onCancel: () => {
+        ToastError("Payment was not completed.");
+      },
+      onError: (error: any) => {
+        ToastError(error?.message || "Payment failed. Please try again.");
+      },
+    });
+  };
 
   const selectedCourse = courses.find((c) => c.id === selectedCourseId) ?? null;
   const selectedLesson = lessons.find((l) => l.id === selectedLessonId) ?? null;
@@ -226,16 +257,24 @@ export default function ClassroomPage() {
               <div className="mt-8">
                 <h3 className="text-lg font-medium text-gray-700 mb-2">Resources</h3>
                 <div className="bg-white rounded-lg shadow-md px-4">
-                  {resources.map((r) => (
-                    <ResourceCard
-                      key={r.id}
-                      title={r.title}
-                      type="Document"
-                      added={new Date(r.createdAt).toLocaleDateString()}
-                      size=""
-                      href={r.fileUrl}
-                    />
-                  ))}
+                  {resources.map((r) => {
+                    const isLocked = r.accessTier === ResourceAccessTier.PAID && !r.fileUrl;
+                    return (
+                      <ResourceCard
+                        key={r.id}
+                        title={r.title}
+                        type="Document"
+                        added={new Date(r.createdAt).toLocaleDateString()}
+                        size=""
+                        href={r.fileUrl}
+                        locked={
+                          isLocked
+                            ? { price: r.price ?? 0, currency: r.currency ?? "NGN", onUnlock: () => handleUnlockResource(r) }
+                            : undefined
+                        }
+                      />
+                    );
+                  })}
                 </div>
               </div>
             )}

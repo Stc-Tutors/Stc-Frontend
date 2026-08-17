@@ -63,6 +63,28 @@ export async function GetStudentCoursesAction(
   return [resData, error];
 }
 
+// Special Course shareable-link registration for a visitor who's already
+// logged in - see stcbe's CourseEnrollmentService.enrollViaShareToken.
+// `studentId` lets a parent with more than one child specify which one;
+// omit it to let the backend auto-resolve (a student's own record, or a
+// parent's only child).
+export async function EnrollViaShareTokenAction(
+  token: string,
+  studentId?: string
+): Promise<[ApiResponse<CourseEnrollment> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: `/course-enrollments/via-link/${token}`,
+    request: {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(studentId ? { studentId } : {}),
+    },
+  });
+
+  const resData = res ? ((await res.json()) as ApiResponse<CourseEnrollment>) : null;
+  return [resData, error];
+}
+
 export async function DropCourseAction(id: string): Promise<[ApiResponse<null> | null, string | null]> {
   const [res, error] = await fetchAPI({
     url: `/course-enrollments/${id}`,

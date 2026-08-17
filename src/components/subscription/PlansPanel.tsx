@@ -70,6 +70,26 @@ export default function PlansPanel() {
                 {plan.currency} {plan.price.toLocaleString()}
               </p>
               <p className="text-xs text-gray-500 mb-4">per {plan.billingPeriod}</p>
+              {(plan.discountPercent || plan.resourceAccess || plan.referralBonusPercent || plan.priorityAllocation) && (
+                <div className="flex flex-wrap gap-1.5 mb-3">
+                  {!!plan.discountPercent && (
+                    <span className="text-xs px-2 py-1 rounded-full bg-blue-50 text-blue-700">
+                      {plan.discountPercent}% off enrollment
+                    </span>
+                  )}
+                  {plan.resourceAccess && (
+                    <span className="text-xs px-2 py-1 rounded-full bg-blue-50 text-blue-700">Resource library included</span>
+                  )}
+                  {!!plan.referralBonusPercent && (
+                    <span className="text-xs px-2 py-1 rounded-full bg-blue-50 text-blue-700">
+                      +{plan.referralBonusPercent}% referral bonus
+                    </span>
+                  )}
+                  {plan.priorityAllocation && (
+                    <span className="text-xs px-2 py-1 rounded-full bg-blue-50 text-blue-700">Priority tutor allocation</span>
+                  )}
+                </div>
+              )}
               <ul className="text-sm text-gray-600 space-y-1 mb-4 flex-1">
                 {plan.features.map((f, i) => (
                   <li key={i}>&bull; {f}</li>

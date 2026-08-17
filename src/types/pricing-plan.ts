@@ -7,4 +7,9 @@ export interface PricingPlan {
   billingPeriod: string;
   features: string[];
   isActive: boolean;
+  // Perks an ACTIVE subscriber to this plan receives.
+  discountPercent?: number;
+  resourceAccess?: boolean;
+  referralBonusPercent?: number;
+  priorityAllocation?: boolean;
 }

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Lock } from "lucide-react";
-import Image from "next/image";
+import BrandLogo from "@/components/shared/BrandLogo";
 import { GetMyRestrictionsAction } from "@/server/subscription";
 import { SubscriptionRestrictions } from "@/types/subscription";
 
@@ -43,7 +43,7 @@ export default function AccessRestrictionGate({
   if (blocked) {
     return (
       <div className="flex h-screen flex-col items-center justify-center bg-gray-100 px-6 text-center">
-        <Image src="/image/logo_black.png" alt="STC Logo" width={120} height={40} className="object-contain mb-8" />
+        <BrandLogo width={120} height={40} className="object-contain mb-8" />
         <div className="bg-white rounded-2xl shadow p-8 max-w-md space-y-4">
           <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-red-50 text-red-500">
             <Lock className="size-6" />

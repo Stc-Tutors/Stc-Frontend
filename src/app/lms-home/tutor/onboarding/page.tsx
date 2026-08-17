@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
+import BrandLogo from "@/components/shared/BrandLogo";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { MultiSelect } from "@/components/ui/multi-select";
@@ -43,7 +43,7 @@ export default function TutorOnboardingPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
       <div className="w-full max-w-lg bg-white rounded-2xl shadow p-8 space-y-6">
         <div className="flex justify-center">
-          <Image src="/image/logo_black.png" alt="STC Logo" width={140} height={48} className="object-contain" />
+          <BrandLogo width={140} height={48} className="object-contain" />
         </div>
 
         <div className="text-center">

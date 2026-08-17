@@ -26,7 +26,7 @@ import {
   Gift,
   AlertCircle
 } from "lucide-react";
-import Image from "next/image";
+import BrandLogo from "@/components/shared/BrandLogo";
 import { UserProfileDropdown } from "@/components/user-profile-dropdown";
 
 // export const metadata = {
@@ -92,14 +92,7 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
         
           <div className="flex items-center justify-between p-4 border-b">
             <Link href="/">
-            <Image
-              src="/image/logo_black.png"
-              alt="STC Logo"
-              width={120}
-              height={40}
-              className="object-contain"
-              cursor-pointer
-            />
+            <BrandLogo width={120} height={40} className="object-contain" />
             </Link>
 
             <button
