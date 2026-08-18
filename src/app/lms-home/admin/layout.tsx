@@ -37,15 +37,30 @@ import {
   UserCog,
   History,
   FileCheck2,
+  Settings,
+  ArrowLeftRight,
 } from "lucide-react";
 import BrandLogo from "@/components/shared/BrandLogo";
 import { UserProfileDropdown } from "@/components/user-profile-dropdown";
 import { useUser } from "@/contexts/user-context";
 import { AdminPermission } from "@/types/admin-permission";
+import { isSuperOrAlmighty } from "@/lib/roles";
 
 // permission: undefined means always visible (no matching AdminPermission
-// exists yet, or the page is universally accessible).
-const sidebarLinks: { label: string; icon: typeof Home; href: string; badge?: boolean; permission?: AdminPermission }[] = [
+// exists yet, or the page is universally accessible). superOrAlmightyOnly is
+// a role gate, not a permission - for tenant-owner-tier capability
+// (Allocation Hub, deep Finance, tenant settings) that a regular STC_ADMIN/
+// TUTOR_ADMIN should never see even with every permission granted, since
+// permissions can be handed out per-admin while these are SUPER_ADMIN/
+// ALMIGHTY_ADMIN by definition (mirrors Stc-SuperAdmin's isSuperOrAlmighty gates).
+const sidebarLinks: {
+  label: string;
+  icon: typeof Home;
+  href: string;
+  badge?: boolean;
+  permission?: AdminPermission;
+  superOrAlmightyOnly?: boolean;
+}[] = [
   { label: "Dashboard", icon: Home, href: "/lms-home/admin/dashboard" },
   { label: "Students", icon: Users, href: "/lms-home/admin/students", permission: AdminPermission.MANAGE_STUDENTS },
   { label: "Parents", icon: Baby, href: "/lms-home/admin/parents", permission: AdminPermission.MANAGE_STUDENTS },
@@ -159,10 +174,22 @@ const sidebarLinks: { label: string; icon: typeof Home; href: string; badge?: bo
   // the calling admin's assigned cluster, so this is visible to any assigned admin.
   { label: "My Tutors", icon: UserCog, href: "/lms-home/admin/my-tutors" },
   {
+    label: "Allocation Hub",
+    icon: ArrowLeftRight,
+    href: "/lms-home/admin/allocations",
+    superOrAlmightyOnly: true,
+  },
+  {
     label: "Audit Log",
     icon: History,
     href: "/lms-home/admin/audit-log",
     permission: AdminPermission.VIEW_AUDIT_LOGS,
+  },
+  {
+    label: "Tenant Settings",
+    icon: Settings,
+    href: "/lms-home/admin/tenant-settings",
+    superOrAlmightyOnly: true,
   },
   { label: "Profile", icon: UserRound, href: "/lms-home/admin/profile" },
   { label: "Support", icon: Headphones, href: "/lms-home/admin/messages" },
@@ -174,7 +201,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const { hasPermission } = useUser();
+  const { user, hasPermission } = useUser();
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -205,6 +232,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           {sidebarLinks
             .filter(({ label }) => !["Support", "Notifications"].includes(label))
             .filter(({ permission }) => !permission || hasPermission(permission))
+            .filter(({ superOrAlmightyOnly }) => !superOrAlmightyOnly || (user && isSuperOrAlmighty(user.role)))
             .map(({ label, icon: Icon, href, badge }) => (
               <Link
                 key={label}

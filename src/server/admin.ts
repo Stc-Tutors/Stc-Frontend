@@ -27,10 +27,12 @@ export async function CreateUserAction(data: {
 }
 
 export async function GetUsersAction(
-  params?: { role?: string; status?: string; search?: string }
+  params?: { role?: string; status?: string; search?: string; limit?: number }
 ): Promise<[ApiResponse<User[]> | null, string | null]> {
   const query = new URLSearchParams(
-    Object.entries(params ?? {}).filter(([, v]) => !!v) as [string, string][]
+    Object.entries(params ?? {})
+      .filter(([, v]) => !!v)
+      .map(([k, v]) => [k, String(v)]) as [string, string][]
   ).toString();
 
   const [res, error] = await fetchAPI({

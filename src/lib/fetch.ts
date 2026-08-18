@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 
 interface FetchApiTypes {
   baseUrl?: string;
@@ -21,9 +21,25 @@ export default async function fetchAPI<T>({
     const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value;
 
-    const headers = new Headers(request.headers || {});
-    if (token && !headers.has("Authorization")) {
-      headers.set("Authorization", `Bearer ${token}`);
+    const requestHeaders = new Headers(request.headers || {});
+    if (token && !requestHeaders.has("Authorization")) {
+      requestHeaders.set("Authorization", `Bearer ${token}`);
+    }
+
+    // This is a Next.js-server-to-Express server fetch, so it never carries
+    // a browser Origin header - stcbe's tenantOriginMiddleware needs some
+    // other signal to know which white-label tenant's domain the visitor is
+    // actually on, so we forward the real incoming Host instead. Guarded
+    // since headers() throws outside a request-scoped context (e.g.
+    // build-time static generation), in which case there's no real visitor
+    // to resolve anyway - falls back to the platform's default tenant.
+    try {
+      const incomingHost = (await headers()).get("host");
+      if (incomingHost && !requestHeaders.has("X-Tenant-Host")) {
+        requestHeaders.set("X-Tenant-Host", incomingHost);
+      }
+    } catch {
+      // No request-scoped headers available - proceed without the hint.
     }
 
     const controller = new AbortController();
@@ -33,8 +49,8 @@ export default async function fetchAPI<T>({
     const timeout = setTimeout(() => controller.abort(), 45000);
 
     const res = await fetch(`${baseUrl}${url}`, {
-       ...request, 
-       headers,
+       ...request,
+       headers: requestHeaders,
         signal: controller.signal,
        });
 
