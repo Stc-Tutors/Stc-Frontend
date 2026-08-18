@@ -1,15 +1,30 @@
 "use client";
-import React from "react";
 import Image from "next/image";
+import { usePageSection } from "@/hooks/use-page-section";
+import { CTAContent, PageSectionKey } from "@/types/content";
+
+const DEFAULT_CTA: CTAContent = {
+  imageUrl: "/image/happy.jpg",
+  headline: "Unlock your potential with skilled instructors.",
+  subtext: "Book a class with us today",
+  overallGrade: "A+",
+  grades: [
+    { subject: "Maths", score: "94%" },
+    { subject: "Physics", score: "92%" },
+    { subject: "Chemistry", score: "96%" },
+  ],
+};
 
 const CTA = () => {
+  const content = usePageSection(PageSectionKey.CTA, DEFAULT_CTA);
+
   return (
     <section className="py-16 px-8 bg-gray-100">
       <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-8">
         {/* Left Side: Image & Floating Elements */}
         <div className="relative flex-1">
           <Image
-            src="/image/happy.jpg"
+            src={content.imageUrl}
             alt="Student with Phone"
             width={500}
             height={500}
@@ -23,17 +38,19 @@ const CTA = () => {
 
           {/* Floating Grade Card */}
           <div className="absolute bottom-5 left-[-10%] bg-white p-4 rounded-lg shadow-lg text-sm">
-            <p>A+</p>
-            <p>Maths - 94%</p>
-            <p>Physics - 92%</p>
-            <p>Chemistry - 96%</p>
+            {content.overallGrade && <p>{content.overallGrade}</p>}
+            {content.grades.map((grade) => (
+              <p key={grade.subject}>
+                {grade.subject} - {grade.score}
+              </p>
+            ))}
           </div>
         </div>
 
         {/* Right Side: Contact Form */}
         <div className="flex-1 bg-white p-6 md:p-8 rounded-lg shadow-lg">
-          <h2 className="text-2xl font-semibold text-[#38b6ff]">Unlock your potential with skilled instructors.</h2>
-          <p className="mt-2 mb-4">Book a class with us today</p>
+          <h2 className="text-2xl font-semibold text-[#38b6ff]">{content.headline}</h2>
+          <p className="mt-2 mb-4">{content.subtext}</p>
           <form className="space-y-4">
             <input
               type="name"

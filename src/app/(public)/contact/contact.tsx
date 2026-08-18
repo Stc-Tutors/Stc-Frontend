@@ -1,10 +1,33 @@
 "use client";
-import { Mail, Phone, MapPin } from "lucide-react";
+import { Mail, Phone, MapPin, Clock } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { FaWhatsapp, FaInstagram, FaFacebook, FaLinkedin, FaTiktok } from "react-icons/fa";
+import { FaWhatsapp, FaInstagram, FaFacebook, FaLinkedin, FaTiktok, FaGlobe } from "react-icons/fa";
+import { usePageSection } from "@/hooks/use-page-section";
+import { ContactInfoContent, PageSectionKey } from "@/types/content";
+
+const DEFAULT_CONTACT: ContactInfoContent = {
+  phone: "+234 706 055 4954",
+  email: "stc.consult24@gmail.com",
+  socialLinks: [
+    { platform: "WhatsApp", url: "https://wa.me/2347089118528" },
+    { platform: "Instagram", url: "https://instagram.com/stc.consult01" },
+    { platform: "Facebook", url: "https://web.facebook.com/stc.consult01/" },
+    { platform: "LinkedIn", url: "https://linkedin.com/company/yourcompany" },
+    { platform: "TikTok", url: "https://www.tiktok.com/@stc.consult01" },
+  ],
+};
+
+const SOCIAL_ICON: Record<string, typeof FaGlobe> = {
+  whatsapp: FaWhatsapp,
+  instagram: FaInstagram,
+  facebook: FaFacebook,
+  linkedin: FaLinkedin,
+  tiktok: FaTiktok,
+};
 
 const Contact = () => {
+  const content = usePageSection(PageSectionKey.CONTACT_INFO, DEFAULT_CONTACT);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -41,34 +64,6 @@ const Contact = () => {
     // Optional: send to backend/API
   };
 
-  const socialLinks = [
-    {
-      icon: <FaWhatsapp size={20} />,
-      url: "https://wa.me/2347089118528",
-      label: "WhatsApp"
-    },
-    {
-      icon: <FaInstagram size={20} />,
-      url: "https://instagram.com/stc.consult01",
-      label: "Instagram"
-    },
-    {
-      icon: <FaFacebook size={20} />,
-      url: "https://facebook.com/https://web.facebook.com/stc.consult01/",
-      label: "Facebook"
-    },
-    {
-      icon: <FaLinkedin size={20} />,
-      url: "https://linkedin.com/company/yourcompany",
-      label: "LinkedIn"
-    },
-    {
-      icon: <FaTiktok size={20} />,
-      url: "https://www.tiktok.com/@stc.consult01",
-      label: "Tiktok"
-    }
-  ];
-
   return (
     <section className="bg-white py-20 px-6 md:px-12 lg:px-20">
       <div className="max-w-7xl mx-auto">
@@ -100,33 +95,44 @@ const Contact = () => {
           >
             <div className="flex items-center gap-4">
               <Phone className="text-[#38b6ff]" />
-              <span className="text-gray-700">+234 706 055 4954</span>
+              <span className="text-gray-700">{content.phone}</span>
             </div>
             <div className="flex items-center gap-4">
               <Mail className="text-[#38b6ff]" />
-              <span className="text-gray-700">stc.consult24@gmail.com</span>
+              <span className="text-gray-700">{content.email}</span>
             </div>
-            {/* <div className="flex items-center gap-4">
-              <MapPin className="text-[#38b6ff]" />
-              <span className="text-gray-700">Nigeria</span>
-            </div> */}
+            {content.address && (
+              <div className="flex items-center gap-4">
+                <MapPin className="text-[#38b6ff]" />
+                <span className="text-gray-700">{content.address}</span>
+              </div>
+            )}
+            {content.hours && (
+              <div className="flex items-center gap-4">
+                <Clock className="text-[#38b6ff]" />
+                <span className="text-gray-700">{content.hours}</span>
+              </div>
+            )}
 
-             {/* Updated Social Links Section */}
+             {/* Social Links */}
       <div className="flex gap-4 mt-6">
-        {socialLinks.map((social, index) => (
-          <motion.a
-            key={index}
-            href={social.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={social.label}
-            className="text-[#38b6ff] hover:text-indigo-800 transition-colors p-2 rounded-full hover:bg-indigo-50"
-            whileHover={{ y: -2 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            {social.icon}
-          </motion.a>
-        ))}
+        {content.socialLinks.map((social) => {
+          const Icon = SOCIAL_ICON[social.platform.toLowerCase()] ?? FaGlobe;
+          return (
+            <motion.a
+              key={social.platform + social.url}
+              href={social.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={social.platform}
+              className="text-[#38b6ff] hover:text-indigo-800 transition-colors p-2 rounded-full hover:bg-indigo-50"
+              whileHover={{ y: -2 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Icon size={20} />
+            </motion.a>
+          );
+        })}
       </div>
           </motion.div>
 

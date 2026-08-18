@@ -3,9 +3,24 @@ import Image from "next/image";
 import "./Hero.css";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { ROUTES } from "@/config/routes";
+import { usePageSection } from "@/hooks/use-page-section";
+import { HeroContent, PageSectionKey } from "@/types/content";
+
+const DEFAULT_HERO: HeroContent = {
+  headline: "Empowering",
+  highlightText: "Learners,",
+  headlineSuffix: "Anywhere, Anytime",
+  body: "Unlock academic success, professional growth, and digital skills through expert-led tutoring, tech training, personal development, and career support, all delivered virtually at your convenience.",
+  imageUrl: "/image/kids.jpeg",
+  primaryButtonText: "Get Started",
+  primaryButtonLink: "/services",
+  secondaryButtonText: "Login",
+  secondaryButtonLink: "/services",
+};
 
 const Hero = () => {
+  const content = usePageSection(PageSectionKey.HERO, DEFAULT_HERO);
+
   // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -43,7 +58,7 @@ const Hero = () => {
         variants={itemVariants}
       >
         <Image
-          src="/image/kids.jpeg"
+          src={content.imageUrl}
           alt="Student learning online"
           width={500}
           height={500}
@@ -84,67 +99,31 @@ const Hero = () => {
         variants={itemVariants}
       >
         <motion.h1 variants={itemVariants}>
-          Empowering <span className="highlight">Learners,</span> Anywhere,
-          Anytime
+          {content.headline}{" "}
+          {content.highlightText && <span className="highlight">{content.highlightText}</span>}{" "}
+          {content.headlineSuffix}
         </motion.h1>
-        <motion.p variants={itemVariants}>
-          Unlock academic success, professional growth, and digital skills through{" "}
-          <strong>expert-led tutoring</strong>,{" "}
-          <strong>tech training</strong>,{" "}
-          <strong>personal development</strong>,{" "}
-          <strong> and career support, </strong>all delivered virtually at your convenience.
-        </motion.p>
+        <motion.p variants={itemVariants}>{content.body}</motion.p>
         <motion.div
           className="buttons"
           variants={itemVariants}
         >
-          {/* Get Started Button
-          <Link href={ROUTES.AUTH.REGISTER} passHref>
+          <Link href={content.primaryButtonLink}>
             <motion.button
               className="primaryButton"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              Get Started
-            </motion.button>
-          </Link> */}
-
-          <Link href="/services">
-            <motion.button
-              className="primaryButton"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              Get Started
+              {content.primaryButtonText}
             </motion.button>
           </Link>
-          
-          {/* <Link href="/subjects" passHref>
-            <motion.button 
-              className={styles.secondaryButton}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              Browse Subjects
-            </motion.button>
-          </Link> */}
 
-          {/* Login Button
-          <Link href={ROUTES.AUTH.LOGIN} passHref>
+          <Link href={content.secondaryButtonLink}>
             <motion.button
               className="secondaryButton"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}>
-              Login
-            </motion.button>
-          </Link> */}
-
-          <Link href="/services">
-            <motion.button
-              className="secondaryButton"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}>
-              Login
+              {content.secondaryButtonText}
             </motion.button>
           </Link>
         </motion.div>

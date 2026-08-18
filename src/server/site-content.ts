@@ -22,3 +22,24 @@ export async function GetSiteContentAction(): Promise<[ApiResponse<SiteContent[]
   const resData = res ? ((await res.json()) as ApiResponse<SiteContent[]>) : null;
   return [resData, error];
 }
+
+export interface HomepageSlide {
+  id: string;
+  imageUrl: string;
+  linkUrl?: string;
+  caption?: string;
+  order: number;
+  isActive: boolean;
+}
+
+// Public, unauthenticated - the homepage's top-of-page carousel. Already
+// filtered to active-only and sorted by order server-side.
+export async function GetHomepageSlidesAction(): Promise<[ApiResponse<HomepageSlide[]> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: "/public/homepage-slides",
+    request: { method: "GET", headers: { "Content-Type": "application/json" } },
+  });
+
+  const resData = res ? ((await res.json()) as ApiResponse<HomepageSlide[]>) : null;
+  return [resData, error];
+}

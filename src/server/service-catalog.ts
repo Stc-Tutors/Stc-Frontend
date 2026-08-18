@@ -19,6 +19,20 @@ export async function GetServicesAction(
   return [resData, error];
 }
 
+// Single-service lookup by slug, NOT status-filtered (unlike
+// GetServicesAction) - the /services/:slug marketing page needs to tell "this
+// service doesn't exist" (404) apart from "it exists but isn't Active yet"
+// (render a Coming Soon page instead).
+export async function GetServiceBySlugAction(slug: string): Promise<[ApiResponse<IService> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: `/public/services/${slug}`,
+    request: { method: "GET", headers: { "Content-Type": "application/json" } },
+  });
+
+  const resData = res ? ((await res.json()) as ApiResponse<IService>) : null;
+  return [resData, error];
+}
+
 // Everything below is ADMIN (MANAGE_TAXONOMY permission)/SUPER_ADMIN only -
 // powers lms-home/admin/service-catalog. Unlike GetServicesAction above,
 // this includes every status (Planned/Archived too), which the management

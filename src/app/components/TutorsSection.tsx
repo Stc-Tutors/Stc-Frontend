@@ -1,67 +1,68 @@
 "use client";
 import { motion } from 'framer-motion';
 import Image from 'next/image';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import './TutorsSection.css';
 
 import { useRouter } from 'next/navigation';
+import { GetFeaturedTutorsAction } from '@/server/content';
+import { FeaturedTutor } from '@/types/content';
 
-const tutors = [
-  {
-    id: 1,
-    name: "Dr. Sarah Johnson",
-    subject: "Mathematics",
-    image: "/image/tutor4.jpg",
-    experience: "10+ years experience",
-    rating: 4.9
-  },
-  {
-    id: 2,
-    name: "Prof. Michael Chen",
-    subject: "Physics",
-    image: "/image/tutor1.jpg",
-    experience: "8 years experience",
-    rating: 4.8
-  },
-  {
-    id: 3,
-    name: "Ms. Emily Wilson",
-    subject: "English Literature",
-    image:"/image/tutor2.jpg",
-    experience: "5 years experience",
-    rating: 4.7
-  },
-  {
-    id: 4,
-    name: "Mr. David Kim",
-    subject: "Chemistry",
-    image: "/image/tutor3.jpg",
-    experience: "7 years experience",
-    rating: 4.8
-  },
-  {
-    id: 5,
-    name: "Dr. Lisa Rodriguez",
-    subject: "Biology",
-    image: "/image/tutor1.jpg",
-    experience: "9 years experience",
-    rating: 4.9
-  }
+interface DisplayTutor {
+  id: string;
+  name: string;
+  subject: string;
+  image: string;
+  experience: string;
+  rating: number;
+}
+
+// Shown until real featured tutors load (or if an admin hasn't opted any
+// tutor into the public homepage yet - see TutorProfileService.
+// setFeaturedOnHomepage) - same "fallback to today's copy" pattern as every
+// other CMS-driven homepage section, not fabricated data pretending to be real.
+const DEFAULT_TUTORS: DisplayTutor[] = [
+  { id: "default-1", name: "Dr. Sarah Johnson", subject: "Mathematics", image: "/image/tutor4.jpg", experience: "10+ years experience", rating: 4.9 },
+  { id: "default-2", name: "Prof. Michael Chen", subject: "Physics", image: "/image/tutor1.jpg", experience: "8 years experience", rating: 4.8 },
+  { id: "default-3", name: "Ms. Emily Wilson", subject: "English Literature", image: "/image/tutor2.jpg", experience: "5 years experience", rating: 4.7 },
+  { id: "default-4", name: "Mr. David Kim", subject: "Chemistry", image: "/image/tutor3.jpg", experience: "7 years experience", rating: 4.8 },
+  { id: "default-5", name: "Dr. Lisa Rodriguez", subject: "Biology", image: "/image/tutor1.jpg", experience: "9 years experience", rating: 4.9 },
 ];
 
+function toDisplayTutor(t: FeaturedTutor): DisplayTutor {
+  const user = typeof t.tutor === "object" ? t.tutor : null;
+  const name = user ? `${user.firstName} ${user.lastName}` : "STC Tutor";
+  const subject = t.teachingCombinations[0]?.subjectsTaught[0] ?? "Multiple subjects";
+  return {
+    id: t.id,
+    name,
+    subject,
+    image: user?.avatarUrl || "/image/tutor1.jpg",
+    experience: t.yearsOfExperience ? `${t.yearsOfExperience}+ years experience` : "Experienced tutor",
+    rating: t.rating.totalRatings > 0 ? t.rating.averageRating : 5,
+  };
+}
+
 const TutorsSection = () => {
+  const [tutors, setTutors] = useState<DisplayTutor[]>(DEFAULT_TUTORS);
   const [currentIndex, setCurrentIndex] = useState(0);
   const carouselRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
+  useEffect(() => {
+    GetFeaturedTutorsAction().then(([res]) => {
+      if (res?.data && res.data.length > 0) setTutors(res.data.map(toDisplayTutor));
+    });
+  }, []);
+
   const nextSlide = () => {
-    setCurrentIndex((prevIndex) => 
+    setCurrentIndex((prevIndex) =>
       prevIndex === tutors.length - 1 ? 0 : prevIndex + 1
     );
   };
 
   const prevSlide = () => {
-    setCurrentIndex((prevIndex) => 
+    setCurrentIndex((prevIndex) =>
       prevIndex === 0 ? tutors.length - 1 : prevIndex - 1
     );
   };
@@ -73,7 +74,7 @@ const TutorsSection = () => {
   return (
     <section className="section">
       <div className="container">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
@@ -84,7 +85,7 @@ const TutorsSection = () => {
             <p className="bigheading">Building a Network of 1000+ Carefully Vetted Tutors</p>
             <h1 className="heading">Get expert tutoring from qualified educators</h1>
             <p className="subheading">
-              We’re curating a strong pool of dedicated, qualified educators, each selected through a rigorous screening 
+              We’re curating a strong pool of dedicated, qualified educators, each selected through a rigorous screening
               process to ensure high-quality, student-focused learning experiences.
             </p>
             <motion.button
@@ -97,15 +98,15 @@ const TutorsSection = () => {
           </div>
 
           <div className="carouselContainer">
-            <div 
+            <div
               ref={carouselRef}
               className="carousel"
-              style={{ 
-                transform: `translateX(-${currentIndex * 100}%)` 
+              style={{
+                transform: `translateX(-${currentIndex * 100}%)`
               }}
             >
               {tutors.map((tutor) => (
-                <motion.div 
+                <motion.div
                   key={tutor.id}
                   whileHover={{ y: -5 }}
                   className="tutorCard"
@@ -124,8 +125,8 @@ const TutorsSection = () => {
                     <p className="subject">{tutor.subject}</p>
                     <div className="rating">
                       {[...Array(5)].map((_, i) => (
-                        <span 
-                          key={i} 
+                        <span
+                          key={i}
                           className={i < Math.floor(tutor.rating) ? "starFilled" : "starEmpty"}
                         >
                           ★
@@ -139,14 +140,14 @@ const TutorsSection = () => {
               ))}
             </div>
 
-            <button 
+            <button
               onClick={prevSlide}
               className="carouselButton prevButton"
               aria-label="Previous tutor"
             >
               &lt;
             </button>
-            <button 
+            <button
               onClick={nextSlide}
               className="carouselButton nextButton"
               aria-label="Next tutor"

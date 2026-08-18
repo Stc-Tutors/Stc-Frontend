@@ -1,35 +1,47 @@
 "use client";
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import './Testimonials.css';
+import { GetTestimonialsAction } from '@/server/content';
+import { Testimonial } from '@/types/content';
 
-const testimonials = [
+// Shown until real testimonials load (or if none are configured yet) - the
+// site's original hardcoded copy, now just the fallback rather than the
+// only option.
+const DEFAULT_TESTIMONIALS: Testimonial[] = [
   {
-    id: 1,
+    id: "default-1",
     quote: "“After six months of tutoring, my grades jumped from D to B+ in Mathematics. The tutors here really know how to explain complex topics simply”",
     author: "Aminat Ayobo",
     program: "IJMB | 365",
-    image: "/image/testimonial4.jpg"
+    imageUrl: "/image/testimonial4.jpg"
   },
   {
-    id: 2,
+    id: "default-2",
     quote: "“The Project Management course changed my career path completely. Within three months, I secured a better position. Worth every penny.”",
     author: "John Adams",
     program: "JUPEB | 329",
-    image: "/image/testimonial2.jpg"
+    imageUrl: "/image/testimonial2.jpg"
   },
   {
-    id: 3,
+    id: "default-3",
     quote: "“The career counseling gave me clear direction and a solid plan for my future. Now I'm confidently pursuing my goals”",
     author: "Oji Clara",
     program: "IJMB | 365",
-    image: "/image/testimonial3.jpg"
+    imageUrl: "/image/testimonial3.jpg"
   }
 ];
 
 const Testimonials = () => {
+  const [testimonials, setTestimonials] = useState<Testimonial[]>(DEFAULT_TESTIMONIALS);
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    GetTestimonialsAction().then(([res]) => {
+      if (res?.data && res.data.length > 0) setTestimonials(res.data);
+    });
+  }, []);
 
   const nextTestimonial = () => {
     setCurrentIndex((prev) => (prev === testimonials.length - 1 ? 0 : prev + 1));
@@ -75,7 +87,7 @@ const Testimonials = () => {
               >
                 <div className="profileImage">
                   <Image
-                    src={testimonial.image}
+                    src={testimonial.imageUrl || "/image/testimonial4.jpg"}
                     alt={testimonial.author}
                     width={100}
                     height={100}
