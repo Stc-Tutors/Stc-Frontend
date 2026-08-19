@@ -4,13 +4,16 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import "./Navbar.css"
-import { ROUTES } from "@/config/routes";
+import { ROUTES, lmsDashboardPath } from "@/config/routes";
 import { useTenantBranding } from "@/contexts/tenant-branding-context";
+import { useUser } from "@/contexts/user-context";
+import { UserProfileDropdown } from "@/components/user-profile-dropdown";
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
   const { tenant } = useTenantBranding();
+  const { user } = useUser();
   const logoUrl = tenant?.branding?.logoUrl;
 
   const links = [
@@ -56,10 +59,13 @@ const Navbar = () => {
               </li>
             ))}
           </ul>
-          {/* <Link href={ROUTES.AUTH.REGISTER} className="navbarCta">Get Started</Link> */}
-          <Link href="/services" className="navbarCta">
-            Get Started
-          </Link>
+          {user ? (
+            <UserProfileDropdown />
+          ) : (
+            <Link href="/services" className="navbarCta">
+              Get Started
+            </Link>
+          )}
         </nav>
 
         {/* Mobile Menu Button */}
@@ -88,15 +94,34 @@ const Navbar = () => {
                   </Link>
                 </li>
               ))}
-              <li>
-                <Link
-                  href={ROUTES.AUTH.REGISTER}
-                  className="mobileCta"
-                  onClick={() => setMobileOpen(false)}
-                >
-                  Get Started
-                </Link>
-              </li>
+              {user ? (
+                <>
+                  <li>
+                    <Link
+                      href={lmsDashboardPath(user.role)}
+                      className="mobileLink"
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      Dashboard
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href={ROUTES.AUTH.LOGOUT} className="mobileCta" onClick={() => setMobileOpen(false)}>
+                      Log out
+                    </Link>
+                  </li>
+                </>
+              ) : (
+                <li>
+                  <Link
+                    href={ROUTES.AUTH.REGISTER}
+                    className="mobileCta"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    Get Started
+                  </Link>
+                </li>
+              )}
             </ul>
           </div>
         </div>

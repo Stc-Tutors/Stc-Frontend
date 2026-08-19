@@ -31,6 +31,7 @@ const publicPaths = [
   "/privacy-policy",
   "/services",
   "/program",
+  "/blog",
 ];
 
 async function getRoleFromToken(token: string): Promise<UserRole | null> {

@@ -3,8 +3,22 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import RegisterCTA from "@/components/register-cta";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { GetServicePageBySlugAction } from "@/server/content";
 import { ServiceContent } from "@/types/content";
+
+// Hero/closing CTA, swapped in when `content.ctaHref` is set - for
+// sales-motion services (e.g. B2B) where RegisterCTA's individual-student
+// enroll/register routing doesn't apply. Styled to match RegisterCTA so
+// swapping between the two is visually seamless.
+function LinkCTA({ href, label, className }: { href: string; label: string; className?: string }) {
+  return (
+    <Button asChild className={cn("bg-blue-600 text-white hover:bg-blue-700 h-auto px-6 py-3", className)}>
+      <a href={href}>{label}</a>
+    </Button>
+  );
+}
 
 // Converts any watch/youtu.be/embed-style YouTube URL into an embeddable
 // player URL. Returns null for anything it can't confidently parse, so the
@@ -58,6 +72,13 @@ function mergeWithDefaults(defaults: ServiceContent, fetched: ServiceContent): S
     testimonials: fetched.testimonials?.length ? fetched.testimonials : defaults.testimonials,
     ctaLabel: fetched.ctaLabel || defaults.ctaLabel,
     secondaryCtaLabel: fetched.secondaryCtaLabel || defaults.secondaryCtaLabel,
+    // Template-only fields the CMS record never carries (see ServiceContent)
+    // - always come from defaults, since `fetched` can't override them yet.
+    ctaHref: defaults.ctaHref,
+    pricing: defaults.pricing,
+    testimonialsHeading: defaults.testimonialsHeading,
+    closingHeading: defaults.closingHeading,
+    closingBody: defaults.closingBody,
   };
 }
 
@@ -108,7 +129,11 @@ export default function ServicePage({
         <h1 className="text-4xl font-bold mt-6">{content.heroHeading}</h1>
         {content.heroSubtitle && <p className="text-xl text-gray-600 mt-2">{content.heroSubtitle}</p>}
         <div className="mt-6">
-          <RegisterCTA serviceType={ctaServiceType} label={content.ctaLabel || "Register Now"} />
+          {content.ctaHref ? (
+            <LinkCTA href={content.ctaHref} label={content.ctaLabel || "Get in Touch"} />
+          ) : (
+            <RegisterCTA serviceType={ctaServiceType} label={content.ctaLabel || "Register Now"} />
+          )}
         </div>
       </section>
 
@@ -191,6 +216,29 @@ export default function ServicePage({
         </section>
       )}
 
+      {/* Pricing / plans */}
+      {content.pricing && content.pricing.length > 0 && (
+        <section className="mb-12">
+          <h2 className="text-2xl font-semibold mb-6 text-center">Pricing</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+            {content.pricing.map((plan, i) => (
+              <div key={i} className="border rounded-lg p-6 bg-white shadow-md text-center">
+                <h3 className="text-xl font-bold text-[#1c2574]">{plan.name}</h3>
+                <p className="text-2xl font-bold mt-2">{plan.price}</p>
+                {plan.billingNote && <p className="text-sm text-gray-500">{plan.billingNote}</p>}
+                {plan.features && plan.features.length > 0 && (
+                  <ul className="text-left list-disc list-inside mt-4 space-y-1 text-gray-700">
+                    {plan.features.map((f, j) => (
+                      <li key={j}>{f}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Who This Is For */}
       {content.whoFor && content.whoFor.length > 0 && (
         <section className="mb-12 max-w-3xl mx-auto">
@@ -220,7 +268,7 @@ export default function ServicePage({
       {/* Testimonials */}
       {content.testimonials.length > 0 && (
         <section className="mb-12">
-          <h2 className="text-2xl font-semibold mb-4">Testimonials</h2>
+          <h2 className="text-2xl font-semibold mb-4">{content.testimonialsHeading || "Testimonials"}</h2>
           <div className="space-y-6">
             {content.testimonials.map((t, i) => (
               <blockquote key={i} className="p-4 border-l-4 border-blue-500 bg-gray-50">
@@ -235,9 +283,9 @@ export default function ServicePage({
       {/* Closing CTA banner - visually distinct from the hero, different copy */}
       <section className="mb-12">
         <div className="max-w-2xl mx-auto text-center bg-[#1c2574] text-white rounded-xl p-8 shadow-lg">
-          <h2 className="text-2xl font-bold mb-3">Ready to Get Started?</h2>
+          <h2 className="text-2xl font-bold mb-3">{content.closingHeading || "Ready to Get Started?"}</h2>
           <p className="mb-6 text-gray-200">
-            Join STC Tutors today and take the next step with {content.heroHeading || "this program"}.
+            {content.closingBody || `Join STC Tutors today and take the next step with ${content.heroHeading || "this program"}.`}
           </p>
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
             <button
@@ -246,11 +294,19 @@ export default function ServicePage({
             >
               ← Back
             </button>
-            <RegisterCTA
-              serviceType={ctaServiceType}
-              label={content.secondaryCtaLabel || "Enroll Now"}
-              className="bg-white text-[#1c2574] hover:bg-gray-100"
-            />
+            {content.ctaHref ? (
+              <LinkCTA
+                href={content.ctaHref}
+                label={content.secondaryCtaLabel || "Get in Touch"}
+                className="bg-white text-[#1c2574] hover:bg-gray-100"
+              />
+            ) : (
+              <RegisterCTA
+                serviceType={ctaServiceType}
+                label={content.secondaryCtaLabel || "Enroll Now"}
+                className="bg-white text-[#1c2574] hover:bg-gray-100"
+              />
+            )}
           </div>
         </div>
       </section>

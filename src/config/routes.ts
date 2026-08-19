@@ -42,3 +42,21 @@ export function lmsEnrollmentBasePath(role?: UserRole | null): string {
   // Admins/super admins already have their own review area.
   return "/lms-home/admin/enrollments";
 }
+
+// Mirrors proxy.ts's ROLE_DASHBOARD map - the "Dashboard" link in the
+// account dropdown (public Navbar + DashboardHeader) needs the same
+// role -> path resolution the auth proxy already uses, so it never sends
+// someone to a dashboard proxy.ts would immediately bounce them out of.
+export function lmsDashboardPath(role?: UserRole | null): string {
+  switch (role) {
+    case UserRole.STUDENT:
+      return "/lms-home/student/dashboard";
+    case UserRole.TUTOR:
+      return "/lms-home/tutor/dashboard";
+    case UserRole.PARENT:
+      return "/lms-home/parent/dashboard";
+    default:
+      // HOD/STC_ADMIN/TUTOR_ADMIN/SUPER_ADMIN/ALMIGHTY_ADMIN all land here.
+      return "/lms-home/admin/dashboard";
+  }
+}

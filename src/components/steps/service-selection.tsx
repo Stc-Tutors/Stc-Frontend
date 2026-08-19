@@ -1,5 +1,6 @@
 "use client"
 import { useState, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
 import { useEnrollment } from "@/contexts/enrollment-context"
 import { Card, CardContent } from "@/components/ui/card"
 import {
@@ -47,6 +48,7 @@ const STAGE = "student-registration:service-selection" as const;
 
 export default function ServiceSelection({ onNext, errors }: StepProps) {
   const { enrollmentData, updateServiceDetails, updateSelectedService, updateCustomFieldResponse } = useEnrollment()
+  const searchParams = useSearchParams()
   const [services, setServices] = useState<IService[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -63,6 +65,22 @@ export default function ServiceSelection({ onNext, errors }: StepProps) {
       setIsLoading(false)
     })
   }, [])
+
+  // Pre-select the service a visitor arrived with (e.g. clicking "Start
+  // Academic Tutoring Now" on that service's marketing page carries
+  // ?service=academic-tutoring all the way here via /dashboard/enroll) - only
+  // once services have loaded and only if nothing's already selected, and
+  // only if that slug is actually a live, selectable option here (a
+  // "Planned"-status service's query param silently no-ops, same as if the
+  // visitor had picked nothing).
+  useEffect(() => {
+    if (selectedSlug || services.length === 0) return
+    const requested = searchParams.get("service")
+    if (!requested) return
+    const match = services.find((s) => s.slug === requested)
+    if (match) setSelectedSlug(match.slug)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [services])
 
   useEffect(() => {
     const handleValidation = () => {

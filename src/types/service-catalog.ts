@@ -125,7 +125,8 @@ export type CustomFormStage =
   | "student-registration:review"
   | "tutor-onboarding:personal-information"
   | "tutor-onboarding:professional-experience"
-  | "tutor-onboarding:final-evaluation";
+  | "tutor-onboarding:final-evaluation"
+  | "tenant-inquiry:demo-request";
 
 export interface ICustomFormField {
   id: string;
@@ -274,6 +275,7 @@ export const CUSTOM_FORM_STAGES: CustomFormStage[] = [
   "tutor-onboarding:personal-information",
   "tutor-onboarding:professional-experience",
   "tutor-onboarding:final-evaluation",
+  "tenant-inquiry:demo-request",
 ];
 
 export const CUSTOM_FORM_STAGE_LABELS: Record<CustomFormStage, string> = {
@@ -284,6 +286,7 @@ export const CUSTOM_FORM_STAGE_LABELS: Record<CustomFormStage, string> = {
   "tutor-onboarding:personal-information": "Tutor Onboarding — Personal Information",
   "tutor-onboarding:professional-experience": "Tutor Onboarding — Professional Experience",
   "tutor-onboarding:final-evaluation": "Tutor Onboarding — Final Evaluation",
+  "tenant-inquiry:demo-request": "Tenant Inquiry — Demo Request",
 };
 
 export interface CreateCustomFormFieldDto {

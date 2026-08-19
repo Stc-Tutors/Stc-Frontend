@@ -1,5 +1,7 @@
 "use client"
+import { useRouter } from "next/navigation"
 import { useUser } from "@/contexts/user-context"
+import { lmsDashboardPath } from "@/config/routes"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
@@ -10,9 +12,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { LogOut, ChevronDown } from "lucide-react"
+import { LayoutDashboard, LogOut, ChevronDown } from "lucide-react"
 
 export function UserProfileDropdown() {
+  const router = useRouter()
   const { user, logout, isLoading } = useUser()
 
   if (!user) return null
@@ -53,17 +56,12 @@ export function UserProfileDropdown() {
 
         <DropdownMenuSeparator />
 
-        {/* <DropdownMenuItem className="cursor-pointer">
-          <User className="w-4 h-4 mr-2" />
-          Profile Settings
+        <DropdownMenuItem className="cursor-pointer" onClick={() => router.push(lmsDashboardPath(user.role))}>
+          <LayoutDashboard className="w-4 h-4 mr-2" />
+          Dashboard
         </DropdownMenuItem>
 
-        <DropdownMenuItem className="cursor-pointer">
-          <Settings className="w-4 h-4 mr-2" />
-          Account Settings
-        </DropdownMenuItem>
-
-        <DropdownMenuSeparator /> */}
+        <DropdownMenuSeparator />
 
         <DropdownMenuItem
           className="cursor-pointer text-red-600 focus:text-red-600"

@@ -207,9 +207,37 @@ export interface ServicePage {
   secondaryCtaLabel?: string;
 }
 
+export interface ServicePricingPlan {
+  name: string;
+  price: string;
+  billingNote?: string;
+  features?: string[];
+}
+
 // Single content shape every /services/:slug page renders from. Same fields
-// as ServicePage minus id/slug, which the page/route supplies separately.
-export type ServiceContent = Omit<ServicePage, "id" | "slug">;
+// as ServicePage minus id/slug, which the page/route supplies separately,
+// plus a handful of template-only fields that aren't part of the
+// CMS-synced ServicePage record (not admin-editable yet) - these exist for
+// pages that deviate from the individual-student self-enroll model, like
+// b2b-white-label-lms.
+export type ServiceContent = Omit<ServicePage, "id" | "slug"> & {
+  // When set, both CTAs render as a plain link to this href (e.g. a mailto:
+  // link) instead of routing through RegisterCTA's individual-student
+  // enroll/register flow - for sales-motion services where "register"
+  // doesn't apply.
+  ctaHref?: string;
+  // Pricing/plans as their own section, rendered after Benefits. Omit
+  // entirely for services that don't show pricing publicly.
+  pricing?: ServicePricingPlan[];
+  // Overrides the Testimonials section heading (defaults to "Testimonials")
+  // - e.g. "Case Studies & Partners" for B2B-style pages.
+  testimonialsHeading?: string;
+  // Overrides the closing CTA banner's heading/body (defaults to "Ready to
+  // Get Started?" / "Join STC Tutors today...") for pages where that
+  // individual-student framing doesn't fit.
+  closingHeading?: string;
+  closingBody?: string;
+};
 
 export interface FeaturedTutor {
   id: string;

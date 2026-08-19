@@ -2,8 +2,9 @@
 import Link from "next/link";
 import Image from "next/image";
 import { FaFacebook, FaGlobe, FaInstagram, FaLinkedin, FaTiktok } from "react-icons/fa";
-import { ROUTES } from "@/config/routes";
+import { ROUTES, lmsDashboardPath } from "@/config/routes";
 import { usePageSection } from "@/hooks/use-page-section";
+import { useUser } from "@/contexts/user-context";
 import { FooterContent, PageSectionKey } from "@/types/content";
 
 const DEFAULT_FOOTER: FooterContent = {
@@ -32,6 +33,7 @@ const SOCIAL_ICON: Record<string, { Icon: typeof FaGlobe; bg: string; hoverBg: s
 
 export default function Footer() {
   const content = usePageSection(PageSectionKey.FOOTER, DEFAULT_FOOTER);
+  const { user } = useUser();
 
   return (
     <footer className="bg-[#38b6ff] text-white p-8">
@@ -66,13 +68,28 @@ export default function Footer() {
           />
         </div>
 
-        {/* Login & Signup Buttons */}
+        {/* Account links */}
         <div className="flex space-x-4">
-          <Link href={ROUTES.AUTH.REGISTER}>
-            <span className="bg-white text-[#38b6ff] px-4 py-2 rounded-md hover:bg-blue-100 transition">
-              Get Started
-            </span>
-          </Link>
+          {user ? (
+            <>
+              <Link href={lmsDashboardPath(user.role)}>
+                <span className="bg-white text-[#38b6ff] px-4 py-2 rounded-md hover:bg-blue-100 transition">
+                  Dashboard
+                </span>
+              </Link>
+              <Link href={ROUTES.AUTH.LOGOUT}>
+                <span className="border border-white px-4 py-2 rounded-md hover:bg-white/10 transition">
+                  Log out
+                </span>
+              </Link>
+            </>
+          ) : (
+            <Link href={ROUTES.AUTH.REGISTER}>
+              <span className="bg-white text-[#38b6ff] px-4 py-2 rounded-md hover:bg-blue-100 transition">
+                Get Started
+              </span>
+            </Link>
+          )}
         </div>
       </div>
 

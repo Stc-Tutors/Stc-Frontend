@@ -1,7 +1,7 @@
 "use server";
 
 import fetchAPI, { type ApiResponse } from "@/lib/fetch";
-import { Conversation, Message } from "@/types/message";
+import { Conversation, ConversationParticipant, Message } from "@/types/message";
 
 export async function GetConversationsAction(): Promise<[ApiResponse<Conversation[]> | null, string | null]> {
   const [res, error] = await fetchAPI({
@@ -34,6 +34,36 @@ export async function StartConversationAction(
 export async function StartSupportConversationAction(): Promise<[ApiResponse<Conversation> | null, string | null]> {
   const [res, error] = await fetchAPI({
     url: "/conversations/support",
+    request: { method: "POST", headers: { "Content-Type": "application/json" } },
+  });
+
+  const resData = res ? ((await res.json()) as ApiResponse<Conversation>) : null;
+  return [resData, error];
+}
+
+// The resolved "who can I message" contact list for the logged-in user -
+// for student/parent/tutor this is the admins actually covering them (which
+// naturally includes more than one when e.g. both a TUTOR_ADMIN and an
+// STC_ADMIN are assigned) plus anyone a super admin has explicitly granted
+// direct tutor<->parent/student access to; for admin roles it's the
+// tutors/students/parents within their existing management scope.
+export async function GetMyContactsAction(): Promise<[ApiResponse<ConversationParticipant[]> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: "/conversations/my-contacts",
+    request: { method: "GET", headers: { "Content-Type": "application/json" } },
+  });
+
+  const resData = res ? ((await res.json()) as ApiResponse<ConversationParticipant[]>) : null;
+  return [resData, error];
+}
+
+// Starts (or reuses) a 1:1 conversation with one specific contact - gated
+// server-side to exactly the list GetMyContactsAction would return.
+export async function StartConversationWithAction(
+  userId: string
+): Promise<[ApiResponse<Conversation> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: `/conversations/start-with/${userId}`,
     request: { method: "POST", headers: { "Content-Type": "application/json" } },
   });
 
