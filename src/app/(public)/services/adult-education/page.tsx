@@ -1,8 +1,9 @@
 "use client";
 
-import ServicePageBody, { ServicePageBodyContent } from "@/components/service-page-body";
+import ServicePage from "@/components/service-page";
+import { ServiceContent } from "@/types/content";
 
-const DEFAULTS: ServicePageBodyContent = {
+const DEFAULTS: ServiceContent = {
   heroImageUrl: "/image/adult education.jpg",
   heroHeading: "Adult Education",
   heroSubtitle: "Learning Has No Age Limit",
@@ -16,5 +17,5 @@ const DEFAULTS: ServicePageBodyContent = {
 };
 
 export default function AdultEducation() {
-  return <ServicePageBody slug="adult-education" defaults={DEFAULTS} />;
+  return <ServicePage slug="adult-education" defaults={DEFAULTS} />;
 }

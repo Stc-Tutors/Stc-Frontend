@@ -159,12 +159,17 @@ export interface TeamMember {
 export interface ServiceFeature {
   icon?: string;
   title: string;
-  description: string;
+  description?: string;
 }
 
 export interface ServiceBenefit {
   title: string;
   description: string;
+}
+
+export interface ServiceCourse {
+  name: string;
+  items?: string[];
 }
 
 export interface ServiceHowItWorksStep {
@@ -184,12 +189,27 @@ export interface ServicePage {
   heroHeading?: string;
   heroSubtitle?: string;
   overview?: string;
+  // YouTube URL (any watch/youtu.be/embed form). Empty/null hides the whole
+  // video section - never render a broken or empty player.
+  videoUrl?: string | null;
   keyFeatures: ServiceFeature[];
+  // Course/bundle listing - only for services sold as discrete courses or
+  // bundles (e.g. Digital Skills). Omit entirely for services without one.
+  courses?: ServiceCourse[];
   benefits: ServiceBenefit[];
+  // "Who this is for" bullet list. Optional - thinner services skip it.
+  whoFor?: string[];
   howItWorks: ServiceHowItWorksStep[];
   testimonials: ServiceTestimonial[];
   ctaLabel?: string;
+  // Copy for the closing CTA banner, distinct from the hero CTA (ctaLabel).
+  // Falls back to a generic closing line when unset.
+  secondaryCtaLabel?: string;
 }
+
+// Single content shape every /services/:slug page renders from. Same fields
+// as ServicePage minus id/slug, which the page/route supplies separately.
+export type ServiceContent = Omit<ServicePage, "id" | "slug">;
 
 export interface FeaturedTutor {
   id: string;

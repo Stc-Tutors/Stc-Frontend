@@ -1,18 +1,25 @@
 "use client";
 
-import ServicePageBody, { ServicePageBodyContent } from "@/components/service-page-body";
+import ServicePage from "@/components/service-page";
+import { ServiceContent } from "@/types/content";
 
-const DEFAULTS: ServicePageBodyContent = {
+const DEFAULTS: ServiceContent = {
   heroImageUrl: "/image/Exam2.jpg",
   heroHeading: "Exam Preparation",
   heroSubtitle: "Focused Training to Ace Your Exams",
   overview:
     "Our Exam Preparation service offers specialized coaching for major exams—WAEC, JAMB, NECO, GCSE, SAT, and ACT. We use past papers, timed drills, and expert strategies to build confidence and improve scores.\n\nWith targeted practice and personalized feedback, students consistently achieve top grades and secure admissions.",
+  videoUrl: null,
   keyFeatures: [
-    { icon: "📝", title: "Past Paper Drills", description: "" },
-    { icon: "⏱️", title: "Timed Practice", description: "" },
-    { icon: "📊", title: "Performance Analytics", description: "" },
-    { icon: "🎯", title: "Strategy Workshops", description: "" },
+    { icon: "📝", title: "Past Paper Drills" },
+    { icon: "⏱️", title: "Timed Practice" },
+    { icon: "📊", title: "Performance Analytics" },
+    { icon: "🎯", title: "Strategy Workshops" },
+  ],
+  whoFor: [
+    "Students preparing for WAEC, JAMB, NECO, GCSE, SAT, or ACT",
+    "Learners who want structured, timed practice under real exam conditions",
+    "Anyone looking to build confidence and strategy before test day",
   ],
   benefits: [
     { title: "Improved Confidence & Engagement", description: "Our interactive whiteboard keeps students engaged and motivated to learn." },
@@ -33,5 +40,5 @@ const DEFAULTS: ServicePageBodyContent = {
 };
 
 export default function ExamPreparation() {
-  return <ServicePageBody slug="exam-preparation" defaults={DEFAULTS} />;
+  return <ServicePage slug="exam-preparation" defaults={DEFAULTS} />;
 }

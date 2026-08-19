@@ -1,18 +1,25 @@
 "use client";
 
-import ServicePageBody, { ServicePageBodyContent } from "@/components/service-page-body";
+import ServicePage from "@/components/service-page";
+import { ServiceContent } from "@/types/content";
 
-const DEFAULTS: ServicePageBodyContent = {
+const DEFAULTS: ServiceContent = {
   heroImageUrl: "/image/academic2.jpg",
   heroHeading: "Academic Tutoring",
   heroSubtitle: "Personalized Support to Unlock Every Student's Potential",
   overview:
     "STC Tutors' Academic Tutoring provides personalized, one-on-one support in core subjects—Mathematics, English, Sciences, and Social Studies. Our expert tutors tailor each lesson to your curriculum (WAEC, GCSE, SAT, etc.), ensuring you master every concept.\n\nResearch shows personalized tutoring can boost grades by up to 20%, while building critical thinking and study skills that last a lifetime.",
+  videoUrl: null,
   keyFeatures: [
-    { icon: "🎯", title: "Customized Lesson Plans", description: "" },
-    { icon: "⏰", title: "Flexible Scheduling", description: "" },
-    { icon: "📈", title: "Progress Tracking", description: "" },
-    { icon: "🌐", title: "Virtual Classroom", description: "" },
+    { icon: "🎯", title: "Customized Lesson Plans" },
+    { icon: "⏰", title: "Flexible Scheduling" },
+    { icon: "📈", title: "Progress Tracking" },
+    { icon: "🌐", title: "Virtual Classroom" },
+  ],
+  whoFor: [
+    "Students who want one-on-one support in Maths, English, Sciences, or Social Studies",
+    "Learners following the WAEC, GCSE, or SAT curriculum",
+    "Adult learners who need flexible, virtual sessions around a busy schedule",
   ],
   benefits: [
     { title: "Improved Confidence & Engagement", description: "Our interactive whiteboard keeps students engaged and motivated to learn." },
@@ -33,5 +40,5 @@ const DEFAULTS: ServicePageBodyContent = {
 };
 
 export default function AcademicTutoring() {
-  return <ServicePageBody slug="academic-tutoring" defaults={DEFAULTS} />;
+  return <ServicePage slug="academic-tutoring" defaults={DEFAULTS} />;
 }

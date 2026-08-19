@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { notFound, useParams, useRouter } from "next/navigation";
-import ServicePageBody, { ServicePageBodyContent } from "@/components/service-page-body";
+import ServicePage from "@/components/service-page";
 import { GetServiceBySlugAction } from "@/server/service-catalog";
 import { IService, ServiceCatalogStatus } from "@/types/service-catalog";
+import { ServiceContent } from "@/types/content";
 
 // Catch-all for any real Service Catalog slug that doesn't have its own
 // dedicated page folder under src/app/(public)/services/ - Next.js always
@@ -59,7 +60,7 @@ export default function ServiceCatchAllPage() {
     );
   }
 
-  const defaults: ServicePageBodyContent = {
+  const defaults: ServiceContent = {
     heroHeading: service.serviceName,
     overview: service.description,
     keyFeatures: [],
@@ -69,5 +70,5 @@ export default function ServiceCatchAllPage() {
     ctaLabel: `Start ${service.serviceName} Now`,
   };
 
-  return <ServicePageBody slug={slug} defaults={defaults} />;
+  return <ServicePage slug={slug} defaults={defaults} />;
 }

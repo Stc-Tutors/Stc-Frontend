@@ -1,8 +1,9 @@
 "use client";
 
-import ServicePageBody, { ServicePageBodyContent } from "@/components/service-page-body";
+import ServicePage from "@/components/service-page";
+import { ServiceContent } from "@/types/content";
 
-const DEFAULTS: ServicePageBodyContent = {
+const DEFAULTS: ServiceContent = {
   heroImageUrl: "/image/career.jpg",
   heroHeading: "Career Coaching",
   heroSubtitle: "Guidance At Your Convenience",
@@ -16,5 +17,5 @@ const DEFAULTS: ServicePageBodyContent = {
 };
 
 export default function CareerCoaching() {
-  return <ServicePageBody slug="career-coaching" defaults={DEFAULTS} />;
+  return <ServicePage slug="career-coaching" defaults={DEFAULTS} />;
 }

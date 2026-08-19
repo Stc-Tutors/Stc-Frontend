@@ -1,8 +1,9 @@
 "use client";
 
-import ServicePageBody, { ServicePageBodyContent } from "@/components/service-page-body";
+import ServicePage from "@/components/service-page";
+import { ServiceContent } from "@/types/content";
 
-const DEFAULTS: ServicePageBodyContent = {
+const DEFAULTS: ServiceContent = {
   heroImageUrl: "/image/culture.jpg",
   heroHeading: "Language and Culture",
   heroSubtitle: "Speak Any Language With Confidence",
@@ -16,5 +17,5 @@ const DEFAULTS: ServicePageBodyContent = {
 };
 
 export default function LanguageAndCulture() {
-  return <ServicePageBody slug="language-culture" defaults={DEFAULTS} />;
+  return <ServicePage slug="language-culture" defaults={DEFAULTS} />;
 }
