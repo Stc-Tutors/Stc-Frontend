@@ -153,3 +153,23 @@
     display: none !important;
   }
 }
+
+/* Shared page-loading animation (see components/shared/PageLoader.tsx) */
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  15% { transform: scale(1.12); }
+  30% { transform: scale(1); }
+  45% { transform: scale(1.12); }
+  70% { transform: scale(1); }
+}
+.animate-heartbeat {
+  animation: heartbeat 1.4s ease-in-out infinite;
+}
+
+@keyframes text-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+.animate-text-pulse {
+  animation: text-pulse 1.4s ease-in-out infinite;
+}

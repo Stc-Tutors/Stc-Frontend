@@ -1,14 +1,24 @@
-import { Loader2 } from 'lucide-react'
+"use client";
 
+import { usePathname } from "next/navigation";
+import BrandLogo from "@/components/shared/BrandLogo";
+import { humanizePath } from "@/lib/humanize-path";
+
+// Inline Suspense-fallback/loading-state variant of PageLoader - same
+// heartbeat logo animation, but sized to sit inside an existing layout
+// (e.g. under DashboardHeader) rather than assume it owns the full viewport.
 const Loader = () => {
-  return (
-    <div className="flex-1 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-24 h-24 text-blue-600 animate-spin mx-auto mb-2" />
-          <p>Loading...</p>
-        </div>
-      </div>
-  )
-}
+  const pathname = usePathname();
+  const pageName = humanizePath(pathname);
 
-export default Loader
+  return (
+    <div className="flex-1 flex flex-col items-center justify-center gap-4 min-h-[50vh]">
+      <div className="animate-heartbeat">
+        <BrandLogo width={120} height={40} className="object-contain" />
+      </div>
+      <p className="text-sm text-gray-500 animate-text-pulse">Loading {pageName}&hellip;</p>
+    </div>
+  );
+};
+
+export default Loader;
