@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Lock } from "lucide-react";
 import BrandLogo from "@/components/shared/BrandLogo";
+import LogoutButton from "@/components/shared/LogoutButton";
 import { GetMyRestrictionsAction } from "@/server/subscription";
 import { SubscriptionRestrictions } from "@/types/subscription";
 
@@ -56,12 +57,9 @@ export default function AccessRestrictionGate({
             {restrictions?.reason ? ` Reason: ${restrictions.reason}` : ""}
           </p>
           <p className="text-xs text-gray-400">Please contact support or your account admin to resolve this.</p>
-          <a
-            href="/api/auth/logout"
-            className="inline-block bg-gray-900 text-white text-sm font-medium px-4 py-2 rounded-md hover:bg-gray-800"
-          >
+          <LogoutButton className="inline-block bg-gray-900 text-white text-sm font-medium px-4 py-2 rounded-md hover:bg-gray-800">
             Logout
-          </a>
+          </LogoutButton>
         </div>
       </div>
     );

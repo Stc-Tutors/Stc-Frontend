@@ -41,6 +41,7 @@ import {
   ArrowLeftRight,
 } from "lucide-react";
 import BrandLogo from "@/components/shared/BrandLogo";
+import LogoutButton from "@/components/shared/LogoutButton";
 import { UserProfileDropdown } from "@/components/user-profile-dropdown";
 import { useUser } from "@/contexts/user-context";
 import { AdminPermission } from "@/types/admin-permission";
@@ -257,10 +258,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <Headphones className="w-5 h-5" />
             Support
           </Link>
-          <Link href="/api/auth/logout" className="flex items-center gap-3 text-gray-600 hover:text-[#38b6ff] hover:translate-x-3">
+          <LogoutButton className="flex items-center gap-3 text-gray-600 hover:text-[#38b6ff] hover:translate-x-3">
             <LogOut className="w-5 h-5" />
             Logout
-          </Link>
+          </LogoutButton>
         </div>
       </aside>
 

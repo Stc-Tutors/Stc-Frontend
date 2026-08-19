@@ -52,11 +52,17 @@ export async function SigninAction(data: {
   if (resData && resData.data) {
     // The backend issues a 24h JWT and doesn't return a separate expiry timestamp,
     // so the cookie's lifetime is set to match it directly.
+    // `secure: true` unconditionally rather than gating on NODE_ENV - the
+    // live site is always HTTPS, and browsers treat localhost as a secure
+    // context too, so this is safe for local dev as well. Removes any
+    // dependency on NODE_ENV actually resolving to "production" at runtime
+    // on the hosting platform.
     cookie.set("token", resData.data.token, {
       maxAge: 60 * 60 * 24,
       path: "/",
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: true,
+      sameSite: "lax",
     });
   }
 

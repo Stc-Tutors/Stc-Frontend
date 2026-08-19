@@ -48,10 +48,18 @@ export default async function fetchAPI<T>({
     // the very first request after a period of inactivity.
     const timeout = setTimeout(() => controller.abort(), 45000);
 
+    // Every call through this helper is either a mutation or reflects live,
+    // per-user authenticated state (this Authorization header, that tenant's
+    // Host) - Next.js's default fetch caching would otherwise cache a GET
+    // response in production and keep serving it to every subsequent
+    // request/user regardless of who's actually asking. `next dev` masks
+    // this (it recompiles/invalidates constantly), which is why it only
+    // ever showed up after a real production build.
     const res = await fetch(`${baseUrl}${url}`, {
        ...request,
        headers: requestHeaders,
         signal: controller.signal,
+        cache: "no-store",
        });
 
     clearTimeout(timeout);

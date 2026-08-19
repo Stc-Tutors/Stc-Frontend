@@ -27,6 +27,7 @@ import {
   AlertCircle
 } from "lucide-react";
 import BrandLogo from "@/components/shared/BrandLogo";
+import LogoutButton from "@/components/shared/LogoutButton";
 import { UserProfileDropdown } from "@/components/user-profile-dropdown";
 
 // export const metadata = {
@@ -144,12 +145,11 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
                                     </Link>
                                     
                                     {/* Logout */}
-                                    <Link
-                                    href="/api/auth/logout"
+                                    <LogoutButton
                                     className="flex items-center gap-3 text-gray-600 hover:text-[#38b6ff] hover:translate-x-3">
                                         <LogOut className="w-5 h-5" />
                                         Logout
-                                        </Link>
+                                        </LogoutButton>
                                         </div>
                     </aside>
 
