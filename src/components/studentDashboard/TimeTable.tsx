@@ -7,6 +7,7 @@ import { GetCourseLessonsAction } from "@/server/lesson";
 import { Course } from "@/types/course";
 import { Lesson } from "@/types/lesson";
 import { formatScheduleTime } from "@/lib/datetime";
+import { WEEKDAYS_ABBREVIATED } from "@/constants/weekdays";
 
 interface Row {
   lesson: Lesson;
@@ -29,7 +30,7 @@ function startOfWeek(date: Date): Date {
 }
 
 export default function Timetable() {
-  const days = ["Mon", "Tue", "Wed", "Thu", "Fri"];
+  const days = WEEKDAYS_ABBREVIATED.slice(0, 5);
   const [rowsByDay, setRowsByDay] = useState<Record<string, Row[]>>({});
   const [isLoading, setIsLoading] = useState(true);
 

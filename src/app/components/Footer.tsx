@@ -33,7 +33,7 @@ const SOCIAL_ICON: Record<string, { Icon: typeof FaGlobe; bg: string; hoverBg: s
 
 export default function Footer() {
   const content = usePageSection(PageSectionKey.FOOTER, DEFAULT_FOOTER);
-  const { user } = useUser();
+  const { user, logout } = useUser();
 
   return (
     <footer className="bg-[#38b6ff] text-white p-8">
@@ -77,11 +77,11 @@ export default function Footer() {
                   Dashboard
                 </span>
               </Link>
-              <Link href={ROUTES.AUTH.LOGOUT}>
+              <button type="button" onClick={logout}>
                 <span className="border border-white px-4 py-2 rounded-md hover:bg-white/10 transition">
                   Log out
                 </span>
-              </Link>
+              </button>
             </>
           ) : (
             <Link href={ROUTES.AUTH.REGISTER}>

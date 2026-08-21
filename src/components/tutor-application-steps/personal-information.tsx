@@ -13,11 +13,17 @@ import { GetTaxonomyOptionsAction } from "@/server/taxonomy-option";
 import { ITaxonomyOption, TaxonomyOptionKind } from "@/types/service-catalog";
 import { useCustomFormFields } from "@/hooks/use-custom-form-fields";
 import DynamicQuestionField from "@/components/forms/dynamic-question-field";
+import FileUploadField from "@/components/ui/custom/file-upload-field";
 import { useTutorApplication } from "@/contexts/tutor-application-context";
 import { StartTutorApplicationPayload } from "@/types/tutor-application";
+import { isValidPassword, PASSWORD_POLICY_MESSAGE } from "@/lib/password-policy";
+import { UploadedFile } from "@/lib/cloudinary-upload";
+import { HEADSHOT_UPLOAD_LIMITS } from "@/constants/upload-limits";
+
+type PersonalInfoPayload = Omit<StartTutorApplicationPayload, "servicesOffered">;
 
 interface StepProps {
-  onNext: (errors: Record<string, string>, data?: StartTutorApplicationPayload) => void;
+  onNext: (errors: Record<string, string>, data?: PersonalInfoPayload) => void;
   errors: Record<string, string>;
 }
 
@@ -35,7 +41,9 @@ export default function PersonalInformationStep({ onNext, errors }: StepProps) {
     phone: draft.step1.phone || "",
     countryOfResidence: draft.step1.countryOfResidence || "",
     preferredLanguages: draft.step1.preferredLanguages || ([] as string[]),
+    dateOfBirth: draft.step1.dateOfBirth || "",
   });
+  const [headshotFile, setHeadshotFile] = useState<UploadedFile | undefined>(draft.step1.headshotFile);
 
   // Task 1 - Country of residence / preferred languages come from the
   // admin-managed taxonomy-options catalog (GET /public/taxonomy-options),
@@ -86,12 +94,13 @@ export default function PersonalInformationStep({ onNext, errors }: StepProps) {
         stepErrors.email = "Please enter a valid email address";
       }
       if (!formData.phone.trim()) stepErrors.phone = "Phone number is required";
-      if (formData.password.length < 6) stepErrors.password = "Password must be at least 6 characters";
+      if (!isValidPassword(formData.password)) stepErrors.password = PASSWORD_POLICY_MESSAGE;
       if (formData.confirmPassword !== formData.password) stepErrors.confirmPassword = "Passwords do not match";
       if (!formData.countryOfResidence) stepErrors.countryOfResidence = "Please select your country of residence";
       if (formData.preferredLanguages.length === 0) {
         stepErrors.preferredLanguages = "Please select at least one preferred language";
       }
+      if (!formData.dateOfBirth) stepErrors.dateOfBirth = "Date of birth is required";
 
       for (const field of customFields) {
         if (field.required) {
@@ -103,7 +112,7 @@ export default function PersonalInformationStep({ onNext, errors }: StepProps) {
 
       if (Object.keys(stepErrors).length === 0) {
         const { confirmPassword, ...payload } = formData;
-        onNext(stepErrors, payload);
+        onNext(stepErrors, { ...payload, headshotFile });
       } else {
         onNext(stepErrors);
       }
@@ -111,7 +120,7 @@ export default function PersonalInformationStep({ onNext, errors }: StepProps) {
 
     window.addEventListener("validateStep", handleValidation);
     return () => window.removeEventListener("validateStep", handleValidation);
-  }, [formData, customFields, customFieldResponses, onNext]);
+  }, [formData, headshotFile, customFields, customFieldResponses, onNext]);
 
   return (
     <div className="space-y-6 w-full">
@@ -153,6 +162,18 @@ export default function PersonalInformationStep({ onNext, errors }: StepProps) {
               className={errors.email ? "border-red-500" : ""}
             />
             {errors.email && <p className="text-red-600 text-sm">{errors.email}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="dateOfBirth">Date of Birth *</Label>
+            <Input
+              id="dateOfBirth"
+              type="date"
+              value={formData.dateOfBirth}
+              onChange={(e) => handleChange("dateOfBirth", e.target.value)}
+              className={errors.dateOfBirth ? "border-red-500" : ""}
+            />
+            {errors.dateOfBirth && <p className="text-red-600 text-sm">{errors.dateOfBirth}</p>}
           </div>
 
           <div className="space-y-2">
@@ -215,6 +236,20 @@ export default function PersonalInformationStep({ onNext, errors }: StepProps) {
               ))}
             </div>
             {errors.preferredLanguages && <p className="text-red-600 text-sm">{errors.preferredLanguages}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="headshotUpload">Recent Headshot Photo (optional)</Label>
+            <p className="text-xs text-gray-500">
+              You can skip this for now, but you&apos;ll need to add one before your profile can go live.
+            </p>
+            <FileUploadField
+              id="headshotUpload"
+              folder="tutor-applications/headshot"
+              limits={HEADSHOT_UPLOAD_LIMITS}
+              value={headshotFile}
+              onChange={setHeadshotFile}
+            />
           </div>
         </CardContent>
       </Card>

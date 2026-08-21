@@ -13,7 +13,7 @@ const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
   const { tenant } = useTenantBranding();
-  const { user } = useUser();
+  const { user, logout } = useUser();
   const logoUrl = tenant?.branding?.logoUrl;
 
   const links = [
@@ -106,9 +106,16 @@ const Navbar = () => {
                     </Link>
                   </li>
                   <li>
-                    <Link href={ROUTES.AUTH.LOGOUT} className="mobileCta" onClick={() => setMobileOpen(false)}>
+                    <button
+                      type="button"
+                      className="mobileCta"
+                      onClick={() => {
+                        setMobileOpen(false);
+                        logout();
+                      }}
+                    >
                       Log out
-                    </Link>
+                    </button>
                   </li>
                 </>
               ) : (

@@ -9,6 +9,7 @@ import { GetTutorRatingSummaryAction, GetTutorReviewsAction } from "@/server/ses
 import { User, UserRole } from "@/types/user";
 import { TutorProfile } from "@/types/tutor-profile";
 import { SessionFeedback, TutorRatingSummary } from "@/types/session-feedback";
+import { CLASS_FORMAT_LABELS } from "@/types/tutor-application";
 
 function StarRating({ rating }: { rating: number }) {
   return (
@@ -124,16 +125,36 @@ export default function ViewProfile({ userId }: { userId: string }) {
               <p className="text-sm text-gray-900">{tutorProfile.yearsOfExperience} years</p>
             </div>
           )}
+          {tutorProfile.otherCertifications && tutorProfile.otherCertifications.length > 0 && (
+            <div>
+              <p className="text-sm font-medium text-gray-700 mb-1">Certifications</p>
+              <p className="text-sm text-gray-900">
+                {tutorProfile.otherCertifications.join(", ")}
+              </p>
+            </div>
+          )}
+          {tutorProfile.preferredLanguages && tutorProfile.preferredLanguages.length > 0 && (
+            <div>
+              <p className="text-sm font-medium text-gray-700 mb-1">Languages</p>
+              <p className="text-sm text-gray-900">{tutorProfile.preferredLanguages.join(", ")}</p>
+            </div>
+          )}
           {tutorProfile.availability.length > 0 && (
             <div>
               <p className="text-sm font-medium text-gray-700 mb-1">Availability</p>
               <ul className="text-sm text-gray-900 space-y-1">
                 {tutorProfile.availability.map((a, i) => (
                   <li key={i}>
-                    {a.subject}: {a.days.join(", ")} at {a.time}
+                    {a.dayOfWeek}: {a.startTime} - {a.endTime}
                   </li>
                 ))}
               </ul>
+            </div>
+          )}
+          {tutorProfile.preferredClassFormat && (
+            <div>
+              <p className="text-sm font-medium text-gray-700 mb-1">Preferred class format</p>
+              <p className="text-sm text-gray-900">{CLASS_FORMAT_LABELS[tutorProfile.preferredClassFormat]}</p>
             </div>
           )}
 

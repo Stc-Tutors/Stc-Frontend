@@ -11,14 +11,24 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { PasswordInput } from "../ui/custom/password-input";
 import { Loader2, Copy } from "lucide-react";
+import { childPasswordSchema } from "@/lib/password-policy";
 
-const formSchema = z.object({
-  firstName: z.string().min(1, { message: "First name is required" }),
-  lastName: z.string().min(1, { message: "Last name is required" }),
-  password: z.string().min(6, { message: "Password must be at least 6 characters long" }),
-  dateOfBirth: z.string().optional(),
-  gender: z.string().optional(),
-});
+const formSchema = z
+  .object({
+    firstName: z.string().min(1, { message: "First name is required" }),
+    lastName: z.string().min(1, { message: "Last name is required" }),
+    // Lighter, length-only policy - a young child may need to type this
+    // themselves, so no forced character mix. See password-policy.ts.
+    password: childPasswordSchema,
+    confirmPassword: z.string().min(1, { message: "Confirm password is required" }),
+    dateOfBirth: z.string().optional(),
+    gender: z.string().optional(),
+  })
+  .superRefine(({ confirmPassword, password }, ctx) => {
+    if (confirmPassword !== password) {
+      ctx.addIssue({ code: "custom", message: "The passwords do not match", path: ["confirmPassword"] });
+    }
+  });
 
 export default function RegisterChildForm() {
   const [createdStudentId, setCreatedStudentId] = useState<string | null>(null);
@@ -29,13 +39,15 @@ export default function RegisterChildForm() {
       firstName: "",
       lastName: "",
       password: "",
+      confirmPassword: "",
       dateOfBirth: "",
       gender: "",
     },
   });
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
-    const [res, error] = await RegisterChildAction(data);
+    const { confirmPassword: _confirmPassword, ...payload } = data;
+    const [res, error] = await RegisterChildAction(payload);
 
     if (res?.data) {
       ToastSuccess(res.message);
@@ -129,6 +141,20 @@ export default function RegisterChildForm() {
               <FormLabel>Set a Password for Your Child</FormLabel>
               <FormControl>
                 <PasswordInput {...field} placeholder="Choose a password for your child to log in with" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="confirmPassword"
+          render={({ field }) => (
+            <FormItem className="relative">
+              <FormLabel>Confirm Password</FormLabel>
+              <FormControl>
+                <PasswordInput {...field} placeholder="Re-enter the password" />
               </FormControl>
               <FormMessage />
             </FormItem>

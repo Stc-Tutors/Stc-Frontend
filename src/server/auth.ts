@@ -49,7 +49,12 @@ export async function SigninAction(data: {
 
   const resData = res ? ((await res.json()) as ApiResponse<UserLogin>) : null;
 
-  if (resData && resData.data) {
+  // A still-PENDING_APPROVAL tutor (drafting or flagged for more info) logs
+  // in successfully but gets no normal session token at all - only a
+  // narrowly-scoped draftToken/statusToken (see AuthService.loginPendingTutor
+  // and UserLogin). Nothing to set as a session cookie in that case; the
+  // caller (login-form.tsx) handles those tokens itself.
+  if (resData?.data?.token) {
     // The backend issues a 24h JWT and doesn't return a separate expiry timestamp,
     // so the cookie's lifetime is set to match it directly.
     // `secure: true` unconditionally rather than gating on NODE_ENV - the

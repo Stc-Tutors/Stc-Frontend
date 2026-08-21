@@ -14,6 +14,7 @@ import { ROUTES } from "@/config/routes";
 import { ToastError, ToastSuccess } from "./ui/custom/toast";
 import EnrollmentReview from "./steps/review";
 import { GetServicesAction } from "@/server/service-catalog";
+import { GetLinkedStudentsAction } from "@/server/enrollment";
 import { EnrollmentStatus } from "@/types/student";
 import { VerifyPaymentAction } from "@/server/payment";
 
@@ -40,7 +41,7 @@ export default function EnrollmentFlow({ forcedUserType, dashboardPath, paymentH
   const searchParams = useSearchParams();
   const continueId = searchParams.get("continue");
 
-  const { currentStep, setCurrentStep, isLoading, saveEnrollment, loadEnrollment, enrollmentData, updateServiceDetails, updateSelectedService } =
+  const { currentStep, setCurrentStep, isLoading, saveEnrollment, loadEnrollment, enrollmentData, updateChildInfo, updateServiceDetails, updateSelectedService } =
     useEnrollment();
 
   const stepMap: Record<string, number> = {
@@ -64,6 +65,9 @@ export default function EnrollmentFlow({ forcedUserType, dashboardPath, paymentH
   // the service is already decided. Looks the slug up against the live
   // service catalog (GET /api/public/services) rather than the old
   // hardcoded SERVICE_TYPE_LABELS map, so newly added services work too.
+  // Skips the step-jump when prefillChildId is also present (Marketplace's
+  // "no courses, continue to full enrollment" link sets both) - that flow
+  // owns which step to land on, since it also has Child Info to pre-fill.
   useEffect(() => {
     const presetService = searchParams.get("service") as ServiceType | null;
     if (!presetService || enrollmentData.serviceDetails?.serviceType) return;
@@ -72,7 +76,7 @@ export default function EnrollmentFlow({ forcedUserType, dashboardPath, paymentH
       if (service) {
         updateServiceDetails({ serviceType: service.slug, learningFocus: service.serviceName });
         updateSelectedService(service);
-        setCurrentStep(2);
+        if (!searchParams.get("prefillChildId")) setCurrentStep(2);
       }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -92,6 +96,40 @@ export default function EnrollmentFlow({ forcedUserType, dashboardPath, paymentH
       loadEnrollment(continueId);
     }
   }, [continueId, loadEnrollment, isClient]);
+
+  // Deep link from Marketplace: a parent picked an already-enrolled child
+  // and a service that turned out to have no published courses, so instead
+  // of dead-ending there they land here to go through the full
+  // service/schedule flow for that child. Deliberately NOT `continue=` -
+  // that path (loadEnrollment above) sets enrollmentData.id, which makes
+  // saveEnrollment *finalize* the existing (already-enrolled) Student record
+  // instead of creating a new one, silently overwriting their current
+  // service with this new one. This only pre-fills Child Info from the
+  // existing record and always creates a fresh enrollment on submit, so the
+  // child ends up with two separate service enrollments, same as picking a
+  // course in Marketplace would have produced.
+  const prefillChildId = searchParams.get("prefillChildId");
+  useEffect(() => {
+    if (!prefillChildId || !isClient || enrollmentData.childInfo?.fullName) return;
+    GetLinkedStudentsAction().then(([res]) => {
+      const match = res?.data?.find((s) => s.id === prefillChildId);
+      if (!match) return;
+      updateChildInfo({
+        userType: "parent",
+        fullName: match.fullName,
+        gender: match.gender || "",
+        dateOfBirth: match.dateOfBirth ? new Date(match.dateOfBirth).toISOString().slice(0, 10) : "",
+        phone: match.phone || "",
+        countryOfResidence: match.countryOfResidence || "",
+        primaryLanguage: match.primaryLanguage || "",
+        parentName: match.parentName,
+        parentPhone: match.parentPhone,
+        parentEmail: match.parentEmail,
+      });
+      setCurrentStep(3);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prefillChildId, isClient]);
 
   const currentStepData = steps.find(step => step.id === currentStep);
   const CurrentStepComponent = currentStepData?.component;

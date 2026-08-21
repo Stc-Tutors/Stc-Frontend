@@ -14,16 +14,15 @@ export async function GetMyTutorProfileAction(): Promise<[ApiResponse<TutorProfi
   return [resData, error];
 }
 
-export async function UpdateMyTutorProfileAction(data: {
-  bio?: string;
-  teachingCombinations?: TeachingCombination[];
-  availability?: { subject: string; days: string[]; time: string; duration: number }[];
-  // IANA timezone the `availability` times above were entered in.
-  timezone?: string;
-  yearsOfExperience?: number;
-  qualifications?: string;
-  education?: { degree: string; institution?: string; year?: number }[];
-}): Promise<[ApiResponse<TutorProfile> | null, string | null]> {
+// Every editable field on the tutor's own profile - matches TutorProfile
+// minus the server-managed id/tutor/profileCompleted/createdAt/updatedAt.
+export type UpdateTutorProfileInput = Partial<
+  Omit<TutorProfile, "id" | "tutor" | "profileCompleted" | "createdAt" | "updatedAt">
+>;
+
+export async function UpdateMyTutorProfileAction(
+  data: UpdateTutorProfileInput
+): Promise<[ApiResponse<TutorProfile> | null, string | null]> {
   const [res, error] = await fetchAPI({
     url: "/tutor-profile/me",
     request: { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) },

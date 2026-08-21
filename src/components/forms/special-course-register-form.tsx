@@ -13,6 +13,7 @@ import { PasswordInput } from "../ui/custom/password-input";
 import { ToastError } from "../ui/custom/toast";
 import { RegisterForSpecialCourseAction } from "@/server/special-course";
 import { ROUTES } from "@/config/routes";
+import { passwordSchema } from "@/lib/password-policy";
 
 const formSchema = z
   .object({
@@ -20,8 +21,8 @@ const formSchema = z
     lastName: z.string().min(1, { message: "Last name is required" }),
     email: z.string().email({ message: "Invalid email address" }),
     phone: z.string().optional(),
-    password: z.string().min(6, { message: "Password must be at least 6 characters long" }),
-    confirmPassword: z.string().min(6, { message: "Confirm password is required" }),
+    password: passwordSchema,
+    confirmPassword: z.string().min(1, { message: "Confirm password is required" }),
   })
   .superRefine(({ confirmPassword, password }, ctx) => {
     if (confirmPassword !== password) {

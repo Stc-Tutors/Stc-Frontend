@@ -13,7 +13,8 @@ import { ISchedule, ScheduleReviewStatus, Student } from "@/types/student";
 import { User, UserRole } from "@/types/user";
 import { Course } from "@/types/course";
 
-const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+import { WEEKDAYS_ABBREVIATED } from "@/constants/weekdays";
+const DAYS = WEEKDAYS_ABBREVIATED;
 
 function ScheduleList({ schedule }: { schedule: ISchedule[] }) {
   return (

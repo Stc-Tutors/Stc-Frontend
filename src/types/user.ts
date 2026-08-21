@@ -38,9 +38,20 @@ export interface User {
   termsAccepted?: boolean;
 }
 
+// A tutor applicant who's still PENDING_APPROVAL (drafting or flagged for
+// more info) logs in successfully but gets no normal session `token` - see
+// AuthService.loginPendingTutor. `draftToken` resumes the wizard
+// (tutor-application-context.tsx), `statusToken` unlocks the status/support
+// page (tutor-application-status.tsx) - only one of the two is ever present,
+// matching whichever tutorApplicationStatus came back.
 export interface UserLogin {
-  token: string;
+  token?: string;
   user: User;
+  tutorApplicationStatus?: "DRAFT" | "NEEDS_MORE_INFO";
+  tutorApplicationId?: string;
+  tutorApplicationCurrentStep?: number;
+  draftToken?: string;
+  statusToken?: string;
 }
 
 export interface IUserLogin {

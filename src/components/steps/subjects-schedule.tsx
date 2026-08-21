@@ -44,7 +44,8 @@ interface StepProps {
   forcedUserType?: "parent" | "student";
 }
 
-const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+import { WEEKDAYS } from "@/constants/weekdays";
+const daysOfWeek: readonly string[] = WEEKDAYS;
 
 const timeOptions = [
   "8:00am", "9:00am", "10:00am", "11:00am", "12:00pm",
@@ -81,6 +82,7 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
     ageLevel: enrollmentData.serviceDetails?.ageLevel || "",
     selectedSubjects: enrollmentData.serviceDetails?.selectedSubjects || [],
     learningGoals: enrollmentData.serviceDetails?.learningGoals || "",
+    specialNeeds: enrollmentData.serviceDetails?.specialNeeds || "",
     tutorGender: enrollmentData.serviceDetails?.tutorGender || "",
     curriculum: enrollmentData.serviceDetails?.curriculum || "",
     country: enrollmentData.serviceDetails?.country || "",
@@ -521,6 +523,17 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
               value={serviceData.learningGoals}
               onChange={(e) => setServiceData((prev) => ({ ...prev, learningGoals: e.target.value }))}
               placeholder="Describe what you hope your child will achieve..."
+              rows={3}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="specialNeeds">Anything Your Tutor Should Know? (optional)</Label>
+            <Textarea
+              id="specialNeeds"
+              value={serviceData.specialNeeds}
+              onChange={(e) => setServiceData((prev) => ({ ...prev, specialNeeds: e.target.value }))}
+              placeholder="Learning differences, accommodations, or anything else that helps your tutor teach effectively..."
               rows={3}
             />
           </div>

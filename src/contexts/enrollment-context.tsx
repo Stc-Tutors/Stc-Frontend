@@ -82,6 +82,11 @@ export type ServiceDetails = {
   // ServicePricingRepository.findMatching taxonomyNodeId dimension).
   selectedSubjectNodeIds?: string[];
   learningGoals: string;
+  // General, service-agnostic note for the assigned tutor - accommodations,
+  // learning differences, anything they should know going in. Distinct from
+  // examPreparationDetails.specialLearningNeeds, which only ever exists for
+  // exam-preparation enrollments.
+  specialNeeds?: string;
   tutorGender: string;
   curriculum: string;
   // Country resolved from the curriculum drill-down - only meaningful for

@@ -24,6 +24,7 @@ import {
   ClipboardList,
   ClipboardCheck,
   Gift,
+  GraduationCap,
 } from "lucide-react";
 import BrandLogo from "@/components/shared/BrandLogo";
 import LogoutButton from "@/components/shared/LogoutButton";
@@ -38,6 +39,7 @@ import AccessRestrictionGate from "@/components/shared/AccessRestrictionGate";
 const sidebarLinks = [
   { label: "Dashboard", icon: Home, href: "/lms-home/student/dashboard" },
   { label: "Enrollment", icon: ClipboardList, href: "/lms-home/student/enrollment" },
+  { label: "Tutors", icon: GraduationCap, href: "/lms-home/student/tutors" },
   { label: "Schedule", icon: Calendar, href: "/lms-home/student/scheduling" },
   { label: "Classroom", icon: Users, href: "/lms-home/student/classroom" },
   { label: "Messages", icon: MessageSquare, href: "/lms-home/student/messages" },

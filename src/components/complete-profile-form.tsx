@@ -7,9 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CountrySelect } from "@/components/ui/country-select";
+import { SearchableCombobox } from "@/components/ui/searchable-combobox";
 import { useUser } from "@/contexts/user-context";
 import { ConfirmEnrollmentAction, GetEnrollmentAction, RejectEnrollmentAction } from "@/server/enrollment";
+import { GetTaxonomyOptionsAction } from "@/server/taxonomy-option";
+import { ITaxonomyOption, TaxonomyOptionKind } from "@/types/service-catalog";
 import { UserRole } from "@/types/user";
 
 export default function CompleteProfileForm({ studentId, dashboardPath }: { studentId: string; dashboardPath: string }) {
@@ -27,8 +29,17 @@ export default function CompleteProfileForm({ studentId, dashboardPath }: { stud
   const [parentName, setParentName] = useState("");
   const [parentPhone, setParentPhone] = useState("");
   const [parentEmail, setParentEmail] = useState("");
+  const [countries, setCountries] = useState<ITaxonomyOption[]>([]);
+  const [isLoadingCountries, setIsLoadingCountries] = useState(true);
 
   const isSelfEnrolling = user?.role === UserRole.STUDENT;
+
+  useEffect(() => {
+    GetTaxonomyOptionsAction(TaxonomyOptionKind.COUNTRY).then(([res]) => {
+      setCountries(res?.data ?? []);
+      setIsLoadingCountries(false);
+    });
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -139,7 +150,12 @@ export default function CompleteProfileForm({ studentId, dashboardPath }: { stud
 
             <div className="space-y-2">
               <Label htmlFor="countryOfResidence">Country of Residence *</Label>
-              <CountrySelect value={countryOfResidence} onChange={(name) => setCountryOfResidence(name)} />
+              <SearchableCombobox
+                options={countries.map((c) => ({ value: c.value, label: c.label }))}
+                value={countryOfResidence}
+                onChange={setCountryOfResidence}
+                placeholder={isLoadingCountries ? "Loading countries..." : "Select country"}
+              />
             </div>
 
             <div className="space-y-2">

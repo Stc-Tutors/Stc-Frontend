@@ -8,6 +8,7 @@ import { GetCourseLessonsAction } from "@/server/lesson";
 import { Course } from "@/types/course";
 import { Lesson } from "@/types/lesson";
 import { formatScheduleTime } from "@/lib/datetime";
+import { WEEKDAYS_SUNDAY_FIRST_ABBREVIATED } from "@/constants/weekdays";
 
 interface Row {
   lesson: Lesson;
@@ -15,7 +16,7 @@ interface Row {
 }
 
 export default function CalendarPreview() {
-  const days = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+  const days = WEEKDAYS_SUNDAY_FIRST_ABBREVIATED;
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);

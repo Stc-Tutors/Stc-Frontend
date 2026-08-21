@@ -6,11 +6,17 @@ import {
   ApproveTutorApplicationAction,
   GetTutorApplicationsAction,
   RejectTutorApplicationAction,
+  RequestMoreInfoAction,
 } from "@/server/tutor-application";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { TutorApplication, TutorApplicationApplicant, TutorApplicationStatus } from "@/types/tutor-application";
 import { useUser } from "@/contexts/user-context";
 import { AdminPermission } from "@/types/admin-permission";
+import { FLAGGABLE_FIELDS } from "@/lib/tutor-application-fields";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import FullApplicationDetails from "@/components/tutor-applications/full-application-details";
 
 export default function TutorApplicationsPage() {
   const router = useRouter();
@@ -21,6 +27,10 @@ export default function TutorApplicationsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
   const [rejectReasons, setRejectReasons] = useState<Record<string, string>>({});
+  const [moreInfoOpenFor, setMoreInfoOpenFor] = useState<string | null>(null);
+  const [moreInfoFields, setMoreInfoFields] = useState<Record<string, string[]>>({});
+  const [moreInfoNotes, setMoreInfoNotes] = useState<Record<string, string>>({});
+  const [expandedFor, setExpandedFor] = useState<string | null>(null);
 
   const load = async () => {
     setIsLoading(true);
@@ -43,6 +53,37 @@ export default function TutorApplicationsPage() {
   const handleReject = async (id: string) => {
     const [, error] = await RejectTutorApplicationAction(id, rejectReasons[id]);
     setMessage(error || "Application rejected");
+    load();
+  };
+
+  const toggleMoreInfoField = (id: string, fieldId: string) => {
+    setMoreInfoFields((prev) => {
+      const current = prev[id] ?? [];
+      return {
+        ...prev,
+        [id]: current.includes(fieldId) ? current.filter((f) => f !== fieldId) : [...current, fieldId],
+      };
+    });
+  };
+
+  const handleRequestMoreInfo = async (id: string) => {
+    const flaggedFields = moreInfoFields[id] ?? [];
+    const note = moreInfoNotes[id] ?? "";
+    if (flaggedFields.length === 0) {
+      setMessage("Select at least one field to flag");
+      return;
+    }
+    if (!note.trim()) {
+      setMessage("Add a note explaining what's needed");
+      return;
+    }
+    const [, error] = await RequestMoreInfoAction(id, { flaggedFields, note });
+    setMessage(error || "Applicant notified - they can log back in to update the flagged fields");
+    if (!error) {
+      setMoreInfoOpenFor(null);
+      setMoreInfoFields((prev) => ({ ...prev, [id]: [] }));
+      setMoreInfoNotes((prev) => ({ ...prev, [id]: "" }));
+    }
     load();
   };
 
@@ -140,6 +181,20 @@ export default function TutorApplicationsPage() {
                   )}
                 </div>
 
+                <div>
+                  <button
+                    onClick={() => setExpandedFor((prev) => (prev === app.id ? null : app.id))}
+                    className="text-xs text-blue-600 hover:underline"
+                  >
+                    {expandedFor === app.id ? "Hide full application" : "View full application"}
+                  </button>
+                  {expandedFor === app.id && (
+                    <div className="mt-2">
+                      <FullApplicationDetails app={app} />
+                    </div>
+                  )}
+                </div>
+
                 {app.status === TutorApplicationStatus.PENDING && canReview && (
                   <div className="flex gap-2 items-center pt-2">
                     <button
@@ -160,6 +215,50 @@ export default function TutorApplicationsPage() {
                     >
                       Reject
                     </button>
+                    <button
+                      onClick={() => setMoreInfoOpenFor((prev) => (prev === app.id ? null : app.id))}
+                      className="border border-orange-300 text-orange-700 rounded-md px-3 py-1.5 text-xs hover:bg-orange-50"
+                    >
+                      Request More Info
+                    </button>
+                  </div>
+                )}
+
+                {moreInfoOpenFor === app.id && (
+                  <div className="border border-orange-200 bg-orange-50 rounded-lg p-3 mt-2 space-y-3">
+                    <p className="text-xs font-medium text-orange-800">Which fields need fixing?</p>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-1.5 max-h-48 overflow-y-auto">
+                      {FLAGGABLE_FIELDS.map((field) => (
+                        <label key={field.id} className="flex items-center gap-1.5 text-xs">
+                          <Checkbox
+                            checked={(moreInfoFields[app.id] ?? []).includes(field.id)}
+                            onCheckedChange={() => toggleMoreInfoField(app.id, field.id)}
+                          />
+                          <span>
+                            {field.label} <span className="text-gray-400">({field.stepTitle})</span>
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                    <Textarea
+                      placeholder="Explain what the tutor needs to fix or add..."
+                      value={moreInfoNotes[app.id] ?? ""}
+                      onChange={(e) => setMoreInfoNotes((prev) => ({ ...prev, [app.id]: e.target.value }))}
+                      rows={2}
+                      className="text-xs bg-white"
+                    />
+                    <Button size="sm" onClick={() => handleRequestMoreInfo(app.id)}>
+                      Send to Applicant
+                    </Button>
+                  </div>
+                )}
+
+                {app.status === TutorApplicationStatus.NEEDS_MORE_INFO && (
+                  <div className="text-xs text-orange-700 space-y-1">
+                    {app.needsMoreInfoNote && <p>{app.needsMoreInfoNote}</p>}
+                    {app.flaggedFields && app.flaggedFields.length > 0 && (
+                      <p>Flagged: {app.flaggedFields.join(", ")}</p>
+                    )}
                   </div>
                 )}
 
@@ -168,7 +267,9 @@ export default function TutorApplicationsPage() {
                     className={`inline-block text-xs px-2 py-1 rounded-full font-medium ${
                       app.status === TutorApplicationStatus.APPROVED
                         ? "bg-green-100 text-green-700"
-                        : "bg-red-100 text-red-700"
+                        : app.status === TutorApplicationStatus.NEEDS_MORE_INFO
+                          ? "bg-orange-100 text-orange-700"
+                          : "bg-red-100 text-red-700"
                     }`}
                   >
                     {app.status}

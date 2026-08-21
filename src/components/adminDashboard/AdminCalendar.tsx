@@ -5,9 +5,10 @@ import { useEffect, useState } from "react";
 import { GetLessonsAdminAction } from "@/server/lesson";
 import { Lesson, LessonCourseRef } from "@/types/lesson";
 import { formatScheduleTime } from "@/lib/datetime";
+import { WEEKDAYS_SUNDAY_FIRST_ABBREVIATED } from "@/constants/weekdays";
 
 export default function AdminCalendar() {
-  const days = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+  const days = WEEKDAYS_SUNDAY_FIRST_ABBREVIATED;
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [lessons, setLessons] = useState<Lesson[]>([]);

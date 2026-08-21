@@ -5,11 +5,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTutorApplication } from "@/contexts/tutor-application-context";
-import { LearningStyle, TutorApplicationStep4Payload } from "@/types/tutor-application";
+import { AnalyticalOrCreative, LearningStyle, TutorApplicationStep7Payload } from "@/types/tutor-application";
 
 interface StepProps {
-  onNext: (errors: Record<string, string>, data?: TutorApplicationStep4Payload) => void;
+  onNext: (errors: Record<string, string>, data?: TutorApplicationStep7Payload) => void;
   errors: Record<string, string>;
 }
 
@@ -53,18 +54,21 @@ function RatingInput({
 export default function EvaluationStep({ onNext, errors }: StepProps) {
   const { draft } = useTutorApplication();
 
-  const [psychConfidenceRating, setPsychConfidenceRating] = useState(draft.step4.psychConfidenceRating || 0);
-  const [psychDisengagedResponse, setPsychDisengagedResponse] = useState(draft.step4.psychDisengagedResponse || "");
-  const [psychMotivation, setPsychMotivation] = useState(draft.step4.psychMotivation || "");
+  const [psychConfidenceRating, setPsychConfidenceRating] = useState(draft.step7.psychConfidenceRating || 0);
+  const [psychDisengagedResponse, setPsychDisengagedResponse] = useState(draft.step7.psychDisengagedResponse || "");
+  const [psychMotivation, setPsychMotivation] = useState(draft.step7.psychMotivation || "");
   const [psychParentDisagreementResponse, setPsychParentDisagreementResponse] = useState(
-    draft.step4.psychParentDisagreementResponse || ""
+    draft.step7.psychParentDisagreementResponse || ""
   );
-  const [personalityType, setPersonalityType] = useState<LearningStyle | "">(draft.step4.personalityType || "");
+  const [personalityType, setPersonalityType] = useState<LearningStyle | "">(draft.step7.personalityType || "");
   const [personalityAdaptabilityRating, setPersonalityAdaptabilityRating] = useState(
-    draft.step4.personalityAdaptabilityRating || 0
+    draft.step7.personalityAdaptabilityRating || 0
   );
-  const [personalityClassPrep, setPersonalityClassPrep] = useState(draft.step4.personalityClassPrep || "");
-  const [personalityAboveAndBeyond, setPersonalityAboveAndBeyond] = useState(draft.step4.personalityAboveAndBeyond || "");
+  const [personalityClassPrep, setPersonalityClassPrep] = useState(draft.step7.personalityClassPrep || "");
+  const [personalityAboveAndBeyond, setPersonalityAboveAndBeyond] = useState(draft.step7.personalityAboveAndBeyond || "");
+  const [analyticalOrCreative, setAnalyticalOrCreative] = useState<AnalyticalOrCreative | "">(
+    draft.step7.analyticalOrCreative || ""
+  );
 
   useEffect(() => {
     const handleValidation = () => {
@@ -78,6 +82,7 @@ export default function EvaluationStep({ onNext, errors }: StepProps) {
       if (!personalityAdaptabilityRating) stepErrors.personalityAdaptabilityRating = "Please rate your adaptability";
       if (!personalityClassPrep.trim()) stepErrors.personalityClassPrep = "This response is required";
       if (!personalityAboveAndBeyond.trim()) stepErrors.personalityAboveAndBeyond = "This response is required";
+      if (!analyticalOrCreative) stepErrors.analyticalOrCreative = "Please select an option";
 
       if (Object.keys(stepErrors).length === 0) {
         onNext(stepErrors, {
@@ -89,6 +94,7 @@ export default function EvaluationStep({ onNext, errors }: StepProps) {
           personalityAdaptabilityRating,
           personalityClassPrep,
           personalityAboveAndBeyond,
+          analyticalOrCreative: analyticalOrCreative as AnalyticalOrCreative,
         });
       } else {
         onNext(stepErrors);
@@ -106,6 +112,7 @@ export default function EvaluationStep({ onNext, errors }: StepProps) {
     personalityAdaptabilityRating,
     personalityClassPrep,
     personalityAboveAndBeyond,
+    analyticalOrCreative,
     onNext,
   ]);
 
@@ -227,6 +234,21 @@ export default function EvaluationStep({ onNext, errors }: StepProps) {
               className={errors.personalityAboveAndBeyond ? "border-red-500" : ""}
             />
             {errors.personalityAboveAndBeyond && <p className="text-red-600 text-sm">{errors.personalityAboveAndBeyond}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="analyticalOrCreative">Do you consider yourself more analytical or creative? *</Label>
+            <Select value={analyticalOrCreative} onValueChange={(v) => setAnalyticalOrCreative(v as AnalyticalOrCreative)}>
+              <SelectTrigger id="analyticalOrCreative" className={errors.analyticalOrCreative ? "border-red-500" : ""}>
+                <SelectValue placeholder="Select an option" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={AnalyticalOrCreative.ANALYTICAL}>Analytical</SelectItem>
+                <SelectItem value={AnalyticalOrCreative.CREATIVE}>Creative</SelectItem>
+                <SelectItem value={AnalyticalOrCreative.BOTH}>Both</SelectItem>
+              </SelectContent>
+            </Select>
+            {errors.analyticalOrCreative && <p className="text-red-600 text-sm">{errors.analyticalOrCreative}</p>}
           </div>
         </CardContent>
       </Card>

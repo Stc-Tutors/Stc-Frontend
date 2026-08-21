@@ -70,8 +70,14 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     setIsLoading(true)
     try {
-      router.push(ROUTES.AUTH.LOGOUT)
+      // ROUTES.AUTH.LOGOUT ("/api/auth/logout") is a POST-only route handler
+      // that clears the httpOnly session cookie server-side - it must be hit
+      // with an actual POST fetch, not a client-side navigation/router.push,
+      // which was a dead-page GET that never cleared the cookie (the user
+      // stayed logged in on refresh). See LogoutButton.tsx for the same pattern.
+      await fetch(ROUTES.AUTH.LOGOUT, { method: "POST" })
       setUser(null)
+      router.push(ROUTES.AUTH.LOGIN)
     } catch (error) {
       console.error("Logout failed:", error)
     } finally {

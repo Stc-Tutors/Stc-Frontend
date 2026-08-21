@@ -62,6 +62,7 @@ export interface IServiceDetails {
   ageLevel: string;
   learningFocus: string;
   learningGoals: string;
+  specialNeeds?: string;
   selectedSubjects: string[];
   // Same order/index as selectedSubjects - see stcbe's
   // IServiceDetails.selectedSubjectNodeIds.

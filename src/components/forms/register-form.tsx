@@ -17,17 +17,18 @@ import Link from "next/link";
 import { ROUTES } from "@/config/routes";
 import { UserRole } from "@/types/user";
 import { useRouter, useSearchParams } from "next/navigation";
+import { passwordSchema } from "@/lib/password-policy";
 
 
 const formSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
-  password: z.string().min(6, { message: "Password must be at least 6 characters long" }),
+  password: passwordSchema,
   firstName: z.string().min(1, { message: "First name is required" }),
   middleName: z.string().optional(),
   lastName: z.string().min(1, { message: "Surname/LastName is required" }),
   phone: z.string().min(10, { message: "Phone number must be at least 10 digits" }),
   role: z.enum([UserRole.PARENT, UserRole.STUDENT]),
-  confirmPassword: z.string().min(6, { message: "Confirm password is required" })
+  confirmPassword: z.string().min(1, { message: "Confirm password is required" })
 }).superRefine(({ confirmPassword, password }, ctx) => {
   if (confirmPassword !== password) {
     ctx.addIssue({

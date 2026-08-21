@@ -17,6 +17,7 @@ import { User, UserRole } from "@/types/user";
 import { ROLE_LABELS } from "@/lib/roles";
 import { useUser } from "@/contexts/user-context";
 import { AdminPermission } from "@/types/admin-permission";
+import { isValidPassword, PASSWORD_POLICY_MESSAGE } from "@/lib/password-policy";
 
 const CREATABLE_ROLES = [UserRole.STUDENT, UserRole.PARENT, UserRole.TUTOR];
 
@@ -35,6 +36,7 @@ export default function AdminUsersPage() {
   const [newLastName, setNewLastName] = useState("");
   const [newEmail, setNewEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [newConfirmPassword, setNewConfirmPassword] = useState("");
   const [newRole, setNewRole] = useState<UserRole>(UserRole.TUTOR);
 
   const load = async () => {
@@ -54,6 +56,14 @@ export default function AdminUsersPage() {
       setMessage("All fields are required");
       return;
     }
+    if (!isValidPassword(newPassword)) {
+      setMessage(PASSWORD_POLICY_MESSAGE);
+      return;
+    }
+    if (newPassword !== newConfirmPassword) {
+      setMessage("Passwords do not match");
+      return;
+    }
     const [, error] = await CreateUserAction({
       firstName: newFirstName,
       lastName: newLastName,
@@ -67,6 +77,7 @@ export default function AdminUsersPage() {
       setNewLastName("");
       setNewEmail("");
       setNewPassword("");
+      setNewConfirmPassword("");
       setShowCreate(false);
     }
     load();
@@ -95,6 +106,12 @@ export default function AdminUsersPage() {
               placeholder="Temporary password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
+            />
+            <Input
+              type="password"
+              placeholder="Confirm password"
+              value={newConfirmPassword}
+              onChange={(e) => setNewConfirmPassword(e.target.value)}
             />
             <select
               value={newRole}

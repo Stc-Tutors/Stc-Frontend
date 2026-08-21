@@ -75,6 +75,23 @@ export enum TaxonomyOptionKind {
   COUNTRY = "COUNTRY",
   LANGUAGE = "LANGUAGE",
   AGE_RANGE = "AGE_RANGE",
+  SPECIAL_COURSE_CATEGORY = "SPECIAL_COURSE_CATEGORY",
+  TECH_CATEGORY = "TECH_CATEGORY",
+  DIGITAL_SKILLS_BUNDLE = "DIGITAL_SKILLS_BUNDLE",
+  MUSIC_INSTRUMENT = "MUSIC_INSTRUMENT",
+  SOFT_SKILLS_TOPIC = "SOFT_SKILLS_TOPIC",
+  CAREER_COACHING_TOPIC = "CAREER_COACHING_TOPIC",
+  SELF_DEV_TOPIC = "SELF_DEV_TOPIC",
+  ADULT_ED_FOCUS_AREA = "ADULT_ED_FOCUS_AREA",
+  ACADEMIC_SUBJECT = "ACADEMIC_SUBJECT",
+  EXAM_BOARD = "EXAM_BOARD",
+  CURRICULUM_SYSTEM = "CURRICULUM_SYSTEM",
+  // Professional Experience (Step 2)/Technical Readiness (Step 5) fields -
+  // were fixed enums, moved to admin-editable taxonomy (v3.6).
+  EDUCATION_QUALIFICATION = "EDUCATION_QUALIFICATION",
+  TEACHING_CERTIFICATION = "TEACHING_CERTIFICATION",
+  TUTOR_DEVICE_TYPE = "TUTOR_DEVICE_TYPE",
+  TOOL_PROFICIENCY = "TOOL_PROFICIENCY",
 }
 
 export interface ITaxonomyOption {
@@ -206,6 +223,21 @@ export const TAXONOMY_OPTION_KIND_LABELS: Record<TaxonomyOptionKind, string> = {
   [TaxonomyOptionKind.COUNTRY]: "Country",
   [TaxonomyOptionKind.LANGUAGE]: "Language",
   [TaxonomyOptionKind.AGE_RANGE]: "Age Range",
+  [TaxonomyOptionKind.SPECIAL_COURSE_CATEGORY]: "Special Course Category",
+  [TaxonomyOptionKind.TECH_CATEGORY]: "Tech Skill Area",
+  [TaxonomyOptionKind.DIGITAL_SKILLS_BUNDLE]: "Digital Skills Bundle",
+  [TaxonomyOptionKind.MUSIC_INSTRUMENT]: "Music Instrument",
+  [TaxonomyOptionKind.SOFT_SKILLS_TOPIC]: "Soft Skills Topic",
+  [TaxonomyOptionKind.CAREER_COACHING_TOPIC]: "Career Coaching Topic",
+  [TaxonomyOptionKind.SELF_DEV_TOPIC]: "Self-Development Topic",
+  [TaxonomyOptionKind.ADULT_ED_FOCUS_AREA]: "Adult Education Focus Area",
+  [TaxonomyOptionKind.ACADEMIC_SUBJECT]: "Academic Subject",
+  [TaxonomyOptionKind.EXAM_BOARD]: "Exam Board",
+  [TaxonomyOptionKind.CURRICULUM_SYSTEM]: "Curriculum System",
+  [TaxonomyOptionKind.EDUCATION_QUALIFICATION]: "Education Qualification",
+  [TaxonomyOptionKind.TEACHING_CERTIFICATION]: "Teaching Certification",
+  [TaxonomyOptionKind.TUTOR_DEVICE_TYPE]: "Tutor Device Type",
+  [TaxonomyOptionKind.TOOL_PROFICIENCY]: "Tool Proficiency",
 };
 
 export interface CreateTaxonomyOptionDto {

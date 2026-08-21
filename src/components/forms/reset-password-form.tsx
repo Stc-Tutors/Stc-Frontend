@@ -13,10 +13,11 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { ToastError, ToastSuccess } from "../ui/custom/toast";
 import { Button } from "../ui/button";
 import { PasswordInput } from "../ui/custom/password-input";
+import { passwordSchema } from "@/lib/password-policy";
 
 const formSchema = z.object({
-  password: z.string().min(6, { message: "Password must be at least 6 characters long" }),
-  confirmPassword: z.string().min(6, { message: "Confirm password is required" }),
+  password: passwordSchema,
+  confirmPassword: z.string().min(1, { message: "Confirm password is required" }),
 }).superRefine(({ confirmPassword, password }, ctx) => {
   if (confirmPassword !== password) {
     ctx.addIssue({

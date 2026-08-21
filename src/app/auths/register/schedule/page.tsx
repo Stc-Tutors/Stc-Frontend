@@ -13,7 +13,8 @@ interface SubjectSchedule {
   duration: number;
 }
 
-const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+import { WEEKDAYS } from "@/constants/weekdays";
+const daysOfWeek: readonly string[] = WEEKDAYS;
 const durationOptions = [
   { value: 30, label: "30 minutes" },
   { value: 60, label: "1 hour" },

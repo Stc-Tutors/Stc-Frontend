@@ -25,6 +25,14 @@ const formSchema = z.object({
   password: z.string().min(6, { message: "Password must be at least 6 characters long" }),
 });
 
+// Same storage keys tutor-application-context.tsx and
+// tutor-application-status.tsx already read from - writing to them here
+// lets those pages resume exactly as if the tutor had never left the
+// browser, just now reachable via a real login instead of only surviving
+// in localStorage across a refresh.
+const DRAFT_STORAGE_KEY = "stc_tutor_application_draft";
+const STATUS_STORAGE_KEY = "stc_tutor_application_status";
+
 const ROLE_DASHBOARD: Record<UserRole, string> = {
   [UserRole.STUDENT]: "/lms-home/student/dashboard",
   [UserRole.TUTOR]: "/lms-home/tutor/dashboard",
@@ -61,6 +69,22 @@ export default function LoginForm() {
     );
 
     if (res?.data) {
+      const { tutorApplicationStatus, tutorApplicationId, draftToken, statusToken } = res.data;
+
+      if (tutorApplicationStatus === "DRAFT" && draftToken && tutorApplicationId) {
+        localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify({ applicationId: tutorApplicationId, draftToken }));
+        ToastSuccess("Welcome back - let's continue your application.");
+        router.push("/auth/apply-tutor");
+        return;
+      }
+
+      if (tutorApplicationStatus === "NEEDS_MORE_INFO" && statusToken && tutorApplicationId) {
+        localStorage.setItem(STATUS_STORAGE_KEY, JSON.stringify({ applicationId: tutorApplicationId, statusToken }));
+        ToastSuccess("Welcome back - our team needs a bit more from you.");
+        router.push("/auth/tutor-application-status");
+        return;
+      }
+
       ToastSuccess(res.message);
       const role = res.data.user.role;
       const canEnroll = role === UserRole.STUDENT || role === UserRole.PARENT;

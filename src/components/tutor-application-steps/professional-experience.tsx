@@ -6,13 +6,19 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import TeachingCombinationPicker from "@/components/teaching-combination-picker";
-import { TeachingCombination } from "@/types/curriculum";
+import { X } from "lucide-react";
 import { useCustomFormFields } from "@/hooks/use-custom-form-fields";
 import DynamicQuestionField from "@/components/forms/dynamic-question-field";
 import { useTutorApplication } from "@/contexts/tutor-application-context";
-import { TutorApplicationStep2Payload, TutorAvailabilitySlot } from "@/types/tutor-application";
+import { GetTaxonomyOptionsAction } from "@/server/taxonomy-option";
+import { ITaxonomyOption, TaxonomyOptionKind } from "@/types/service-catalog";
+import {
+  TEACHING_CERTIFICATION_OTHER,
+  TeachingExperienceEntry,
+  TutorApplicationStep2Payload,
+} from "@/types/tutor-application";
 
 interface StepProps {
   onNext: (errors: Record<string, string>, data?: TutorApplicationStep2Payload) => void;
@@ -21,50 +27,59 @@ interface StepProps {
 
 const STAGE = "tutor-onboarding:professional-experience" as const;
 
-const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-const timeOptions = [
-  "8:00am", "9:00am", "10:00am", "11:00am", "12:00pm",
-  "1:00pm", "2:00pm", "3:00pm", "4:00pm", "5:00pm", "6:00pm", "7:00pm",
-];
-const durationOptions = [
-  { value: 30, label: "30 minutes" },
-  { value: 60, label: "1 hour" },
-  { value: 90, label: "1 hr 30 mins" },
-  { value: 120, label: "2 hours" },
-];
+const EMPTY_EXPERIENCE_ENTRY: TeachingExperienceEntry = {
+  institution: "",
+  role: "",
+  startDate: "",
+  endDate: "",
+  currentlyWorkHere: false,
+  description: "",
+};
 
 export default function ProfessionalExperienceStep({ onNext, errors }: StepProps) {
   const { draft, updateCustomFieldResponse } = useTutorApplication();
 
   const [qualifications, setQualifications] = useState(draft.step2.qualifications || "");
   const [yearsOfExperience, setYearsOfExperience] = useState(draft.step2.yearsOfExperience ?? 0);
-  const [teachingCombinations, setTeachingCombinations] = useState<TeachingCombination[]>(
-    draft.step2.teachingCombinations || []
+  const [yearsOnlineTutoringExperience, setYearsOnlineTutoringExperience] = useState(
+    draft.step2.yearsOnlineTutoringExperience ?? 0
+  );
+  const [highestQualification, setHighestQualification] = useState(draft.step2.highestQualification || "");
+  const [otherQualificationsHeld, setOtherQualificationsHeld] = useState<string[]>(
+    draft.step2.otherQualificationsHeld || []
+  );
+  const [otherCertifications, setOtherCertifications] = useState<string[]>(draft.step2.otherCertifications || []);
+  const [qualificationOptions, setQualificationOptions] = useState<ITaxonomyOption[]>([]);
+  const [certificationOptions, setCertificationOptions] = useState<ITaxonomyOption[]>([]);
+  const [otherCertificationDetail, setOtherCertificationDetail] = useState(
+    draft.step2.otherCertificationDetail || ""
+  );
+  const [teachingExperienceHistory, setTeachingExperienceHistory] = useState<TeachingExperienceEntry[]>(
+    draft.step2.teachingExperienceHistory || []
   );
   const [previousPlatforms, setPreviousPlatforms] = useState(draft.step2.previousPlatforms || "");
   const [documentUrls, setDocumentUrls] = useState(
     (draft.step2.documentUrls || []).join(", ")
   );
-  const [availabilitySchedule, setAvailabilitySchedule] = useState<TutorAvailabilitySlot[]>(
-    draft.step2.availabilitySchedule || []
-  );
-
-  // Keep one availability row per unique subject taught, mirroring how the
-  // student enrollment flow's Subjects & Schedule step auto-creates a
-  // schedule row per selected subject (see subjects-schedule.tsx).
-  useEffect(() => {
-    const subjects = Array.from(new Set(teachingCombinations.flatMap((c) => c.subjectsTaught)));
-    setAvailabilitySchedule((prev) =>
-      subjects.map((subject) => prev.find((s) => s.subject === subject) || { subject, days: [], time: "8:00am", duration: 60 })
-    );
-  }, [teachingCombinations]);
-
-  const handleScheduleChange = (index: number, field: keyof TutorAvailabilitySlot, value: any) => {
-    setAvailabilitySchedule((prev) => prev.map((item, i) => (i === index ? { ...item, [field]: value } : item)));
-  };
 
   const { fields: customFields } = useCustomFormFields(STAGE);
   const customFieldResponses = draft.customFieldResponses;
+
+  useEffect(() => {
+    Promise.all([
+      GetTaxonomyOptionsAction(TaxonomyOptionKind.EDUCATION_QUALIFICATION),
+      GetTaxonomyOptionsAction(TaxonomyOptionKind.TEACHING_CERTIFICATION),
+    ]).then(([qualifications, certifications]) => {
+      setQualificationOptions(qualifications[0]?.data ?? []);
+      setCertificationOptions(certifications[0]?.data ?? []);
+    });
+  }, []);
+
+  const addExperienceEntry = () => setTeachingExperienceHistory((prev) => [...prev, { ...EMPTY_EXPERIENCE_ENTRY }]);
+  const removeExperienceEntry = (index: number) =>
+    setTeachingExperienceHistory((prev) => prev.filter((_, i) => i !== index));
+  const updateExperienceEntry = (index: number, patch: Partial<TeachingExperienceEntry>) =>
+    setTeachingExperienceHistory((prev) => prev.map((entry, i) => (i === index ? { ...entry, ...patch } : entry)));
 
   useEffect(() => {
     const handleValidation = () => {
@@ -72,12 +87,22 @@ export default function ProfessionalExperienceStep({ onNext, errors }: StepProps
 
       if (!qualifications.trim()) stepErrors.qualifications = "Please describe your qualifications";
       if (yearsOfExperience < 0) stepErrors.yearsOfExperience = "Enter a valid number of years";
-      if (teachingCombinations.length === 0) {
-        stepErrors.teachingCombinations = "Please add at least one subject you teach";
+      if (yearsOnlineTutoringExperience < 0) stepErrors.yearsOnlineTutoringExperience = "Enter a valid number of years";
+      if (!highestQualification) stepErrors.highestQualification = "Please select your highest qualification";
+      if (otherCertifications.length === 0) stepErrors.otherCertifications = "Please select at least one option (or None)";
+      if (otherCertifications.includes(TEACHING_CERTIFICATION_OTHER) && !otherCertificationDetail.trim()) {
+        stepErrors.otherCertificationDetail = "Please specify your other certification";
       }
-      if (availabilitySchedule.length === 0 || !availabilitySchedule.some((s) => s.days.length > 0)) {
-        stepErrors.availabilitySchedule = "Please select at least one day you're available";
-      }
+
+      teachingExperienceHistory.forEach((entry, index) => {
+        if (!entry.institution.trim() || !entry.role.trim() || !entry.startDate) {
+          stepErrors[`teachingExperienceHistory_${index}`] = "Please fill in institution, role, and start date";
+        } else if (!entry.currentlyWorkHere && !entry.endDate) {
+          stepErrors[`teachingExperienceHistory_${index}`] = "Enter an end date, or check \"I currently work here\"";
+        } else if (entry.endDate && entry.endDate < entry.startDate) {
+          stepErrors[`teachingExperienceHistory_${index}`] = "End date cannot be before start date";
+        }
+      });
 
       for (const field of customFields) {
         if (field.required) {
@@ -91,9 +116,13 @@ export default function ProfessionalExperienceStep({ onNext, errors }: StepProps
         const payload: TutorApplicationStep2Payload = {
           qualifications,
           yearsOfExperience,
-          teachingCombinations,
+          yearsOnlineTutoringExperience,
+          highestQualification,
+          otherQualificationsHeld: otherQualificationsHeld.length > 0 ? otherQualificationsHeld : undefined,
+          otherCertifications,
+          otherCertificationDetail: otherCertificationDetail.trim() || undefined,
+          teachingExperienceHistory: teachingExperienceHistory.length > 0 ? teachingExperienceHistory : undefined,
           previousPlatforms: previousPlatforms || undefined,
-          availabilitySchedule,
           documentUrls: documentUrls
             .split(",")
             .map((u) => u.trim())
@@ -110,10 +139,14 @@ export default function ProfessionalExperienceStep({ onNext, errors }: StepProps
   }, [
     qualifications,
     yearsOfExperience,
-    teachingCombinations,
+    yearsOnlineTutoringExperience,
+    highestQualification,
+    otherQualificationsHeld,
+    otherCertifications,
+    otherCertificationDetail,
+    teachingExperienceHistory,
     previousPlatforms,
     documentUrls,
-    availabilitySchedule,
     customFields,
     customFieldResponses,
     onNext,
@@ -138,17 +171,109 @@ export default function ProfessionalExperienceStep({ onNext, errors }: StepProps
             {errors.qualifications && <p className="text-red-600 text-sm">{errors.qualifications}</p>}
           </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="yearsOfExperience">Years of Teaching Experience *</Label>
+              <Input
+                id="yearsOfExperience"
+                type="number"
+                min={0}
+                value={yearsOfExperience}
+                onChange={(e) => setYearsOfExperience(Number(e.target.value))}
+                className={errors.yearsOfExperience ? "border-red-500" : ""}
+              />
+              {errors.yearsOfExperience && <p className="text-red-600 text-sm">{errors.yearsOfExperience}</p>}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="yearsOnlineTutoringExperience">Years of Online Tutoring Experience *</Label>
+              <Input
+                id="yearsOnlineTutoringExperience"
+                type="number"
+                min={0}
+                value={yearsOnlineTutoringExperience}
+                onChange={(e) => setYearsOnlineTutoringExperience(Number(e.target.value))}
+                className={errors.yearsOnlineTutoringExperience ? "border-red-500" : ""}
+              />
+              {errors.yearsOnlineTutoringExperience && (
+                <p className="text-red-600 text-sm">{errors.yearsOnlineTutoringExperience}</p>
+              )}
+            </div>
+          </div>
+
           <div className="space-y-2">
-            <Label htmlFor="yearsOfExperience">Years of Experience *</Label>
-            <Input
-              id="yearsOfExperience"
-              type="number"
-              min={0}
-              value={yearsOfExperience}
-              onChange={(e) => setYearsOfExperience(Number(e.target.value))}
-              className={errors.yearsOfExperience ? "border-red-500" : ""}
-            />
-            {errors.yearsOfExperience && <p className="text-red-600 text-sm">{errors.yearsOfExperience}</p>}
+            <Label htmlFor="highestQualification">Highest Qualification *</Label>
+            <Select value={highestQualification} onValueChange={setHighestQualification}>
+              <SelectTrigger id="highestQualification" className={errors.highestQualification ? "border-red-500" : ""}>
+                <SelectValue placeholder="Select your highest qualification" />
+              </SelectTrigger>
+              <SelectContent>
+                {qualificationOptions.map((opt) => (
+                  <SelectItem key={opt.id} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.highestQualification && <p className="text-red-600 text-sm">{errors.highestQualification}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label>Other Qualifications Held (optional)</Label>
+            <p className="text-xs text-gray-500">
+              Check any additional qualifications you hold besides your highest one above.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              {qualificationOptions
+                .filter((opt) => opt.value !== highestQualification)
+                .map((opt) => (
+                  <label key={opt.id} className="flex items-center space-x-2 text-sm">
+                    <Checkbox
+                      checked={otherQualificationsHeld.includes(opt.value)}
+                      onCheckedChange={() =>
+                        setOtherQualificationsHeld((prev) =>
+                          prev.includes(opt.value) ? prev.filter((q) => q !== opt.value) : [...prev, opt.value]
+                        )
+                      }
+                    />
+                    <span>{opt.label}</span>
+                  </label>
+                ))}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Other Certifications *</Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              {certificationOptions.map((opt) => (
+                <label key={opt.id} className="flex items-center space-x-2 text-sm">
+                  <Checkbox
+                    checked={otherCertifications.includes(opt.value)}
+                    onCheckedChange={() =>
+                      setOtherCertifications((prev) =>
+                        prev.includes(opt.value) ? prev.filter((c) => c !== opt.value) : [...prev, opt.value]
+                      )
+                    }
+                  />
+                  <span>{opt.label}</span>
+                </label>
+              ))}
+            </div>
+            {errors.otherCertifications && <p className="text-red-600 text-sm">{errors.otherCertifications}</p>}
+            {otherCertifications.includes(TEACHING_CERTIFICATION_OTHER) && (
+              <div className="space-y-2 pt-2">
+                <Label htmlFor="otherCertificationDetail">Please specify *</Label>
+                <Input
+                  id="otherCertificationDetail"
+                  value={otherCertificationDetail}
+                  onChange={(e) => setOtherCertificationDetail(e.target.value)}
+                  placeholder="Name of the certification"
+                  className={errors.otherCertificationDetail ? "border-red-500" : ""}
+                />
+                {errors.otherCertificationDetail && (
+                  <p className="text-red-600 text-sm">{errors.otherCertificationDetail}</p>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -175,86 +300,90 @@ export default function ProfessionalExperienceStep({ onNext, errors }: StepProps
 
       <Card>
         <CardHeader>
-          <CardTitle>What You Teach *</CardTitle>
+          <CardTitle>Teaching Experience History (optional)</CardTitle>
         </CardHeader>
-        <CardContent>
-          <TeachingCombinationPicker value={teachingCombinations} onChange={setTeachingCombinations} />
-          {errors.teachingCombinations && <p className="text-red-600 text-sm mt-2">{errors.teachingCombinations}</p>}
+        <CardContent className="space-y-4">
+          {teachingExperienceHistory.map((entry, index) => (
+            <Card key={index} className="p-4 space-y-3">
+              <div className="flex justify-between items-center">
+                <h4 className="font-semibold text-sm">Entry {index + 1}</h4>
+                <Button type="button" variant="ghost" size="sm" onClick={() => removeExperienceEntry(index)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm">Institution/Organization *</Label>
+                  <Input
+                    value={entry.institution}
+                    onChange={(e) => updateExperienceEntry(index, { institution: e.target.value })}
+                    placeholder="e.g. Greenwood High School"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm">Role *</Label>
+                  <Input
+                    value={entry.role}
+                    onChange={(e) => updateExperienceEntry(index, { role: e.target.value })}
+                    placeholder="e.g. Mathematics Teacher"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm">Start Date *</Label>
+                  <Input
+                    type="date"
+                    value={entry.startDate}
+                    onChange={(e) => updateExperienceEntry(index, { startDate: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm">End Date {!entry.currentlyWorkHere && "*"}</Label>
+                  <Input
+                    type="date"
+                    value={entry.endDate}
+                    disabled={entry.currentlyWorkHere}
+                    onChange={(e) => updateExperienceEntry(index, { endDate: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <label className="flex items-center space-x-2 text-sm">
+                <Checkbox
+                  checked={entry.currentlyWorkHere}
+                  onCheckedChange={() =>
+                    updateExperienceEntry(index, {
+                      currentlyWorkHere: !entry.currentlyWorkHere,
+                      endDate: !entry.currentlyWorkHere ? "" : entry.endDate,
+                    })
+                  }
+                />
+                <span>I currently work here</span>
+              </label>
+
+              <div className="space-y-2">
+                <Label className="text-sm">Description (optional)</Label>
+                <Textarea
+                  value={entry.description}
+                  onChange={(e) => updateExperienceEntry(index, { description: e.target.value })}
+                  placeholder="Brief summary of your responsibilities/achievements in this role..."
+                />
+              </div>
+
+              {errors[`teachingExperienceHistory_${index}`] && (
+                <p className="text-red-600 text-sm">{errors[`teachingExperienceHistory_${index}`]}</p>
+              )}
+            </Card>
+          ))}
+
+          <Button type="button" variant="outline" onClick={addExperienceEntry}>
+            Add another
+          </Button>
         </CardContent>
       </Card>
-
-      {availabilitySchedule.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Your Availability *</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {availabilitySchedule.map((item, index) => (
-              <Card key={item.subject} className="p-4">
-                <h4 className="font-semibold mb-3">{item.subject}</h4>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <Label className="text-sm">Days *</Label>
-                    <div className="grid grid-cols-2 gap-2 mt-1">
-                      {daysOfWeek.map((day) => (
-                        <div key={day} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`${index}-${day}`}
-                            checked={item.days.includes(day)}
-                            onCheckedChange={() => {
-                              const newDays = item.days.includes(day)
-                                ? item.days.filter((d) => d !== day)
-                                : [...item.days, day];
-                              handleScheduleChange(index, "days", newDays);
-                            }}
-                          />
-                          <Label htmlFor={`${index}-${day}`} className="text-xs">
-                            {day.slice(0, 3)}
-                          </Label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <Label className="text-sm">Time</Label>
-                    <Select value={item.time} onValueChange={(value) => handleScheduleChange(index, "time", value)}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {timeOptions.map((time) => (
-                          <SelectItem key={time} value={time}>
-                            {time}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label className="text-sm">Duration</Label>
-                    <Select
-                      value={item.duration.toString()}
-                      onValueChange={(value) => handleScheduleChange(index, "duration", Number(value))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {durationOptions.map((d) => (
-                          <SelectItem key={d.value} value={d.value.toString()}>
-                            {d.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </Card>
-            ))}
-            {errors.availabilitySchedule && <p className="text-red-600 text-sm">{errors.availabilitySchedule}</p>}
-          </CardContent>
-        </Card>
-      )}
 
       {customFields.length > 0 && (
         <Card>

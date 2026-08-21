@@ -9,11 +9,14 @@ import { Button } from "@/components/ui/button";
 import { PasswordInput } from "@/components/ui/custom/password-input";
 import { ToastError, ToastSuccess } from "@/components/ui/custom/toast";
 import { ChangePasswordAction } from "@/server/auth";
+import { passwordSchema } from "@/lib/password-policy";
 
 const formSchema = z
   .object({
+    // The user's existing password - deliberately not subject to the new
+    // policy since it may predate it.
     currentPassword: z.string().min(1, { message: "Enter your current password" }),
-    newPassword: z.string().min(6, { message: "New password must be at least 6 characters long" }),
+    newPassword: passwordSchema,
     confirmPassword: z.string().min(1, { message: "Confirm your new password" }),
   })
   .superRefine(({ newPassword, confirmPassword }, ctx) => {

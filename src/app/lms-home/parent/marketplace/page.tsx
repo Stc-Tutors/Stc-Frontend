@@ -223,7 +223,23 @@ export default function ParentMarketplacePage() {
           <CardContent className="space-y-3">
             {coursesLoading && <p className="text-sm text-gray-500">Loading courses...</p>}
             {!coursesLoading && courses.length === 0 && (
-              <p className="text-sm text-gray-500">No published courses for this service yet.</p>
+              <div className="text-sm text-gray-600 bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-2">
+                <p>
+                  This service isn&apos;t offered as individual courses - it goes through our full subject &amp;
+                  schedule enrollment instead.
+                </p>
+                <Button
+                  size="sm"
+                  onClick={() =>
+                    router.push(
+                      `/lms-home/parent/enrollment/new?prefillChildId=${selectedStudent?.id}&service=${selectedSlug}`
+                    )
+                  }
+                  disabled={!selectedStudent}
+                >
+                  Continue enrollment for {selectedStudent?.fullName ?? "this child"}
+                </Button>
+              </div>
             )}
             <div className="grid gap-3">
               {courses.map((course) => (

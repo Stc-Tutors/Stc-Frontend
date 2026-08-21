@@ -9,19 +9,14 @@ import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { X } from "lucide-react";
 import { useTutorApplication } from "@/contexts/tutor-application-context";
-import { InternetSpeedTier, TutorApplicationStep3Payload, TutorDeviceType } from "@/types/tutor-application";
+import { GetTaxonomyOptionsAction } from "@/server/taxonomy-option";
+import { ITaxonomyOption, TaxonomyOptionKind } from "@/types/service-catalog";
+import { InternetSpeedTier, TutorApplicationStep5Payload } from "@/types/tutor-application";
 
 interface StepProps {
-  onNext: (errors: Record<string, string>, data?: TutorApplicationStep3Payload) => void;
+  onNext: (errors: Record<string, string>, data?: TutorApplicationStep5Payload) => void;
   errors: Record<string, string>;
 }
-
-const DEVICE_LABELS: Record<TutorDeviceType, string> = {
-  [TutorDeviceType.PC]: "Desktop PC",
-  [TutorDeviceType.LAPTOP]: "Laptop",
-  [TutorDeviceType.TABLET]: "Tablet",
-  [TutorDeviceType.SMARTPHONE]: "Smartphone",
-};
 
 const SPEED_LABELS: Record<InternetSpeedTier, string> = {
   [InternetSpeedTier.BELOW_5MBPS]: "Below 5 Mbps",
@@ -32,15 +27,32 @@ const SPEED_LABELS: Record<InternetSpeedTier, string> = {
 export default function TechnicalReadinessStep({ onNext, errors }: StepProps) {
   const { draft } = useTutorApplication();
 
-  const [devices, setDevices] = useState<TutorDeviceType[]>(draft.step3.devices || []);
-  const [internetSpeed, setInternetSpeed] = useState<InternetSpeedTier | "">(draft.step3.internetSpeed || "");
-  const [toolProficiency, setToolProficiency] = useState<string[]>(draft.step3.toolProficiency || []);
+  const [devices, setDevices] = useState<string[]>(draft.step5.devices || []);
+  const [internetSpeed, setInternetSpeed] = useState<InternetSpeedTier | "">(draft.step5.internetSpeed || "");
+  const [toolProficiency, setToolProficiency] = useState<string[]>(draft.step5.toolProficiency || []);
   const [toolInput, setToolInput] = useState("");
-  const [hasQuietEnvironment, setHasQuietEnvironment] = useState(draft.step3.hasQuietEnvironment ?? false);
-  const [hasPeripherals, setHasPeripherals] = useState(draft.step3.hasPeripherals ?? false);
+  const [hasQuietEnvironment, setHasQuietEnvironment] = useState(draft.step5.hasQuietEnvironment ?? false);
+  const [hasPeripherals, setHasPeripherals] = useState(draft.step5.hasPeripherals ?? false);
+  const [deviceOptions, setDeviceOptions] = useState<ITaxonomyOption[]>([]);
+  const [toolSuggestions, setToolSuggestions] = useState<ITaxonomyOption[]>([]);
 
-  const toggleDevice = (device: TutorDeviceType) => {
+  useEffect(() => {
+    Promise.all([
+      GetTaxonomyOptionsAction(TaxonomyOptionKind.TUTOR_DEVICE_TYPE),
+      GetTaxonomyOptionsAction(TaxonomyOptionKind.TOOL_PROFICIENCY),
+    ]).then(([devices, tools]) => {
+      setDeviceOptions(devices[0]?.data ?? []);
+      setToolSuggestions(tools[0]?.data ?? []);
+    });
+  }, []);
+
+  const toggleDevice = (device: string) => {
     setDevices((prev) => (prev.includes(device) ? prev.filter((d) => d !== device) : [...prev, device]));
+  };
+
+  const addSuggestedTool = (tool: string) => {
+    if (toolProficiency.includes(tool)) return;
+    setToolProficiency((prev) => [...prev, tool]);
   };
 
   const addTool = () => {
@@ -92,10 +104,10 @@ export default function TechnicalReadinessStep({ onNext, errors }: StepProps) {
           <div className="space-y-2">
             <Label>Which devices will you teach from? *</Label>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {Object.values(TutorDeviceType).map((device) => (
-                <label key={device} className="flex items-center space-x-2 text-sm">
-                  <Checkbox checked={devices.includes(device)} onCheckedChange={() => toggleDevice(device)} />
-                  <span>{DEVICE_LABELS[device]}</span>
+              {deviceOptions.map((opt) => (
+                <label key={opt.id} className="flex items-center space-x-2 text-sm">
+                  <Checkbox checked={devices.includes(opt.value)} onCheckedChange={() => toggleDevice(opt.value)} />
+                  <span>{opt.label}</span>
                 </label>
               ))}
             </div>
@@ -141,6 +153,22 @@ export default function TechnicalReadinessStep({ onNext, errors }: StepProps) {
                 className={errors.toolProficiency ? "border-red-500" : ""}
               />
             </div>
+            {toolSuggestions.filter((opt) => !toolProficiency.includes(opt.value)).length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {toolSuggestions
+                  .filter((opt) => !toolProficiency.includes(opt.value))
+                  .map((opt) => (
+                    <Badge
+                      key={opt.id}
+                      variant="outline"
+                      className="cursor-pointer"
+                      onClick={() => addSuggestedTool(opt.value)}
+                    >
+                      + {opt.label}
+                    </Badge>
+                  ))}
+              </div>
+            )}
             {toolProficiency.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-2">
                 {toolProficiency.map((tool) => (

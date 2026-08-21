@@ -17,7 +17,8 @@ import { Course } from "@/types/course";
 import { Lesson, LessonStatus, RescheduleRequest } from "@/types/lesson";
 import { ScheduleReviewStatus, Student } from "@/types/student";
 import { formatScheduleDateTime } from "@/lib/datetime";
-import { isInsideRescheduleGate } from "@/lib/schedule-gate";
+import { isInsideRescheduleGate, isWithinTutorAvailability, formatAvailability, AvailabilityBlock } from "@/lib/schedule-gate";
+import { GetTutorProfileAction } from "@/server/tutor-profile";
 
 interface Row {
   lesson: Lesson;
@@ -32,6 +33,8 @@ export default function ParentSchedulePage() {
   const [rescheduleLessonId, setRescheduleLessonId] = useState<string | null>(null);
   const [newDate, setNewDate] = useState("");
   const [rescheduleReason, setRescheduleReason] = useState("");
+  const [tutorAvailability, setTutorAvailability] = useState<AvailabilityBlock[] | undefined>(undefined);
+  const [tutorTimezone, setTutorTimezone] = useState<string | undefined>(undefined);
   const [cancelLessonId, setCancelLessonId] = useState<string | null>(null);
   const [cancelReason, setCancelReason] = useState("");
   const [message, setMessage] = useState<string | null>(null);
@@ -88,13 +91,33 @@ export default function ParentSchedulePage() {
     loadConfirmations();
   }, []);
 
-  const handleRequestReschedule = async (lessonId: string, scheduledDate: string) => {
+  const openReschedule = async (lesson: Lesson, course: Course) => {
+    setCancelLessonId(null);
+    setRescheduleLessonId(rescheduleLessonId === lesson.id ? null : lesson.id);
+    setNewDate("");
+    setTutorAvailability(undefined);
+    setTutorTimezone(undefined);
+    const tutorId = typeof course.tutor === "string" ? course.tutor : course.tutor?.id;
+    if (tutorId) {
+      const [res] = await GetTutorProfileAction(tutorId);
+      setTutorAvailability(res?.data?.availability);
+      // Availability blocks are stored in the tutor's own local time - see
+      // stcbe's LessonService.isWithinAvailability, which this mirrors.
+      setTutorTimezone(res?.data?.timezone);
+    }
+  };
+
+  const handleRequestReschedule = async (lessonId: string, scheduledDate: string, durationMinutes: number) => {
     if (!newDate) {
       setMessage("Pick a new date and time first");
       return;
     }
     if (isInsideRescheduleGate(scheduledDate) && !rescheduleReason.trim()) {
       setMessage("A reason is required to reschedule inside 24 hours of the class");
+      return;
+    }
+    if (!isWithinTutorAvailability(tutorAvailability, newDate, durationMinutes, tutorTimezone)) {
+      setMessage(`That time is outside your tutor's available hours. Available: ${formatAvailability(tutorAvailability)}`);
       return;
     }
     const [res, error] = await RescheduleLessonAction(lessonId, new Date(newDate).toISOString(), rescheduleReason || undefined);
@@ -274,10 +297,7 @@ export default function ParentSchedulePage() {
                           <>
                             <button
                               className="text-gray-600 hover:underline"
-                              onClick={() => {
-                                setCancelLessonId(null);
-                                setRescheduleLessonId(rescheduleLessonId === lesson.id ? null : lesson.id);
-                              }}
+                              onClick={() => openReschedule(lesson, course)}
                             >
                               Reschedule
                             </button>
@@ -316,7 +336,7 @@ export default function ParentSchedulePage() {
                               className="border rounded-md px-2 py-1 text-sm flex-1 min-w-[12rem]"
                             />
                             <button
-                              onClick={() => handleRequestReschedule(lesson.id, lesson.scheduledDate)}
+                              onClick={() => handleRequestReschedule(lesson.id, lesson.scheduledDate, lesson.durationMinutes)}
                               className="bg-blue-600 text-white rounded-md px-3 py-1.5 text-xs hover:bg-blue-700"
                             >
                               Submit request
@@ -326,6 +346,9 @@ export default function ParentSchedulePage() {
                             The new time always needs admin confirmation with the tutor.
                             {isInsideRescheduleGate(lesson.scheduledDate) &&
                               " This class starts within 24 hours, so a reason is required and it will be flagged urgent."}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Tutor&apos;s available times: {formatAvailability(tutorAvailability)}
                           </p>
                         </td>
                       </tr>
