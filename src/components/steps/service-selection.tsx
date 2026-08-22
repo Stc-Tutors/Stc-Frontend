@@ -17,7 +17,7 @@ import {
   LucideIcon,
 } from "lucide-react"
 import { GetServicesAction } from "@/server/service-catalog"
-import { ArchitecturalPath, IService } from "@/types/service-catalog"
+import { IService } from "@/types/service-catalog"
 import { useCustomFormFields } from "@/hooks/use-custom-form-fields"
 import DynamicQuestionField from "@/components/forms/dynamic-question-field"
 
@@ -60,9 +60,7 @@ export default function ServiceSelection({ onNext, errors }: StepProps) {
 
   useEffect(() => {
     GetServicesAction().then(([res, err]) => {
-      // B2B White-Label LMS is a tenant-deployment service, not something a
-      // student/parent self-enrolls in - never selectable here.
-      setServices((res?.data ?? []).filter((s) => s.architecturalPath !== ArchitecturalPath.TENANT_DEPLOYMENT))
+      setServices(res?.data ?? [])
       setLoadError(err)
       setIsLoading(false)
     })
@@ -93,9 +91,6 @@ export default function ServiceSelection({ onNext, errors }: StepProps) {
       }
 
       const service = services.find((s) => s.slug === selectedSlug)
-      if (service?.architecturalPath === ArchitecturalPath.TENANT_DEPLOYMENT) {
-        stepErrors.service = "This service isn't available for self-enrollment yet - please contact us directly."
-      }
 
       for (const field of customFields) {
         if (field.required) {

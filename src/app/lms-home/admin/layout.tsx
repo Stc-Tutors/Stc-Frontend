@@ -45,6 +45,7 @@ import LogoutButton from "@/components/shared/LogoutButton";
 import { UserProfileDropdown } from "@/components/user-profile-dropdown";
 import { useUser } from "@/contexts/user-context";
 import { AdminPermission } from "@/types/admin-permission";
+import { HodPermission } from "@/types/hod";
 import { isSuperOrAlmighty } from "@/lib/roles";
 
 // permission: undefined means always visible (no matching AdminPermission
@@ -54,12 +55,18 @@ import { isSuperOrAlmighty } from "@/lib/roles";
 // TUTOR_ADMIN should never see even with every permission granted, since
 // permissions can be handed out per-admin while these are SUPER_ADMIN/
 // ALMIGHTY_ADMIN by definition (mirrors Stc-SuperAdmin's isSuperOrAlmighty gates).
+// hodPermission is additive alongside permission (see stcbe's HodService.assign
+// - HOD status never replaces an Admin's/Tutor's own role) - a link with both
+// set is visible if EITHER grant is present. hodOnly means "visible to anyone
+// holding any HOD scope at all, no specific permission required."
 const sidebarLinks: {
   label: string;
   icon: typeof Home;
   href: string;
   badge?: boolean;
   permission?: AdminPermission;
+  hodPermission?: HodPermission;
+  hodOnly?: boolean;
   superOrAlmightyOnly?: boolean;
 }[] = [
   { label: "Dashboard", icon: Home, href: "/lms-home/admin/dashboard" },
@@ -71,6 +78,15 @@ const sidebarLinks: {
     icon: GraduationCap,
     href: "/lms-home/admin/tutor-applications",
     permission: AdminPermission.REVIEW_TUTOR_APPLICATIONS,
+    hodPermission: HodPermission.REVIEW_TUTOR_APPLICATIONS,
+  },
+  { label: "My HOD Scope", icon: Network, href: "/lms-home/admin/hod-scope", hodOnly: true },
+  { label: "HOD Reports", icon: BarChart2, href: "/lms-home/admin/hod-reports", hodPermission: HodPermission.VIEW_REPORTS },
+  {
+    label: "My Unassigned Queue",
+    icon: ArrowLeftRight,
+    href: "/lms-home/admin/hod-unassigned-queue",
+    hodPermission: HodPermission.MANAGE_UNASSIGNED_QUEUE,
   },
   { label: "Video Courses", icon: BookOpen, href: "/lms-home/admin/video-courses", permission: AdminPermission.APPROVE_RESOURCES },
   {
@@ -202,7 +218,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const { user, hasPermission } = useUser();
+  const { user, hasPermission, hodAssignment, hasHodPermission } = useUser();
+
+  const isLinkVisible = (link: (typeof sidebarLinks)[number]): boolean => {
+    if (link.hodOnly) return !!hodAssignment;
+    const grants: boolean[] = [];
+    if (link.permission) grants.push(hasPermission(link.permission));
+    if (link.hodPermission) grants.push(hasHodPermission(link.hodPermission));
+    return grants.length === 0 || grants.some(Boolean);
+  };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -232,7 +256,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <nav className="p-4 space-y-2 flex-1">
           {sidebarLinks
             .filter(({ label }) => !["Support", "Notifications"].includes(label))
-            .filter(({ permission }) => !permission || hasPermission(permission))
+            .filter(isLinkVisible)
             .filter(({ superOrAlmightyOnly }) => !superOrAlmightyOnly || (user && isSuperOrAlmighty(user.role)))
             .map(({ label, icon: Icon, href, badge }) => (
               <Link

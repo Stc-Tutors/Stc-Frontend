@@ -12,7 +12,7 @@ import { ToastError, ToastSuccess } from "@/components/ui/custom/toast";
 import { ROUTES } from "@/config/routes";
 
 import { GetServicesAction } from "@/server/service-catalog";
-import { ArchitecturalPath, IService } from "@/types/service-catalog";
+import { IService } from "@/types/service-catalog";
 import { GetCoursesAction } from "@/server/course";
 import { Course } from "@/types/course";
 import { QuotePricingAction } from "@/server/pricing";
@@ -52,9 +52,7 @@ export default function ParentMarketplacePage() {
 
   useEffect(() => {
     GetServicesAction().then(([res]) => {
-      // B2B White-Label LMS is a tenant-deployment service, not something a
-      // parent buys for their child - never selectable here.
-      setServices((res?.data ?? []).filter((s) => s.architecturalPath !== ArchitecturalPath.TENANT_DEPLOYMENT));
+      setServices(res?.data ?? []);
       setServicesLoading(false);
     });
   }, []);

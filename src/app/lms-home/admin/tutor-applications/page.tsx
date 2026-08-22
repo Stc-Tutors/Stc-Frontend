@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { TutorApplication, TutorApplicationApplicant, TutorApplicationStatus } from "@/types/tutor-application";
 import { useUser } from "@/contexts/user-context";
 import { AdminPermission } from "@/types/admin-permission";
+import { HodPermission } from "@/types/hod";
 import { FLAGGABLE_FIELDS } from "@/lib/tutor-application-fields";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
@@ -20,8 +21,11 @@ import FullApplicationDetails from "@/components/tutor-applications/full-applica
 
 export default function TutorApplicationsPage() {
   const router = useRouter();
-  const { hasPermission } = useUser();
-  const canReview = hasPermission(AdminPermission.REVIEW_TUTOR_APPLICATIONS);
+  const { hasPermission, hasHodPermission } = useUser();
+  // HOD status is additive (see stcbe's HodService.assign) - either grant
+  // is sufficient, so an Admin/Tutor who also holds a REVIEW_TUTOR_APPLICATIONS
+  // hodScope can review even without the separate AdminPermission.
+  const canReview = hasPermission(AdminPermission.REVIEW_TUTOR_APPLICATIONS) || hasHodPermission(HodPermission.REVIEW_TUTOR_APPLICATIONS);
   const [applications, setApplications] = useState<TutorApplication[]>([]);
   const [status, setStatus] = useState<TutorApplicationStatus>(TutorApplicationStatus.PENDING);
   const [isLoading, setIsLoading] = useState(true);

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { GetServicesAction } from "@/server/service-catalog";
-import { ArchitecturalPath, IService, ServiceCatalogStatus } from "@/types/service-catalog";
+import { IService, ServiceCatalogStatus } from "@/types/service-catalog";
 import { useTutorApplication } from "@/contexts/tutor-application-context";
 
 interface StepProps {
@@ -24,9 +24,7 @@ export default function ServicesStep({ onNext, errors }: StepProps) {
 
   useEffect(() => {
     GetServicesAction(ServiceCatalogStatus.ACTIVE).then(([res]) => {
-      // B2B White-Label LMS is a tenant-deployment service, not something an
-      // individual tutor is hired for - never selectable here.
-      setServices((res?.data ?? []).filter((s) => s.architecturalPath !== ArchitecturalPath.TENANT_DEPLOYMENT));
+      setServices(res?.data ?? []);
       setIsLoading(false);
     });
   }, []);

@@ -57,7 +57,7 @@ function getYouTubeEmbedUrl(videoUrl: string): string | null {
 // list-type section back to fully empty via the CMS re-reveals the
 // hardcoded defaults rather than hiding the section, which is an acceptable
 // edge case next to the alternative of admin edits nuking unrelated content.
-function mergeWithDefaults(defaults: ServiceContent, fetched: ServiceContent): ServiceContent {
+export function mergeWithDefaults(defaults: ServiceContent, fetched: Partial<ServiceContent>): ServiceContent {
   return {
     heroImageUrl: fetched.heroImageUrl || defaults.heroImageUrl,
     heroHeading: fetched.heroHeading || defaults.heroHeading,
@@ -100,19 +100,26 @@ export default function ServicePage({
   slug,
   serviceType,
   defaults,
+  content: providedContent,
 }: {
   slug: string;
   serviceType?: string;
   defaults: ServiceContent;
+  // When set, this component renders it as-is and skips its own CMS fetch -
+  // for pages whose caller already fetched from a different content store
+  // (e.g. the dedicated White-Label offering) and merged it with `defaults`
+  // itself (see mergeWithDefaults, exported for that purpose).
+  content?: ServiceContent;
 }) {
-  const [content, setContent] = useState<ServiceContent>(defaults);
+  const [content, setContent] = useState<ServiceContent>(providedContent ?? defaults);
 
   useEffect(() => {
+    if (providedContent) return;
     GetServicePageBySlugAction(slug).then(([res]) => {
       if (res?.data) setContent(mergeWithDefaults(defaults, res.data));
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slug]);
+  }, [slug, providedContent]);
 
   const embedUrl = content.videoUrl ? getYouTubeEmbedUrl(content.videoUrl) : null;
   const ctaServiceType = serviceType || slug;

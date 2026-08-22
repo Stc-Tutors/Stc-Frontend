@@ -5,6 +5,8 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import "keen-slider/keen-slider.min.css";
 import { GetMyTutorProfileAction } from "@/server/tutor-profile";
+import { GetMyTutorApplicationAction } from "@/server/tutor-application";
+import { TutorApplicationStatus } from "@/types/tutor-application";
 
 import {
   Home,
@@ -29,6 +31,9 @@ import {
 import BrandLogo from "@/components/shared/BrandLogo";
 import LogoutButton from "@/components/shared/LogoutButton";
 import { UserProfileDropdown } from "@/components/user-profile-dropdown";
+import { useUser } from "@/contexts/user-context";
+import { HodPermission } from "@/types/hod";
+import { Network } from "lucide-react";
 
 // export const metadata = {
 //   title: "STC Tutors LMS",
@@ -53,19 +58,71 @@ const sidebarLinks = [
   { label: "Notifications", icon: Bell, href: "/lms-home/tutor/notification", badge: true },
 ];
 
+// HOD status is additive (see stcbe's HodService.assign) - a Tutor who
+// also holds hodScopes keeps this entire sidebar and simply gains these
+// extra entries on top, pointing at the same shared pages the Admin area
+// uses (permission-gated there too, so nothing extra leaks by linking in).
+const HOD_LINKS: { label: string; icon: typeof Network; href: string; badge?: boolean; hodPermission?: HodPermission; hodOnly?: boolean }[] = [
+  { label: "My HOD Scope", icon: Network, href: "/lms-home/admin/hod-scope", hodOnly: true },
+  { label: "Tutor Applications", icon: FileUser, href: "/lms-home/admin/tutor-applications", hodPermission: HodPermission.REVIEW_TUTOR_APPLICATIONS },
+  { label: "HOD Reports", icon: BarChart2, href: "/lms-home/admin/hod-reports", hodPermission: HodPermission.VIEW_REPORTS },
+  { label: "My Unassigned Queue", icon: Users, href: "/lms-home/admin/hod-unassigned-queue", hodPermission: HodPermission.MANAGE_UNASSIGNED_QUEUE },
+];
+
 const ONBOARDING_PATH = "/lms-home/tutor/onboarding";
+const VETTING_PATH = "/lms-home/tutor/vetting";
 
 export default function LMSLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const { hodAssignment, hasHodPermission } = useUser();
+  const visibleHodLinks = HOD_LINKS.filter((link) =>
+    link.hodOnly ? !!hodAssignment : link.hodPermission && hasHodPermission(link.hodPermission)
+  );
+
+  // Hard gate, not just the tutor-vetting-banner nag: a tutor whose
+  // application is APPROVED_PENDING_VETTING can already log in (their
+  // account is ACTIVE so they can reach this exact form), but must not be
+  // able to browse the rest of the dashboard - allocation eligibility and
+  // everything else waits for the Vetting Questionnaire. Checked ahead of
+  // the onboarding check below since completing vetting comes first.
+  useEffect(() => {
+    if (pathname === VETTING_PATH) return;
+    (async () => {
+      const [res] = await GetMyTutorApplicationAction();
+      if (res?.data?.status === TutorApplicationStatus.APPROVED_PENDING_VETTING) {
+        router.replace(VETTING_PATH);
+      }
+    })();
+  }, [pathname, router]);
 
   useEffect(() => {
-    if (pathname === ONBOARDING_PATH) return;
+    if (pathname === ONBOARDING_PATH || pathname === VETTING_PATH) return;
     (async () => {
       const [res] = await GetMyTutorProfileAction();
-      if (res?.data && res.data.teachingCombinations.length === 0) {
+      const profile = res?.data;
+      if (!profile) return;
+      // teachingCombinations is the old flat (Country/Curriculum/GradeLevel)
+      // shape - superseded by teachingCycles for Academic Tutoring/Exam
+      // Prep/Tech Training, and by the flat non-cycle fields below for
+      // every other service (Music/Digital Skills/Soft Skills/Career
+      // Coaching/Self-Dev/Adult Ed). A tutor who completed the registration
+      // wizard's "What You Can Teach" step already has one of these
+      // populated - checking teachingCombinations alone (never written by
+      // the current wizard) forced every newly-approved tutor back through
+      // this onboarding step to re-pick subjects they'd already chosen.
+      const hasDeclaredWhatTheyTeach =
+        profile.teachingCombinations.length > 0 ||
+        (profile.teachingCycles?.length ?? 0) > 0 ||
+        (profile.digitalSkillsBundles?.length ?? 0) > 0 ||
+        (profile.musicInstruments?.length ?? 0) > 0 ||
+        (profile.softSkillsTopics?.length ?? 0) > 0 ||
+        (profile.careerCoachingTopics?.length ?? 0) > 0 ||
+        (profile.selfDevTopics?.length ?? 0) > 0 ||
+        (profile.adultEdFocusAreas?.length ?? 0) > 0;
+      if (!hasDeclaredWhatTheyTeach) {
         router.replace(ONBOARDING_PATH);
       }
     })();
@@ -77,9 +134,10 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
     router.push(`/lms-home/tutor/student-list?q=${encodeURIComponent(searchTerm.trim())}`);
   };
 
-  // First-login onboarding is a bare full-screen step - no sidebar/topbar
-  // chrome, so a brand-new tutor can't wander off before picking preferences.
-  if (pathname === ONBOARDING_PATH) {
+  // First-login onboarding and the post-approval Vetting Questionnaire are
+  // both bare full-screen steps - no sidebar/topbar chrome, so a tutor can't
+  // wander off into the rest of the dashboard before completing either one.
+  if (pathname === ONBOARDING_PATH || pathname === VETTING_PATH) {
     return <>{children}</>;
   }
 
@@ -105,8 +163,10 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
 
           {/* Sidebar Navigation (top section) */}
           <nav className="p-4 space-y-2">
-            {sidebarLinks
-            .filter(({ label }) => !["Support", "Notifications"].includes(label))
+            {[
+              ...sidebarLinks.filter(({ label }) => !["Support", "Notifications"].includes(label)),
+              ...visibleHodLinks,
+            ]
             .map(({ label, icon: Icon, href, badge }) => (
             <Link
             key={label}

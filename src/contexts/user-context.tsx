@@ -1,8 +1,10 @@
 "use client"
 import { ROUTES } from "@/config/routes"
 import { GetUserAction, GetMyPermissionsAction } from "@/server/user"
+import { GetMyHodAssignmentAction } from "@/server/hod"
 import { User } from "@/types/user"
 import { AdminPermission, MyPermissions } from "@/types/admin-permission"
+import { HodAssignment, HodPermission, hodHasPermission } from "@/types/hod"
 import { useRouter } from "next/navigation"
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
 
@@ -14,6 +16,12 @@ type UserContextType = {
   isLoading: boolean
   permissions: MyPermissions | null
   hasPermission: (permission: AdminPermission) => boolean
+  // HOD status is additive (see stcbe's HodService.assign) - a Tutor or
+  // Admin keeps their own role/permissions in full and simply gains
+  // whatever hodAssignment.hodScopes grant on top. null means "confirmed no
+  // assignment", not "still loading" - check isLoading for that.
+  hodAssignment: HodAssignment | null
+  hasHodPermission: (permission: HodPermission) => boolean
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined)
@@ -23,6 +31,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [permissions, setPermissions] = useState<MyPermissions | null>(null)
+  const [hodAssignment, setHodAssignment] = useState<HodAssignment | null>(null)
 
 
     useEffect(() => {
@@ -52,14 +61,25 @@ export function UserProvider({ children }: { children: ReactNode }) {
       setPermissions(res?.data ?? [])
     }
 
+    // HOD status is additive, so this is fetched for every logged-in user
+    // regardless of role - a 404 (the common case: no assignment) is an
+    // expected outcome here, not an error to surface.
+    const fetchHodAssignment = async () => {
+      const [res] = await GetMyHodAssignmentAction()
+      setHodAssignment(res?.data ?? null)
+    }
+
     fetchUser()
     fetchPermissions()
+    fetchHodAssignment()
   }, [])
 
   const hasPermission = (permission: AdminPermission): boolean => {
     if (permissions === "*") return true
     return permissions?.includes(permission) ?? false
   }
+
+  const hasHodPermission = (permission: HodPermission): boolean => hodHasPermission(hodAssignment, permission)
 
   const updateUser = (updates: Partial<User>) => {
     if (user) {
@@ -93,6 +113,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
     isLoading,
     permissions,
     hasPermission,
+    hodAssignment,
+    hasHodPermission,
   }
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>

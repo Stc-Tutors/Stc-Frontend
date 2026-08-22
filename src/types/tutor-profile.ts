@@ -5,6 +5,7 @@ import {
   InternetSpeedTier,
   MaxWeeklyHoursBand,
   PayoutMethod,
+  TeachingCycle,
   TutorClassFormat,
 } from "./tutor-application";
 
@@ -43,6 +44,13 @@ export interface TutorProfile {
   tutor: string | TutorSummary;
   bio?: string;
   teachingCombinations: TeachingCombination[];
+  teachingCycles?: TeachingCycle[];
+  digitalSkillsBundles?: string[];
+  musicInstruments?: string[];
+  softSkillsTopics?: string[];
+  careerCoachingTopics?: string[];
+  selfDevTopics?: string[];
+  adultEdFocusAreas?: string[];
   ageLevelsTaught: string[];
   availability: TutorAvailabilitySlot[];
   // General (non-subject-tied) scheduling preferences, alongside `availability`.

@@ -1,7 +1,12 @@
 "use client";
 
-import ServicePage from "@/components/service-page";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import ServicePage, { mergeWithDefaults } from "@/components/service-page";
+import { GetWhiteLabelAction } from "@/server/white-label";
+import { ServiceCatalogStatus } from "@/types/service-catalog";
 import { ServiceContent } from "@/types/content";
+import { WhiteLabelOffering } from "@/types/white-label";
 
 // This is a sales-motion page, not a self-enroll one - see conversation
 // notes for why. Both CTAs point to the dedicated tenant-inquiry demo-request
@@ -73,5 +78,52 @@ const DEFAULTS: ServiceContent = {
 };
 
 export default function B2BWhiteLabelLMS() {
-  return <ServicePage slug="b2b-white-label-lms" defaults={DEFAULTS} />;
+  const router = useRouter();
+  const [offering, setOffering] = useState<WhiteLabelOffering | null | undefined>(undefined);
+
+  useEffect(() => {
+    GetWhiteLabelAction().then(([res]) => setOffering(res?.data ?? null));
+  }, []);
+
+  if (offering === undefined) {
+    return <p className="text-center py-20 text-gray-500">Loading...</p>;
+  }
+
+  // No document yet (nobody's touched the White Label tab since the
+  // Service Catalog migration) is treated the same as Active, not Coming
+  // Soon - only an explicit non-Active status hides the real content.
+  if (offering && offering.status !== ServiceCatalogStatus.ACTIVE) {
+    return (
+      <main className="flex flex-col items-center justify-center py-24 px-6 text-center min-h-[50vh]">
+        <h1 className="text-4xl font-bold text-gray-900 mb-3">{DEFAULTS.heroHeading}</h1>
+        <p className="text-2xl font-semibold text-[#38b6ff] mb-4">Coming Soon</p>
+        <p className="text-gray-600 max-w-md mb-8">
+          We&apos;re still putting the finishing touches on this program. Check back soon, or explore our other
+          services in the meantime.
+        </p>
+        <div className="flex gap-4">
+          <button
+            onClick={() => router.back()}
+            className="bg-gray-200 text-gray-800 px-6 py-3 rounded-lg hover:bg-gray-300 transition"
+          >
+            ← Back
+          </button>
+          <button
+            onClick={() => router.push("/services")}
+            className="bg-[#38b6ff] text-white px-6 py-3 rounded-lg hover:bg-[#1c2574] transition"
+          >
+            Browse Services
+          </button>
+        </div>
+      </main>
+    );
+  }
+
+  return (
+    <ServicePage
+      slug="b2b-white-label-lms"
+      defaults={DEFAULTS}
+      content={offering ? mergeWithDefaults(DEFAULTS, offering) : undefined}
+    />
+  );
 }

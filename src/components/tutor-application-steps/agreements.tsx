@@ -7,6 +7,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTutorApplication } from "@/contexts/tutor-application-context";
+import { useCustomFormFields } from "@/hooks/use-custom-form-fields";
+import DynamicQuestionField from "@/components/forms/dynamic-question-field";
 import { TutorApplicationStep10Payload, WhatsappChannelStatus } from "@/types/tutor-application";
 
 interface StepProps {
@@ -14,8 +16,12 @@ interface StepProps {
   errors: Record<string, string>;
 }
 
+const STAGE = "tutor-onboarding:agreements-consent" as const;
+
 export default function AgreementsStep({ onNext, errors }: StepProps) {
-  const { draft } = useTutorApplication();
+  const { draft, updateCustomFieldResponse } = useTutorApplication();
+  const { fields: customFields } = useCustomFormFields(STAGE);
+  const customFieldResponses = draft.customFieldResponses;
 
   const [termsAccepted, setTermsAccepted] = useState(draft.step10.termsAccepted ?? false);
   const [ethicsCommitmentAccepted, setEthicsCommitmentAccepted] = useState(draft.step10.ethicsCommitmentAccepted ?? false);
@@ -37,6 +43,14 @@ export default function AgreementsStep({ onNext, errors }: StepProps) {
       if (signature.trim().length < 2) stepErrors.signature = "Please type your full name as your signature";
       if (!whatsappChannelJoined) stepErrors.whatsappChannelJoined = "Please select an option";
 
+      for (const field of customFields) {
+        if (field.required) {
+          const value = customFieldResponses[field.id];
+          const isEmpty = value === undefined || value === null || value === "" || (Array.isArray(value) && value.length === 0);
+          if (isEmpty) stepErrors[`custom_${field.id}`] = `${field.label} is required`;
+        }
+      }
+
       if (Object.keys(stepErrors).length === 0) {
         onNext(stepErrors, {
           termsAccepted,
@@ -52,7 +66,16 @@ export default function AgreementsStep({ onNext, errors }: StepProps) {
 
     window.addEventListener("validateStep", handleValidation);
     return () => window.removeEventListener("validateStep", handleValidation);
-  }, [termsAccepted, ethicsCommitmentAccepted, dataPrivacyAgreed, signature, whatsappChannelJoined, onNext]);
+  }, [
+    termsAccepted,
+    ethicsCommitmentAccepted,
+    dataPrivacyAgreed,
+    signature,
+    whatsappChannelJoined,
+    customFields,
+    customFieldResponses,
+    onNext,
+  ]);
 
   return (
     <div className="space-y-6 w-full">
@@ -112,6 +135,25 @@ export default function AgreementsStep({ onNext, errors }: StepProps) {
           </div>
         </CardContent>
       </Card>
+
+      {customFields.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Additional Information</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {customFields.map((field) => (
+              <DynamicQuestionField
+                key={field.id}
+                field={field}
+                value={customFieldResponses[field.id]}
+                onChange={(value) => updateCustomFieldResponse(field.id, value)}
+                error={errors[`custom_${field.id}`]}
+              />
+            ))}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

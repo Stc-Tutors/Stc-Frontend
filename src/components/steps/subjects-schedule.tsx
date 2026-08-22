@@ -75,7 +75,6 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
   const isPathA = architecturalPath === ArchitecturalPath.ACADEMIC_TUTORING_TAXONOMY;
   const isPathB = architecturalPath === ArchitecturalPath.EXAM_PREP_TAXONOMY;
   const isPathC = architecturalPath === ArchitecturalPath.COURSE_MODULE;
-  const isUnsupportedPath = architecturalPath === ArchitecturalPath.TENANT_DEPLOYMENT;
   const isCohortBased = !!flowReq.requires_cohort;
 
   const [serviceData, setServiceData] = useState({
@@ -287,10 +286,6 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
     const validate = () => {
       const stepErrors: Record<string, string> = {};
 
-      if (isUnsupportedPath) {
-        stepErrors.subjects = "This service isn't available for self-enrollment yet - please contact us directly.";
-      }
-
       if (serviceData.selectedSubjects.length === 0) {
         stepErrors.subjects = isPathC ? "Please select a course" : "Please select at least one subject";
       }
@@ -379,18 +374,7 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
 
   return (
     <div className="space-y-6">
-      {isUnsupportedPath && (
-        <Card className="border-red-200 bg-red-50">
-          <CardContent className="p-6">
-            <p className="text-red-700 text-sm">
-              This service isn't available for self-service enrollment yet. Please contact us directly to get set up.
-            </p>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Subject / Course Selection */}
-      {!isUnsupportedPath && (
       <Card>
         <CardHeader><CardTitle>{isPathC ? "Select a Course" : "Select Subjects"}</CardTitle></CardHeader>
         <CardContent className="space-y-4">
@@ -557,7 +541,6 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
           </div>
         </CardContent>
       </Card>
-      )}
 
       {/* Optional cross-sell - only renders if an admin actually attached a
           standalone Video Course to one of the selected Subject nodes (see

@@ -17,14 +17,24 @@ function yesNo(value: boolean): string {
 // built from the exact same registry. Read-only - editing flagged fields
 // happens via the existing "Request More Info" flow, not inline here.
 export default function FullApplicationDetails({ app }: { app: TutorApplication }) {
-  // Same three stages TutorApplicationService.assertCustomFieldResponsesValid
+  // Same stages TutorApplicationService.assertCustomFieldResponsesValid
   // checks server-side - fetched here purely to resolve customFieldResponses'
   // field ids to human labels for display. Called individually (not via
   // .map over an array) since hooks can't be called inside a callback.
   const personalInfoFields = useCustomFormFields("tutor-onboarding:personal-information").fields;
   const professionalExperienceFields = useCustomFormFields("tutor-onboarding:professional-experience").fields;
+  const technicalReadinessFields = useCustomFormFields("tutor-onboarding:technical-readiness").fields;
+  const psychometricEvaluationFields = useCustomFormFields("tutor-onboarding:psychometric-evaluation").fields;
   const finalEvaluationFields = useCustomFormFields("tutor-onboarding:final-evaluation").fields;
-  const stageFields = [...personalInfoFields, ...professionalExperienceFields, ...finalEvaluationFields];
+  const agreementsConsentFields = useCustomFormFields("tutor-onboarding:agreements-consent").fields;
+  const stageFields = [
+    ...personalInfoFields,
+    ...professionalExperienceFields,
+    ...technicalReadinessFields,
+    ...psychometricEvaluationFields,
+    ...finalEvaluationFields,
+    ...agreementsConsentFields,
+  ];
   const customEntries = Object.entries(app.customFieldResponses ?? {});
 
   return (

@@ -9,6 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { X } from "lucide-react";
 import { useTutorApplication } from "@/contexts/tutor-application-context";
+import { useCustomFormFields } from "@/hooks/use-custom-form-fields";
+import DynamicQuestionField from "@/components/forms/dynamic-question-field";
 import { GetTaxonomyOptionsAction } from "@/server/taxonomy-option";
 import { ITaxonomyOption, TaxonomyOptionKind } from "@/types/service-catalog";
 import { InternetSpeedTier, TutorApplicationStep5Payload } from "@/types/tutor-application";
@@ -24,8 +26,10 @@ const SPEED_LABELS: Record<InternetSpeedTier, string> = {
   [InternetSpeedTier.ABOVE_10MBPS]: "Above 10 Mbps",
 };
 
+const STAGE = "tutor-onboarding:technical-readiness" as const;
+
 export default function TechnicalReadinessStep({ onNext, errors }: StepProps) {
-  const { draft } = useTutorApplication();
+  const { draft, updateCustomFieldResponse } = useTutorApplication();
 
   const [devices, setDevices] = useState<string[]>(draft.step5.devices || []);
   const [internetSpeed, setInternetSpeed] = useState<InternetSpeedTier | "">(draft.step5.internetSpeed || "");
@@ -35,6 +39,9 @@ export default function TechnicalReadinessStep({ onNext, errors }: StepProps) {
   const [hasPeripherals, setHasPeripherals] = useState(draft.step5.hasPeripherals ?? false);
   const [deviceOptions, setDeviceOptions] = useState<ITaxonomyOption[]>([]);
   const [toolSuggestions, setToolSuggestions] = useState<ITaxonomyOption[]>([]);
+
+  const { fields: customFields } = useCustomFormFields(STAGE);
+  const customFieldResponses = draft.customFieldResponses;
 
   useEffect(() => {
     Promise.all([
@@ -77,6 +84,14 @@ export default function TechnicalReadinessStep({ onNext, errors }: StepProps) {
       if (!internetSpeed) stepErrors.internetSpeed = "Please select your internet speed";
       if (toolProficiency.length === 0) stepErrors.toolProficiency = "Please add at least one tool you're comfortable using";
 
+      for (const field of customFields) {
+        if (field.required) {
+          const value = customFieldResponses[field.id];
+          const isEmpty = value === undefined || value === null || value === "" || (Array.isArray(value) && value.length === 0);
+          if (isEmpty) stepErrors[`custom_${field.id}`] = `${field.label} is required`;
+        }
+      }
+
       if (Object.keys(stepErrors).length === 0) {
         onNext(stepErrors, {
           devices,
@@ -92,7 +107,7 @@ export default function TechnicalReadinessStep({ onNext, errors }: StepProps) {
 
     window.addEventListener("validateStep", handleValidation);
     return () => window.removeEventListener("validateStep", handleValidation);
-  }, [devices, internetSpeed, toolProficiency, hasQuietEnvironment, hasPeripherals, onNext]);
+  }, [devices, internetSpeed, toolProficiency, hasQuietEnvironment, hasPeripherals, customFields, customFieldResponses, onNext]);
 
   return (
     <div className="space-y-6 w-full">
@@ -196,6 +211,25 @@ export default function TechnicalReadinessStep({ onNext, errors }: StepProps) {
           </div>
         </CardContent>
       </Card>
+
+      {customFields.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Additional Information</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {customFields.map((field) => (
+              <DynamicQuestionField
+                key={field.id}
+                field={field}
+                value={customFieldResponses[field.id]}
+                onChange={(value) => updateCustomFieldResponse(field.id, value)}
+                error={errors[`custom_${field.id}`]}
+              />
+            ))}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

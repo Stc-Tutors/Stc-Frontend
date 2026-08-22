@@ -31,7 +31,6 @@ const DEFAULT_SERVICES: DisplayService[] = [
   { slug: "soft-skill", title: "Soft Skill Development", description: "Build professional excellence with expert-led job training programs.", image: "/image/skills.jpg" },
   { slug: "career-coaching", title: "Career Coaching", description: "Guidance at your convenience - CV reviews, interview prep, and personalized coaching.", image: "/image/career.jpg" },
   { slug: "self-development", title: "Self-Development", description: "Shape your career path with leadership, productivity, and mindset development.", image: "/image/self development.jpg" },
-  { slug: "b2b-white-label-lms", title: "White-Label LMS Platform", description: "Your own branded learning platform, powered by STC - for schools, NGOs, training institutes, and companies.", image: "/image/b2b-lms.jpg" },
 ];
 
 const AcademicSession = () => {

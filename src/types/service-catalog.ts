@@ -10,9 +10,8 @@ export enum ArchitecturalPath {
   ACADEMIC_TUTORING_TAXONOMY = "Academic Tutoring Taxonomy", // Path A
   EXAM_PREP_TAXONOMY = "Exam Prep Taxonomy", // Path B
   COURSE_MODULE = "Course Module", // Path C
-  // No enrollment flow built for this yet - a service on this path should
-  // not be selectable/completable in the student wizard.
-  TENANT_DEPLOYMENT = "Tenant Deployment",
+  // Formerly TENANT_DEPLOYMENT (SRV-009, B2B White-Label LMS) - split out
+  // into its own module, see types/white-label.ts and server/white-label.ts.
 }
 
 export enum ServiceCatalogStatus {
@@ -34,8 +33,6 @@ export interface IServiceFlowRequirements {
   requires_cohort?: boolean;
   requires_course_selection?: boolean;
   requires_language_selection?: boolean;
-  requires_tenant_setup?: boolean;
-  requires_domain_mapping?: boolean;
 }
 
 // Which curriculum-tree depths this service has, in order - [] means the
@@ -142,7 +139,10 @@ export type CustomFormStage =
   | "student-registration:review"
   | "tutor-onboarding:personal-information"
   | "tutor-onboarding:professional-experience"
+  | "tutor-onboarding:technical-readiness"
+  | "tutor-onboarding:psychometric-evaluation"
   | "tutor-onboarding:final-evaluation"
+  | "tutor-onboarding:agreements-consent"
   | "tenant-inquiry:demo-request";
 
 export interface ICustomFormField {
@@ -192,8 +192,6 @@ export const FLOW_REQUIREMENT_LABELS: Record<keyof IServiceFlowRequirements, str
   requires_cohort: "Cohort",
   requires_course_selection: "Course Selection",
   requires_language_selection: "Language Selection",
-  requires_tenant_setup: "Tenant Setup",
-  requires_domain_mapping: "Domain Mapping",
 };
 
 export const FLOW_REQUIREMENT_KEYS = Object.keys(FLOW_REQUIREMENT_LABELS) as (keyof IServiceFlowRequirements)[];
@@ -306,7 +304,10 @@ export const CUSTOM_FORM_STAGES: CustomFormStage[] = [
   "student-registration:review",
   "tutor-onboarding:personal-information",
   "tutor-onboarding:professional-experience",
+  "tutor-onboarding:technical-readiness",
+  "tutor-onboarding:psychometric-evaluation",
   "tutor-onboarding:final-evaluation",
+  "tutor-onboarding:agreements-consent",
   "tenant-inquiry:demo-request",
 ];
 
@@ -317,7 +318,10 @@ export const CUSTOM_FORM_STAGE_LABELS: Record<CustomFormStage, string> = {
   "student-registration:review": "Student Registration — Review",
   "tutor-onboarding:personal-information": "Tutor Onboarding — Personal Information",
   "tutor-onboarding:professional-experience": "Tutor Onboarding — Professional Experience",
+  "tutor-onboarding:technical-readiness": "Tutor Onboarding — Technical Readiness",
+  "tutor-onboarding:psychometric-evaluation": "Tutor Onboarding — Psychometric Evaluation",
   "tutor-onboarding:final-evaluation": "Tutor Onboarding — Final Evaluation",
+  "tutor-onboarding:agreements-consent": "Tutor Onboarding — Agreements & Consent",
   "tenant-inquiry:demo-request": "Tenant Inquiry — Demo Request",
 };
 
