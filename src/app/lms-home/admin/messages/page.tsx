@@ -111,6 +111,7 @@ export default function AdminMessagesPage() {
                   </Avatar>
                   <div className="min-w-0">
                     <p className="font-medium text-sm truncate">
+                      {c.isSupportThread && <span className="text-xs text-gray-500">Support · </span>}
                       {others.length > 0 ? (
                         others.map((o, i) => (
                           <span key={o.id}>

@@ -35,9 +35,17 @@ export default function DocumentsStep({ onNext, errors }: StepProps) {
   );
   const [backgroundCheckConsent, setBackgroundCheckConsent] = useState(draft.step4.backgroundCheckConsent ?? false);
   const [reference1Name, setReference1Name] = useState(draft.step4.reference1Name || "");
+  const [reference1Relationship, setReference1Relationship] = useState(draft.step4.reference1Relationship || "");
   const [reference1Contact, setReference1Contact] = useState(draft.step4.reference1Contact || "");
+  const [reference1ConsentToContact, setReference1ConsentToContact] = useState(
+    draft.step4.reference1ConsentToContact ?? false
+  );
   const [reference2Name, setReference2Name] = useState(draft.step4.reference2Name || "");
+  const [reference2Relationship, setReference2Relationship] = useState(draft.step4.reference2Relationship || "");
   const [reference2Contact, setReference2Contact] = useState(draft.step4.reference2Contact || "");
+  const [reference2ConsentToContact, setReference2ConsentToContact] = useState(
+    draft.step4.reference2ConsentToContact ?? false
+  );
 
   // One proof-upload slot per certification checked in step 2's
   // otherCertifications (excluding "None") - not a single generic catch-all.
@@ -63,7 +71,17 @@ export default function DocumentsStep({ onNext, errors }: StepProps) {
         stepErrors.backgroundCheckConsent = "Background/reference check consent is required";
       }
       if (!reference1Name.trim()) stepErrors.reference1Name = "Reference name is required";
+      if (!reference1Relationship.trim()) stepErrors.reference1Relationship = "Please describe your relationship to this reference";
       if (!reference1Contact.trim()) stepErrors.reference1Contact = "Reference contact is required";
+      if (!reference1ConsentToContact) {
+        stepErrors.reference1ConsentToContact = "Please confirm this reference has agreed to be contacted";
+      }
+      if (!reference2Name.trim()) stepErrors.reference2Name = "Reference name is required";
+      if (!reference2Relationship.trim()) stepErrors.reference2Relationship = "Please describe your relationship to this reference";
+      if (!reference2Contact.trim()) stepErrors.reference2Contact = "Reference contact is required";
+      if (!reference2ConsentToContact) {
+        stepErrors.reference2ConsentToContact = "Please confirm this reference has agreed to be contacted";
+      }
       for (const cert of certificationsNeedingProof) {
         if (!certificationProofs[cert]) {
           stepErrors[`certProof_${cert}`] = `Please upload proof of ${cert}`;
@@ -82,9 +100,13 @@ export default function DocumentsStep({ onNext, errors }: StepProps) {
           certificationProofs: proofs.length > 0 ? proofs : undefined,
           backgroundCheckConsent,
           reference1Name,
+          reference1Relationship,
           reference1Contact,
-          reference2Name: reference2Name || undefined,
-          reference2Contact: reference2Contact || undefined,
+          reference1ConsentToContact,
+          reference2Name,
+          reference2Relationship,
+          reference2Contact,
+          reference2ConsentToContact,
         });
       } else {
         onNext(stepErrors);
@@ -99,9 +121,13 @@ export default function DocumentsStep({ onNext, errors }: StepProps) {
     supportingDocumentsFile,
     backgroundCheckConsent,
     reference1Name,
+    reference1Relationship,
     reference1Contact,
+    reference1ConsentToContact,
     reference2Name,
+    reference2Relationship,
     reference2Contact,
+    reference2ConsentToContact,
     certificationProofs,
     onNext,
   ]);
@@ -184,19 +210,35 @@ export default function DocumentsStep({ onNext, errors }: StepProps) {
           </label>
           {errors.backgroundCheckConsent && <p className="text-red-600 text-sm">{errors.backgroundCheckConsent}</p>}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="reference1Name">Reference 1 — Name *</Label>
-              <Input
-                id="reference1Name"
-                value={reference1Name}
-                onChange={(e) => setReference1Name(e.target.value)}
-                className={errors.reference1Name ? "border-red-500" : ""}
-              />
-              {errors.reference1Name && <p className="text-red-600 text-sm">{errors.reference1Name}</p>}
+          <div className="space-y-3 border-t pt-4">
+            <h4 className="text-sm font-semibold">Reference 1 *</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="reference1Name">Name *</Label>
+                <Input
+                  id="reference1Name"
+                  value={reference1Name}
+                  onChange={(e) => setReference1Name(e.target.value)}
+                  className={errors.reference1Name ? "border-red-500" : ""}
+                />
+                {errors.reference1Name && <p className="text-red-600 text-sm">{errors.reference1Name}</p>}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="reference1Relationship">Relationship to you *</Label>
+                <Input
+                  id="reference1Relationship"
+                  placeholder="e.g. Former Head of Department"
+                  value={reference1Relationship}
+                  onChange={(e) => setReference1Relationship(e.target.value)}
+                  className={errors.reference1Relationship ? "border-red-500" : ""}
+                />
+                {errors.reference1Relationship && (
+                  <p className="text-red-600 text-sm">{errors.reference1Relationship}</p>
+                )}
+              </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="reference1Contact">Reference 1 — Email *</Label>
+              <Label htmlFor="reference1Contact">Email *</Label>
               <Input
                 id="reference1Contact"
                 type="email"
@@ -206,22 +248,66 @@ export default function DocumentsStep({ onNext, errors }: StepProps) {
               />
               {errors.reference1Contact && <p className="text-red-600 text-sm">{errors.reference1Contact}</p>}
             </div>
+            <label className="flex items-start space-x-2">
+              <Checkbox
+                checked={reference1ConsentToContact}
+                onCheckedChange={(c) => setReference1ConsentToContact(c as boolean)}
+              />
+              <span className="text-sm">This reference has agreed that STC Tutors may contact them *</span>
+            </label>
+            {errors.reference1ConsentToContact && (
+              <p className="text-red-600 text-sm">{errors.reference1ConsentToContact}</p>
+            )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="reference2Name">Reference 2 — Name (optional)</Label>
-              <Input id="reference2Name" value={reference2Name} onChange={(e) => setReference2Name(e.target.value)} />
+          <div className="space-y-3 border-t pt-4">
+            <h4 className="text-sm font-semibold">Reference 2 *</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="reference2Name">Name *</Label>
+                <Input
+                  id="reference2Name"
+                  value={reference2Name}
+                  onChange={(e) => setReference2Name(e.target.value)}
+                  className={errors.reference2Name ? "border-red-500" : ""}
+                />
+                {errors.reference2Name && <p className="text-red-600 text-sm">{errors.reference2Name}</p>}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="reference2Relationship">Relationship to you *</Label>
+                <Input
+                  id="reference2Relationship"
+                  placeholder="e.g. Former Head of Department"
+                  value={reference2Relationship}
+                  onChange={(e) => setReference2Relationship(e.target.value)}
+                  className={errors.reference2Relationship ? "border-red-500" : ""}
+                />
+                {errors.reference2Relationship && (
+                  <p className="text-red-600 text-sm">{errors.reference2Relationship}</p>
+                )}
+              </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="reference2Contact">Reference 2 — Email (optional)</Label>
+              <Label htmlFor="reference2Contact">Email *</Label>
               <Input
                 id="reference2Contact"
                 type="email"
                 value={reference2Contact}
                 onChange={(e) => setReference2Contact(e.target.value)}
+                className={errors.reference2Contact ? "border-red-500" : ""}
               />
+              {errors.reference2Contact && <p className="text-red-600 text-sm">{errors.reference2Contact}</p>}
             </div>
+            <label className="flex items-start space-x-2">
+              <Checkbox
+                checked={reference2ConsentToContact}
+                onCheckedChange={(c) => setReference2ConsentToContact(c as boolean)}
+              />
+              <span className="text-sm">This reference has agreed that STC Tutors may contact them *</span>
+            </label>
+            {errors.reference2ConsentToContact && (
+              <p className="text-red-600 text-sm">{errors.reference2ConsentToContact}</p>
+            )}
           </div>
         </CardContent>
       </Card>

@@ -16,6 +16,13 @@ interface StepProps {
 }
 
 const STAGE = "tutor-onboarding:final-evaluation" as const;
+const MIN_RESPONSE_LENGTH = 200;
+
+function CharCount({ value }: { value: string }) {
+  const remaining = MIN_RESPONSE_LENGTH - value.trim().length;
+  if (remaining <= 0) return null;
+  return <p className="text-xs text-gray-400">{remaining} more character{remaining === 1 ? "" : "s"} needed</p>;
+}
 
 export default function FinalEvaluationStep({ onNext, errors }: StepProps) {
   const { draft, updateCustomFieldResponse } = useTutorApplication();
@@ -32,8 +39,12 @@ export default function FinalEvaluationStep({ onNext, errors }: StepProps) {
     const handleValidation = () => {
       const stepErrors: Record<string, string> = {};
 
-      if (!finalStrengths.trim()) stepErrors.finalStrengths = "This response is required";
-      if (!finalFeedbackApproach.trim()) stepErrors.finalFeedbackApproach = "This response is required";
+      if (finalStrengths.trim().length < MIN_RESPONSE_LENGTH) {
+        stepErrors.finalStrengths = `Please write at least ${MIN_RESPONSE_LENGTH} characters`;
+      }
+      if (finalFeedbackApproach.trim().length < MIN_RESPONSE_LENGTH) {
+        stepErrors.finalFeedbackApproach = `Please write at least ${MIN_RESPONSE_LENGTH} characters`;
+      }
       if (internalExpectedPayMin < 0) stepErrors.internalExpectedPayMin = "Enter a valid amount";
       if (internalExpectedPayMax < internalExpectedPayMin) {
         stepErrors.internalExpectedPayMax = "Must be greater than or equal to the lowest amount";
@@ -84,9 +95,10 @@ export default function FinalEvaluationStep({ onNext, errors }: StepProps) {
               id="finalStrengths"
               value={finalStrengths}
               onChange={(e) => setFinalStrengths(e.target.value)}
-              rows={3}
+              rows={5}
               className={errors.finalStrengths ? "border-red-500" : ""}
             />
+            <CharCount value={finalStrengths} />
             {errors.finalStrengths && <p className="text-red-600 text-sm">{errors.finalStrengths}</p>}
           </div>
 
@@ -96,9 +108,10 @@ export default function FinalEvaluationStep({ onNext, errors }: StepProps) {
               id="finalFeedbackApproach"
               value={finalFeedbackApproach}
               onChange={(e) => setFinalFeedbackApproach(e.target.value)}
-              rows={3}
+              rows={5}
               className={errors.finalFeedbackApproach ? "border-red-500" : ""}
             />
+            <CharCount value={finalFeedbackApproach} />
             {errors.finalFeedbackApproach && <p className="text-red-600 text-sm">{errors.finalFeedbackApproach}</p>}
           </div>
 

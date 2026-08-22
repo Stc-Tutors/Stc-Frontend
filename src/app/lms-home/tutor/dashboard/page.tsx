@@ -9,12 +9,14 @@ import YourStudent from "@/components/tutorDashboard/YourStudent";
 import UpcomingEventsWidget from "@/components/shared/UpcomingEventsWidget";
 import { useUser } from "@/contexts/user-context";
 import TutorProfileIncompleteBanner from "@/components/tutor-profile-incomplete-banner";
+import TutorVettingBanner from "@/components/tutor-vetting-banner";
 
 export default function TutorDashboardPage() {
   const { user } = useUser();
 
   return (
   <div className="space-y-6">
+    <TutorVettingBanner />
     <TutorProfileIncompleteBanner />
 
     {/* Welcome Section */}

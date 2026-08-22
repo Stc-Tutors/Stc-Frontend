@@ -303,16 +303,24 @@ export const TUTOR_FIELD_REGISTRY: TutorFieldEntry[] = [
     label: "Reference 1",
     stepId: 5,
     stepTitle: "Supporting Documents",
-    getValue: (a) => (a.reference1Name ? { name: a.reference1Name, contact: a.reference1Contact } : undefined),
-    format: (v: { name: string; contact?: string }) => `${v.name} (${v.contact})`,
+    getValue: (a) =>
+      a.reference1Name
+        ? { name: a.reference1Name, relationship: a.reference1Relationship, contact: a.reference1Contact }
+        : undefined,
+    format: (v: { name: string; relationship?: string; contact?: string }) =>
+      `${v.name}${v.relationship ? ` — ${v.relationship}` : ""} (${v.contact})`,
   },
   {
     id: "reference2",
     label: "Reference 2",
     stepId: 5,
     stepTitle: "Supporting Documents",
-    getValue: (a) => (a.reference2Name ? { name: a.reference2Name, contact: a.reference2Contact } : undefined),
-    format: (v: { name: string; contact?: string }) => `${v.name} (${v.contact})`,
+    getValue: (a) =>
+      a.reference2Name
+        ? { name: a.reference2Name, relationship: a.reference2Relationship, contact: a.reference2Contact }
+        : undefined,
+    format: (v: { name: string; relationship?: string; contact?: string }) =>
+      `${v.name}${v.relationship ? ` — ${v.relationship}` : ""} (${v.contact})`,
   },
 
   // Step 6: Technical Readiness

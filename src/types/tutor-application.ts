@@ -14,6 +14,10 @@ export enum TutorApplicationStatus {
   // Reviewer sent it back for changes on specific fields - the one
   // submitted state the applicant can still log in for (see AuthService.login).
   NEEDS_MORE_INFO = "NEEDS_MORE_INFO",
+  // Admin-approved and can log in, but still needs to complete the
+  // post-approval Vetting Questionnaire (see VettingQuestionnaire) before
+  // being eligible for student allocation - submitting it flips this to APPROVED.
+  APPROVED_PENDING_VETTING = "APPROVED_PENDING_VETTING",
   APPROVED = "APPROVED",
   REJECTED = "REJECTED",
 }
@@ -214,9 +218,13 @@ export interface TutorApplication {
   certificationProofs?: CertificationProof[];
   backgroundCheckConsent?: boolean;
   reference1Name?: string;
+  reference1Relationship?: string;
   reference1Contact?: string;
+  reference1ConsentToContact?: boolean;
   reference2Name?: string;
+  reference2Relationship?: string;
   reference2Contact?: string;
+  reference2ConsentToContact?: boolean;
 
   // Step 5: Technical Readiness
   devices?: string[];
@@ -265,9 +273,46 @@ export interface TutorApplication {
   signature?: string;
   whatsappChannelJoined?: WhatsappChannelStatus;
 
+  // Post-approval Vetting Questionnaire - see VettingQuestionnaire and
+  // TutorApplicationStatus.APPROVED_PENDING_VETTING.
+  vettingQuestionnaire?: VettingQuestionnaire;
+
   // Task 6: answers to any active CustomFormField for the tutor-onboarding
   // stages, keyed by ICustomFormField.id.
   customFieldResponses?: Record<string, string | string[] | number | boolean>;
+}
+
+// STC Tutors' post-approval "Vetting Questionnaire" - the Independent Tutor
+// Agreement the tutor confirms AFTER admin approval (not part of the signup
+// wizard). Submitting this flips TutorApplicationStatus from
+// APPROVED_PENDING_VETTING to APPROVED. Mirrors stcbe's IVettingQuestionnaire.
+export interface VettingQuestionnaire {
+  independentContractorAccepted: boolean;
+  scenarioDirectPaymentResponse: string;
+  scenarioFirstLessonPrepResponse: string;
+  reportingPolicyAccepted: boolean;
+  nonCircumventionAccepted: boolean;
+  punctualityAccepted: boolean;
+  attendanceAccepted: boolean;
+  confidentialityAccepted: boolean;
+  bindingAgreementAccepted: boolean;
+  signature: string;
+  signatureDate: string;
+  submittedAt: string;
+}
+
+export interface SubmitVettingQuestionnairePayload {
+  independentContractorAccepted: boolean;
+  scenarioDirectPaymentResponse: string;
+  scenarioFirstLessonPrepResponse: string;
+  reportingPolicyAccepted: boolean;
+  nonCircumventionAccepted: boolean;
+  punctualityAccepted: boolean;
+  attendanceAccepted: boolean;
+  confidentialityAccepted: boolean;
+  bindingAgreementAccepted: boolean;
+  signature: string;
+  signatureDate: string;
 }
 
 // Legacy single-shot signup (stcbe ApplyTutorDto, POST /tutor-applications) -
@@ -352,9 +397,13 @@ export interface TutorApplicationStep4Payload {
   certificationProofs?: CertificationProof[];
   backgroundCheckConsent: boolean;
   reference1Name: string;
+  reference1Relationship: string;
   reference1Contact: string;
-  reference2Name?: string;
-  reference2Contact?: string;
+  reference1ConsentToContact: boolean;
+  reference2Name: string;
+  reference2Relationship: string;
+  reference2Contact: string;
+  reference2ConsentToContact: boolean;
 }
 
 export interface TutorApplicationStep5Payload {

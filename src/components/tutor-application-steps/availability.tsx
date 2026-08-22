@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { X } from "lucide-react";
 import { useTutorApplication } from "@/contexts/tutor-application-context";
 import { WEEKDAYS, Weekday } from "@/constants/weekdays";
 import {
@@ -48,26 +49,43 @@ export default function AvailabilityStep({ onNext, errors }: StepProps) {
     draft.step6.preferredClassFormat || ""
   );
 
-  const toggleDay = (day: Weekday) => {
-    setWeeklyAvailability((prev) =>
-      prev.some((slot) => slot.dayOfWeek === day)
-        ? prev.filter((slot) => slot.dayOfWeek !== day)
-        : [...prev, { dayOfWeek: day, startTime: DEFAULT_START_TIME, endTime: DEFAULT_END_TIME }]
-    );
+  const addSlot = (day: Weekday) => {
+    setWeeklyAvailability((prev) => [...prev, { dayOfWeek: day, startTime: DEFAULT_START_TIME, endTime: DEFAULT_END_TIME }]);
   };
 
-  const updateDayTime = (day: Weekday, field: "startTime" | "endTime", value: string) => {
-    setWeeklyAvailability((prev) => prev.map((slot) => (slot.dayOfWeek === day ? { ...slot, [field]: value } : slot)));
+  const removeSlot = (index: number) => {
+    setWeeklyAvailability((prev) => prev.filter((_, i) => i !== index));
   };
+
+  const updateSlot = (index: number, field: "startTime" | "endTime", value: string) => {
+    setWeeklyAvailability((prev) => prev.map((slot, i) => (i === index ? { ...slot, [field]: value } : slot)));
+  };
+
+  // Any two windows on the SAME day that overlap - mirrors stcbe's
+  // assertWeeklyAvailabilityValid, which is the actual source of truth.
+  const hasOverlap = (() => {
+    const byDay = new Map<string, { start: string; end: string }[]>();
+    for (const slot of weeklyAvailability) {
+      const existing = byDay.get(slot.dayOfWeek) ?? [];
+      for (const other of existing) {
+        if (slot.startTime < other.end && other.start < slot.endTime) return true;
+      }
+      existing.push({ start: slot.startTime, end: slot.endTime });
+      byDay.set(slot.dayOfWeek, existing);
+    }
+    return false;
+  })();
 
   useEffect(() => {
     const handleValidation = () => {
       const stepErrors: Record<string, string> = {};
       if (!timezone) stepErrors.timezone = "Please select your timezone";
       if (weeklyAvailability.length === 0) {
-        stepErrors.availabilitySchedule = "Please select at least one day you're available";
+        stepErrors.availabilitySchedule = "Please add at least one availability window";
       } else if (weeklyAvailability.some((slot) => slot.startTime >= slot.endTime)) {
-        stepErrors.availabilitySchedule = "Each day's start time must be before its end time";
+        stepErrors.availabilitySchedule = "Each window's start time must be before its end time";
+      } else if (hasOverlap) {
+        stepErrors.availabilitySchedule = "Two windows on the same day can't overlap";
       }
       if (!maxWeeklyHours) stepErrors.maxWeeklyHours = "Please select your maximum weekly availability";
       if (!preferredClassFormat) stepErrors.preferredClassFormat = "Please select a preferred class format";
@@ -115,39 +133,44 @@ export default function AvailabilityStep({ onNext, errors }: StepProps) {
           <div className="space-y-2">
             <Label>Your Weekly Availability *</Label>
             <p className="text-sm text-gray-500">
-              Set the general hours you're open to teach, for each day you're available. Not tied to any particular
-              subject - we'll fit students into these windows and reschedule within them as needed.
+              Set the general hours you're open to teach. You can add more than one window per day (e.g. 9:00-12:00
+              and 16:00-21:00 on the same day) - not tied to any particular subject, we'll fit students into these
+              windows and reschedule within them as needed.
             </p>
             <div className="space-y-2">
               {WEEKDAYS.map((day) => {
-                const slot = weeklyAvailability.find((s) => s.dayOfWeek === day);
+                const daySlots = weeklyAvailability
+                  .map((slot, index) => ({ slot, index }))
+                  .filter(({ slot }) => slot.dayOfWeek === day);
                 return (
-                  <div key={day} className="flex items-center gap-3 border rounded-md p-2">
-                    <Checkbox
-                      id={`day-${day}`}
-                      checked={Boolean(slot)}
-                      onCheckedChange={() => toggleDay(day)}
-                    />
-                    <Label htmlFor={`day-${day}`} className="w-24 text-sm">
-                      {day}
-                    </Label>
-                    {slot && (
-                      <div className="flex items-center gap-2 flex-1">
+                  <div key={day} className="border rounded-md p-2 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium w-24">{day}</span>
+                      <Button type="button" variant="outline" size="sm" onClick={() => addSlot(day)}>
+                        Add window
+                      </Button>
+                    </div>
+                    {daySlots.map(({ slot, index }) => (
+                      <div key={index} className="flex items-center gap-2">
                         <Input
                           type="time"
                           value={slot.startTime}
-                          onChange={(e) => updateDayTime(day, "startTime", e.target.value)}
+                          onChange={(e) => updateSlot(index, "startTime", e.target.value)}
                           className="max-w-[140px]"
                         />
                         <span className="text-sm text-gray-500">to</span>
                         <Input
                           type="time"
                           value={slot.endTime}
-                          onChange={(e) => updateDayTime(day, "endTime", e.target.value)}
+                          onChange={(e) => updateSlot(index, "endTime", e.target.value)}
                           className="max-w-[140px]"
                         />
+                        <Button type="button" variant="ghost" size="sm" onClick={() => removeSlot(index)}>
+                          <X className="h-4 w-4" />
+                        </Button>
                       </div>
-                    )}
+                    ))}
+                    {daySlots.length === 0 && <p className="text-xs text-gray-400">No availability set for {day}</p>}
                   </div>
                 );
               })}

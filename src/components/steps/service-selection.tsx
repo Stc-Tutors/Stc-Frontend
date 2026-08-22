@@ -60,7 +60,9 @@ export default function ServiceSelection({ onNext, errors }: StepProps) {
 
   useEffect(() => {
     GetServicesAction().then(([res, err]) => {
-      setServices(res?.data ?? [])
+      // B2B White-Label LMS is a tenant-deployment service, not something a
+      // student/parent self-enrolls in - never selectable here.
+      setServices((res?.data ?? []).filter((s) => s.architecturalPath !== ArchitecturalPath.TENANT_DEPLOYMENT))
       setLoadError(err)
       setIsLoading(false)
     })

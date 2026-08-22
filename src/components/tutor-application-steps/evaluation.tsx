@@ -15,6 +15,13 @@ interface StepProps {
 }
 
 const RATING_OPTIONS = [1, 2, 3, 4, 5];
+const MIN_RESPONSE_LENGTH = 200;
+
+function CharCount({ value }: { value: string }) {
+  const remaining = MIN_RESPONSE_LENGTH - value.trim().length;
+  if (remaining <= 0) return null;
+  return <p className="text-xs text-gray-400">{remaining} more character{remaining === 1 ? "" : "s"} needed</p>;
+}
 
 function RatingInput({
   value,
@@ -75,13 +82,23 @@ export default function EvaluationStep({ onNext, errors }: StepProps) {
       const stepErrors: Record<string, string> = {};
 
       if (!psychConfidenceRating) stepErrors.psychConfidenceRating = "Please rate your confidence";
-      if (!psychDisengagedResponse.trim()) stepErrors.psychDisengagedResponse = "This response is required";
-      if (!psychMotivation.trim()) stepErrors.psychMotivation = "This response is required";
-      if (!psychParentDisagreementResponse.trim()) stepErrors.psychParentDisagreementResponse = "This response is required";
+      if (psychDisengagedResponse.trim().length < MIN_RESPONSE_LENGTH) {
+        stepErrors.psychDisengagedResponse = `Please write at least ${MIN_RESPONSE_LENGTH} characters`;
+      }
+      if (psychMotivation.trim().length < MIN_RESPONSE_LENGTH) {
+        stepErrors.psychMotivation = `Please write at least ${MIN_RESPONSE_LENGTH} characters`;
+      }
+      if (psychParentDisagreementResponse.trim().length < MIN_RESPONSE_LENGTH) {
+        stepErrors.psychParentDisagreementResponse = `Please write at least ${MIN_RESPONSE_LENGTH} characters`;
+      }
       if (!personalityType) stepErrors.personalityType = "Please select an option";
       if (!personalityAdaptabilityRating) stepErrors.personalityAdaptabilityRating = "Please rate your adaptability";
-      if (!personalityClassPrep.trim()) stepErrors.personalityClassPrep = "This response is required";
-      if (!personalityAboveAndBeyond.trim()) stepErrors.personalityAboveAndBeyond = "This response is required";
+      if (personalityClassPrep.trim().length < MIN_RESPONSE_LENGTH) {
+        stepErrors.personalityClassPrep = `Please write at least ${MIN_RESPONSE_LENGTH} characters`;
+      }
+      if (personalityAboveAndBeyond.trim().length < MIN_RESPONSE_LENGTH) {
+        stepErrors.personalityAboveAndBeyond = `Please write at least ${MIN_RESPONSE_LENGTH} characters`;
+      }
       if (!analyticalOrCreative) stepErrors.analyticalOrCreative = "Please select an option";
 
       if (Object.keys(stepErrors).length === 0) {
@@ -137,9 +154,10 @@ export default function EvaluationStep({ onNext, errors }: StepProps) {
               id="psychDisengagedResponse"
               value={psychDisengagedResponse}
               onChange={(e) => setPsychDisengagedResponse(e.target.value)}
-              rows={3}
+              rows={5}
               className={errors.psychDisengagedResponse ? "border-red-500" : ""}
             />
+            <CharCount value={psychDisengagedResponse} />
             {errors.psychDisengagedResponse && <p className="text-red-600 text-sm">{errors.psychDisengagedResponse}</p>}
           </div>
 
@@ -149,9 +167,10 @@ export default function EvaluationStep({ onNext, errors }: StepProps) {
               id="psychMotivation"
               value={psychMotivation}
               onChange={(e) => setPsychMotivation(e.target.value)}
-              rows={3}
+              rows={5}
               className={errors.psychMotivation ? "border-red-500" : ""}
             />
+            <CharCount value={psychMotivation} />
             {errors.psychMotivation && <p className="text-red-600 text-sm">{errors.psychMotivation}</p>}
           </div>
 
@@ -163,9 +182,10 @@ export default function EvaluationStep({ onNext, errors }: StepProps) {
               id="psychParentDisagreementResponse"
               value={psychParentDisagreementResponse}
               onChange={(e) => setPsychParentDisagreementResponse(e.target.value)}
-              rows={3}
+              rows={5}
               className={errors.psychParentDisagreementResponse ? "border-red-500" : ""}
             />
+            <CharCount value={psychParentDisagreementResponse} />
             {errors.psychParentDisagreementResponse && (
               <p className="text-red-600 text-sm">{errors.psychParentDisagreementResponse}</p>
             )}
@@ -216,9 +236,10 @@ export default function EvaluationStep({ onNext, errors }: StepProps) {
               id="personalityClassPrep"
               value={personalityClassPrep}
               onChange={(e) => setPersonalityClassPrep(e.target.value)}
-              rows={3}
+              rows={5}
               className={errors.personalityClassPrep ? "border-red-500" : ""}
             />
+            <CharCount value={personalityClassPrep} />
             {errors.personalityClassPrep && <p className="text-red-600 text-sm">{errors.personalityClassPrep}</p>}
           </div>
 
@@ -230,9 +251,10 @@ export default function EvaluationStep({ onNext, errors }: StepProps) {
               id="personalityAboveAndBeyond"
               value={personalityAboveAndBeyond}
               onChange={(e) => setPersonalityAboveAndBeyond(e.target.value)}
-              rows={3}
+              rows={5}
               className={errors.personalityAboveAndBeyond ? "border-red-500" : ""}
             />
+            <CharCount value={personalityAboveAndBeyond} />
             {errors.personalityAboveAndBeyond && <p className="text-red-600 text-sm">{errors.personalityAboveAndBeyond}</p>}
           </div>
 

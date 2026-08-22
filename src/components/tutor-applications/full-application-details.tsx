@@ -42,6 +42,23 @@ export default function FullApplicationDetails({ app }: { app: TutorApplication 
         );
       })}
 
+      {app.vettingQuestionnaire && (
+        <Section title="Vetting Questionnaire">
+          <Field label="Independent Contractor acknowledged" value={yesNo(app.vettingQuestionnaire.independentContractorAccepted)} />
+          <Field label="Scenario: Direct Payment" value={app.vettingQuestionnaire.scenarioDirectPaymentResponse} />
+          <Field label="Scenario: First Lesson Prep" value={app.vettingQuestionnaire.scenarioFirstLessonPrepResponse} />
+          <Field label="Reporting policy accepted" value={yesNo(app.vettingQuestionnaire.reportingPolicyAccepted)} />
+          <Field label="Non-circumvention accepted" value={yesNo(app.vettingQuestionnaire.nonCircumventionAccepted)} />
+          <Field label="Punctuality accepted" value={yesNo(app.vettingQuestionnaire.punctualityAccepted)} />
+          <Field label="Attendance policy accepted" value={yesNo(app.vettingQuestionnaire.attendanceAccepted)} />
+          <Field label="Confidentiality accepted" value={yesNo(app.vettingQuestionnaire.confidentialityAccepted)} />
+          <Field label="Binding agreement accepted" value={yesNo(app.vettingQuestionnaire.bindingAgreementAccepted)} />
+          <Field label="Signature" value={app.vettingQuestionnaire.signature} />
+          <Field label="Signature date" value={new Date(app.vettingQuestionnaire.signatureDate).toLocaleDateString()} />
+          <Field label="Submitted" value={new Date(app.vettingQuestionnaire.submittedAt).toLocaleString()} />
+        </Section>
+      )}
+
       {customEntries.length > 0 && (
         <Section title="Additional Questions">
           {customEntries.map(([fieldId, value]) => {

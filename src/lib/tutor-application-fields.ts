@@ -45,8 +45,10 @@ export const FLAGGABLE_FIELDS: FlaggableField[] = [
   { id: "supportingDocumentsFile", label: "Additional certificates/supporting documents", step: 5, stepTitle: "Supporting Documents" },
   { id: "certificationProofs", label: "Certification proof uploads", step: 5, stepTitle: "Supporting Documents" },
   { id: "reference1Name", label: "Reference 1 name", step: 5, stepTitle: "Supporting Documents" },
+  { id: "reference1Relationship", label: "Reference 1 relationship", step: 5, stepTitle: "Supporting Documents" },
   { id: "reference1Contact", label: "Reference 1 contact", step: 5, stepTitle: "Supporting Documents" },
   { id: "reference2Name", label: "Reference 2 name", step: 5, stepTitle: "Supporting Documents" },
+  { id: "reference2Relationship", label: "Reference 2 relationship", step: 5, stepTitle: "Supporting Documents" },
   { id: "reference2Contact", label: "Reference 2 contact", step: 5, stepTitle: "Supporting Documents" },
 
   // Step 6: Technical Readiness

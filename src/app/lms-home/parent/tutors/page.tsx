@@ -130,6 +130,18 @@ export default function ParentTutorsPage() {
                   </ul>
                 </div>
               )}
+
+              {row.profile.otherCertifications && row.profile.otherCertifications.length > 0 && (
+                <p className="text-sm text-gray-600">
+                  <span className="font-medium">Certifications:</span> {row.profile.otherCertifications.join(", ")}
+                </p>
+              )}
+
+              {row.profile.preferredLanguages && row.profile.preferredLanguages.length > 0 && (
+                <p className="text-sm text-gray-600">
+                  <span className="font-medium">Languages:</span> {row.profile.preferredLanguages.join(", ")}
+                </p>
+              )}
             </div>
           ))}
         </div>

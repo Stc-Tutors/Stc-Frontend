@@ -143,16 +143,16 @@ export default function TutorProfileDetailsPage() {
     })();
   }, []);
 
-  const toggleAvailabilityDay = (day: Weekday) => {
-    setAvailability((prev) =>
-      prev.some((slot) => slot.dayOfWeek === day)
-        ? prev.filter((slot) => slot.dayOfWeek !== day)
-        : [...prev, { dayOfWeek: day, startTime: DEFAULT_START_TIME, endTime: DEFAULT_END_TIME }]
-    );
+  const addAvailabilitySlot = (day: Weekday) => {
+    setAvailability((prev) => [...prev, { dayOfWeek: day, startTime: DEFAULT_START_TIME, endTime: DEFAULT_END_TIME }]);
   };
 
-  const updateAvailabilityDayTime = (day: Weekday, field: "startTime" | "endTime", value: string) => {
-    setAvailability((prev) => prev.map((slot) => (slot.dayOfWeek === day ? { ...slot, [field]: value } : slot)));
+  const removeAvailabilitySlot = (index: number) => {
+    setAvailability((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const updateAvailabilitySlot = (index: number, field: "startTime" | "endTime", value: string) => {
+    setAvailability((prev) => prev.map((slot, i) => (i === index ? { ...slot, [field]: value } : slot)));
   };
 
   const toggleLanguage = (value: string) => {
@@ -337,30 +337,38 @@ export default function TutorProfileDetailsPage() {
           </p>
           <div className="space-y-2">
             {WEEKDAYS.map((day) => {
-              const slot = availability.find((s) => s.dayOfWeek === day);
+              const daySlots = availability
+                .map((slot, index) => ({ slot, index }))
+                .filter(({ slot }) => slot.dayOfWeek === day);
               return (
-                <div key={day} className="flex items-center gap-3 border rounded-md p-2">
-                  <Checkbox id={`day-${day}`} checked={Boolean(slot)} onCheckedChange={() => toggleAvailabilityDay(day)} />
-                  <Label htmlFor={`day-${day}`} className="w-24 text-sm">
-                    {day}
-                  </Label>
-                  {slot && (
-                    <div className="flex items-center gap-2 flex-1">
+                <div key={day} className="border rounded-md p-2 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium w-24">{day}</span>
+                    <Button type="button" variant="outline" size="sm" onClick={() => addAvailabilitySlot(day)}>
+                      Add window
+                    </Button>
+                  </div>
+                  {daySlots.map(({ slot, index }) => (
+                    <div key={index} className="flex items-center gap-2">
                       <Input
                         type="time"
                         value={slot.startTime}
-                        onChange={(e) => updateAvailabilityDayTime(day, "startTime", e.target.value)}
+                        onChange={(e) => updateAvailabilitySlot(index, "startTime", e.target.value)}
                         className="max-w-[140px]"
                       />
                       <span className="text-sm text-gray-500">to</span>
                       <Input
                         type="time"
                         value={slot.endTime}
-                        onChange={(e) => updateAvailabilityDayTime(day, "endTime", e.target.value)}
+                        onChange={(e) => updateAvailabilitySlot(index, "endTime", e.target.value)}
                         className="max-w-[140px]"
                       />
+                      <Button type="button" variant="ghost" size="sm" onClick={() => removeAvailabilitySlot(index)}>
+                        <X className="h-4 w-4" />
+                      </Button>
                     </div>
-                  )}
+                  ))}
+                  {daySlots.length === 0 && <p className="text-xs text-gray-400">No availability set for {day}</p>}
                 </div>
               );
             })}

@@ -20,6 +20,7 @@ import {
   TutorApplicationStep10Payload,
   TutorSearchResult,
   RequestMoreInfoPayload,
+  SubmitVettingQuestionnairePayload,
 } from "@/types/tutor-application";
 import { Message } from "@/types/message";
 
@@ -64,6 +65,18 @@ export async function ApproveTutorApplicationAction(
   });
 
   const resData = res ? ((await res.json()) as ApiResponse<TutorApplication>) : null;
+  return [resData, error];
+}
+
+// Reviewer nudge for a tutor sitting in APPROVED_PENDING_VETTING - just
+// re-sends the notification/email, no state change.
+export async function RemindVettingAction(id: string): Promise<[ApiResponse<null> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: `/tutor-applications/${id}/remind-vetting`,
+    request: { method: "PATCH", headers: { "Content-Type": "application/json" } },
+  });
+
+  const resData = res ? ((await res.json()) as ApiResponse<null>) : null;
   return [resData, error];
 }
 
@@ -259,6 +272,25 @@ export async function GetMyTutorApplicationAction(): Promise<[ApiResponse<TutorA
   const [res, error] = await fetchAPI({
     url: "/tutor-applications/mine",
     request: { method: "GET", headers: { "Content-Type": "application/json" } },
+  });
+
+  const resData = res ? ((await res.json()) as ApiResponse<TutorApplication>) : null;
+  return [resData, error];
+}
+
+// Post-approval Vetting Questionnaire - real login required (application is
+// already APPROVED_PENDING_VETTING). Submitting flips it to APPROVED.
+export async function SubmitVettingQuestionnaireAction(
+  id: string,
+  data: SubmitVettingQuestionnairePayload
+): Promise<[ApiResponse<TutorApplication> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: `/tutor-applications/${id}/vetting`,
+    request: {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    },
   });
 
   const resData = res ? ((await res.json()) as ApiResponse<TutorApplication>) : null;
