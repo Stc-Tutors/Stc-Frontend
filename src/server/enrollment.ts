@@ -88,6 +88,26 @@ export async function RejectEnrollmentAction(id: string, reason?: string): Promi
   return [resData, error];
 }
 
+// General post-enrollment self-edit (unlike ConfirmEnrollmentAction, not
+// restricted to PENDING/PENDING_PARENT_CONFIRMATION status) - see stcbe's
+// StudentService.update, which only checks ownership.
+export async function UpdateEnrollmentAction(
+  id: string,
+  updates: Partial<Student>
+): Promise<[ApiResponse<Student> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: `/enrollments/${id}`,
+    request: {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updates),
+    },
+  });
+
+  const resData = res ? ((await res.json()) as ApiResponse<Student>) : null;
+  return [resData, error];
+}
+
 export async function GetEnrollmentAction(id: string): Promise<[ApiResponse<Student> | null, string | null]> {
   const [res, error] = await fetchAPI({
     url: `/enrollments/${id}`,

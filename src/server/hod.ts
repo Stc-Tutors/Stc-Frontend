@@ -3,6 +3,7 @@
 import fetchAPI, { type ApiResponse } from "@/lib/fetch";
 import { HodAssignment } from "@/types/hod";
 import { SubjectEnrollment } from "@/types/allocation-hub";
+import { User, UserStatus } from "@/types/user";
 
 export interface HodScopeOverview {
   service: string;
@@ -48,5 +49,20 @@ export async function GetHodUnassignedQueueAction(): Promise<[ApiResponse<Subjec
   });
 
   const resData = res ? ((await res.json()) as ApiResponse<SubjectEnrollment[]>) : null;
+  return [resData, error];
+}
+
+// Tutors related to the caller's own HOD scope only, never the whole
+// platform roster - see stcbe's HodService.getScopedTutors. Contact info
+// (email/phone) is always redacted server-side regardless of status filter.
+export async function GetScopedTutorsAction(
+  status?: UserStatus
+): Promise<[ApiResponse<Partial<User>[]> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: status ? `/hod/tutors?status=${status}` : "/hod/tutors",
+    request: { method: "GET", headers: { "Content-Type": "application/json" } },
+  });
+
+  const resData = res ? ((await res.json()) as ApiResponse<Partial<User>[]>) : null;
   return [resData, error];
 }

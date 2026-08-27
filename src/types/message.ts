@@ -4,6 +4,10 @@ export interface ConversationParticipant {
   lastName: string;
   role: string;
   avatarUrl?: string;
+  // Live presence at the time the list was fetched - not pushed, so it's a
+  // snapshot that goes stale until the next fetch/reconnect (see
+  // useMessagingSocket and stcbe's MessageService.withOnline).
+  online?: boolean;
 }
 
 export interface Conversation {
@@ -24,6 +28,10 @@ export interface Message {
   sender: string;
   body: string;
   attachmentUrl?: string;
-  readBy: string[];
+  // userId -> ISO timestamp. The sender is always present in both (see
+  // stcbe's message.repository.ts). "Read" implies "delivered" but not
+  // vice versa.
+  deliveredTo: Record<string, string>;
+  readReceipts: Record<string, string>;
   createdAt: string;
 }

@@ -100,11 +100,17 @@ export default function TutorApplicationsPage() {
           onChange={(e) => setStatus(e.target.value as TutorApplicationStatus)}
           className="border rounded-md px-3 py-2 text-sm"
         >
-          {Object.values(TutorApplicationStatus).map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
+          {/* DRAFT excluded - an in-progress wizard, not a reviewable
+              application (see stcbe's TutorApplicationService.getApplication) -
+              this page isn't built to render its half-completed shape
+              (e.g. app.teachingCombinations.map below assumes a submitted app). */}
+          {Object.values(TutorApplicationStatus)
+            .filter((s) => s !== TutorApplicationStatus.DRAFT)
+            .map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
         </select>
       </div>
 

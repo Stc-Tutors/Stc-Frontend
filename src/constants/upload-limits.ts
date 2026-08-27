@@ -14,3 +14,11 @@ export const SUPPORTING_DOCUMENTS_UPLOAD_LIMITS: UploadLimits = {
   maxSizeMB: MAX_UPLOAD_SIZE_MB,
 };
 export const CERTIFICATION_PROOF_UPLOAD_LIMITS: UploadLimits = GOV_ID_UPLOAD_LIMITS;
+
+// A tutor's assignment attachment (document, picture, video or audio) -
+// deliberately above the 1MB default; capped at 5MB instead. Keep in sync
+// with stcbe's ASSIGNMENT_ATTACHMENT_UPLOAD_LIMITS.
+export const ASSIGNMENT_ATTACHMENT_UPLOAD_LIMITS: UploadLimits = {
+  allowedFormats: ["PDF", "DOC", "DOCX", "JPG", "JPEG", "PNG", "MP4", "MOV", "MP3", "WAV", "M4A"],
+  maxSizeMB: 5,
+};

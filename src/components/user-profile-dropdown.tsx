@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation"
 import { useUser } from "@/contexts/user-context"
 import { lmsDashboardPath } from "@/config/routes"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -16,9 +17,14 @@ import { LayoutDashboard, LogOut, ChevronDown } from "lucide-react"
 
 export function UserProfileDropdown() {
   const router = useRouter()
-  const { user, logout, isLoading } = useUser()
+  const { user, logout, isLoading, hodAssignment } = useUser()
 
   if (!user) return null
+
+  // HOD status is additive (see stcbe's HodService.assign) - a Tutor/Admin's
+  // `user.role` stays their own, so this badge is the only place that ever
+  // surfaces "you're also HOD" without navigating to My HOD Scope.
+  const isAlsoHod = !!hodAssignment && hodAssignment.hodScopes.length > 0
 
   const getInitials = (firstName: string, lastName: string) => {
     return `${firstName.charAt(0)}${lastName.charAt(0)}`
@@ -38,7 +44,14 @@ export function UserProfileDropdown() {
             <p className="text-sm font-medium text-gray-900">
               {user.firstName} {user.lastName}
             </p>
-            <p className="text-xs text-gray-500 capitalize">{user.role}</p>
+            <div className="flex items-center gap-1.5">
+              <p className="text-xs text-gray-500 capitalize">{user.role}</p>
+              {isAlsoHod && (
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0 leading-tight">
+                  Also HOD
+                </Badge>
+              )}
+            </div>
           </div>
           <ChevronDown className="w-4 h-4 text-gray-400" />
         </Button>
@@ -51,6 +64,11 @@ export function UserProfileDropdown() {
               {user.firstName} {user.lastName}
             </p>
             <p className="text-xs text-gray-500">{user.email}</p>
+            {isAlsoHod && (
+              <Badge variant="outline" className="w-fit text-[10px] px-1.5 py-0 leading-tight">
+                Also Head of Department
+              </Badge>
+            )}
           </div>
         </DropdownMenuLabel>
 
@@ -60,6 +78,13 @@ export function UserProfileDropdown() {
           <LayoutDashboard className="w-4 h-4 mr-2" />
           Dashboard
         </DropdownMenuItem>
+
+        {isAlsoHod && (
+          <DropdownMenuItem className="cursor-pointer" onClick={() => router.push("/lms-home/admin/hod-scope")}>
+            <LayoutDashboard className="w-4 h-4 mr-2" />
+            My HOD Scope
+          </DropdownMenuItem>
+        )}
 
         <DropdownMenuSeparator />
 

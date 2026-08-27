@@ -13,6 +13,9 @@ import {
   MarkConversationReadAction,
 } from "@/server/message";
 import { Conversation, ConversationParticipant, Message } from "@/types/message";
+import { useMessagingSocket } from "@/hooks/use-messaging-socket";
+import { MessageStatusTicks } from "@/components/messaging/MessageStatusTicks";
+import { PresenceDot } from "@/components/messaging/PresenceDot";
 
 const ROLE_LABELS: Record<string, string> = {
   STUDENT: "Student",
@@ -44,18 +47,43 @@ function otherParticipant(conversation: Conversation, myId: string): Conversatio
 // comes back, whether that's one admin or several (e.g. both a TUTOR_ADMIN
 // and an STC_ADMIN assigned to the same student), plus any tutor<->parent/
 // student pair a super admin has explicitly granted direct access to.
-export default function MessagesPanel() {
+export default function MessagesPanel({ initialConversationId }: { initialConversationId?: string | null }) {
   const { user } = useUser();
   const [rows, setRows] = useState<ContactRow[]>([]);
   const [isLoadingContacts, setIsLoadingContacts] = useState(true);
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
   const [conversationId, setConversationId] = useState<string | null>(null);
+  const appliedInitialConversationId = useRef(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [body, setBody] = useState("");
   const [isLoadingThread, setIsLoadingThread] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const conversationIdRef = useRef<string | null>(null);
+  conversationIdRef.current = conversationId;
+
+  const { joinConversation, leaveConversation } = useMessagingSocket({
+    onMessageNew: (message) => {
+      if (message.conversation !== conversationIdRef.current) {
+        // Not the open thread - just refresh the contact list so unread
+        // ordering/timestamps stay current.
+        loadContacts();
+        return;
+      }
+      setMessages((prev) => (prev.some((m) => m.id === message.id) ? prev : [...prev, message]));
+    },
+    onMessageDelivered: ({ conversationId: cid, userId }) => {
+      if (cid !== conversationIdRef.current) return;
+      const now = new Date().toISOString();
+      setMessages((prev) => prev.map((m) => ({ ...m, deliveredTo: { ...m.deliveredTo, [userId]: now } })));
+    },
+    onMessageRead: ({ conversationId: cid, userId }) => {
+      if (cid !== conversationIdRef.current) return;
+      const now = new Date().toISOString();
+      setMessages((prev) => prev.map((m) => ({ ...m, readReceipts: { ...m.readReceipts, [userId]: now } })));
+    },
+  });
 
   const loadContacts = async () => {
     setIsLoadingContacts(true);
@@ -87,9 +115,30 @@ export default function MessagesPanel() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Deep-link from a notification (e.g. "New message") straight into the
+  // conversation it's about, instead of leaving the user on the bare list.
+  useEffect(() => {
+    if (!initialConversationId || appliedInitialConversationId.current || isLoadingContacts) return;
+    const row = rows.find((r) => r.conversationId === initialConversationId);
+    if (row) {
+      appliedInitialConversationId.current = true;
+      openContact(row);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialConversationId, isLoadingContacts, rows]);
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // Keep the socket room membership in sync with whichever thread is open,
+  // so message:new/delivered/read only ever arrive for the visible thread.
+  useEffect(() => {
+    if (!conversationId) return;
+    joinConversation(conversationId);
+    return () => leaveConversation(conversationId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conversationId]);
 
   const openContact = async (row: ContactRow) => {
     setSelectedContactId(row.contact.id);
@@ -130,9 +179,6 @@ export default function MessagesPanel() {
     loadContacts();
   };
 
-  const isLastInRun = (index: number) =>
-    index === messages.length - 1 || messages[index + 1].sender !== messages[index].sender;
-
   const selectedContact = rows.find((r) => r.contact.id === selectedContactId)?.contact;
 
   return (
@@ -157,13 +203,16 @@ export default function MessagesPanel() {
                   selectedContactId === row.contact.id ? "bg-blue-100" : ""
                 }`}
               >
-                <Avatar className="size-9 shrink-0">
-                  <AvatarImage src={row.contact.avatarUrl} alt={row.contact.firstName} />
-                  <AvatarFallback className="bg-blue-100 text-blue-600">
-                    {row.contact.firstName?.[0]}
-                    {row.contact.lastName?.[0]}
-                  </AvatarFallback>
-                </Avatar>
+                <div className="relative shrink-0">
+                  <Avatar className="size-9">
+                    <AvatarImage src={row.contact.avatarUrl} alt={row.contact.firstName} />
+                    <AvatarFallback className="bg-blue-100 text-blue-600">
+                      {row.contact.firstName?.[0]}
+                      {row.contact.lastName?.[0]}
+                    </AvatarFallback>
+                  </Avatar>
+                  <PresenceDot online={row.contact.online} />
+                </div>
                 <div className="min-w-0 flex-1">
                   <p className="font-medium text-sm truncate text-gray-900">
                     {row.contact.firstName} {row.contact.lastName}
@@ -187,18 +236,23 @@ export default function MessagesPanel() {
         ) : (
           <>
             <div className="flex items-center gap-3 p-4 border-b">
-              <Avatar className="size-9 shrink-0">
-                <AvatarImage src={selectedContact.avatarUrl} alt={selectedContact.firstName} />
-                <AvatarFallback className="bg-blue-100 text-blue-600">
-                  {selectedContact.firstName?.[0]}
-                  {selectedContact.lastName?.[0]}
-                </AvatarFallback>
-              </Avatar>
+              <div className="relative shrink-0">
+                <Avatar className="size-9">
+                  <AvatarImage src={selectedContact.avatarUrl} alt={selectedContact.firstName} />
+                  <AvatarFallback className="bg-blue-100 text-blue-600">
+                    {selectedContact.firstName?.[0]}
+                    {selectedContact.lastName?.[0]}
+                  </AvatarFallback>
+                </Avatar>
+                <PresenceDot online={selectedContact.online} />
+              </div>
               <div>
                 <h3 className="font-semibold text-gray-900 leading-tight">
                   {selectedContact.firstName} {selectedContact.lastName}
                 </h3>
-                <p className="text-xs text-gray-400">{ROLE_LABELS[selectedContact.role] ?? selectedContact.role}</p>
+                <p className="text-xs text-gray-400">
+                  {selectedContact.online ? "Online" : ROLE_LABELS[selectedContact.role] ?? selectedContact.role}
+                </p>
               </div>
             </div>
 
@@ -211,9 +265,8 @@ export default function MessagesPanel() {
                 {messages.length === 0 ? (
                   <p className="text-sm text-gray-400">No messages yet - say hello.</p>
                 ) : (
-                  messages.map((m, i) => {
+                  messages.map((m) => {
                     const isMine = m.sender === user?.id;
-                    const showMeta = isLastInRun(i);
                     return (
                       <div key={m.id} className={`max-w-md ${isMine ? "ml-auto" : ""}`}>
                         <div
@@ -223,16 +276,15 @@ export default function MessagesPanel() {
                         >
                           {m.body}
                         </div>
-                        {showMeta && (
-                          <p className={`text-[11px] mt-1 text-gray-400 ${isMine ? "text-right" : ""}`}>
-                            {new Date(m.createdAt).toLocaleString([], {
-                              month: "short",
-                              day: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </p>
-                        )}
+                        <p className={`flex items-center gap-1 text-[11px] mt-1 text-gray-400 ${isMine ? "justify-end" : ""}`}>
+                          {new Date(m.createdAt).toLocaleString([], {
+                            month: "short",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                          {isMine && <MessageStatusTicks message={m} otherParticipantIds={[selectedContact.id]} />}
+                        </p>
                       </div>
                     );
                   })

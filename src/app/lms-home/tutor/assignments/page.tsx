@@ -6,10 +6,13 @@ import { BookOpen } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import FileUploadField from "@/components/ui/custom/file-upload-field";
 import { GetMyCoursesAction } from "@/server/course";
 import { GetCourseAssignmentsAction, CreateAssignmentAction } from "@/server/assignment";
 import { Assignment, AssignmentStatus } from "@/types/assignment";
 import { Course } from "@/types/course";
+import { UploadedFile } from "@/lib/cloudinary-upload";
+import { ASSIGNMENT_ATTACHMENT_UPLOAD_LIMITS } from "@/constants/upload-limits";
 
 interface Row {
   course: Course;
@@ -28,6 +31,8 @@ export default function TutorAssignmentsPage() {
   const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [maxScore, setMaxScore] = useState("100");
+  const [attachmentUrl, setAttachmentUrl] = useState("");
+  const [attachment, setAttachment] = useState<UploadedFile | undefined>(undefined);
   const [isCreating, setIsCreating] = useState(false);
 
   const load = async () => {
@@ -64,12 +69,16 @@ export default function TutorAssignmentsPage() {
       description,
       dueDate: new Date(dueDate).toISOString(),
       maxScore: Number(maxScore) || 100,
+      attachmentUrl: attachmentUrl || undefined,
+      attachment,
     });
     setIsCreating(false);
     setMessage(error || "Assignment added");
     setTitle("");
     setDescription("");
     setDueDate("");
+    setAttachmentUrl("");
+    setAttachment(undefined);
     load();
   };
 
@@ -109,6 +118,21 @@ export default function TutorAssignmentsPage() {
                 className="w-28"
                 value={maxScore}
                 onChange={(e) => setMaxScore(e.target.value)}
+              />
+            </div>
+            <Input
+              placeholder="Attachment link (optional, e.g. Google Drive)"
+              value={attachmentUrl}
+              onChange={(e) => setAttachmentUrl(e.target.value)}
+            />
+            <div>
+              <p className="text-xs text-gray-500 mb-1">Or attach a file (optional)</p>
+              <FileUploadField
+                id="assignment-attachment"
+                folder="assignments/attachments"
+                value={attachment}
+                onChange={setAttachment}
+                limits={ASSIGNMENT_ATTACHMENT_UPLOAD_LIMITS}
               />
             </div>
             <Button size="sm" onClick={handleCreate} disabled={isCreating}>

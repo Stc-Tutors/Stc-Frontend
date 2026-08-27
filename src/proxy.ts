@@ -4,11 +4,27 @@ import { ROUTES } from "./config/routes";
 import { UserRole } from "./types/user";
 import { ADMIN_ROLES, isSuperOrAlmighty } from "./lib/roles";
 
+// HOD status is additive (see stcbe's HodService.assign) - a Tutor or Admin
+// keeps their own role and simply gains hodScopes on top, so these 4 shared
+// pages (all under /lms-home/admin, self-gated by hodAssignment/permission -
+// see hod-scope/page.tsx) need to stay reachable for UserRole.TUTOR too, not
+// just ADMIN_ROLES. Checked before the general "/lms-home/admin" entry below
+// since Object.keys(...).find() takes the first (most specific) match.
+const HOD_SHARED_PAGE_ROLES = [...ADMIN_ROLES, UserRole.HOD, UserRole.TUTOR];
+
 const ROLE_SECTION_PREFIX: Record<string, UserRole[]> = {
+  "/lms-home/admin/hod-scope": HOD_SHARED_PAGE_ROLES,
+  "/lms-home/admin/tutor-applications": HOD_SHARED_PAGE_ROLES,
+  "/lms-home/admin/hod-reports": HOD_SHARED_PAGE_ROLES,
+  "/lms-home/admin/hod-unassigned-queue": HOD_SHARED_PAGE_ROLES,
+  "/lms-home/admin/hod-tutors": HOD_SHARED_PAGE_ROLES,
   "/lms-home/student": [UserRole.STUDENT],
   "/lms-home/tutor": [UserRole.TUTOR],
   "/lms-home/parent": [UserRole.PARENT],
-  "/lms-home/admin": ADMIN_ROLES,
+  // UserRole.HOD included so a legacy dedicated-HOD account (no Tutor/Admin
+  // base role) can reach its own ROLE_DASHBOARD target below instead of
+  // redirect-looping against this very prefix.
+  "/lms-home/admin": [...ADMIN_ROLES, UserRole.HOD],
 };
 
 const ROLE_DASHBOARD: Record<UserRole, string> = {

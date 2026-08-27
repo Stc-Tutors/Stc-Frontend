@@ -12,6 +12,8 @@ export enum UserRole {
 export enum UserStatus {
   ACTIVE = "ACTIVE",
   SUSPENDED = "SUSPENDED",
+  PENDING_APPROVAL = "PENDING_APPROVAL",
+  DEACTIVATED = "DEACTIVATED",
 }
 
 export interface User {
@@ -36,6 +38,9 @@ export interface User {
   // Whether this user has accepted the current Terms & Conditions version -
   // only present on GET /users/me; drives the mandatory T&C modal.
   termsAccepted?: boolean;
+  // Opt-out for the offline-message email nudge (see stcbe's
+  // MessageEmailNotificationJob). Defaults true.
+  messagingEmailNotifications?: boolean;
 }
 
 // A tutor applicant who's still PENDING_APPROVAL (drafting or flagged for

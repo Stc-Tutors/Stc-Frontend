@@ -1,6 +1,7 @@
 "use server";
 
 import fetchAPI, { type ApiResponse } from "@/lib/fetch";
+import { UploadedFile } from "@/lib/cloudinary-upload";
 import { Assignment } from "@/types/assignment";
 
 export async function GetCourseAssignmentsAction(
@@ -33,6 +34,7 @@ export async function CreateAssignmentAction(data: {
   dueDate: string;
   maxScore: number;
   attachmentUrl?: string;
+  attachment?: UploadedFile;
 }): Promise<[ApiResponse<Assignment> | null, string | null]> {
   const [res, error] = await fetchAPI({
     url: "/assignments",

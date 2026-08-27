@@ -1,40 +1,100 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Eye, Check, X } from "lucide-react";
+import { Check, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { GetCoursesAction } from "@/server/course";
+import { GetLessonsAdminAction } from "@/server/lesson";
 import {
   ApproveResourceAction,
   GetResourcesForAdminAction,
   RejectResourceAction,
+  UploadResourceAction,
 } from "@/server/resource";
-import { CourseResource, ResourceStatus } from "@/types/resource";
+import { Course } from "@/types/course";
+import { CourseResource, ResourceStatus, ResourceType } from "@/types/resource";
+import ResourcesTabs, { RecordingItem } from "@/components/resources/ResourcesTabs";
+import StudentTargetPicker from "@/components/resources/StudentTargetPicker";
+
+const resourceTypeLabels: Record<ResourceType, string> = {
+  [ResourceType.DOCUMENT]: "Document",
+  [ResourceType.VIDEO]: "Video",
+  [ResourceType.AUDIO]: "Audio",
+};
+
+// listForAdmin (GET /resources/admin/all) defaults to PENDING when no status
+// query param is given - there's no "all statuses" server option, so fetch
+// each status and merge to show everything across the tabs.
+const ALL_STATUSES = [ResourceStatus.PENDING, ResourceStatus.APPROVED, ResourceStatus.REJECTED];
 
 export default function AdminResourcesPage() {
   const [rows, setRows] = useState<CourseResource[]>([]);
-  const [filter, setFilter] = useState<ResourceStatus>(ResourceStatus.PENDING);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [recordings, setRecordings] = useState<RecordingItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
 
+  const [courseId, setCourseId] = useState("");
+  const [title, setTitle] = useState("");
+  const [fileUrl, setFileUrl] = useState("");
+  const [type, setType] = useState<ResourceType>(ResourceType.DOCUMENT);
+  const [targetStudentIds, setTargetStudentIds] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const load = async () => {
     setIsLoading(true);
-    const [res] = await GetResourcesForAdminAction(filter);
-    setRows(res?.data ?? []);
+    const [coursesRes] = await GetCoursesAction();
+    const allCourses = coursesRes?.data ?? [];
+    setCourses(allCourses);
+    if (!courseId && allCourses.length) setCourseId(allCourses[0].id);
+
+    const statusResults = await Promise.all(ALL_STATUSES.map((s) => GetResourcesForAdminAction(s)));
+    const merged = statusResults.flatMap(([res]) => res?.data ?? []);
+    setRows(merged);
+
+    const [lessonsRes] = await GetLessonsAdminAction();
+    const courseTitleById = new Map(allCourses.map((c) => [c.id, c.title]));
+    const recs: RecordingItem[] = (lessonsRes?.data ?? [])
+      .filter((l) => l.recordingUrl)
+      .map((l) => {
+        const courseRef = typeof l.course === "string" ? courseTitleById.get(l.course) : l.course.title;
+        return { id: l.id, title: l.title, date: String(l.scheduledDate), url: l.recordingUrl!, meta: courseRef };
+      });
+    setRecordings(recs);
+
     setIsLoading(false);
   };
 
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filter]);
+  }, []);
+
+  const handleUpload = async () => {
+    if (!courseId || !title || !fileUrl) {
+      setMessage("Pick a course and fill in title + file link");
+      return;
+    }
+    setIsSubmitting(true);
+    const [, error] = await UploadResourceAction({
+      title,
+      fileUrl,
+      course: courseId,
+      type,
+      students: targetStudentIds.length ? targetStudentIds : undefined,
+    });
+    setMessage(error || "Uploaded");
+    if (!error) {
+      setTitle("");
+      setFileUrl("");
+      setType(ResourceType.DOCUMENT);
+      setTargetStudentIds([]);
+      load();
+    }
+    setIsSubmitting(false);
+  };
 
   const handleApprove = async (id: string) => {
     const [, error] = await ApproveResourceAction(id);
@@ -48,74 +108,76 @@ export default function AdminResourcesPage() {
     load();
   };
 
-  // uploadedBy is never populated by the backend - the course's tutor is
-  // shown instead since it's the practically-relevant "who uploaded this" signal.
-  const uploaderName = (course: CourseResource["course"]) =>
-    typeof course === "string" || !course.tutor ? "-" : `${course.tutor.firstName} ${course.tutor.lastName}`;
-
-  const courseTitle = (course: CourseResource["course"]) =>
-    typeof course === "string" ? course : course.title;
-
   return (
-    <div className="bg-white shadow rounded-2xl p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Resources</h1>
-        <select
-          value={filter}
-          onChange={(e) => setFilter(e.target.value as ResourceStatus)}
-          className="border rounded-md px-3 py-2 text-sm"
-        >
-          {Object.values(ResourceStatus).map((s) => (
-            <option key={s} value={s}>{s}</option>
-          ))}
-        </select>
+    <div className="bg-white shadow rounded-2xl p-6 space-y-6">
+      <h1 className="text-2xl font-bold">Resources</h1>
+
+      <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+        <h3 className="font-semibold text-gray-800">Upload resource</h3>
+        {courses.length === 0 ? (
+          <p className="text-sm text-gray-500">No courses available yet.</p>
+        ) : (
+          <div className="space-y-2">
+            <Select
+              value={courseId}
+              onValueChange={(v) => {
+                setCourseId(v);
+                setTargetStudentIds([]);
+              }}
+            >
+              <SelectTrigger size="sm" className="w-full sm:w-[240px]">
+                <SelectValue placeholder="Select a course" />
+              </SelectTrigger>
+              <SelectContent>
+                {courses.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Input placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
+            <Input placeholder="File link (Google Drive, Dropbox, ...)" value={fileUrl} onChange={(e) => setFileUrl(e.target.value)} />
+            <StudentTargetPicker courseId={courseId} value={targetStudentIds} onChange={setTargetStudentIds} />
+            <Select value={type} onValueChange={(v) => setType(v as ResourceType)}>
+              <SelectTrigger size="sm" className="w-full sm:w-[180px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.values(ResourceType).map((t) => (
+                  <SelectItem key={t} value={t}>{resourceTypeLabels[t]}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button size="sm" onClick={handleUpload} disabled={isSubmitting}>
+              {isSubmitting ? "Uploading..." : "Upload"}
+            </Button>
+          </div>
+        )}
       </div>
 
-      {message && <p className="text-sm text-blue-600 mb-4">{message}</p>}
+      {message && <p className="text-sm text-blue-600">{message}</p>}
 
       {isLoading ? (
         <p className="text-sm text-gray-500 py-4">Loading...</p>
-      ) : rows.length === 0 ? (
-        <p className="text-sm text-gray-500 py-4">No resources to review.</p>
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Title</TableHead>
-              <TableHead>Course</TableHead>
-              <TableHead>Uploaded By</TableHead>
-              <TableHead>Submitted</TableHead>
-              <TableHead className="text-right">Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {rows.map((row) => (
-              <TableRow key={row.id}>
-                <TableCell>{row.title}</TableCell>
-                <TableCell>{courseTitle(row.course)}</TableCell>
-                <TableCell>{uploaderName(row.course)}</TableCell>
-                <TableCell className="text-xs text-gray-500">{new Date(row.createdAt).toLocaleDateString()}</TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button size="icon" variant="ghost" asChild>
-                      <a href={row.fileUrl} target="_blank" rel="noreferrer"><Eye className="w-4 h-4 text-gray-500" /></a>
-                    </Button>
-                    {row.status === ResourceStatus.PENDING && (
-                      <>
-                        <Button size="icon" variant="ghost" onClick={() => handleApprove(row.id)}>
-                          <Check className="w-4 h-4 text-green-600" />
-                        </Button>
-                        <Button size="icon" variant="ghost" onClick={() => handleReject(row.id)}>
-                          <X className="w-4 h-4 text-red-600" />
-                        </Button>
-                      </>
-                    )}
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <ResourcesTabs
+          resources={rows}
+          recordings={recordings}
+          statusBadge
+          courses={courses.map((c) => ({ id: c.id, title: c.title }))}
+          renderExtraActions={(r) =>
+            r.status === ResourceStatus.PENDING ? (
+              <div className="flex gap-2 mt-1">
+                <button onClick={() => handleApprove(r.id)} title="Approve">
+                  <Check className="w-4 h-4 text-green-600" />
+                </button>
+                <button onClick={() => handleReject(r.id)} title="Reject">
+                  <X className="w-4 h-4 text-red-600" />
+                </button>
+              </div>
+            ) : undefined
+          }
+          emptyMessage="No resources to review."
+        />
       )}
     </div>
   );

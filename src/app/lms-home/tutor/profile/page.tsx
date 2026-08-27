@@ -1,23 +1,18 @@
 "use client";
 
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
-import ProfileForm from "@/components/profile/ProfileForm";
 
+// Folded into "/lms-home/tutor/profile-details" (now labeled just
+// "Profile" in the sidebar) so there's one page for a tutor's account +
+// profile instead of two. This route stays as a redirect for anyone with
+// the old link/bookmark.
 export default function TutorProfilePage() {
   const router = useRouter();
 
-  return (
-    <section className="bg-gray-100 min-h-screen p-6">
-      <button
-        onClick={() => router.push("/lms-home/tutor/dashboard")}
-        className="flex items-center text-gray-700 mb-4 hover:text-blue-500"
-      >
-        <ArrowLeft className="w-4 h-4 mr-2" />
-        <span className="text-sm font-bold">BACK</span>
-      </button>
+  useEffect(() => {
+    router.replace("/lms-home/tutor/profile-details");
+  }, [router]);
 
-      <ProfileForm />
-    </section>
-  );
+  return null;
 }

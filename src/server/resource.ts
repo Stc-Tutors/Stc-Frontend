@@ -1,7 +1,7 @@
 "use server";
 
 import fetchAPI, { type ApiResponse } from "@/lib/fetch";
-import { CourseResource, ResourceStatus } from "@/types/resource";
+import { CourseResource, ResourceStatus, ResourceType } from "@/types/resource";
 import { PaymentRequest } from "@/types/payment";
 
 export async function GetResourcesByCourseAction(
@@ -30,6 +30,9 @@ export async function UploadResourceAction(data: {
   title: string;
   fileUrl: string;
   course: string;
+  type: ResourceType;
+  // Omit/leave empty to target every student enrolled in the course.
+  students?: string[];
 }): Promise<[ApiResponse<CourseResource> | null, string | null]> {
   const [res, error] = await fetchAPI({
     url: "/resources",

@@ -1,11 +1,21 @@
 "use client";
 
+import { Suspense } from "react";
 import { ArrowLeft } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import MessagesPanel from "@/components/messaging/MessagesPanel";
 
 export default function MessagesPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50 px-6 py-4" />}>
+      <MessagesPageInner />
+    </Suspense>
+  );
+}
+
+function MessagesPageInner() {
   const router = useRouter();
+  const conversationId = useSearchParams().get("conversationId");
 
   return (
     <div className="min-h-screen bg-gray-50 px-6 py-4">
@@ -17,7 +27,7 @@ export default function MessagesPage() {
         <span className="text-sm font-bold">BACK</span>
       </button>
 
-      <MessagesPanel />
+      <MessagesPanel initialConversationId={conversationId} />
     </div>
   );
 }

@@ -73,6 +73,16 @@ export default function AssignmentSubmissionsPage() {
         <p className="text-sm text-gray-500">
           Due {new Date(assignment.dueDate).toLocaleDateString()} · Max score: {assignment.maxScore}
         </p>
+        {(assignment.attachmentUrl || assignment.attachment) && (
+          <a
+            href={assignment.attachment?.url ?? assignment.attachmentUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="text-sm text-blue-600 hover:underline mt-2 inline-block"
+          >
+            {assignment.attachment ? assignment.attachment.fileName : "View attachment"}
+          </a>
+        )}
       </div>
 
       {message && <p className="text-sm text-blue-600">{message}</p>}

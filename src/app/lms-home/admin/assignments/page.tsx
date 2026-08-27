@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, X } from "lucide-react";
+import { Check, Paperclip, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -77,6 +77,7 @@ export default function AdminAssignmentsPage() {
               <TableHead>Course</TableHead>
               <TableHead>Tutor</TableHead>
               <TableHead>Due</TableHead>
+              <TableHead>Attachment</TableHead>
               <TableHead className="text-right">Action</TableHead>
             </TableRow>
           </TableHeader>
@@ -87,6 +88,18 @@ export default function AdminAssignmentsPage() {
                 <TableCell>{courseTitle(row.course)}</TableCell>
                 <TableCell>{creatorName(row.createdBy)}</TableCell>
                 <TableCell className="text-xs text-gray-500">{new Date(row.dueDate).toLocaleDateString()}</TableCell>
+                <TableCell>
+                  {(row.attachmentUrl || row.attachment) && (
+                    <a
+                      href={row.attachment?.url ?? row.attachmentUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-1 text-blue-600 hover:underline text-xs"
+                    >
+                      <Paperclip className="w-3 h-3" /> View
+                    </a>
+                  )}
+                </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     <Button size="icon" variant="ghost" onClick={() => handleApprove(row.id)}>

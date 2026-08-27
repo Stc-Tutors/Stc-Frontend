@@ -1,3 +1,5 @@
+import { UploadedFile } from "@/lib/cloudinary-upload";
+
 export enum AssignmentStatus {
   // Only reachable for a tutor without assignmentAutoApprove granted (or an
   // HOD, which has no bypass) - hidden from students/parents until approved.
@@ -22,6 +24,7 @@ export interface Assignment {
   dueDate: string;
   maxScore: number;
   attachmentUrl?: string;
+  attachment?: UploadedFile;
   createdBy: string | { id: string; firstName: string; lastName: string };
   status: AssignmentStatus;
   reviewedBy?: string;

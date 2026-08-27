@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { UserCircle } from "lucide-react";
 import { GetNotificationsAction, MarkAllNotificationsReadAction, MarkNotificationReadAction } from "@/server/notification";
 import { Notification, NotificationType } from "@/types/notification";
+import { navigateToNotificationLink } from "@/lib/notification-link";
 
 const TYPE_LABELS: Record<NotificationType, string> = {
   [NotificationType.ASSIGNMENT_GRADED]: "Assignment Graded",
@@ -37,7 +38,7 @@ export default function NotificationList() {
 
   const handleView = async (n: Notification) => {
     if (!n.read) await MarkNotificationReadAction(n.id);
-    if (n.link) router.push(n.link);
+    if (n.link) navigateToNotificationLink(router, n.link);
     else load();
   };
 

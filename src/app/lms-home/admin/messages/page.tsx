@@ -1,11 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { MessagesSquare } from "lucide-react";
 import { useUser } from "@/contexts/user-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { GetConversationsAction, GetMessagesAction, SendMessageAction, MarkConversationReadAction } from "@/server/message";
 import { Conversation, ConversationParticipant, Message } from "@/types/message";
+import { useMessagingSocket } from "@/hooks/use-messaging-socket";
+import { MessageStatusTicks } from "@/components/messaging/MessageStatusTicks";
+import { PresenceDot } from "@/components/messaging/PresenceDot";
 
 function otherParticipants(conversation: Conversation, myId: string): ConversationParticipant[] {
   return conversation.participants.filter(
@@ -45,12 +49,44 @@ function ParticipantLink({ participant }: { participant: ConversationParticipant
 }
 
 export default function AdminMessagesPage() {
+  return (
+    <Suspense fallback={<div className="flex h-[calc(100vh-4rem)] bg-white shadow rounded-lg" />}>
+      <AdminMessagesPageInner />
+    </Suspense>
+  );
+}
+
+function AdminMessagesPageInner() {
   const { user } = useUser();
+  const initialConversationId = useSearchParams().get("conversationId");
+  const appliedInitialConversationId = useRef(false);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [body, setBody] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const selectedIdRef = useRef<string | null>(null);
+  selectedIdRef.current = selectedId;
+
+  const { joinConversation, leaveConversation } = useMessagingSocket({
+    onMessageNew: (message) => {
+      if (message.conversation !== selectedIdRef.current) {
+        loadConversations();
+        return;
+      }
+      setMessages((prev) => (prev.some((m) => m.id === message.id) ? prev : [...prev, message]));
+    },
+    onMessageDelivered: ({ conversationId, userId }) => {
+      if (conversationId !== selectedIdRef.current) return;
+      const now = new Date().toISOString();
+      setMessages((prev) => prev.map((m) => ({ ...m, deliveredTo: { ...m.deliveredTo, [userId]: now } })));
+    },
+    onMessageRead: ({ conversationId, userId }) => {
+      if (conversationId !== selectedIdRef.current) return;
+      const now = new Date().toISOString();
+      setMessages((prev) => prev.map((m) => ({ ...m, readReceipts: { ...m.readReceipts, [userId]: now } })));
+    },
+  });
 
   const loadConversations = async () => {
     const [res] = await GetConversationsAction();
@@ -61,6 +97,24 @@ export default function AdminMessagesPage() {
   useEffect(() => {
     loadConversations();
   }, []);
+
+  // Deep-link from a notification (e.g. "New message") straight into the
+  // conversation it's about, instead of leaving the admin on the bare inbox.
+  useEffect(() => {
+    if (!initialConversationId || appliedInitialConversationId.current || isLoading) return;
+    if (conversations.some((c) => c.id === initialConversationId)) {
+      appliedInitialConversationId.current = true;
+      openConversation(initialConversationId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialConversationId, isLoading, conversations]);
+
+  useEffect(() => {
+    if (!selectedId) return;
+    joinConversation(selectedId);
+    return () => leaveConversation(selectedId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedId]);
 
   const openConversation = async (id: string) => {
     setSelectedId(id);
@@ -79,6 +133,9 @@ export default function AdminMessagesPage() {
       setMessages(res?.data ?? []);
     }
   };
+
+  const activeConversation = conversations.find((c) => c.id === selectedId);
+  const activeOthers = user && activeConversation ? otherParticipants(activeConversation, user.id) : [];
 
   return (
     <div className="flex h-[calc(100vh-4rem)] bg-white shadow rounded-lg overflow-hidden">
@@ -105,10 +162,13 @@ export default function AdminMessagesPage() {
                     selectedId === c.id ? "bg-blue-100" : ""
                   }`}
                 >
-                  <Avatar className="h-9 w-9 shrink-0">
-                    <AvatarImage src={primary?.avatarUrl} alt={primary?.firstName} />
-                    <AvatarFallback>{primary?.firstName?.[0] ?? "?"}</AvatarFallback>
-                  </Avatar>
+                  <div className="relative shrink-0">
+                    <Avatar className="h-9 w-9">
+                      <AvatarImage src={primary?.avatarUrl} alt={primary?.firstName} />
+                      <AvatarFallback>{primary?.firstName?.[0] ?? "?"}</AvatarFallback>
+                    </Avatar>
+                    <PresenceDot online={primary?.online} />
+                  </div>
                   <div className="min-w-0">
                     <p className="font-medium text-sm truncate">
                       {c.isSupportThread && <span className="text-xs text-gray-500">Support · </span>}
@@ -138,19 +198,29 @@ export default function AdminMessagesPage() {
         ) : (
           <>
             <div className="flex-1 overflow-y-auto space-y-3 mb-4">
-              {messages.map((m) => (
-                <div
-                  key={m.id}
-                  className={`max-w-md p-3 rounded-lg text-sm ${
-                    m.sender === user?.id ? "bg-blue-500 text-white ml-auto" : "bg-gray-100 text-gray-800"
-                  }`}
-                >
-                  {m.body}
-                  <p className={`text-xs mt-1 ${m.sender === user?.id ? "text-blue-100" : "text-gray-400"}`}>
-                    {new Date(m.createdAt).toLocaleTimeString()}
-                  </p>
-                </div>
-              ))}
+              {messages.map((m) => {
+                const isMine = m.sender === user?.id;
+                return (
+                  <div
+                    key={m.id}
+                    className={`max-w-md p-3 rounded-lg text-sm ${
+                      isMine ? "bg-blue-500 text-white ml-auto" : "bg-gray-100 text-gray-800"
+                    }`}
+                  >
+                    {m.body}
+                    <p
+                      className={`flex items-center gap-1 text-xs mt-1 ${
+                        isMine ? "text-blue-100 justify-end" : "text-gray-400"
+                      }`}
+                    >
+                      {new Date(m.createdAt).toLocaleTimeString()}
+                      {isMine && (
+                        <MessageStatusTicks message={m} otherParticipantIds={activeOthers.map((o) => o.id)} />
+                      )}
+                    </p>
+                  </div>
+                );
+              })}
             </div>
             <div className="flex gap-2">
               <input

@@ -17,7 +17,6 @@ import {
   MessageSquare,
   BookOpen,
   BarChart2,
-  UserRound,
   Headphones,
   Bell,
   LogOut,
@@ -51,8 +50,7 @@ const sidebarLinks = [
   { label: "Refer & Earn", icon: Gift, href: "/lms-home/tutor/refer-earn" },
   { label: "Analytics", icon: BarChart2, href: "/lms-home/tutor/analytics" },
   { label: "Resources", icon: FolderUp, href: "/lms-home/tutor/resources" },
-  { label: "Profile", icon: UserRound, href: "/lms-home/tutor/profile" },
-  { label: "Profile Details", icon: FileUser, href: "/lms-home/tutor/profile-details" },
+  { label: "Profile", icon: FileUser, href: "/lms-home/tutor/profile-details" },
   { label: "Complaints", icon: AlertCircle, href: "/lms-home/tutor/complaints" },
   { label: "Support", icon: Headphones, href: "/lms-home/tutor/messages" },
   { label: "Notifications", icon: Bell, href: "/lms-home/tutor/notification", badge: true },
@@ -62,11 +60,26 @@ const sidebarLinks = [
 // also holds hodScopes keeps this entire sidebar and simply gains these
 // extra entries on top, pointing at the same shared pages the Admin area
 // uses (permission-gated there too, so nothing extra leaks by linking in).
-const HOD_LINKS: { label: string; icon: typeof Network; href: string; badge?: boolean; hodPermission?: HodPermission; hodOnly?: boolean }[] = [
+const HOD_LINKS: {
+  label: string;
+  icon: typeof Network;
+  href: string;
+  badge?: boolean;
+  // A single permission, or several treated as OR (any one is enough) - see
+  // admin/layout.tsx's identical HOD_LINKS shape.
+  hodPermission?: HodPermission | HodPermission[];
+  hodOnly?: boolean;
+}[] = [
   { label: "My HOD Scope", icon: Network, href: "/lms-home/admin/hod-scope", hodOnly: true },
   { label: "Tutor Applications", icon: FileUser, href: "/lms-home/admin/tutor-applications", hodPermission: HodPermission.REVIEW_TUTOR_APPLICATIONS },
   { label: "HOD Reports", icon: BarChart2, href: "/lms-home/admin/hod-reports", hodPermission: HodPermission.VIEW_REPORTS },
   { label: "My Unassigned Queue", icon: Users, href: "/lms-home/admin/hod-unassigned-queue", hodPermission: HodPermission.MANAGE_UNASSIGNED_QUEUE },
+  {
+    label: "My Tutors (HOD Scope)",
+    icon: Users,
+    href: "/lms-home/admin/hod-tutors",
+    hodPermission: [HodPermission.MANAGE_COURSES, HodPermission.VIEW_REPORTS],
+  },
 ];
 
 const ONBOARDING_PATH = "/lms-home/tutor/onboarding";
@@ -78,9 +91,12 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const { hodAssignment, hasHodPermission } = useUser();
-  const visibleHodLinks = HOD_LINKS.filter((link) =>
-    link.hodOnly ? !!hodAssignment : link.hodPermission && hasHodPermission(link.hodPermission)
-  );
+  const visibleHodLinks = HOD_LINKS.filter((link) => {
+    if (link.hodOnly) return !!hodAssignment;
+    if (!link.hodPermission) return false;
+    const hodPerms = Array.isArray(link.hodPermission) ? link.hodPermission : [link.hodPermission];
+    return hodPerms.some(hasHodPermission);
+  });
 
   // Hard gate, not just the tutor-vetting-banner nag: a tutor whose
   // application is APPROVED_PENDING_VETTING can already log in (their

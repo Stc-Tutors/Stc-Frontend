@@ -12,14 +12,20 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SearchableCombobox } from "@/components/ui/searchable-combobox";
 import { X } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { GetMyTutorProfileAction, UpdateMyTutorProfileAction } from "@/server/tutor-profile";
 import { GetTaxonomyOptionsAction } from "@/server/taxonomy-option";
+import { GetUserAction, UpdateUserAction } from "@/server/user";
 import { ITaxonomyOption, TaxonomyOptionKind } from "@/types/service-catalog";
 import { TutorAvailabilitySlot, TutorEducationEntry } from "@/types/tutor-profile";
+import { TeachingExperienceEntry } from "@/types/tutor-application";
 import { TeachingCombination } from "@/types/curriculum";
+import { User } from "@/types/user";
 import TeachingCombinationPicker from "@/components/teaching-combination-picker";
 import FileUploadField from "@/components/ui/custom/file-upload-field";
 import MyApplicationRecord from "@/components/tutor-applications/my-application-record";
+import ChangePasswordForm from "@/components/profile/ChangePasswordForm";
+import NotificationPreferencesForm from "@/components/profile/NotificationPreferencesForm";
 import { UploadedFile } from "@/lib/cloudinary-upload";
 import {
   CERTIFICATION_PROOF_UPLOAD_LIMITS,
@@ -54,12 +60,27 @@ export default function TutorProfileDetailsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
+  // Account (was a separate "Profile" page/nav item - folded in here so
+  // there's one place to edit everything about a tutor's profile).
+  const [accountUser, setAccountUser] = useState<User | null>(null);
+  const [isSavingAccount, setIsSavingAccount] = useState(false);
+  const [accountMessage, setAccountMessage] = useState<string | null>(null);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [accountPhone, setAccountPhone] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
+
   const [bio, setBio] = useState("");
   const [teachingCombinations, setTeachingCombinations] = useState<TeachingCombination[]>([]);
   const [yearsOfExperience, setYearsOfExperience] = useState("");
   const [qualifications, setQualifications] = useState("");
   const [availability, setAvailability] = useState<TutorAvailabilitySlot[]>([]);
   const [education, setEducation] = useState<TutorEducationEntry[]>([]);
+  const [highestQualification, setHighestQualification] = useState("");
+  const [otherQualificationsHeld, setOtherQualificationsHeld] = useState<string[]>([]);
+  const [previousPlatforms, setPreviousPlatforms] = useState("");
+  const [yearsOnlineTutoringExperience, setYearsOnlineTutoringExperience] = useState("");
+  const [teachingExperienceHistory, setTeachingExperienceHistory] = useState<TeachingExperienceEntry[]>([]);
   const [maxWeeklyHours, setMaxWeeklyHours] = useState<MaxWeeklyHoursBand | "">("");
   const [preferredClassFormat, setPreferredClassFormat] = useState<TutorClassFormat | "">("");
 
@@ -69,6 +90,7 @@ export default function TutorProfileDetailsPage() {
 
   // Tutor-facing only - never shown on the public profile.
   const [countryOfResidence, setCountryOfResidence] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState("");
   const [govIdFile, setGovIdFile] = useState<UploadedFile | undefined>(undefined);
   const [cvFile, setCvFile] = useState<UploadedFile | undefined>(undefined);
   const [supportingDocumentsFile, setSupportingDocumentsFile] = useState<UploadedFile | undefined>(undefined);
@@ -92,23 +114,36 @@ export default function TutorProfileDetailsPage() {
   const [languages, setLanguages] = useState<ITaxonomyOption[]>([]);
   const [certificationOptions, setCertificationOptions] = useState<ITaxonomyOption[]>([]);
   const [deviceOptions, setDeviceOptions] = useState<ITaxonomyOption[]>([]);
+  const [qualificationOptions, setQualificationOptions] = useState<ITaxonomyOption[]>([]);
 
   const certificationsNeedingProof = otherCertifications.filter((c) => c !== TEACHING_CERTIFICATION_NONE);
   const isBankTransfer = payoutMethod === PayoutMethod.BANK_TRANSFER_NIGERIA;
 
   useEffect(() => {
     (async () => {
-      const [[res], [countryRes], [languageRes], [certificationRes], [deviceRes]] = await Promise.all([
-        GetMyTutorProfileAction(),
-        GetTaxonomyOptionsAction(TaxonomyOptionKind.COUNTRY),
-        GetTaxonomyOptionsAction(TaxonomyOptionKind.LANGUAGE),
-        GetTaxonomyOptionsAction(TaxonomyOptionKind.TEACHING_CERTIFICATION),
-        GetTaxonomyOptionsAction(TaxonomyOptionKind.TUTOR_DEVICE_TYPE),
-      ]);
+      const [[res], [countryRes], [languageRes], [certificationRes], [deviceRes], [qualificationRes], [userRes]] =
+        await Promise.all([
+          GetMyTutorProfileAction(),
+          GetTaxonomyOptionsAction(TaxonomyOptionKind.COUNTRY),
+          GetTaxonomyOptionsAction(TaxonomyOptionKind.LANGUAGE),
+          GetTaxonomyOptionsAction(TaxonomyOptionKind.TEACHING_CERTIFICATION),
+          GetTaxonomyOptionsAction(TaxonomyOptionKind.TUTOR_DEVICE_TYPE),
+          GetTaxonomyOptionsAction(TaxonomyOptionKind.EDUCATION_QUALIFICATION),
+          GetUserAction(),
+        ]);
       setCountries(countryRes?.data ?? []);
       setLanguages(languageRes?.data ?? []);
       setCertificationOptions(certificationRes?.data ?? []);
       setDeviceOptions(deviceRes?.data ?? []);
+      setQualificationOptions(qualificationRes?.data ?? []);
+
+      if (userRes?.data) {
+        setAccountUser(userRes.data);
+        setFirstName(userRes.data.firstName || "");
+        setLastName(userRes.data.lastName || "");
+        setAccountPhone(userRes.data.phone || "");
+        setAvatarUrl(userRes.data.avatarUrl || "");
+      }
 
       const profile = res?.data;
       if (profile) {
@@ -118,6 +153,14 @@ export default function TutorProfileDetailsPage() {
         setQualifications(profile.qualifications || "");
         setAvailability(profile.availability || []);
         setEducation(profile.education || []);
+        setHighestQualification(profile.highestQualification || "");
+        setOtherQualificationsHeld(profile.otherQualificationsHeld || []);
+        setPreviousPlatforms(profile.previousPlatforms || "");
+        setYearsOnlineTutoringExperience(
+          profile.yearsOnlineTutoringExperience !== undefined ? String(profile.yearsOnlineTutoringExperience) : ""
+        );
+        setTeachingExperienceHistory(profile.teachingExperienceHistory || []);
+        setDateOfBirth(profile.dateOfBirth ? profile.dateOfBirth.slice(0, 10) : "");
         setMaxWeeklyHours(profile.maxWeeklyHours || "");
         setPreferredClassFormat(profile.preferredClassFormat || "");
         setPreferredLanguages(profile.preferredLanguages || []);
@@ -193,6 +236,33 @@ export default function TutorProfileDetailsPage() {
     setEducation((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const toggleOtherQualification = (value: string) => {
+    setOtherQualificationsHeld((prev) => (prev.includes(value) ? prev.filter((q) => q !== value) : [...prev, value]));
+  };
+
+  const EMPTY_EXPERIENCE_ENTRY: TeachingExperienceEntry = {
+    institution: "",
+    role: "",
+    startDate: "",
+    endDate: "",
+    currentlyWorkHere: false,
+    description: "",
+  };
+
+  const addExperienceEntry = () => setTeachingExperienceHistory((prev) => [...prev, { ...EMPTY_EXPERIENCE_ENTRY }]);
+  const removeExperienceEntry = (index: number) =>
+    setTeachingExperienceHistory((prev) => prev.filter((_, i) => i !== index));
+  const updateExperienceEntry = (index: number, patch: Partial<TeachingExperienceEntry>) =>
+    setTeachingExperienceHistory((prev) => prev.map((entry, i) => (i === index ? { ...entry, ...patch } : entry)));
+
+  const handleSaveAccount = async () => {
+    setIsSavingAccount(true);
+    const [res, error] = await UpdateUserAction({ firstName, lastName, phone: accountPhone, avatarUrl });
+    setIsSavingAccount(false);
+    if (res?.data) setAccountUser(res.data);
+    setAccountMessage(error || "Account details saved.");
+  };
+
   const handleSave = async () => {
     setIsSaving(true);
     const [, error] = await UpdateMyTutorProfileAction({
@@ -207,6 +277,12 @@ export default function TutorProfileDetailsPage() {
       yearsOfExperience: yearsOfExperience ? Number(yearsOfExperience) : undefined,
       qualifications,
       education,
+      highestQualification: highestQualification || undefined,
+      otherQualificationsHeld,
+      previousPlatforms: previousPlatforms || undefined,
+      yearsOnlineTutoringExperience: yearsOnlineTutoringExperience ? Number(yearsOnlineTutoringExperience) : undefined,
+      teachingExperienceHistory,
+      dateOfBirth: dateOfBirth || undefined,
       preferredLanguages,
       otherCertifications,
       countryOfResidence: countryOfResidence || undefined,
@@ -244,6 +320,43 @@ export default function TutorProfileDetailsPage() {
       </div>
 
       {message && <p className="text-sm text-blue-600">{message}</p>}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Account</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {accountMessage && <p className="text-sm text-blue-600">{accountMessage}</p>}
+          <div className="flex items-center gap-4">
+            <Avatar className="h-16 w-16">
+              <AvatarImage src={avatarUrl || accountUser?.avatarUrl} alt={accountUser?.firstName} />
+              <AvatarFallback>{accountUser?.firstName?.[0]}</AvatarFallback>
+            </Avatar>
+            <p className="text-sm text-gray-500">{accountUser?.email}</p>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="avatarUrl">Photo URL</Label>
+            <Input id="avatarUrl" placeholder="https://..." value={avatarUrl} onChange={(e) => setAvatarUrl(e.target.value)} />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="firstName">First name</Label>
+              <Input id="firstName" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="lastName">Last name</Label>
+              <Input id="lastName" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="accountPhone">Phone</Label>
+              <Input id="accountPhone" value={accountPhone} onChange={(e) => setAccountPhone(e.target.value)} />
+            </div>
+          </div>
+          <Button type="button" onClick={handleSaveAccount} disabled={isSavingAccount}>
+            {isSavingAccount ? "Saving..." : "Save account details"}
+          </Button>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
@@ -323,6 +436,142 @@ export default function TutorProfileDetailsPage() {
           <Button type="button" variant="outline" onClick={addEducation}>
             Add education entry
           </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Professional Experience (public)</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="highestQualification">Highest qualification</Label>
+              <Select value={highestQualification} onValueChange={setHighestQualification}>
+                <SelectTrigger id="highestQualification">
+                  <SelectValue placeholder="Select your highest qualification" />
+                </SelectTrigger>
+                <SelectContent>
+                  {qualificationOptions.map((opt) => (
+                    <SelectItem key={opt.id} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="yearsOnlineTutoringExperience">Years of online tutoring experience</Label>
+              <Input
+                id="yearsOnlineTutoringExperience"
+                type="number"
+                min="0"
+                value={yearsOnlineTutoringExperience}
+                onChange={(e) => setYearsOnlineTutoringExperience(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Other qualifications held</Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              {qualificationOptions
+                .filter((opt) => opt.value !== highestQualification)
+                .map((opt) => (
+                  <label key={opt.id} className="flex items-center space-x-2 text-sm">
+                    <Checkbox
+                      checked={otherQualificationsHeld.includes(opt.value)}
+                      onCheckedChange={() => toggleOtherQualification(opt.value)}
+                    />
+                    <span>{opt.label}</span>
+                  </label>
+                ))}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="previousPlatforms">Previous tutoring platforms</Label>
+            <Input
+              id="previousPlatforms"
+              value={previousPlatforms}
+              onChange={(e) => setPreviousPlatforms(e.target.value)}
+              placeholder="e.g. Preply, VIPKid, private tutoring"
+            />
+          </div>
+
+          <div className="space-y-2 border-t pt-4">
+            <Label>Teaching experience history</Label>
+            {teachingExperienceHistory.map((entry, index) => (
+              <Card key={index} className="p-4 space-y-3">
+                <div className="flex justify-between items-center">
+                  <h4 className="font-semibold text-sm">Entry {index + 1}</h4>
+                  <button onClick={() => removeExperienceEntry(index)} className="text-red-600 text-xs hover:underline">
+                    Remove
+                  </button>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm">Institution/Organization</Label>
+                    <Input
+                      value={entry.institution}
+                      onChange={(e) => updateExperienceEntry(index, { institution: e.target.value })}
+                      placeholder="e.g. Greenwood High School"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm">Role</Label>
+                    <Input
+                      value={entry.role}
+                      onChange={(e) => updateExperienceEntry(index, { role: e.target.value })}
+                      placeholder="e.g. Mathematics Teacher"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm">Start date</Label>
+                    <Input
+                      type="date"
+                      value={entry.startDate}
+                      onChange={(e) => updateExperienceEntry(index, { startDate: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm">End date</Label>
+                    <Input
+                      type="date"
+                      value={entry.endDate}
+                      disabled={entry.currentlyWorkHere}
+                      onChange={(e) => updateExperienceEntry(index, { endDate: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <label className="flex items-center space-x-2 text-sm">
+                  <Checkbox
+                    checked={entry.currentlyWorkHere}
+                    onCheckedChange={() =>
+                      updateExperienceEntry(index, {
+                        currentlyWorkHere: !entry.currentlyWorkHere,
+                        endDate: !entry.currentlyWorkHere ? "" : entry.endDate,
+                      })
+                    }
+                  />
+                  <span>I currently work here</span>
+                </label>
+                <div className="space-y-2">
+                  <Label className="text-sm">Description</Label>
+                  <Textarea
+                    value={entry.description}
+                    onChange={(e) => updateExperienceEntry(index, { description: e.target.value })}
+                    placeholder="Brief summary of your responsibilities/achievements in this role..."
+                  />
+                </div>
+              </Card>
+            ))}
+            <Button type="button" variant="outline" onClick={addExperienceEntry}>
+              Add another
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
@@ -410,7 +659,7 @@ export default function TutorProfileDetailsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Location</CardTitle>
+          <CardTitle>Personal Information</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
@@ -421,6 +670,10 @@ export default function TutorProfileDetailsPage() {
               onChange={setCountryOfResidence}
               placeholder="Select country"
             />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="dateOfBirth">Date of birth</Label>
+            <Input id="dateOfBirth" type="date" value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} />
           </div>
         </CardContent>
       </Card>
@@ -583,6 +836,9 @@ export default function TutorProfileDetailsPage() {
           <MyApplicationRecord />
         </CardContent>
       </Card>
+
+      <ChangePasswordForm />
+      <NotificationPreferencesForm />
     </div>
   );
 }

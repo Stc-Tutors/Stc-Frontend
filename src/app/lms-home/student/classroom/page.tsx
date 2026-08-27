@@ -10,10 +10,10 @@ import { GetResourcesByCourseAction, InitiateResourceUnlockAction } from "@/serv
 import { VerifyPaymentAction } from "@/server/payment";
 import { Course, CourseTutor } from "@/types/course";
 import { Lesson, LessonStatus } from "@/types/lesson";
-import { CourseResource, ResourceAccessTier } from "@/types/resource";
+import { CourseResource } from "@/types/resource";
 import SecureVideoPlayer from "@/components/classroom/SecureVideoPlayer";
 import JoinClassLink from "@/components/classroom/JoinClassLink";
-import ResourceCard from "@/components/studentDashboard/ResourceCard";
+import ResourcesTabs from "@/components/resources/ResourcesTabs";
 import { ToastError, ToastSuccess } from "@/components/ui/custom/toast";
 
 export default function ClassroomPage() {
@@ -253,31 +253,18 @@ export default function ClassroomPage() {
             </div>
 
             {/**************** RESOURCES ****************/}
-            {resources.length > 0 && (
-              <div className="mt-8">
-                <h3 className="text-lg font-medium text-gray-700 mb-2">Resources</h3>
-                <div className="bg-white rounded-lg shadow-md px-4">
-                  {resources.map((r) => {
-                    const isLocked = r.accessTier === ResourceAccessTier.PAID && !r.fileUrl;
-                    return (
-                      <ResourceCard
-                        key={r.id}
-                        title={r.title}
-                        type="Document"
-                        added={new Date(r.createdAt).toLocaleDateString()}
-                        size=""
-                        href={r.fileUrl}
-                        locked={
-                          isLocked
-                            ? { price: r.price ?? 0, currency: r.currency ?? "NGN", onUnlock: () => handleUnlockResource(r) }
-                            : undefined
-                        }
-                      />
-                    );
-                  })}
-                </div>
-              </div>
-            )}
+            <div className="mt-8">
+              <h3 className="text-lg font-medium text-gray-700 mb-2">Resources</h3>
+              <ResourcesTabs
+                resources={resources}
+                recordings={lessons
+                  .filter((l) => l.recordingUrl)
+                  .map((l) => ({ id: l.id, title: l.title, date: String(l.scheduledDate), url: l.recordingUrl! }))}
+                onSelectRecording={(item) => setSelectedLessonId(item.id)}
+                onUnlock={handleUnlockResource}
+                emptyMessage="No resources yet for this course."
+              />
+            </div>
           </>
         )}
       </div>

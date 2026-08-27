@@ -13,6 +13,7 @@ import { ToastError, ToastSuccess } from "@/components/ui/custom/toast";
 import { GetUserAction, UpdateUserAction } from "@/server/user";
 import { User } from "@/types/user";
 import ChangePasswordForm from "./ChangePasswordForm";
+import NotificationPreferencesForm from "./NotificationPreferencesForm";
 
 const formSchema = z.object({
   firstName: z.string().min(1, { message: "First name is required" }),
@@ -153,6 +154,7 @@ export default function ProfileForm() {
     </section>
 
     <ChangePasswordForm />
+    <NotificationPreferencesForm />
     </div>
   );
 }

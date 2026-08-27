@@ -19,7 +19,8 @@ import {
   Users,
   MapPin,
   Languages,
-  AlertTriangle
+  AlertTriangle,
+  Pencil
 } from "lucide-react"
 import { type Student, EnrollmentStatus } from "@/types/student"
 import { GetEnrollmentAction } from "@/server/enrollment"
@@ -180,6 +181,10 @@ export default function EnrollmentDetail({ basePath }: EnrollmentDetailProps) {
                 </div>
               </div>
             </div>
+            <Button variant="outline" onClick={() => router.push(`${basePath}/${enrollmentId}/edit`)}>
+              <Pencil className="w-4 h-4 mr-2" />
+              Edit Details
+            </Button>
           </div>
         </div>
 

@@ -33,7 +33,7 @@ import { Lesson, LessonStatus } from "@/types/lesson";
 import { Assignment, AssignmentStatus } from "@/types/assignment";
 import { CourseEnrollment } from "@/types/course-enrollment";
 import { CourseRatingSummary } from "@/types/session-feedback";
-import { CourseResource } from "@/types/resource";
+import { CourseResource, ResourceType } from "@/types/resource";
 
 export default function TutorCourseDetailPage() {
   const { id } = useParams();
@@ -58,6 +58,7 @@ export default function TutorCourseDetailPage() {
 
   const [resourceTitle, setResourceTitle] = useState("");
   const [resourceUrl, setResourceUrl] = useState("");
+  const [resourceType, setResourceType] = useState<ResourceType>(ResourceType.DOCUMENT);
   const [isUploadingResource, setIsUploadingResource] = useState(false);
 
   const load = async () => {
@@ -117,11 +118,17 @@ export default function TutorCourseDetailPage() {
       return;
     }
     setIsUploadingResource(true);
-    const [, error] = await UploadResourceAction({ title: resourceTitle, fileUrl: resourceUrl, course: courseId });
+    const [, error] = await UploadResourceAction({
+      title: resourceTitle,
+      fileUrl: resourceUrl,
+      course: courseId,
+      type: resourceType,
+    });
     setIsUploadingResource(false);
     setMessage(error || "Resource submitted for admin approval");
     setResourceTitle("");
     setResourceUrl("");
+    setResourceType(ResourceType.DOCUMENT);
     load();
   };
 
@@ -377,6 +384,15 @@ export default function TutorCourseDetailPage() {
         <div className="flex gap-2">
           <Input placeholder="Resource title (e.g. Formula Sheet)" value={resourceTitle} onChange={(e) => setResourceTitle(e.target.value)} />
           <Input placeholder="File URL" value={resourceUrl} onChange={(e) => setResourceUrl(e.target.value)} />
+          <select
+            value={resourceType}
+            onChange={(e) => setResourceType(e.target.value as ResourceType)}
+            className="border border-gray-300 rounded-md px-2 text-sm"
+          >
+            <option value={ResourceType.DOCUMENT}>Document</option>
+            <option value={ResourceType.VIDEO}>Video</option>
+            <option value={ResourceType.AUDIO}>Audio</option>
+          </select>
           <Button size="sm" onClick={handleUploadResource} disabled={isUploadingResource}>
             <Upload className="w-4 h-4 mr-1" /> {isUploadingResource ? "Uploading..." : "Upload"}
           </Button>

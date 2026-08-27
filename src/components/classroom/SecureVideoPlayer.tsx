@@ -2,6 +2,7 @@
 
 import { ShieldAlert } from "lucide-react";
 import { useEffect, useRef } from "react";
+import { extractDriveFileId } from "@/lib/drive-embed";
 
 interface SecureVideoPlayerProps {
   url: string;
@@ -19,14 +20,6 @@ function blockedKey(e: KeyboardEvent) {
     e.preventDefault();
     e.stopPropagation();
   }
-}
-
-function extractDriveFileId(url: string): string | null {
-  const fileMatch = url.match(/drive\.google\.com\/file\/d\/([^/?#]+)/);
-  if (fileMatch) return fileMatch[1];
-  const idParamMatch = url.match(/[?&]id=([^&#]+)/);
-  if (idParamMatch) return idParamMatch[1];
-  return null;
 }
 
 export default function SecureVideoPlayer({ url }: SecureVideoPlayerProps) {

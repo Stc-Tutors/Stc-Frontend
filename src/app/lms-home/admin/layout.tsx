@@ -65,7 +65,10 @@ const sidebarLinks: {
   href: string;
   badge?: boolean;
   permission?: AdminPermission;
-  hodPermission?: HodPermission;
+  // A single permission, or several treated as OR (any one is enough) - e.g.
+  // My Tutors mirrors HodAuthorizationService.getVisibleTutorIds, which
+  // resolves off either MANAGE_COURSES or VIEW_REPORTS courses.
+  hodPermission?: HodPermission | HodPermission[];
   hodOnly?: boolean;
   superOrAlmightyOnly?: boolean;
 }[] = [
@@ -87,6 +90,15 @@ const sidebarLinks: {
     icon: ArrowLeftRight,
     href: "/lms-home/admin/hod-unassigned-queue",
     hodPermission: HodPermission.MANAGE_UNASSIGNED_QUEUE,
+  },
+  {
+    // Distinct from the "My Tutors" entry below (an assigned admin's own
+    // AdminAssignment-scoped cluster) - this one is HOD-scope-scoped and
+    // reachable by a role (e.g. a plain Tutor) that entry is never shown to.
+    label: "My Tutors (HOD Scope)",
+    icon: UsersRound,
+    href: "/lms-home/admin/hod-tutors",
+    hodPermission: [HodPermission.MANAGE_COURSES, HodPermission.VIEW_REPORTS],
   },
   { label: "Video Courses", icon: BookOpen, href: "/lms-home/admin/video-courses", permission: AdminPermission.APPROVE_RESOURCES },
   {
@@ -224,7 +236,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (link.hodOnly) return !!hodAssignment;
     const grants: boolean[] = [];
     if (link.permission) grants.push(hasPermission(link.permission));
-    if (link.hodPermission) grants.push(hasHodPermission(link.hodPermission));
+    if (link.hodPermission) {
+      const hodPerms = Array.isArray(link.hodPermission) ? link.hodPermission : [link.hodPermission];
+      grants.push(hodPerms.some(hasHodPermission));
+    }
     return grants.length === 0 || grants.some(Boolean);
   };
 

@@ -6,6 +6,7 @@ import {
   MaxWeeklyHoursBand,
   PayoutMethod,
   TeachingCycle,
+  TeachingExperienceEntry,
   TutorClassFormat,
 } from "./tutor-application";
 
@@ -63,6 +64,13 @@ export interface TutorProfile {
   yearsOfExperience?: number;
   qualifications?: string;
   education: TutorEducationEntry[];
+  // Structured Step 3 fields from TutorApplication - pre-filled at approval
+  // alongside qualifications/yearsOfExperience above, editable afterward.
+  highestQualification?: string;
+  otherQualificationsHeld?: string[];
+  previousPlatforms?: string;
+  yearsOnlineTutoringExperience?: number;
+  teachingExperienceHistory?: TeachingExperienceEntry[];
   // Prefilled from TutorApplication at approval, editable afterward - shown
   // on the public profile alongside qualifications/experience (2026-08-21
   // visibility decision).
@@ -70,6 +78,7 @@ export interface TutorProfile {
   otherCertifications?: string[];
   // Tutor-facing only - never shown on the public profile parents/students see.
   countryOfResidence?: string;
+  dateOfBirth?: string;
   govIdFile?: UploadedFile;
   cvFile?: UploadedFile;
   supportingDocumentsFile?: UploadedFile;
