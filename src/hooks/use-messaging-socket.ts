@@ -43,8 +43,20 @@ export function useMessagingSocket({ onMessageNew, onMessageDelivered, onMessage
       socketRef.current = socket;
 
       socket.on("connect", () => setIsConnected(true));
+      if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
+        Notification.requestPermission();
+      }
       socket.on("disconnect", () => setIsConnected(false));
-      socket.on("message:new", (message: Message) => handlersRef.current.onMessageNew?.(message));
+      socket.on("message:new", (message: Message) => {
+        handlersRef.current.onMessageNew?.(message);
+        // Desktop app (Electron BrowserView) and any regular browser tab
+        // both get this for free via the standard web Notification API -
+        // only fires while the page/tab isn't focused, so it doesn't nag
+        // someone already looking at the conversation.
+        if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted" && document.hidden) {
+          new Notification("New message", { body: message.body.slice(0, 120) });
+        }
+      });
       socket.on("message:delivered", (payload: { conversationId: string; userId: string }) =>
         handlersRef.current.onMessageDelivered?.(payload)
       );

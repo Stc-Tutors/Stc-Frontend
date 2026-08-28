@@ -4,6 +4,7 @@ import { Toaster } from "sonner";
 import { UserProvider } from "@/contexts/user-context";
 import { TenantBrandingProvider } from "@/contexts/tenant-branding-context";
 import TermsGateModal from "@/components/terms-gate-modal";
+import PushNotificationRegistrar from "@/components/push-notification-registrar";
 
 
 export const metadata = {
@@ -20,6 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             {children}
             {/* Mandatory for every role, on top of any page - see TermsGateModal. */}
             <TermsGateModal />
+            <PushNotificationRegistrar />
             <Toaster position="top-right" />
           </body>
         </UserProvider>
