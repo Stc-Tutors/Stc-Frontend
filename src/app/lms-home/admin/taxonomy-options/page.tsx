@@ -229,6 +229,7 @@ export default function TaxonomyOptionsPage() {
         ) : options.length === 0 ? (
           <p className="text-sm text-gray-500 p-6">No {TAXONOMY_OPTION_KIND_LABELS[kind].toLowerCase()} options yet.</p>
         ) : (
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 text-gray-500 text-left">
               <tr>
@@ -262,6 +263,7 @@ export default function TaxonomyOptionsPage() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>

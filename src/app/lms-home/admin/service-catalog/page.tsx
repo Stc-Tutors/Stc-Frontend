@@ -373,6 +373,7 @@ export default function ServiceCatalogPage() {
         ) : services.length === 0 ? (
           <p className="text-sm text-gray-500 p-6">No services yet. Add one to get started.</p>
         ) : (
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 text-gray-500 text-left">
               <tr>
@@ -426,6 +427,7 @@ export default function ServiceCatalogPage() {
               })}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>

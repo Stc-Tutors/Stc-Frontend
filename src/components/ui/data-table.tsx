@@ -35,6 +35,7 @@ export function DataTable<T>({
 }) {
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+      <div className="overflow-x-auto">
       <Table>
         <TableHeader>
           <TableRow>
@@ -75,6 +76,7 @@ export function DataTable<T>({
           )}
         </TableBody>
       </Table>
+      </div>
 
       {page !== undefined && totalPages !== undefined && totalPages > 1 && onPageChange && (
         <div className="flex items-center justify-between border-t border-gray-200 px-4 py-3">

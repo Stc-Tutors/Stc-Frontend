@@ -78,6 +78,7 @@ export default function HodTutorsPage() {
         ) : tutors.length === 0 ? (
           <p className="text-sm text-gray-500 p-6">No tutors in your scope yet.</p>
         ) : (
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 text-gray-500 text-left">
               <tr>
@@ -96,6 +97,7 @@ export default function HodTutorsPage() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>

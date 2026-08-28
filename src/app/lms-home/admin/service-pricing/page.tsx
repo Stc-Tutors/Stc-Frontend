@@ -301,6 +301,7 @@ export default function ServicePricingPage() {
         ) : pricing.length === 0 ? (
           <p className="text-sm text-gray-500 p-6">No pricing rows yet.</p>
         ) : (
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 text-gray-500 text-left">
               <tr>
@@ -364,6 +365,7 @@ export default function ServicePricingPage() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>

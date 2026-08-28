@@ -311,6 +311,7 @@ export function CustomFormFieldManager({ serviceType, hideHeading }: { serviceTy
             ) : (fieldsByStage.get(stage) ?? []).length === 0 ? (
               <p className="text-sm text-gray-500 p-4">No custom fields for this stage yet.</p>
             ) : (
+              <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 text-gray-500 text-left">
                   <tr>
@@ -356,6 +357,7 @@ export function CustomFormFieldManager({ serviceType, hideHeading }: { serviceTy
                   ))}
                 </tbody>
               </table>
+              </div>
             )}
           </div>
         </div>

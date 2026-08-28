@@ -284,6 +284,7 @@ export function ClassGroupManager({ serviceType, hideHeading }: { serviceType?: 
         ) : groups.length === 0 ? (
           <p className="text-sm text-gray-500 p-6">No class groups yet.</p>
         ) : (
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 text-gray-500 text-left">
               <tr>
@@ -323,6 +324,7 @@ export function ClassGroupManager({ serviceType, hideHeading }: { serviceType?: 
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>
