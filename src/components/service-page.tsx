@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { GetServicePageBySlugAction } from "@/server/content";
 import { ServiceContent } from "@/types/content";
+import { sanitizeRichText } from "@/lib/sanitize-html";
 
 // Hero/closing CTA, swapped in when `content.ctaHref` is set - for
 // sales-motion services (e.g. B2B) where RegisterCTA's individual-student
@@ -148,11 +149,20 @@ export default function ServicePage({
       {content.overview && (
         <section className="mb-12 max-w-3xl mx-auto">
           <h2 className="text-2xl font-semibold mb-4">Overview</h2>
-          {content.overview.split("\n\n").map((p, i) => (
-            <p key={i} className="mb-2 text-gray-700">
-              {p}
-            </p>
-          ))}
+          {/* Overview used to be plain text with blank-line-separated
+              paragraphs; it's now rich HTML from the admin's formatting
+              editor. Sniffing for a tag keeps pre-existing plain-text
+              overviews rendering with their old paragraph spacing instead of
+              collapsing into one line, without needing a data migration. */}
+          {/<[a-z][\s\S]*>/i.test(content.overview) ? (
+            <div className="text-gray-700 space-y-2" dangerouslySetInnerHTML={{ __html: sanitizeRichText(content.overview) }} />
+          ) : (
+            content.overview.split("\n\n").map((p, i) => (
+              <p key={i} className="mb-2 text-gray-700">
+                {p}
+              </p>
+            ))
+          )}
         </section>
       )}
 
@@ -216,7 +226,7 @@ export default function ServicePage({
             {content.benefits.map((b, i) => (
               <div key={i}>
                 <h3 className="text-xl font-semibold mb-2">{b.title}</h3>
-                <p>{b.description}</p>
+                <p dangerouslySetInnerHTML={{ __html: sanitizeRichText(b.description) }} />
               </div>
             ))}
           </div>
@@ -265,7 +275,7 @@ export default function ServicePage({
           <ol className="list-decimal list-inside space-y-2">
             {content.howItWorks.map((s, i) => (
               <li key={i}>
-                <strong>{s.step}:</strong> {s.description}
+                <strong>{s.step}:</strong> <span dangerouslySetInnerHTML={{ __html: sanitizeRichText(s.description) }} />
               </li>
             ))}
           </ol>

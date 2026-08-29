@@ -1,6 +1,7 @@
 "use client";
 import { usePageSection } from "@/hooks/use-page-section";
 import { AboutHeadlineContent, PageSectionKey } from "@/types/content";
+import { sanitizeRichText } from "@/lib/sanitize-html";
 
 const DEFAULT_HEADLINE: AboutHeadlineContent = {
   title: "About STC Tutors - Shaping Tomorrow's Champion",
@@ -21,9 +22,7 @@ const Headline = () => {
         <div>
           <h2 className="text-4xl font-bold text-gray-900 mb-4">{content.title}</h2>
           {content.paragraphs.map((p, i) => (
-            <p key={i} className="mt-6 text-gray-700 leading-relaxed">
-              {p}
-            </p>
+            <p key={i} className="mt-6 text-gray-700 leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeRichText(p) }} />
           ))}
         </div>
       </div>

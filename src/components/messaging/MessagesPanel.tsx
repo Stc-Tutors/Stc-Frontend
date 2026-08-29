@@ -83,6 +83,15 @@ export default function MessagesPanel({ initialConversationId }: { initialConver
       const now = new Date().toISOString();
       setMessages((prev) => prev.map((m) => ({ ...m, readReceipts: { ...m.readReceipts, [userId]: now } })));
     },
+    // Android backgrounds the WebView and drops the socket, so a reconnect
+    // (e.g. app resumed from the background) may have missed events -
+    // refetch whatever's on screen to close that gap.
+    onReconnect: () => {
+      loadContacts();
+      if (conversationIdRef.current) {
+        GetMessagesAction(conversationIdRef.current).then(([res]) => setMessages(res?.data ?? []));
+      }
+    },
   });
 
   const loadContacts = async () => {

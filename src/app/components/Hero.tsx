@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { usePageSection } from "@/hooks/use-page-section";
 import { HeroContent, PageSectionKey } from "@/types/content";
+import { sanitizeRichText } from "@/lib/sanitize-html";
 
 const DEFAULT_HERO: HeroContent = {
   headline: "Empowering",
@@ -103,7 +104,7 @@ const Hero = () => {
           {content.highlightText && <span className="highlight">{content.highlightText}</span>}{" "}
           {content.headlineSuffix}
         </motion.h1>
-        <motion.p variants={itemVariants}>{content.body}</motion.p>
+        <motion.p variants={itemVariants} dangerouslySetInnerHTML={{ __html: sanitizeRichText(content.body) }} />
         <motion.div
           className="buttons"
           variants={itemVariants}

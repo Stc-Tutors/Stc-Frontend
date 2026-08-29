@@ -7,8 +7,8 @@ import { usePageSection } from "@/hooks/use-page-section";
 import { ContactInfoContent, PageSectionKey } from "@/types/content";
 
 const DEFAULT_CONTACT: ContactInfoContent = {
-  phone: "+234 706 055 4954",
-  email: "stc.consult24@gmail.com",
+  phones: ["+234 706 055 4954"],
+  emails: ["stc.consult24@gmail.com"],
   socialLinks: [
     { platform: "WhatsApp", url: "https://wa.me/2347089118528" },
     { platform: "Instagram", url: "https://instagram.com/stc.consult01" },
@@ -93,14 +93,18 @@ const Contact = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <div className="flex items-center gap-4">
-              <Phone className="text-[#38b6ff]" />
-              <span className="text-gray-700">{content.phone}</span>
-            </div>
-            <div className="flex items-center gap-4">
-              <Mail className="text-[#38b6ff]" />
-              <span className="text-gray-700">{content.email}</span>
-            </div>
+            {content.phones.map((phone) => (
+              <div key={phone} className="flex items-center gap-4">
+                <Phone className="text-[#38b6ff]" />
+                <span className="text-gray-700">{phone}</span>
+              </div>
+            ))}
+            {content.emails.map((email) => (
+              <div key={email} className="flex items-center gap-4">
+                <Mail className="text-[#38b6ff]" />
+                <span className="text-gray-700">{email}</span>
+              </div>
+            ))}
             {content.address && (
               <div className="flex items-center gap-4">
                 <MapPin className="text-[#38b6ff]" />

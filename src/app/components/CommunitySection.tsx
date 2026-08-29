@@ -4,6 +4,7 @@ import Image from 'next/image';
 import './CommunitySection.css';
 import { usePageSection } from '@/hooks/use-page-section';
 import { CommunityContent, PageSectionKey } from '@/types/content';
+import { sanitizeRichText } from '@/lib/sanitize-html';
 
 const DEFAULT_COMMUNITY: CommunityContent = {
   eyebrow: "Be part of a dynamic learning community",
@@ -38,7 +39,7 @@ const CommunitySection = () => {
               {content.title}<br />
               {content.highlightText && <span className="highlight">{content.highlightText}</span>}
             </h2>
-            <p className="description">{content.description}</p>
+            <p className="description" dangerouslySetInnerHTML={{ __html: sanitizeRichText(content.description) }} />
             <motion.button
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.98 }}

@@ -1,6 +1,7 @@
 "use client";
 import { usePageSection } from "@/hooks/use-page-section";
 import { AboutMissionContent, PageSectionKey } from "@/types/content";
+import { sanitizeRichText } from "@/lib/sanitize-html";
 
 const DEFAULT_MISSION: AboutMissionContent = {
   missionTitle: "We bridge the gap between students and educators",
@@ -21,13 +22,13 @@ const MissionVision = () => {
           <div className="bg-white p-8 rounded-lg shadow-md">
             <h3 className="text-lg font-semibold text-orange-600">Our Mission</h3>
             <h2 className="text-2xl font-bold text-gray-900 mt-2">{content.missionTitle}</h2>
-            <p className="mt-4 text-gray-700">{content.missionBody}</p>
+            <p className="mt-4 text-gray-700" dangerouslySetInnerHTML={{ __html: sanitizeRichText(content.missionBody) }} />
           </div>
 
           <div className="bg-white p-8 rounded-lg shadow-md">
             <h3 className="text-lg font-semibold text-orange-600">Our Vision</h3>
             <h2 className="text-2xl font-bold text-gray-900 mt-2">{content.visionTitle}</h2>
-            <p className="mt-4 text-gray-700">{content.visionBody}</p>
+            <p className="mt-4 text-gray-700" dangerouslySetInnerHTML={{ __html: sanitizeRichText(content.visionBody) }} />
           </div>
         </div>
       </div>

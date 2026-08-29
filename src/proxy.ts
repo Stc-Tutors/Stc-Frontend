@@ -40,6 +40,28 @@ const ROLE_DASHBOARD: Record<UserRole, string> = {
   [UserRole.ALMIGHTY_ADMIN]: "/lms-home/admin/dashboard",
 };
 
+// role's section base, e.g. "/lms-home/student" - every ROLE_DASHBOARD entry
+// is "<section base>/dashboard", so this just strips that suffix instead of
+// hand-maintaining a second role map.
+function roleSectionBase(role: UserRole): string {
+  return ROLE_DASHBOARD[role].replace(/\/dashboard$/, "");
+}
+
+// Role-agnostic shortcuts - Stc-Mobile's native bottom nav bar links here
+// (it has no way to know the signed-in user's role, since that only lives
+// in the WebView's own JS/cookie state) and relies on this proxy to resolve
+// them to the actual role-specific page. Bare "/lms-home" used to just fall
+// through to Next's 404 (no page.tsx there) for anyone already authenticated -
+// the unauthenticated case was already covered by the isPublicPage redirect
+// below.
+const ROLE_HOME_SHORTCUTS: Record<string, (role: UserRole) => string> = {
+  "/lms-home": (role) => ROLE_DASHBOARD[role],
+  "/lms-home/": (role) => ROLE_DASHBOARD[role],
+  "/lms-home/messages": (role) => `${roleSectionBase(role)}/messages`,
+  "/lms-home/notification": (role) => `${roleSectionBase(role)}/notification`,
+  "/lms-home/profile": (role) => `${roleSectionBase(role)}/profile`,
+};
+
 const publicPaths = [
   "/",
   "/about",
@@ -84,6 +106,11 @@ export async function proxy(request: Request) {
 
   if (!isAuthPage && !isAuthenticated && !isPublicPage) {
     return Response.redirect(new URL(ROUTES.AUTH.LOGIN, request.url));
+  }
+
+  if (isAuthenticated && role) {
+    const shortcut = ROLE_HOME_SHORTCUTS[pathname];
+    if (shortcut) return Response.redirect(new URL(shortcut(role), request.url));
   }
 
   if (isAuthenticated && role && !isSuperOrAlmighty(role)) {

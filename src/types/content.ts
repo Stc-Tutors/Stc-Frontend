@@ -137,8 +137,8 @@ export interface ContactSocialLink {
 }
 
 export interface ContactInfoContent {
-  phone: string;
-  email: string;
+  phones: string[];
+  emails: string[];
   address?: string;
   hours?: string;
   socialLinks: ContactSocialLink[];

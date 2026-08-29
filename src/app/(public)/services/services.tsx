@@ -2,6 +2,7 @@
 import Image from 'next/image';
 import { usePageSection } from '@/hooks/use-page-section';
 import { PageSectionKey, ServicesIntroContent } from '@/types/content';
+import { sanitizeRichText } from '@/lib/sanitize-html';
 
 const DEFAULT_SERVICES_INTRO: ServicesIntroContent = {
   heading: "We are Your Complete Learning Solution to Education, Skills & Development",
@@ -36,7 +37,7 @@ const ServicesSection = () => {
 
           <div className="w-full md:w-1/2">
             <h2 className="text-3xl font-bold text-gray-900 mb-6">{content.heading}</h2>
-            <p className="text-lg text-gray-600 mb-8">{content.body}</p>
+            <p className="text-lg text-gray-600 mb-8" dangerouslySetInnerHTML={{ __html: sanitizeRichText(content.body) }} />
 
             <ul className="space-y-4">
               {content.features.map((service, index) => (

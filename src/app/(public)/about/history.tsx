@@ -2,6 +2,7 @@
 import Image from "next/image";
 import { usePageSection } from "@/hooks/use-page-section";
 import { AboutHistoryContent, PageSectionKey } from "@/types/content";
+import { sanitizeRichText } from "@/lib/sanitize-html";
 
 const DEFAULT_HISTORY: AboutHistoryContent = {
   heading: "History & Mission",
@@ -18,7 +19,7 @@ const History = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div>
             <h2 className="text-4xl font-bold text-gray-900">{content.heading}</h2>
-            <p className="mt-6 text-gray-700 italic leading-relaxed">{content.body}</p>
+            <p className="mt-6 text-gray-700 italic leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeRichText(content.body) }} />
           </div>
 
           <div className="relative">

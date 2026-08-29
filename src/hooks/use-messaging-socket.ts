@@ -15,20 +15,31 @@ interface UseMessagingSocketOptions {
   onMessageNew?: (message: Message) => void;
   onMessageDelivered?: (payload: { conversationId: string; userId: string }) => void;
   onMessageRead?: (payload: { conversationId: string; userId: string }) => void;
+  // Fired when the socket reconnects after having connected before (not on
+  // the initial connect) - lets callers refetch whatever they had open, in
+  // case events were missed while disconnected. Mainly matters on Android,
+  // where backgrounding the app drops the socket and messages can arrive
+  // before it reconnects.
+  onReconnect?: () => void;
 }
 
 // The JWT lives in an httpOnly cookie, unreachable from client JS - this
 // hook fetches a copy of it from the same-origin /api/socket-token route
 // (server-side, reads the cookie) purely to authenticate the socket
 // handshake. See that route's comment for why this doesn't weaken anything.
-export function useMessagingSocket({ onMessageNew, onMessageDelivered, onMessageRead }: UseMessagingSocketOptions) {
+export function useMessagingSocket({
+  onMessageNew,
+  onMessageDelivered,
+  onMessageRead,
+  onReconnect,
+}: UseMessagingSocketOptions) {
   const socketRef = useRef<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   // Callbacks are read from a ref inside the socket listeners so this
   // effect only ever runs once per mount, instead of reconnecting whenever
   // the caller passes a new inline function.
   const handlersRef = useRef<UseMessagingSocketOptions>({});
-  handlersRef.current = { onMessageNew, onMessageDelivered, onMessageRead };
+  handlersRef.current = { onMessageNew, onMessageDelivered, onMessageRead, onReconnect };
 
   useEffect(() => {
     let cancelled = false;
@@ -42,7 +53,12 @@ export function useMessagingSocket({ onMessageNew, onMessageDelivered, onMessage
       const socket = io(socketBaseUrl(), { auth: { token }, transports: ["websocket"] });
       socketRef.current = socket;
 
-      socket.on("connect", () => setIsConnected(true));
+      let hasConnectedBefore = false;
+      socket.on("connect", () => {
+        setIsConnected(true);
+        if (hasConnectedBefore) handlersRef.current.onReconnect?.();
+        hasConnectedBefore = true;
+      });
       if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
         Notification.requestPermission();
       }

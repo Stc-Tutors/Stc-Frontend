@@ -34,6 +34,16 @@ export default function PushNotificationRegistrar() {
       PushNotifications.addListener("registrationError", (err) => {
         console.error("Push registration failed", err);
       });
+      // Tapping a notification (app backgrounded or cold-started from it) -
+      // navigate straight to the conversation/page it's about instead of
+      // just resuming wherever the app was. `link` is whatever NotificationService.notify
+      // was given (see message-links.ts), a same-origin path in every case
+      // this app (locked to lms-home) can reach, so a plain location change
+      // resolves it correctly.
+      PushNotifications.addListener("pushNotificationActionPerformed", (action) => {
+        const link = action.notification.data?.link as string | undefined;
+        if (link) window.location.href = link;
+      });
 
       await PushNotifications.register();
     })();
