@@ -8,11 +8,26 @@ export function isInsideRescheduleGate(scheduledDate: string, now: number = Date
 }
 
 // Mirrors LessonService's TUTOR_RESCHEDULE_NOTICE_MS - a tutor/HOD reschedule
-// always goes tutor -> admin -> parent, and can't even be requested inside 48h.
+// always goes tutor -> admin -> parent. Inside this window a late-notice
+// surcharge applies (see RescheduleSurchargeSettings) rather than the old
+// flat block; the request is only actually refused inside the shorter hard
+// floor below.
 export const TUTOR_RESCHEDULE_NOTICE_MS = 48 * 60 * 60 * 1000;
 
+// Mirrors LessonService's TUTOR_RESCHEDULE_HARD_FLOOR_MS - below this there's
+// no realistic way to relay a reschedule to admin and get parent
+// confirmation before the lesson starts, so it's refused outright regardless
+// of surcharge.
+export const TUTOR_RESCHEDULE_HARD_FLOOR_MS = 2 * 60 * 60 * 1000;
+
+// True once a tutor reschedule request would carry a late-notice surcharge.
 export function isInsideTutorRescheduleGate(scheduledDate: string, now: number = Date.now()): boolean {
   return new Date(scheduledDate).getTime() - now < TUTOR_RESCHEDULE_NOTICE_MS;
+}
+
+// True once a tutor reschedule request is refused outright, no matter the surcharge.
+export function isInsideTutorRescheduleHardFloor(scheduledDate: string, now: number = Date.now()): boolean {
+  return new Date(scheduledDate).getTime() - now < TUTOR_RESCHEDULE_HARD_FLOOR_MS;
 }
 
 export interface AvailabilityBlock {

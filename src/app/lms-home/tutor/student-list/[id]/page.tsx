@@ -2,14 +2,31 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { Circle } from "rc-progress";
 import { FcGlobe, FcBarChart } from "react-icons/fc";
 import { IoMdContact, IoMdBook } from "react-icons/io";
 import { GiUpgrade } from "react-icons/gi";
 import { FaBirthdayCake, FaBullseye, FaHandsHelping } from "react-icons/fa";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { GetEnrollmentAction } from "@/server/enrollment";
+import { GetAcademicSummaryAction } from "@/server/admin";
 import StudentGradingPanel from "@/components/tutorDashboard/StudentGradingPanel";
-import { Student, studentAvatarUrl } from "@/types/student";
+import { AcademicSummary, Student, studentAvatarUrl } from "@/types/student";
+
+// Same ring pattern as the admin student-detail page's academic tab.
+function RingStat({ label, percent }: { label: string; percent: number }) {
+  return (
+    <div className="border rounded-lg p-4 flex flex-col items-center gap-2">
+      <div className="relative w-20 h-20">
+        <Circle percent={percent} strokeWidth={8} trailWidth={8} strokeColor="#3b82f6" trailColor="#e5e7eb" />
+        <div className="absolute inset-0 flex items-center justify-center text-sm font-bold text-gray-800">
+          {Math.round(percent)}%
+        </div>
+      </div>
+      <p className="text-xs text-gray-500 text-center">{label}</p>
+    </div>
+  );
+}
 
 function calculateAge(dateOfBirth?: Date | string): number | null {
   if (!dateOfBirth) return null;
@@ -26,17 +43,22 @@ export default function StudentProfilePage() {
   const { id } = useParams();
   const router = useRouter();
   const [student, setStudent] = useState<Student | null>(null);
+  const [summary, setSummary] = useState<AcademicSummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const load = async () => {
-      const [res, err] = await GetEnrollmentAction(id as string);
+      const [[res, err], [summaryRes]] = await Promise.all([
+        GetEnrollmentAction(id as string),
+        GetAcademicSummaryAction(id as string),
+      ]);
       if (err || !res?.data) {
         setError(err || "Student not found");
       } else {
         setStudent(res.data);
       }
+      setSummary(summaryRes?.data ?? null);
       setIsLoading(false);
     };
     load();
@@ -152,6 +174,24 @@ export default function StudentProfilePage() {
               {student.serviceDetails?.specialNeeds || student.serviceDetails?.examPreparationDetails?.specialLearningNeeds}
             </p>
           </div>
+        )}
+      </section>
+
+      <section className="bg-white mt-8 ml-8 mr-9 pl-12 pr-9 py-5">
+        <h2 className="font-bold text-xl mb-1">Academic Progress</h2>
+        <p className="text-xs text-gray-500 mb-4">
+          Attendance across all your lessons with this student, assignment completion and average grade on your
+          courses, and overall course progress.
+        </p>
+        {summary ? (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-xl">
+            <RingStat label="Attendance Record" percent={summary.attendanceRate} />
+            <RingStat label="Assignment Completion" percent={summary.assignmentCompletionRate} />
+            <RingStat label="Average Grade" percent={summary.averageGrade} />
+            <RingStat label="Course Progress" percent={summary.courseProgressRate} />
+          </div>
+        ) : (
+          <p className="text-sm text-gray-500">No academic data yet for this student.</p>
         )}
       </section>
 

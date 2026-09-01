@@ -261,7 +261,13 @@ export function TutorApplicationProvider({ children }: { children: ReactNode }) 
           accountNumber: application.accountNumber,
           accountName: application.accountName,
           wasReferred: application.wasReferred,
-          referringTutorId: application.referringTutorId,
+          // Populated to {id, firstName, lastName} for display elsewhere -
+          // this step's payload needs just the id back (resubmitted as-is
+          // if the applicant edits and re-saves Step 9).
+          referringTutorId:
+            typeof application.referringTutorId === "string"
+              ? application.referringTutorId
+              : application.referringTutorId?.id,
         },
         step10: {
           termsAccepted: application.termsAccepted,

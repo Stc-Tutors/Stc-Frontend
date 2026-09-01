@@ -59,7 +59,11 @@ export default function AdminMessagesPage() {
 function AdminMessagesPageInner() {
   const { user } = useUser();
   const initialConversationId = useSearchParams().get("conversationId");
-  const appliedInitialConversationId = useRef(false);
+  // Tracks the last conversationId this effect already applied - not just a
+  // one-shot boolean, so a second notification (a different conversation, or
+  // even the same one after navigating away and back) is re-applied instead
+  // of silently doing nothing once this page is already mounted.
+  const appliedInitialConversationId = useRef<string | null>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -110,9 +114,9 @@ function AdminMessagesPageInner() {
   // Deep-link from a notification (e.g. "New message") straight into the
   // conversation it's about, instead of leaving the admin on the bare inbox.
   useEffect(() => {
-    if (!initialConversationId || appliedInitialConversationId.current || isLoading) return;
+    if (!initialConversationId || appliedInitialConversationId.current === initialConversationId || isLoading) return;
     if (conversations.some((c) => c.id === initialConversationId)) {
-      appliedInitialConversationId.current = true;
+      appliedInitialConversationId.current = initialConversationId;
       openConversation(initialConversationId);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -130,11 +134,12 @@ function AdminMessagesPageInner() {
     const [res] = await GetMessagesAction(id);
     setMessages(res?.data ?? []);
     await MarkConversationReadAction(id);
+    setConversations((prev) => prev.map((c) => (c.id === id ? { ...c, unreadCount: 0 } : c)));
     loadConversations();
   };
 
   const handleSend = async () => {
-    if (!selectedId || !body.trim()) return;
+    if (!selectedId || !body.trim() || !canReplyToActive) return;
     const [, error] = await SendMessageAction(selectedId, body);
     if (!error) {
       setBody("");
@@ -145,6 +150,12 @@ function AdminMessagesPageInner() {
 
   const activeConversation = conversations.find((c) => c.id === selectedId);
   const activeOthers = user && activeConversation ? otherParticipants(activeConversation, user.id) : [];
+  // Defaults to false (can't reply) until the conversation's own data has
+  // loaded. In practice always true here (this page has no oversight/"show
+  // all" mode - every conversation shown is one the caller is a real
+  // participant of), kept for defensive consistency with the SuperAdmin
+  // Communications page, which does have that mode.
+  const canReplyToActive = activeConversation?.canReply ?? false;
 
   return (
     <div className="flex h-[calc(100vh-4rem)] bg-white shadow rounded-lg overflow-hidden">
@@ -163,12 +174,13 @@ function AdminMessagesPageInner() {
             conversations.map((c) => {
               const others = user ? otherParticipants(c, user.id) : [];
               const primary = others[0];
+              const hasUnread = (c.unreadCount ?? 0) > 0 && c.id !== selectedId;
               return (
                 <div
                   key={c.id}
                   onClick={() => openConversation(c.id)}
                   className={`flex items-center gap-3 p-3 cursor-pointer hover:bg-blue-50 border-b ${
-                    selectedId === c.id ? "bg-blue-100" : ""
+                    selectedId === c.id ? "bg-blue-100" : hasUnread ? "bg-blue-50/60" : ""
                   }`}
                 >
                   <div className="relative shrink-0">
@@ -178,8 +190,8 @@ function AdminMessagesPageInner() {
                     </Avatar>
                     <PresenceDot online={primary?.online} />
                   </div>
-                  <div className="min-w-0">
-                    <p className="font-medium text-sm truncate">
+                  <div className="min-w-0 flex-1">
+                    <p className={`text-sm truncate ${hasUnread ? "font-semibold text-gray-900" : "font-medium"}`}>
                       {c.isSupportThread && <span className="text-xs text-gray-500">Support · </span>}
                       {others.length > 0 ? (
                         others.map((o, i) => (
@@ -194,6 +206,11 @@ function AdminMessagesPageInner() {
                     </p>
                     <p className="text-xs text-gray-500">{new Date(c.lastMessageAt).toLocaleString()}</p>
                   </div>
+                  {hasUnread && (
+                    <span className="shrink-0 bg-red-500 text-white text-[10px] rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                      {c.unreadCount! > 9 ? "9+" : c.unreadCount}
+                    </span>
+                  )}
                 </div>
               );
             })
@@ -231,15 +248,25 @@ function AdminMessagesPageInner() {
                 );
               })}
             </div>
+            {!canReplyToActive && (
+              <p className="text-xs text-amber-700 bg-amber-50 rounded-md px-3 py-2 mb-2">
+                You&apos;re viewing this conversation for monitoring - only its actual participants can reply.
+              </p>
+            )}
             <div className="flex gap-2">
               <input
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSend()}
+                disabled={!canReplyToActive}
                 placeholder="Reply..."
-                className="flex-1 border rounded-md px-3 py-2 text-sm"
+                className="flex-1 border rounded-md px-3 py-2 text-sm disabled:bg-gray-50 disabled:text-gray-400"
               />
-              <button onClick={handleSend} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm">
+              <button
+                onClick={handleSend}
+                disabled={!canReplyToActive}
+                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm disabled:opacity-50 disabled:pointer-events-none"
+              >
                 Send
               </button>
             </div>

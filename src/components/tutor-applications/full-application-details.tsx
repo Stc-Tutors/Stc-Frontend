@@ -52,6 +52,31 @@ export default function FullApplicationDetails({ app }: { app: TutorApplication 
         );
       })}
 
+      {(app.reference1Response || app.reference2Response) && (
+        <Section title="Reference Responses">
+          {app.reference1Response && (
+            <>
+              <Field label="Reference 1 - how they know applicant" value={app.reference1Response.howTheyKnowApplicant} />
+              <Field label="Reference 1 - teaching ability" value={app.reference1Response.teachingAbility} />
+              <Field label="Reference 1 - reliability" value={app.reference1Response.reliability} />
+              {app.reference1Response.additionalComments && (
+                <Field label="Reference 1 - additional comments" value={app.reference1Response.additionalComments} />
+              )}
+            </>
+          )}
+          {app.reference2Response && (
+            <>
+              <Field label="Reference 2 - how they know applicant" value={app.reference2Response.howTheyKnowApplicant} />
+              <Field label="Reference 2 - teaching ability" value={app.reference2Response.teachingAbility} />
+              <Field label="Reference 2 - reliability" value={app.reference2Response.reliability} />
+              {app.reference2Response.additionalComments && (
+                <Field label="Reference 2 - additional comments" value={app.reference2Response.additionalComments} />
+              )}
+            </>
+          )}
+        </Section>
+      )}
+
       {app.vettingQuestionnaire && (
         <Section title="Vetting Questionnaire">
           <Field label="Independent Contractor acknowledged" value={yesNo(app.vettingQuestionnaire.independentContractorAccepted)} />

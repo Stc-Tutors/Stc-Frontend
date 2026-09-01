@@ -1,7 +1,7 @@
 "use server";
 
 import fetchAPI, { type ApiResponse } from "@/lib/fetch";
-import { CreatePaymentPayload, Payment, PaymentRequest } from "@/types/payment";
+import { CreatePaymentPayload, Payment, PaymentRequest, SpendingSummary } from "@/types/payment";
 
 export async function InitiatePaymentAction(
   data: CreatePaymentPayload
@@ -36,6 +36,16 @@ export async function GetPaymentsAction(): Promise<[ApiResponse<Payment[]> | nul
 
 const resData = res ? ((await res.json()) as ApiResponse<Payment[]>) : null;
 return [resData, error];
+}
+
+export async function GetMySpendingSummaryAction(): Promise<[ApiResponse<SpendingSummary> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: "/payments/mine/summary",
+    request: { method: "GET", headers: { "Content-Type": "application/json" } },
+  });
+
+  const resData = res ? ((await res.json()) as ApiResponse<SpendingSummary>) : null;
+  return [resData, error];
 }
 
 // Best-effort, client-triggered fallback for when Paystack's webhook hasn't

@@ -6,11 +6,11 @@ import { useRouter } from "next/navigation";
 import JoinClassLink from "@/components/classroom/JoinClassLink";
 import TutorsCard from "@/components/tutorDashboard/TutorsCard";
 import { GetMyCoursesAction } from "@/server/course";
-import { GetCourseLessonsAction, RescheduleLessonAction, CancelLessonAction } from "@/server/lesson";
+import { GetCourseLessonsAction, GetRescheduleSurchargeSettingsAction, RescheduleLessonAction } from "@/server/lesson";
 import { Course } from "@/types/course";
-import { Lesson, LessonStatus } from "@/types/lesson";
+import { Lesson, LessonStatus, RescheduleSurchargeSettings, RescheduleSurchargeType } from "@/types/lesson";
 import { formatScheduleDateTime } from "@/lib/datetime";
-import { isInsideRescheduleGate, isInsideTutorRescheduleGate } from "@/lib/schedule-gate";
+import { isInsideTutorRescheduleGate, isInsideTutorRescheduleHardFloor } from "@/lib/schedule-gate";
 
 interface Row {
   lesson: Lesson;
@@ -24,8 +24,7 @@ export default function TutorSchedulePage() {
   const [rescheduleLessonId, setRescheduleLessonId] = useState<string | null>(null);
   const [newDate, setNewDate] = useState("");
   const [rescheduleReason, setRescheduleReason] = useState("");
-  const [cancelLessonId, setCancelLessonId] = useState<string | null>(null);
-  const [cancelReason, setCancelReason] = useState("");
+  const [surchargeSettings, setSurchargeSettings] = useState<RescheduleSurchargeSettings | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
   const load = async () => {
@@ -46,6 +45,7 @@ export default function TutorSchedulePage() {
 
   useEffect(() => {
     load();
+    GetRescheduleSurchargeSettingsAction().then(([res]) => setSurchargeSettings(res?.data ?? null));
   }, []);
 
   const handleBack = () => {
@@ -57,11 +57,15 @@ export default function TutorSchedulePage() {
       setMessage("Pick a new date and time first");
       return;
     }
-    if (isInsideTutorRescheduleGate(scheduledDate)) {
-      setMessage("Reschedule requests must be made at least 48 hours before the class");
+    if (!rescheduleReason.trim()) {
+      setMessage("A reason is required - it's what the admin/parent use to decide whether to grant it");
       return;
     }
-    const [, error] = await RescheduleLessonAction(lessonId, new Date(newDate).toISOString(), rescheduleReason || undefined);
+    if (isInsideTutorRescheduleHardFloor(scheduledDate)) {
+      setMessage("Reschedule requests can't be made inside 2 hours of the class");
+      return;
+    }
+    const [, error] = await RescheduleLessonAction(lessonId, new Date(newDate).toISOString(), rescheduleReason);
     setMessage(error || "Reschedule request sent to admin - the parent will need to confirm the new time");
     if (!error) {
       setRescheduleLessonId(null);
@@ -71,22 +75,10 @@ export default function TutorSchedulePage() {
     }
   };
 
-  const handleCancel = async (lessonId: string, scheduledDate: string) => {
-    if (isInsideRescheduleGate(scheduledDate) && !cancelReason.trim()) {
-      setMessage("A reason is required to cancel inside 24 hours of the class");
-      return;
-    }
-    const [res, error] = await CancelLessonAction(lessonId, cancelReason || undefined);
-    setMessage(
-      error ||
-        (res?.data?.applied ? "Lesson cancelled" : "Cancellation sent for admin review (inside 24 hours)")
-    );
-    if (!error) {
-      setCancelLessonId(null);
-      setCancelReason("");
-      load();
-    }
-  };
+  const surchargePreview = (settings: RescheduleSurchargeSettings) =>
+    settings.type === RescheduleSurchargeType.FLAT
+      ? `${settings.flatAmount} ${settings.currency} late-notice surcharge`
+      : `${settings.percentage}% late-notice surcharge`;
 
   return (
     <div className="space-y-6">
@@ -106,6 +98,10 @@ export default function TutorSchedulePage() {
 
       <div className="bg-white p-4 rounded-lg shadow-sm">
         <h3 className="font-semibold text-gray-800 mb-4">Your Lessons</h3>
+        <p className="text-xs text-gray-500 mb-3">
+          You can only request a reschedule here - a class can't be cancelled by the tutor directly. Contact an
+          admin if you truly can't teach it.
+        </p>
         {message && <p className="text-sm text-blue-600 mb-3">{message}</p>}
 
         {isLoading ? (
@@ -147,7 +143,7 @@ export default function TutorSchedulePage() {
                         </span>
                       </td>
                       <td className="py-3 space-x-3">
-                        {lesson.meetingUrl && lesson.status === LessonStatus.SCHEDULED && (
+                        {lesson.status === LessonStatus.SCHEDULED && (
                           <JoinClassLink
                             lessonId={lesson.id}
                             scheduledDate={lesson.scheduledDate}
@@ -163,26 +159,12 @@ export default function TutorSchedulePage() {
                           View Course
                         </button>
                         {lesson.status === LessonStatus.SCHEDULED && (
-                          <>
-                            <button
-                              className="text-gray-600 hover:underline"
-                              onClick={() => {
-                                setCancelLessonId(null);
-                                setRescheduleLessonId(rescheduleLessonId === lesson.id ? null : lesson.id);
-                              }}
-                            >
-                              Reschedule
-                            </button>
-                            <button
-                              className="text-red-600 hover:underline"
-                              onClick={() => {
-                                setRescheduleLessonId(null);
-                                setCancelLessonId(cancelLessonId === lesson.id ? null : lesson.id);
-                              }}
-                            >
-                              Cancel
-                            </button>
-                          </>
+                          <button
+                            className="text-gray-600 hover:underline"
+                            onClick={() => setRescheduleLessonId(rescheduleLessonId === lesson.id ? null : lesson.id)}
+                          >
+                            Reschedule
+                          </button>
                         )}
                       </td>
                     </tr>
@@ -198,55 +180,33 @@ export default function TutorSchedulePage() {
                             />
                             <input
                               type="text"
-                              placeholder="Note for admin/parent (optional)"
+                              placeholder="Reason (required)"
                               value={rescheduleReason}
                               onChange={(e) => setRescheduleReason(e.target.value)}
                               className="border rounded-md px-2 py-1 text-sm flex-1 min-w-[12rem]"
-                              disabled={isInsideTutorRescheduleGate(lesson.scheduledDate)}
+                              disabled={isInsideTutorRescheduleHardFloor(lesson.scheduledDate)}
                             />
                             <button
                               onClick={() => handleReschedule(lesson.id, lesson.scheduledDate)}
-                              disabled={isInsideTutorRescheduleGate(lesson.scheduledDate)}
+                              disabled={isInsideTutorRescheduleHardFloor(lesson.scheduledDate) || !rescheduleReason.trim()}
                               className="bg-blue-600 text-white rounded-md px-3 py-1.5 text-xs hover:bg-blue-700 disabled:opacity-50"
                             >
                               Request reschedule
                             </button>
                           </div>
                           <p className="text-xs text-gray-500 mt-1">
-                            {isInsideTutorRescheduleGate(lesson.scheduledDate)
-                              ? "This class starts within 48 hours - reschedule requests can't be made this close to the class."
+                            {isInsideTutorRescheduleHardFloor(lesson.scheduledDate)
+                              ? "This class starts within 2 hours - reschedule requests can't be made this close to the class."
                               : "Sent to admin for review, then to the parent to confirm - it only applies once the parent agrees."}
                           </p>
-                        </td>
-                      </tr>
-                    )}
-                    {cancelLessonId === lesson.id && (
-                      <tr className="border-b bg-gray-50">
-                        <td colSpan={5} className="py-3 px-2">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <input
-                              type="text"
-                              placeholder={
-                                isInsideRescheduleGate(lesson.scheduledDate)
-                                  ? "Reason (required - inside 24 hours)"
-                                  : "Reason (optional)"
-                              }
-                              value={cancelReason}
-                              onChange={(e) => setCancelReason(e.target.value)}
-                              className="border rounded-md px-2 py-1 text-sm flex-1 min-w-[12rem]"
-                            />
-                            <button
-                              onClick={() => handleCancel(lesson.id, lesson.scheduledDate)}
-                              className="bg-red-600 text-white rounded-md px-3 py-1.5 text-xs hover:bg-red-700"
-                            >
-                              Confirm cancellation
-                            </button>
-                          </div>
-                          <p className="text-xs text-gray-500 mt-1">
-                            {isInsideRescheduleGate(lesson.scheduledDate)
-                              ? "This class starts within 24 hours, so a reason is required and it goes to admin for review."
-                              : "24 hours or more out, so this cancels immediately."}
-                          </p>
+                          {!isInsideTutorRescheduleHardFloor(lesson.scheduledDate) &&
+                            isInsideTutorRescheduleGate(lesson.scheduledDate) &&
+                            surchargeSettings && (
+                              <p className="text-xs text-amber-600 mt-1">
+                                This is inside 48 hours' notice - a {surchargePreview(surchargeSettings)} applies if
+                                this reschedule is confirmed (admin can adjust it on review).
+                              </p>
+                            )}
                         </td>
                       </tr>
                     )}

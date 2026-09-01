@@ -37,19 +37,59 @@ export default function StudentProgressPage() {
 
   if (isLoading) return <p className="p-6 text-sm text-gray-500">Loading student progress...</p>;
 
+  const withAttendance = students.filter((s) => s.attendanceRate != null);
+  const avgAttendance =
+    withAttendance.length > 0
+      ? Math.round((withAttendance.reduce((sum, s) => sum + (s.attendanceRate ?? 0), 0) / withAttendance.length) * 100) / 100
+      : null;
+  const withScore = students.filter((s) => s.averageScorePercent != null);
+  const avgScore =
+    withScore.length > 0
+      ? Math.round((withScore.reduce((sum, s) => sum + (s.averageScorePercent ?? 0), 0) / withScore.length) * 100) / 100
+      : null;
+
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Student Progress</h1>
+      <div>
+        <h1 className="text-2xl font-bold">Student Progress</h1>
+        <p className="text-sm text-gray-500 mt-1">
+          Each student's overall progress is the average of their attendance rate and their average graded
+          assignment score (whichever of the two they have data for). Click a student for their full breakdown,
+          including assignment completion and course progress.
+        </p>
+      </div>
 
-      {/* Aggregate ring */}
-      <div className="bg-white rounded-2xl shadow p-6 flex flex-col items-center gap-2">
-        <div className="relative w-[160px] h-[160px]">
-          <Circle percent={aggregate} strokeWidth={8} trailWidth={8} strokeColor="#3b82f6" trailColor="#e5e7eb" />
-          <div className="absolute inset-0 flex items-center justify-center text-3xl font-bold text-gray-800">
-            {aggregate}%
+      {/* Aggregate rings */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-white rounded-2xl shadow p-6 flex flex-col items-center gap-2">
+          <div className="relative w-[120px] h-[120px]">
+            <Circle percent={aggregate} strokeWidth={8} trailWidth={8} strokeColor="#3b82f6" trailColor="#e5e7eb" />
+            <div className="absolute inset-0 flex items-center justify-center text-2xl font-bold text-gray-800">
+              {aggregate}%
+            </div>
           </div>
+          <p className="text-sm text-gray-500 text-center">Average overall progress</p>
         </div>
-        <p className="text-sm text-gray-500">Average progress across all your students</p>
+        <div className="bg-white rounded-2xl shadow p-6 flex flex-col items-center gap-2">
+          <div className="relative w-[120px] h-[120px]">
+            <Circle percent={avgAttendance ?? 0} strokeWidth={8} trailWidth={8} strokeColor="#10b981" trailColor="#e5e7eb" />
+            <div className="absolute inset-0 flex items-center justify-center text-2xl font-bold text-gray-800">
+              {avgAttendance ?? "-"}
+              {avgAttendance != null && "%"}
+            </div>
+          </div>
+          <p className="text-sm text-gray-500 text-center">Average attendance rate</p>
+        </div>
+        <div className="bg-white rounded-2xl shadow p-6 flex flex-col items-center gap-2">
+          <div className="relative w-[120px] h-[120px]">
+            <Circle percent={avgScore ?? 0} strokeWidth={8} trailWidth={8} strokeColor="#f59e0b" trailColor="#e5e7eb" />
+            <div className="absolute inset-0 flex items-center justify-center text-2xl font-bold text-gray-800">
+              {avgScore ?? "-"}
+              {avgScore != null && "%"}
+            </div>
+          </div>
+          <p className="text-sm text-gray-500 text-center">Average graded assignment score</p>
+        </div>
       </div>
 
       {/* Per-student ring grid */}
@@ -81,6 +121,11 @@ export default function StudentProgressPage() {
                 </div>
                 <p className="text-sm font-medium truncate w-full">{student.fullName}</p>
                 <p className="text-xs text-gray-500">{student.overallProgressPercent}% overall</p>
+                <p className="text-xs text-gray-400">
+                  {student.attendanceRate != null ? `${student.attendanceRate}% attendance` : "No attendance yet"}
+                  {" · "}
+                  {student.averageScorePercent != null ? `${student.averageScorePercent}% avg score` : "No grades yet"}
+                </p>
               </button>
             ))}
           </div>

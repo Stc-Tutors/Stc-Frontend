@@ -19,6 +19,9 @@ export interface Assignment {
   id: string;
   course: string | AssignmentCourseRef;
   lesson?: string;
+  // Student record ids this assignment is scoped to - absent/empty means
+  // every student currently enrolled in the course (the default).
+  targetStudents?: string[];
   title: string;
   description: string;
   dueDate: string;

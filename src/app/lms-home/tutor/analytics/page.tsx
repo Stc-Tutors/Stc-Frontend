@@ -2,25 +2,29 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Clock } from "lucide-react";
+import { Clock, CalendarX } from "lucide-react";
 import TutorsCard from "@/components/tutorDashboard/TutorsCard";
+import RevenueChart from "@/components/tutorDashboard/RevenueCharts";
 import { GetMyCoursesAction } from "@/server/course";
-import { GetMyTutorHoursAction } from "@/server/lesson";
+import { GetMySessionStatsAction, GetMyTutorHoursAction } from "@/server/lesson";
 import { Course, CourseStatus } from "@/types/course";
-import { TutorHoursReport } from "@/types/lesson";
+import { TutorHoursReport, TutorSessionStats } from "@/types/lesson";
 
 export default function TutorAnalyticsPage() {
   const router = useRouter();
   const [courses, setCourses] = useState<Course[]>([]);
   const [hours, setHours] = useState<TutorHoursReport | null>(null);
+  const [sessionStats, setSessionStats] = useState<TutorSessionStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const load = async () => {
       const [coursesRes] = await GetMyCoursesAction();
       const [hoursRes] = await GetMyTutorHoursAction();
+      const [statsRes] = await GetMySessionStatsAction();
       setCourses(coursesRes?.data ?? []);
       setHours(hoursRes?.data ?? null);
+      setSessionStats(statsRes?.data ?? null);
       setIsLoading(false);
     };
     load();
@@ -53,6 +57,41 @@ export default function TutorAnalyticsPage() {
           </>
         )}
       </div>
+
+      <div className="bg-white rounded-2xl shadow p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <CalendarX className="w-5 h-5 text-blue-500" />
+          <h2 className="text-lg font-semibold">Session Stats</h2>
+        </div>
+        {isLoading ? (
+          <p className="text-sm text-gray-500">Loading...</p>
+        ) : !sessionStats || sessionStats.completed + sessionStats.cancelled + sessionStats.scheduled === 0 ? (
+          <p className="text-sm text-gray-500">No sessions yet.</p>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div>
+              <p className="text-2xl font-semibold text-gray-800">{sessionStats.completed}</p>
+              <p className="text-sm text-gray-500">Completed</p>
+            </div>
+            <div>
+              <p className="text-2xl font-semibold text-gray-800">{sessionStats.cancelled}</p>
+              <p className="text-sm text-gray-500">Cancelled</p>
+            </div>
+            <div>
+              <p className="text-2xl font-semibold text-gray-800">{sessionStats.scheduled}</p>
+              <p className="text-sm text-gray-500">Upcoming</p>
+            </div>
+            <div>
+              <p className={`text-2xl font-semibold ${sessionStats.cancellationRate > 15 ? "text-red-600" : "text-gray-800"}`}>
+                {sessionStats.cancellationRate}%
+              </p>
+              <p className="text-sm text-gray-500">Cancellation rate</p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <RevenueChart />
 
       <div className="bg-white rounded-2xl shadow p-6">
         <h2 className="text-lg font-semibold mb-4">Your Courses</h2>

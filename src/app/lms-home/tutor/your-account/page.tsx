@@ -55,6 +55,8 @@ export default function DashboardPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [isRequesting, setIsRequesting] = useState(false);
   const [counterDrafts, setCounterDrafts] = useState<Record<string, string>>({});
+  const [withdrawAll, setWithdrawAll] = useState(true);
+  const [withdrawAmount, setWithdrawAmount] = useState("");
 
   const load = async () => {
     const [profileRes] = await GetMyPayoutProfileAction();
@@ -149,10 +151,15 @@ export default function DashboardPage() {
 
   const handleRequestPayout = async () => {
     setIsRequesting(true);
-    const [, error] = await RequestPayoutAction();
+    const amount = withdrawAll ? undefined : Number(withdrawAmount);
+    const [, error] = await RequestPayoutAction(amount);
     setIsRequesting(false);
     setMessage(error || "Payout requested successfully");
-    if (!error) load();
+    if (!error) {
+      setWithdrawAmount("");
+      setWithdrawAll(true);
+      load();
+    }
   };
 
   return (
@@ -181,6 +188,12 @@ export default function DashboardPage() {
         <p className="text-xs text-gray-500">
           Balance reflects {balance.hoursSincePaid.toFixed(1)} unpaid hour(s) since your last payout
           {balance.hasPendingRequest ? " (a payout request is already pending review)." : "."}
+        </p>
+      )}
+      {balance && balance.surchargeDeduction > 0 && (
+        <p className="text-xs text-amber-600">
+          {balance.currency} {balance.surchargeDeduction.toLocaleString()} deducted from your {balance.currency}{" "}
+          {balance.grossBalance.toLocaleString()} gross balance for late-notice reschedule surcharge(s).
         </p>
       )}
       {balance && balance.unpriced.length > 0 && (
@@ -295,11 +308,47 @@ export default function DashboardPage() {
 
                 <p className="text-lg font-bold">₦{pendingAmount.toLocaleString()}</p>
                 <p className="text-sm font-light">Pending payout requests</p>
+
+                {balance && balance.nextWithdrawalAvailableAt ? (
+                  <p className="text-xs text-amber-600">
+                    You can request another withdrawal on{" "}
+                    {new Date(balance.nextWithdrawalAvailableAt).toLocaleDateString()} - one withdrawal is allowed
+                    every 14 days.
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-2 text-sm">
+                      <input type="radio" checked={withdrawAll} onChange={() => setWithdrawAll(true)} />
+                      Withdraw all ({balance?.currency ?? "NGN"} {(balance?.currentBalance ?? 0).toLocaleString()})
+                    </label>
+                    <label className="flex items-center gap-2 text-sm">
+                      <input type="radio" checked={!withdrawAll} onChange={() => setWithdrawAll(false)} />
+                      Withdraw part of it
+                    </label>
+                    {!withdrawAll && (
+                      <Input
+                        type="number"
+                        min={0}
+                        max={balance?.currentBalance ?? 0}
+                        placeholder={`Up to ${balance?.currentBalance ?? 0}`}
+                        value={withdrawAmount}
+                        onChange={(e) => setWithdrawAmount(e.target.value)}
+                      />
+                    )}
+                  </div>
+                )}
+
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <button
                       className="w-full bg-blue-600 text-white rounded-lg py-2 hover:bg-blue-700 disabled:opacity-50"
-                      disabled={isRequesting || !hasConfirmedRate || !profile?.paystackRecipientCode}
+                      disabled={
+                        isRequesting ||
+                        !hasConfirmedRate ||
+                        !profile?.paystackRecipientCode ||
+                        !!balance?.nextWithdrawalAvailableAt ||
+                        (!withdrawAll && (!withdrawAmount || Number(withdrawAmount) <= 0))
+                      }
                     >
                       {isRequesting ? "Requesting..." : "Request Payout"}
                     </button>
@@ -308,9 +357,13 @@ export default function DashboardPage() {
                     <AlertDialogHeader>
                       <AlertDialogTitle>Confirm withdrawal request</AlertDialogTitle>
                       <AlertDialogDescription>
-                        This will submit a payout request for your unpaid hours
+                        This will submit a payout request for{" "}
+                        {withdrawAll
+                          ? `your full available balance (${balance?.currency ?? "NGN"} ${(balance?.currentBalance ?? 0).toLocaleString()})`
+                          : `${balance?.currency ?? "NGN"} ${withdrawAmount}`}
                         {profile?.bankName ? ` to ${profile.bankName} · ${profile.accountNumber}` : ""}. An admin will need
-                        to review and approve it before funds are transferred.
+                        to review and approve it before funds are transferred. You won't be able to request again for
+                        14 days after this.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

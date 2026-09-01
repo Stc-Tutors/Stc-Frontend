@@ -10,13 +10,29 @@ import {
   ReferralSettings,
 } from "@/types/referral";
 
-export async function GetMyReferralLinkAction(): Promise<[ApiResponse<{ link: string }> | null, string | null]> {
+export async function GetMyReferralLinkAction(): Promise<
+  [ApiResponse<{ link: string; code: string }> | null, string | null]
+> {
   const [res, error] = await fetchAPI({
     url: "/referrals/link",
     request: { method: "GET", headers: { "Content-Type": "application/json" } },
   });
 
-  const resData = res ? ((await res.json()) as ApiResponse<{ link: string }>) : null;
+  const resData = res ? ((await res.json()) as ApiResponse<{ link: string; code: string }>) : null;
+  return [resData, error];
+}
+
+// For someone who already has an account (or is enrolling a course rather
+// than signing up fresh) and wants to credit a referrer manually instead of
+// via the silent ?ref= link - see stcbe's ReferralService.applyReferralCode.
+// Settable only once per account.
+export async function ApplyReferralCodeAction(code: string): Promise<[ApiResponse<null> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: "/referrals/apply-code",
+    request: { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code }) },
+  });
+
+  const resData = res ? ((await res.json()) as ApiResponse<null>) : null;
   return [resData, error];
 }
 

@@ -1,7 +1,16 @@
 "use server";
 
 import fetchAPI, { type ApiResponse } from "@/lib/fetch";
-import { Lesson, RescheduleRequest, ScheduleChangeResult, TutorHoursReport, TutorPerformanceWeek } from "@/types/lesson";
+import {
+  Lesson,
+  RescheduleRequest,
+  RescheduleSurchargeSettings,
+  RescheduleSurchargeType,
+  ScheduleChangeResult,
+  TutorHoursReport,
+  TutorPerformanceWeek,
+  TutorSessionStats,
+} from "@/types/lesson";
 
 export async function GetCourseLessonsAction(courseId: string): Promise<[ApiResponse<Lesson[]> | null, string | null]> {
   const [res, error] = await fetchAPI({
@@ -76,7 +85,7 @@ export async function UpdateLessonAction(
 export async function RescheduleLessonAction(
   id: string,
   scheduledDate: string,
-  reason?: string
+  reason: string
 ): Promise<[ApiResponse<ScheduleChangeResult> | null, string | null]> {
   const [res, error] = await fetchAPI({
     url: `/lessons/${id}/reschedule`,
@@ -234,7 +243,7 @@ export async function ConfirmTutorRescheduleAction(
 
 export async function CancelLessonAction(
   id: string,
-  reason?: string
+  reason: string
 ): Promise<[ApiResponse<ScheduleChangeResult> | null, string | null]> {
   const [res, error] = await fetchAPI({
     url: `/lessons/${id}/cancel`,
@@ -259,6 +268,16 @@ export async function GetMyTutorHoursAction(): Promise<[ApiResponse<TutorHoursRe
   return [resData, error];
 }
 
+export async function GetMySessionStatsAction(): Promise<[ApiResponse<TutorSessionStats> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: "/lessons/mine/session-stats",
+    request: { method: "GET", headers: { "Content-Type": "application/json" } },
+  });
+
+  const resData = res ? ((await res.json()) as ApiResponse<TutorSessionStats>) : null;
+  return [resData, error];
+}
+
 export async function GetMyPerformanceAction(
   weeks?: number
 ): Promise<[ApiResponse<TutorPerformanceWeek[]> | null, string | null]> {
@@ -268,5 +287,56 @@ export async function GetMyPerformanceAction(
   });
 
   const resData = res ? ((await res.json()) as ApiResponse<TutorPerformanceWeek[]>) : null;
+  return [resData, error];
+}
+
+// Read broadly (tutor/parent/student/admin) so the exact late-reschedule fee
+// shows before someone submits one.
+export async function GetRescheduleSurchargeSettingsAction(): Promise<
+  [ApiResponse<RescheduleSurchargeSettings> | null, string | null]
+> {
+  const [res, error] = await fetchAPI({
+    url: "/lessons/reschedule-surcharge-settings",
+    request: { method: "GET", headers: { "Content-Type": "application/json" } },
+  });
+
+  const resData = res ? ((await res.json()) as ApiResponse<RescheduleSurchargeSettings>) : null;
+  return [resData, error];
+}
+
+// SUPER_ADMIN/ALMIGHTY_ADMIN always allowed; a lesser admin needs MANAGE_PRICING.
+export async function UpdateRescheduleSurchargeSettingsAction(data: {
+  type: RescheduleSurchargeType;
+  flatAmount: number;
+  percentage: number;
+  currency: string;
+}): Promise<[ApiResponse<RescheduleSurchargeSettings> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: "/lessons/admin/reschedule-surcharge-settings",
+    request: { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) },
+  });
+
+  const resData = res ? ((await res.json()) as ApiResponse<RescheduleSurchargeSettings>) : null;
+  return [resData, error];
+}
+
+// Admin (reviewing before forward-to-parent) or SUPER_ADMIN/ALMIGHTY_ADMIN
+// (any time while still PENDING) adjusts the auto-computed surcharge on one
+// late tutor reschedule request.
+export async function OverrideRescheduleSurchargeAction(
+  id: string,
+  amount: number,
+  type?: RescheduleSurchargeType
+): Promise<[ApiResponse<RescheduleRequest> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: `/lessons/reschedule-requests/${id}/surcharge`,
+    request: {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ amount, type }),
+    },
+  });
+
+  const resData = res ? ((await res.json()) as ApiResponse<RescheduleRequest>) : null;
   return [resData, error];
 }

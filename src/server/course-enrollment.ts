@@ -48,6 +48,19 @@ export async function AllocateTutorAction(
   return [resData, error];
 }
 
+// A course's enrolled roster - tutor/HOD/admin who manages the course only.
+export async function GetCourseEnrollmentsAction(
+  courseId: string
+): Promise<[ApiResponse<CourseEnrollment[]> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: `/course-enrollments/course/${courseId}`,
+    request: { method: "GET", headers: { "Content-Type": "application/json" } },
+  });
+
+  const resData = res ? ((await res.json()) as ApiResponse<CourseEnrollment[]>) : null;
+  return [resData, error];
+}
+
 export async function GetStudentCoursesAction(
   studentId: string
 ): Promise<[ApiResponse<CourseEnrollment[]> | null, string | null]> {

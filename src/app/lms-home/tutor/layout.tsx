@@ -42,7 +42,7 @@ import { Network } from "lucide-react";
 const sidebarLinks = [
   { label: "Dashboard", icon: Home, href: "/lms-home/tutor/dashboard" },
   { label: "Schedule", icon: Calendar, href: "/lms-home/tutor/scheduling" },
-  { label: "Classroom", icon: Users, href: "/lms-home/tutor/dashboard" },
+  { label: "Classroom", icon: Users, href: "/lms-home/tutor/classroom" },
   { label: "Student Progress", icon: Target, href: "/lms-home/tutor/student-progress" },
   { label: "Assignments", icon: BookOpen, href: "/lms-home/tutor/assignments" },
   { label: "Messages", icon: MessageSquare, href: "/lms-home/tutor/messages" },

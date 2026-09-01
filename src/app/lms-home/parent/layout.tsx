@@ -43,7 +43,7 @@ const sidebarLinks = [
   { label: "Marketplace", icon: ShoppingBag, href: "/lms-home/parent/marketplace" },
   { label: "Tutors", icon: GraduationCap, href: "/lms-home/parent/tutors" },
   { label: "Schedule", icon: Calendar, href: "/lms-home/parent/scheduling" },
-  { label: "Classroom", icon: Users, href: "/lms-home/parent/scheduling" },
+  { label: "Classroom", icon: Users, href: "/lms-home/parent/classroom" },
   { label: "Assessment", icon: CalendarDays, href: "/lms-home/parent/assessment" },
   { label: "Messages", icon: MessageSquare, href: "/lms-home/parent/messages" },
   { label: "Analytics", icon: BarChart2, href: "/lms-home/parent/analytics" },

@@ -9,8 +9,11 @@ import { Button } from "@/components/ui/button";
 import FileUploadField from "@/components/ui/custom/file-upload-field";
 import { GetMyCoursesAction } from "@/server/course";
 import { GetCourseAssignmentsAction, CreateAssignmentAction } from "@/server/assignment";
+import { GetCourseEnrollmentsAction } from "@/server/course-enrollment";
 import { Assignment, AssignmentStatus } from "@/types/assignment";
 import { Course } from "@/types/course";
+import { CourseEnrollment } from "@/types/course-enrollment";
+import { Student } from "@/types/student";
 import { UploadedFile } from "@/lib/cloudinary-upload";
 import { ASSIGNMENT_ATTACHMENT_UPLOAD_LIMITS } from "@/constants/upload-limits";
 
@@ -27,6 +30,8 @@ export default function TutorAssignmentsPage() {
   const [message, setMessage] = useState<string | null>(null);
 
   const [courseId, setCourseId] = useState("");
+  const [roster, setRoster] = useState<CourseEnrollment[]>([]);
+  const [targetStudents, setTargetStudents] = useState<string[]>([]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState("");
@@ -57,6 +62,19 @@ export default function TutorAssignmentsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    setTargetStudents([]);
+    if (!courseId) {
+      setRoster([]);
+      return;
+    }
+    GetCourseEnrollmentsAction(courseId).then(([res]) => setRoster(res?.data ?? []));
+  }, [courseId]);
+
+  const toggleTargetStudent = (studentId: string) => {
+    setTargetStudents((prev) => (prev.includes(studentId) ? prev.filter((id) => id !== studentId) : [...prev, studentId]));
+  };
+
   const handleCreate = async () => {
     if (!courseId || !title || !description || !dueDate) {
       setMessage("Course, title, description and due date are required");
@@ -65,6 +83,7 @@ export default function TutorAssignmentsPage() {
     setIsCreating(true);
     const [, error] = await CreateAssignmentAction({
       course: courseId,
+      targetStudents: targetStudents.length > 0 ? targetStudents : undefined,
       title,
       description,
       dueDate: new Date(dueDate).toISOString(),
@@ -79,6 +98,7 @@ export default function TutorAssignmentsPage() {
     setDueDate("");
     setAttachmentUrl("");
     setAttachment(undefined);
+    setTargetStudents([]);
     load();
   };
 
@@ -108,6 +128,29 @@ export default function TutorAssignmentsPage() {
                 </option>
               ))}
             </select>
+            {roster.length > 0 && (
+              <div className="border rounded-md p-2">
+                <p className="text-xs text-gray-500 mb-1">
+                  Give to (leave all unchecked to give it to every student enrolled in this course):
+                </p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-1">
+                  {roster.map((e) => {
+                    const student = typeof e.student === "string" ? null : (e.student as Student);
+                    if (!student) return null;
+                    return (
+                      <label key={student.id} className="flex items-center gap-1.5 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={targetStudents.includes(student.id)}
+                          onChange={() => toggleTargetStudent(student.id)}
+                        />
+                        <span className="truncate">{student.fullName}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
             <Input placeholder="Assignment title" value={title} onChange={(e) => setTitle(e.target.value)} />
             <Textarea placeholder="Description" value={description} onChange={(e) => setDescription(e.target.value)} />
             <div className="flex gap-2">

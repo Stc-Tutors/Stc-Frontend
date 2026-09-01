@@ -12,7 +12,7 @@ import { GetServicePricingAction } from "@/server/service-pricing";
 import { GetServicesAction } from "@/server/service-catalog";
 import { ServicePricing } from "@/types/service-pricing";
 import { IService, CustomFieldResponses, ArchitecturalPath } from "@/types/service-catalog";
-import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 
 // Was a fixed union of the old hardcoded service list - now the service
 // catalog (GET /api/public/services) is the source of truth, so this is
@@ -246,9 +246,9 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
   // than the tier being tried is correctly skipped.
   const findRateRow = (
     candidates: ServicePricing[],
-    values: { subject?: string; curriculum?: string; gradeLevel?: string; country?: string }
+    values: { subject?: string; curriculum?: string; gradeLevel?: string; country?: string; classFormat?: string }
   ): ServicePricing | undefined => {
-    const allKeys = ["subject", "curriculum", "gradeLevel", "country"] as const;
+    const allKeys = ["subject", "curriculum", "gradeLevel", "country", "classFormat"] as const;
     const keys = allKeys.filter((k) => !!values[k]);
 
     const subsets: (typeof keys)[] = [];
@@ -287,6 +287,7 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
     const curriculum = serviceDetails.curriculum;
     const country = serviceDetails.country;
     const gradeLevel = serviceDetails.gradeLevel;
+    const classFormat = serviceDetails.classFormat;
     const weeks = serviceDetails.billingWeeks && serviceDetails.billingWeeks > 0 ? serviceDetails.billingWeeks : 4;
 
     if (serviceType === "tech-bootcamp") {
@@ -302,7 +303,7 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
     const candidates = pricing.filter((p) => p.serviceType === serviceType);
 
     return schedule.reduce((total, subject) => {
-      const price = pickPrice(findRateRow(candidates, { subject: subject.subject, curriculum, gradeLevel, country }));
+      const price = pickPrice(findRateRow(candidates, { subject: subject.subject, curriculum, gradeLevel, country, classFormat }));
       if (!price) return total;
       // A flat price already covers the whole billing period for this
       // subject - it isn't a rate to multiply by hours or weeks.
@@ -321,10 +322,10 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
     if (!schedule || serviceDetails.serviceType === "tech-bootcamp") return [];
 
     const candidates = pricing.filter((p) => p.serviceType === serviceDetails.serviceType);
-    const { curriculum, country, gradeLevel } = serviceDetails;
+    const { curriculum, country, gradeLevel, classFormat } = serviceDetails;
 
     return schedule
-      .filter((subject) => !pickPrice(findRateRow(candidates, { subject: subject.subject, curriculum, gradeLevel, country })))
+      .filter((subject) => !pickPrice(findRateRow(candidates, { subject: subject.subject, curriculum, gradeLevel, country, classFormat })))
       .map((subject) => subject.subject);
   };
 
@@ -386,7 +387,16 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
   // resumes instead of starting over. Also resolves the full IService for
   // `selectedService`, since later steps branch on its
   // architecturalPath/flowRequirements, not just serviceDetails.serviceType.
-  const loadEnrollment = async (id: string) => {
+  // Wrapped in useCallback so its identity is stable across renders - it's
+  // listed as a dependency in EnrollmentFlow's "resume a draft" effect, and
+  // a plain (non-memoized) function here gets a new reference every time
+  // this provider re-renders. Since setEnrollmentData below always sets a
+  // brand-new object, every call re-renders the provider, which would
+  // otherwise recreate loadEnrollment, which would re-trigger that effect,
+  // which would call loadEnrollment again - an infinite reload loop that
+  // left isLoading (and therefore the wizard's Next/Save & Continue button)
+  // effectively stuck.
+  const loadEnrollment = useCallback(async (id: string) => {
     setIsLoading(true);
     try {
       const [res, error] = await GetEnrollmentAction(id);
@@ -437,7 +447,7 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   // Autosaves wizard progress as EnrollmentStatus.DRAFT so a closed
   // tab/refresh doesn't lose it - starts the first time Child Info is filled

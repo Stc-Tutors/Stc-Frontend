@@ -36,6 +36,13 @@ export interface TutorHoursReport {
   byCourse: { courseId: string; courseTitle: string; hours: number }[];
 }
 
+export interface TutorSessionStats {
+  completed: number;
+  cancelled: number;
+  scheduled: number;
+  cancellationRate: number;
+}
+
 export interface TutorPerformanceWeek {
   weekStart: string;
   completed: number;
@@ -53,6 +60,30 @@ export enum RescheduleRequestStatus {
 export type RescheduleRequestType = "RESCHEDULE" | "CANCEL" | "TUTOR_RESCHEDULE";
 export type TutorRescheduleStage = "AWAITING_ADMIN" | "AWAITING_PARENT";
 
+export enum RescheduleSurchargeType {
+  FLAT = "FLAT",
+  PERCENTAGE = "PERCENTAGE",
+}
+
+export interface RescheduleSurcharge {
+  type: RescheduleSurchargeType;
+  amount: number;
+  currency: string;
+  overriddenBy?: string;
+  overriddenAt?: string;
+}
+
+// Admin-configurable, read by anyone before submitting a late tutor
+// reschedule so they see the exact fee up front.
+export interface RescheduleSurchargeSettings {
+  id: string;
+  type: RescheduleSurchargeType;
+  flatAmount: number;
+  percentage: number;
+  currency: string;
+  updatedAt: string;
+}
+
 // `lesson`/`course`/`requestedBy` come back populated from GET /lessons/reschedule-requests
 // (see RescheduleRequestRepository.findMany) - stay as plain id strings only
 // if the backend ever stops populating them.
@@ -66,10 +97,15 @@ export interface RescheduleRequest {
   currentScheduledDate: string;
   // Absent for CANCEL requests.
   requestedScheduledDate?: string;
-  reason?: string;
+  // Always present - mandatory on every request regardless of notice window.
+  reason: string;
   // True when filed inside the 24h notice window - surface as a priority
   // badge in the admin queue.
   urgent: boolean;
+  // TUTOR_RESCHEDULE only - true when filed inside the 48h notice window
+  // (surcharge applies). See `surcharge`.
+  lateNotice?: boolean;
+  surcharge?: RescheduleSurcharge;
   status: RescheduleRequestStatus;
   reviewedBy?: string;
   reviewedAt?: string;

@@ -49,6 +49,8 @@ export interface PayoutRequest {
   periodEnd: string;
   hoursWorked: number;
   lines: PayoutRequestLine[];
+  grossAmount: number;
+  surchargeDeduction: number;
   amount: number;
   currency: string;
   status: PayoutRequestStatus;
@@ -74,11 +76,18 @@ export interface Bank {
 
 export interface TutorBalance {
   currency: string;
-  periodStart: string;
-  periodEnd: string;
   hoursSincePaid: number;
+  // What you can actually withdraw right now: grossBalance minus
+  // surchargeDeduction minus committed (already requested/paid, so it's not
+  // double-countable).
   currentBalance: number;
+  grossBalance: number;
+  surchargeDeduction: number;
+  committed: number;
   lines: PayoutRequestLine[];
   unpriced: { courseId: string; courseTitle: string; hours: number }[];
   hasPendingRequest: boolean;
+  // Null once the withdrawal cooldown has elapsed (or no request has ever
+  // been made) - otherwise the timestamp the next request becomes possible.
+  nextWithdrawalAvailableAt: string | null;
 }

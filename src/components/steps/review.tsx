@@ -13,6 +13,8 @@ import { SERVICE_TYPE_LABELS } from "@/constants/taxonomy";
 import { ArchitecturalPath } from "@/types/service-catalog";
 import { useCustomFormFields } from "@/hooks/use-custom-form-fields";
 import DynamicQuestionField from "@/components/forms/dynamic-question-field";
+import { Input } from "@/components/ui/input";
+import { ApplyReferralCodeAction } from "@/server/referral";
 
 interface StepProps {
   onNext: (errors: Record<string, string>) => void;
@@ -27,9 +29,14 @@ export default function EnrollmentReview({ onNext, errors }: StepProps) {
   // const { enrollmentData, setCurrentStep } = useEnrollment();
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [acceptPrivacy, setAcceptPrivacy] = useState(false);
+  const [referralCode, setReferralCode] = useState("");
+  const [isApplyingReferral, setIsApplyingReferral] = useState(false);
+  const [referralMessage, setReferralMessage] = useState<string | null>(null);
 
   const { childInfo, serviceDetails, schedule, selectedService } = enrollmentData;
   const isCourseModule = selectedService?.architecturalPath === ArchitecturalPath.COURSE_MODULE;
+  const isExamPrep = selectedService?.architecturalPath === ArchitecturalPath.EXAM_PREP_TAXONOMY;
+  const isAcademicTutoring = selectedService?.architecturalPath === ArchitecturalPath.ACADEMIC_TUTORING_TAXONOMY;
 
   const { fields: customFields } = useCustomFormFields(STAGE, serviceDetails?.serviceType);
   const customFieldResponses = enrollmentData.customFieldResponses ?? {};
@@ -89,6 +96,14 @@ export default function EnrollmentReview({ onNext, errors }: StepProps) {
 
   const getServiceTitle = (serviceType: string) =>
     selectedService?.serviceName || SERVICE_TYPE_LABELS[serviceType] || serviceType;
+
+  const handleApplyReferralCode = async () => {
+    if (!referralCode.trim()) return;
+    setIsApplyingReferral(true);
+    const [, error] = await ApplyReferralCodeAction(referralCode.trim());
+    setIsApplyingReferral(false);
+    setReferralMessage(error || "Referral code applied");
+  };
 
   return (
     <div className="space-y-6">
@@ -212,12 +227,44 @@ export default function EnrollmentReview({ onNext, errors }: StepProps) {
               </div>
             </div>
 
+            {serviceDetails?.country && (
+              <div>
+                <p className="text-sm text-gray-600">Country</p>
+                <p className="font-medium">{serviceDetails.country}</p>
+              </div>
+            )}
+
+            {isAcademicTutoring && serviceDetails?.curriculum && (
+              <div>
+                <p className="text-sm text-gray-600">Curriculum</p>
+                <p className="font-medium">{serviceDetails.curriculum}</p>
+              </div>
+            )}
+
             {(serviceDetails?.gradeLevel || serviceDetails?.classYear) && (
               <div>
                 <p className="text-sm text-gray-600">Grade Level / Class</p>
                 <p className="font-medium">
                   {[serviceDetails.gradeLevel, serviceDetails.classYear].filter(Boolean).join(" / ")}
                 </p>
+              </div>
+            )}
+
+            {isExamPrep && serviceDetails?.examPreparationDetails?.educationLevel && (
+              <div>
+                <p className="text-sm text-gray-600">Education Level</p>
+                <p className="font-medium">{serviceDetails.examPreparationDetails.educationLevel}</p>
+              </div>
+            )}
+
+            {/* Path B stores the exam name in serviceDetails.curriculum
+                (see subjects-schedule.tsx's handleCurriculumPath), not
+                examPreparationDetails.exam directly - shown from that field
+                for consistency in case they ever diverge. */}
+            {isExamPrep && serviceDetails?.curriculum && (
+              <div>
+                <p className="text-sm text-gray-600">Exam</p>
+                <p className="font-medium">{serviceDetails.curriculum}</p>
               </div>
             )}
 
@@ -330,6 +377,33 @@ export default function EnrollmentReview({ onNext, errors }: StepProps) {
               </div>
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Referral code - optional, only matters on this student's first
+          payment ever (see stcbe's ReferralService.creditForPayment). A
+          no-op if this account already has a referrer on file, e.g. from
+          clicking a referral link at signup. */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Referral Code (optional)</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <p className="text-sm text-gray-600">
+            Were you referred by a tutor, parent, or student? Enter their code below.
+          </p>
+          <div className="flex gap-2">
+            <Input
+              placeholder="Referral code"
+              value={referralCode}
+              onChange={(e) => setReferralCode(e.target.value)}
+              className="max-w-xs"
+            />
+            <Button type="button" variant="outline" onClick={handleApplyReferralCode} disabled={isApplyingReferral || !referralCode.trim()}>
+              {isApplyingReferral ? "Applying..." : "Apply"}
+            </Button>
+          </div>
+          {referralMessage && <p className="text-sm text-gray-500">{referralMessage}</p>}
         </CardContent>
       </Card>
 

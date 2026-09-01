@@ -11,18 +11,26 @@ import { GetEnrollmentsAction, GetLinkedStudentsAction } from "@/server/enrollme
 import { GetStudentCoursesAction } from "@/server/course-enrollment";
 import { CourseEnrollmentStatus } from "@/types/course-enrollment";
 import { CourseTutor } from "@/types/course";
+import { useSelectedStudent } from "@/contexts/selected-student-context";
 
 export default function CardsSection() {
+  const { selectedId, isAllSelected } = useSelectedStudent();
   const [stats, setStats] = useState({ enrolled: 0, active: 0, completed: 0, tutors: 0 });
 
   useEffect(() => {
     const load = async () => {
       const [linkedRes] = await GetLinkedStudentsAction();
       const [ownRes] = await GetEnrollmentsAction();
-      const studentIds = new Set(
+      const allStudentIds = new Set(
         [...(linkedRes?.data ?? []), ...(ownRes?.data ?? [])].map((s) => s.id)
       );
-      if (studentIds.size === 0) return;
+      const studentIds = isAllSelected
+        ? allStudentIds
+        : new Set([selectedId].filter((id) => allStudentIds.has(id)));
+      if (studentIds.size === 0) {
+        setStats({ enrolled: 0, active: 0, completed: 0, tutors: 0 });
+        return;
+      }
 
       const courseEnrollmentLists = await Promise.all(
         Array.from(studentIds).map((id) => GetStudentCoursesAction(id))
@@ -43,7 +51,7 @@ export default function CardsSection() {
       });
     };
     load();
-  }, []);
+  }, [selectedId, isAllSelected]);
 
   const cards = [
     { title: "Enrolled Courses", value: stats.enrolled, icon: PlayCircle, iconColor: "text-blue-500", bgColor: "bg-blue-100" },

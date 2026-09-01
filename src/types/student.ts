@@ -102,6 +102,24 @@ export function studentAvatarUrl(user: Student["user"]): string | undefined {
   return typeof user === "object" ? user.avatarUrl : undefined;
 }
 
+// Populated (as an object, despite the plain-string field type below) on
+// the parent's own /enrollments/mine/linked-students list - see stcbe's
+// StudentRepository.findByParentUser - so the login ID for a studentId-based
+// child account can be shown again after the one-time reveal at
+// account-creation time. Kept out of Student.studentUser's own type since
+// other endpoints populate that field differently (or not at all); read it
+// via studentLoginId(student.studentUser) instead of widening the shared type.
+export interface ChildLoginRef {
+  id: string;
+  studentId?: string;
+  firstName?: string;
+  lastName?: string;
+}
+
+export function studentLoginId(studentUser: Student["studentUser"]): string | undefined {
+  return studentUser && typeof studentUser === "object" ? (studentUser as unknown as ChildLoginRef).studentId : undefined;
+}
+
 export interface Student {
   id: string;
   user: string | StudentUserRef;

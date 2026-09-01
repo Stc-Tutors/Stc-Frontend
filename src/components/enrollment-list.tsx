@@ -10,6 +10,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import {
   Search,
   Plus,
   Eye, Calendar,
@@ -19,12 +30,16 @@ import {
   GraduationCap,
   Filter,
   AlertTriangle,
+  UserMinus,
+  KeyRound,
+  Copy,
 } from "lucide-react"
-import { GetEnrollmentsAction, GetLinkedStudentsAction } from "@/server/enrollment"
+import { GetEnrollmentsAction, GetLinkedStudentsAction, RemoveLinkedChildAction } from "@/server/enrollment"
 import { GetMyRestrictionsAction } from "@/server/subscription"
 import { GetMySubjectEnrollmentsAction } from "@/server/subject-enrollment"
-import { type Student, EnrollmentStatus } from "@/types/student"
+import { type Student, EnrollmentStatus, studentLoginId } from "@/types/student"
 import { SUBJECT_ENROLLMENT_STATUS_LABELS, SubjectEnrollment, SubjectEnrollmentStatus } from "@/types/subject-enrollment"
+import { ToastError, ToastSuccess } from "@/components/ui/custom/toast"
 
 interface EnrollmentListProps {
   // "mine" = the logged-in user's own enrollments (student self-registered);
@@ -44,6 +59,9 @@ export default function EnrollmentList({ source, basePath }: EnrollmentListProps
   const [serviceTypeFilter, setServiceTypeFilter] = useState("all")
   const [enrollmentRestricted, setEnrollmentRestricted] = useState(false)
   const [subjectEnrollments, setSubjectEnrollments] = useState<SubjectEnrollment[]>([])
+  const [childToRemove, setChildToRemove] = useState<Student | null>(null)
+  const [isRemoving, setIsRemoving] = useState(false)
+  const [viewingLoginId, setViewingLoginId] = useState<Student | null>(null)
 
   useEffect(() => {
     GetMyRestrictionsAction().then(([res]) => setEnrollmentRestricted(!!res?.data?.courseEnrollmentRestricted))
@@ -132,6 +150,25 @@ export default function EnrollmentList({ source, basePath }: EnrollmentListProps
     return (student.schedule ?? []).reduce((total, schedule) => {
       return total + schedule.days.length * (schedule.duration / 60)
     }, 0)
+  }
+
+  const handleRemoveChild = async () => {
+    if (!childToRemove) return
+    setIsRemoving(true)
+    try {
+      const [res, error] = await RemoveLinkedChildAction(childToRemove.id)
+      if (error || !res?.data) {
+        ToastError(error || "Failed to remove child")
+        return
+      }
+      setStudents((prev) => prev.filter((s) => s.id !== childToRemove.id))
+      ToastSuccess(`${childToRemove.fullName} has been removed from your account`)
+      setChildToRemove(null)
+    } catch {
+      ToastError("An unexpected error occurred while removing this child")
+    } finally {
+      setIsRemoving(false)
+    }
   }
 
   const getUniqueServiceTypes = () => {
@@ -401,6 +438,23 @@ export default function EnrollmentList({ source, basePath }: EnrollmentListProps
                           <Eye className="w-4 h-4 mr-1" />
                           View
                         </Button>
+                        {source === "linked" && studentLoginId(student.studentUser) && (
+                          <Button variant="outline" size="sm" onClick={() => setViewingLoginId(student)}>
+                            <KeyRound className="w-4 h-4 mr-1" />
+                            Login ID
+                          </Button>
+                        )}
+                        {source === "linked" && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
+                            onClick={() => setChildToRemove(student)}
+                          >
+                            <UserMinus className="w-4 h-4 mr-1" />
+                            Remove
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -504,6 +558,62 @@ export default function EnrollmentList({ source, basePath }: EnrollmentListProps
           </Card>
         )}
       </div>
+
+      <AlertDialog open={!!childToRemove} onOpenChange={(open) => !open && setChildToRemove(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove {childToRemove?.fullName}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This removes {childToRemove?.fullName} from your account - they'll no longer appear in your dashboard,
+              child switcher, or schedule. Their payment and lesson history is kept and an administrator can restore
+              access if this was a mistake. This does not cancel any active lessons directly - contact support if you
+              also need those cancelled.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isRemoving}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault()
+                handleRemoveChild()
+              }}
+              disabled={isRemoving}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isRemoving ? "Removing..." : "Remove Child"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <Dialog open={!!viewingLoginId} onOpenChange={(open) => !open && setViewingLoginId(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{viewingLoginId?.fullName}&apos;s Login ID</DialogTitle>
+            <DialogDescription>
+              Your child logs in with this Student ID and the password you set for them - no email required.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex items-center justify-center gap-2 bg-blue-50 border border-blue-200 rounded-lg py-3 px-4">
+            <span className="text-lg font-mono font-semibold text-blue-900">
+              {studentLoginId(viewingLoginId?.studentUser)}
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                const id = studentLoginId(viewingLoginId?.studentUser)
+                if (!id) return
+                navigator.clipboard.writeText(id)
+                ToastSuccess("Copied to clipboard")
+              }}
+              className="text-blue-600 hover:text-blue-800"
+              aria-label="Copy Student ID"
+            >
+              <Copy className="w-4 h-4" />
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

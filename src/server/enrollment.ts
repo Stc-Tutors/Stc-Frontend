@@ -57,6 +57,24 @@ export async function GetLinkedStudentsAction(): Promise<[ApiResponse<Student[]>
   return [resData, error];
 }
 
+// Parent-initiated removal of one of their own linked children (ownership is
+// enforced server-side - see stcbe's StudentService.remove). Soft-deletes
+// the enrollment (EnrollmentStatus.REMOVED) rather than erasing it, so the
+// child drops out of the parent's own dashboard/child-switcher while their
+// payment/lesson/attendance history stays intact for admins.
+export async function RemoveLinkedChildAction(id: string): Promise<[ApiResponse<Student> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: `/enrollments/${id}/remove-child`,
+    request: {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+    },
+  });
+
+  const resData = res ? ((await res.json()) as ApiResponse<Student>) : null;
+  return [resData, error];
+}
+
 export async function ConfirmEnrollmentAction(
   id: string,
   updates: Partial<Student>

@@ -149,6 +149,30 @@ export interface CertificationProof {
   file: UploadedFile;
 }
 
+// A reference's own submitted answers - see stcbe's IReferenceResponse.
+export interface ReferenceResponse {
+  howTheyKnowApplicant: string;
+  teachingAbility: string;
+  reliability: string;
+  additionalComments?: string;
+  submittedAt: string;
+}
+
+// Returned by GET /tutor-applications/:id/reference/:slot (token-gated,
+// public) - just enough for the reference-response page to render itself.
+export interface ReferenceInfo {
+  applicantName: string;
+  referenceName: string;
+  alreadySubmitted: boolean;
+}
+
+export interface SubmitReferenceResponsePayload {
+  howTheyKnowApplicant: string;
+  teachingAbility: string;
+  reliability: string;
+  additionalComments?: string;
+}
+
 // One prior teaching/tutoring role - repeatable via "Add another" on the
 // Professional Experience step. endDate is omitted (not blank) when
 // currentlyWorkHere is true.
@@ -221,10 +245,12 @@ export interface TutorApplication {
   reference1Relationship?: string;
   reference1Contact?: string;
   reference1ConsentToContact?: boolean;
+  reference1Response?: ReferenceResponse;
   reference2Name?: string;
   reference2Relationship?: string;
   reference2Contact?: string;
   reference2ConsentToContact?: boolean;
+  reference2Response?: ReferenceResponse;
 
   // Step 5: Technical Readiness
   devices?: string[];
@@ -264,7 +290,9 @@ export interface TutorApplication {
   accountNumber?: string;
   accountName?: string;
   wasReferred?: boolean;
-  referringTutorId?: string;
+  // Populated (firstName/lastName only) by TutorApplicationRepository - a
+  // plain string only if somehow unpopulated.
+  referringTutorId?: string | { id: string; firstName: string; lastName: string };
 
   // Step 10: Agreements & Consent
   termsAccepted?: boolean;

@@ -77,13 +77,32 @@ export async function SetPayoutBankDetailsAction(data: {
   return [resData, error];
 }
 
-export async function RequestPayoutAction(): Promise<[ApiResponse<PayoutRequest> | null, string | null]> {
+// Omit amount to withdraw the full available balance.
+export async function RequestPayoutAction(
+  amount?: number
+): Promise<[ApiResponse<PayoutRequest> | null, string | null]> {
   const [res, error] = await fetchAPI({
     url: "/payouts/request",
-    request: { method: "POST", headers: { "Content-Type": "application/json" } },
+    request: {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(amount != null ? { amount } : {}),
+    },
   });
 
   const resData = res ? ((await res.json()) as ApiResponse<PayoutRequest>) : null;
+  return [resData, error];
+}
+
+export async function GetMyEarningsTimeSeriesAction(
+  months?: number
+): Promise<[ApiResponse<{ month: string; total: number }[]> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: `/payouts/mine/earnings${months ? `?months=${months}` : ""}`,
+    request: { method: "GET", headers: { "Content-Type": "application/json" } },
+  });
+
+  const resData = res ? ((await res.json()) as ApiResponse<{ month: string; total: number }[]>) : null;
   return [resData, error];
 }
 

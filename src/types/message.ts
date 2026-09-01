@@ -20,6 +20,13 @@ export interface Conversation {
   // post-submission application status page. Undistinguished from a regular
   // conversation without this flag.
   isSupportThread?: boolean;
+  // Messages in this conversation not yet read by the caller (see stcbe's
+  // MessageService.decorateParticipants) - what the unread badge is driven by.
+  unreadCount?: number;
+  // False when the caller can only see this conversation through an
+  // admin-or-above oversight bypass and isn't an actual participant - the
+  // compose box should be disabled.
+  canReply?: boolean;
 }
 
 export interface Message {

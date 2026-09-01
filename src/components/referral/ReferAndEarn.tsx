@@ -48,6 +48,7 @@ const STATUS_COLORS: Record<ReferralPayoutRequestStatus, string> = {
 
 export default function ReferAndEarn() {
   const [link, setLink] = useState("");
+  const [code, setCode] = useState("");
   const [balance, setBalance] = useState<ReferralBalance | null>(null);
   const [earnings, setEarnings] = useState<ReferralEarning[]>([]);
   const [withdrawals, setWithdrawals] = useState<ReferralPayoutRequest[]>([]);
@@ -68,6 +69,7 @@ export default function ReferAndEarn() {
     const [profileRes] = await GetMyReferralProfileAction();
     const [settingsRes] = await GetReferralSettingsAction();
     setLink(linkRes?.data?.link ?? "");
+    setCode(linkRes?.data?.code ?? "");
     setBalance(balanceRes?.data ?? null);
     setEarnings(earningsRes?.data ?? []);
     setWithdrawals(withdrawalsRes?.data ?? []);
@@ -84,6 +86,11 @@ export default function ReferAndEarn() {
   const handleCopyLink = async () => {
     await navigator.clipboard.writeText(link);
     ToastSuccess("Referral link copied to clipboard");
+  };
+
+  const handleCopyCode = async () => {
+    await navigator.clipboard.writeText(code);
+    ToastSuccess("Referral code copied to clipboard");
   };
 
   const handleSaveBankDetails = async () => {
@@ -167,6 +174,21 @@ export default function ReferAndEarn() {
               Anyone who signs up with this link and completes their first payment earns you{" "}
               {settings?.percentage ?? "—"}% of that payment, credited to your available balance below.
             </p>
+
+            <div className="border-t pt-4">
+              <p className="text-sm font-medium text-gray-700 mb-2">
+                Or share your referral code - for telling someone by phone or text instead of sending a link
+              </p>
+              <div className="flex gap-2">
+                <Input readOnly value={code} className="flex-1 font-mono" />
+                <Button variant="outline" onClick={handleCopyCode} disabled={!code}>
+                  <Copy className="w-4 h-4 mr-2" /> Copy
+                </Button>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                They enter this in the &quot;Referral code&quot; field when they sign up or register a course.
+              </p>
+            </div>
           </CardContent>
         </Card>
 

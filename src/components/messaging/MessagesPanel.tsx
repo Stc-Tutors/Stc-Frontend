@@ -32,6 +32,7 @@ interface ContactRow {
   contact: ConversationParticipant;
   conversationId: string | null;
   lastMessageAt: string | null;
+  unreadCount: number;
 }
 
 function otherParticipant(conversation: Conversation, myId: string): ConversationParticipant | undefined {
@@ -53,7 +54,11 @@ export default function MessagesPanel({ initialConversationId }: { initialConver
   const [isLoadingContacts, setIsLoadingContacts] = useState(true);
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
   const [conversationId, setConversationId] = useState<string | null>(null);
-  const appliedInitialConversationId = useRef(false);
+  // Tracks the last conversationId this effect already applied - not just a
+  // one-shot boolean, so a second notification (a different conversation, or
+  // even the same one after navigating away and back) is re-applied instead
+  // of silently doing nothing once this component is already mounted.
+  const appliedInitialConversationId = useRef<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [body, setBody] = useState("");
   const [isLoadingThread, setIsLoadingThread] = useState(false);
@@ -105,7 +110,12 @@ export default function MessagesPanel({ initialConversationId }: { initialConver
       const match = user
         ? conversations.find((c) => otherParticipant(c, user.id)?.id === contact.id)
         : undefined;
-      return { contact, conversationId: match?.id ?? null, lastMessageAt: match?.lastMessageAt ?? null };
+      return {
+        contact,
+        conversationId: match?.id ?? null,
+        lastMessageAt: match?.lastMessageAt ?? null,
+        unreadCount: match?.unreadCount ?? 0,
+      };
     });
 
     merged.sort((a, b) => {
@@ -127,10 +137,10 @@ export default function MessagesPanel({ initialConversationId }: { initialConver
   // Deep-link from a notification (e.g. "New message") straight into the
   // conversation it's about, instead of leaving the user on the bare list.
   useEffect(() => {
-    if (!initialConversationId || appliedInitialConversationId.current || isLoadingContacts) return;
+    if (!initialConversationId || appliedInitialConversationId.current === initialConversationId || isLoadingContacts) return;
     const row = rows.find((r) => r.conversationId === initialConversationId);
     if (row) {
-      appliedInitialConversationId.current = true;
+      appliedInitialConversationId.current = initialConversationId;
       openContact(row);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -153,6 +163,11 @@ export default function MessagesPanel({ initialConversationId }: { initialConver
     setSelectedContactId(row.contact.id);
     setError(null);
     setIsLoadingThread(true);
+    // Clear any previously-open thread up front - if starting this one
+    // fails below, the compose box must not be left pointed at a stale
+    // conversation (which would let a message get typed and sent to
+    // whoever was previously selected instead of a visible error).
+    setConversationId(null);
 
     let id = row.conversationId;
     if (!id) {
@@ -170,6 +185,7 @@ export default function MessagesPanel({ initialConversationId }: { initialConver
     setMessages(msgRes?.data ?? []);
     await MarkConversationReadAction(id);
     setIsLoadingThread(false);
+    setRows((prev) => prev.map((r) => (r.contact.id === row.contact.id ? { ...r, unreadCount: 0 } : r)));
     loadContacts();
   };
 
@@ -204,34 +220,42 @@ export default function MessagesPanel({ initialConversationId }: { initialConver
           ) : rows.length === 0 ? (
             <p className="text-sm text-gray-500 p-4">No one to message yet.</p>
           ) : (
-            rows.map((row) => (
-              <button
-                key={row.contact.id}
-                onClick={() => openContact(row)}
-                className={`w-full flex items-center gap-3 p-3 text-left hover:bg-blue-50 border-b transition ${
-                  selectedContactId === row.contact.id ? "bg-blue-100" : ""
-                }`}
-              >
-                <div className="relative shrink-0">
-                  <Avatar className="size-9">
-                    <AvatarImage src={row.contact.avatarUrl} alt={row.contact.firstName} />
-                    <AvatarFallback className="bg-blue-100 text-blue-600">
-                      {row.contact.firstName?.[0]}
-                      {row.contact.lastName?.[0]}
-                    </AvatarFallback>
-                  </Avatar>
-                  <PresenceDot online={row.contact.online} />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="font-medium text-sm truncate text-gray-900">
-                    {row.contact.firstName} {row.contact.lastName}
-                  </p>
-                  <span className="text-[11px] bg-gray-100 text-gray-600 rounded-full px-1.5 py-0.5">
-                    {ROLE_LABELS[row.contact.role] ?? row.contact.role}
-                  </span>
-                </div>
-              </button>
-            ))
+            rows.map((row) => {
+              const hasUnread = row.unreadCount > 0 && row.contact.id !== selectedContactId;
+              return (
+                <button
+                  key={row.contact.id}
+                  onClick={() => openContact(row)}
+                  className={`w-full flex items-center gap-3 p-3 text-left hover:bg-blue-50 border-b transition ${
+                    selectedContactId === row.contact.id ? "bg-blue-100" : hasUnread ? "bg-blue-50/60" : ""
+                  }`}
+                >
+                  <div className="relative shrink-0">
+                    <Avatar className="size-9">
+                      <AvatarImage src={row.contact.avatarUrl} alt={row.contact.firstName} />
+                      <AvatarFallback className="bg-blue-100 text-blue-600">
+                        {row.contact.firstName?.[0]}
+                        {row.contact.lastName?.[0]}
+                      </AvatarFallback>
+                    </Avatar>
+                    <PresenceDot online={row.contact.online} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className={`text-sm truncate ${hasUnread ? "font-semibold text-gray-900" : "font-medium text-gray-900"}`}>
+                      {row.contact.firstName} {row.contact.lastName}
+                    </p>
+                    <span className="text-[11px] bg-gray-100 text-gray-600 rounded-full px-1.5 py-0.5">
+                      {ROLE_LABELS[row.contact.role] ?? row.contact.role}
+                    </span>
+                  </div>
+                  {hasUnread && (
+                    <span className="shrink-0 bg-red-500 text-white text-[10px] rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                      {row.unreadCount > 9 ? "9+" : row.unreadCount}
+                    </span>
+                  )}
+                </button>
+              );
+            })
           )}
         </div>
       </div>
@@ -307,12 +331,15 @@ export default function MessagesPanel({ initialConversationId }: { initialConver
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                placeholder={`Message ${selectedContact.firstName}...`}
-                className="flex-1 border rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                disabled={!conversationId}
+                placeholder={
+                  conversationId ? `Message ${selectedContact.firstName}...` : "Unable to message this person"
+                }
+                className="flex-1 border rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-400"
               />
               <button
                 onClick={handleSend}
-                disabled={!body.trim() || isSending}
+                disabled={!conversationId || !body.trim() || isSending}
                 className="bg-blue-600 text-white size-10 shrink-0 rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center"
                 aria-label="Send message"
               >

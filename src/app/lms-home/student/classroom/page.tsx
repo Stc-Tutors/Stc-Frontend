@@ -13,6 +13,7 @@ import { Lesson, LessonStatus } from "@/types/lesson";
 import { CourseResource } from "@/types/resource";
 import SecureVideoPlayer from "@/components/classroom/SecureVideoPlayer";
 import JoinClassLink from "@/components/classroom/JoinClassLink";
+import NextClassBanner from "@/components/classroom/NextClassBanner";
 import ResourcesTabs from "@/components/resources/ResourcesTabs";
 import { ToastError, ToastSuccess } from "@/components/ui/custom/toast";
 
@@ -129,6 +130,11 @@ export default function ClassroomPage() {
           </p>
         ) : (
           <>
+            {/**************** NEXT CLASS ****************/}
+            <div className="mb-6">
+              <NextClassBanner rows={lessons.map((lesson) => ({ lesson, label: `${selectedCourse?.title ?? ""} · ${lesson.title}` }))} />
+            </div>
+
             {/**************** COURSE SELECTOR ****************/}
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-1">Course</label>
@@ -182,7 +188,7 @@ export default function ClassroomPage() {
                   </div>
                   {selectedLesson.description && <p className="text-gray-600 mb-4">{selectedLesson.description}</p>}
                   <div className="flex flex-wrap gap-3">
-                    {selectedLesson.meetingUrl && selectedLesson.status === LessonStatus.SCHEDULED && (
+                    {selectedLesson.status === LessonStatus.SCHEDULED && (
                       <JoinClassLink
                         lessonId={selectedLesson.id}
                         scheduledDate={selectedLesson.scheduledDate}

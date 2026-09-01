@@ -46,3 +46,10 @@ export interface CreatePaymentPayload {
   country?: string;
   serviceType?: string;
 }
+
+export interface SpendingSummary {
+  totalSpent: number;
+  currency: string;
+  byMonth: { month: string; total: number }[];
+  byChild: { studentId: string | null; studentName: string; total: number }[];
+}

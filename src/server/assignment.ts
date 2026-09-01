@@ -29,6 +29,7 @@ export async function GetAssignmentAction(id: string): Promise<[ApiResponse<Assi
 export async function CreateAssignmentAction(data: {
   course: string;
   lesson?: string;
+  targetStudents?: string[];
   title: string;
   description: string;
   dueDate: string;

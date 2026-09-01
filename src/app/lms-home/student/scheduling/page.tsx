@@ -117,15 +117,15 @@ export default function SchedulePage() {
       setMessage("Pick a new date and time first");
       return;
     }
-    if (isInsideRescheduleGate(scheduledDate) && !rescheduleReason.trim()) {
-      setMessage("A reason is required to reschedule inside 24 hours of the class");
+    if (!rescheduleReason.trim()) {
+      setMessage("A reason is required - it's what the tutor/admin use to decide whether to grant it");
       return;
     }
     if (!isWithinTutorAvailability(tutorAvailability, newDate, durationMinutes, tutorTimezone)) {
       setMessage(`That time is outside your tutor's available hours. Available: ${formatAvailability(tutorAvailability)}`);
       return;
     }
-    const [res, error] = await RescheduleLessonAction(lessonId, new Date(newDate).toISOString(), rescheduleReason || undefined);
+    const [res, error] = await RescheduleLessonAction(lessonId, new Date(newDate).toISOString(), rescheduleReason);
     setMessage(
       error ||
         (res?.data?.applied
@@ -141,11 +141,11 @@ export default function SchedulePage() {
   };
 
   const handleCancel = async (lessonId: string, scheduledDate: string) => {
-    if (isInsideRescheduleGate(scheduledDate) && !cancelReason.trim()) {
-      setMessage("A reason is required to cancel inside 24 hours of the class");
+    if (!cancelReason.trim()) {
+      setMessage("A reason is required to cancel a class");
       return;
     }
-    const [res, error] = await CancelLessonAction(lessonId, cancelReason || undefined);
+    const [res, error] = await CancelLessonAction(lessonId, cancelReason);
     setMessage(
       error ||
         (res?.data?.applied ? "Class cancelled" : "Cancellation requested - awaiting admin approval")
@@ -286,7 +286,7 @@ export default function SchedulePage() {
                         </span>
                       </td>
                       <td className="py-3 space-x-3">
-                        {lesson.meetingUrl && lesson.status === LessonStatus.SCHEDULED && (
+                        {lesson.status === LessonStatus.SCHEDULED && (
                           <JoinClassLink
                             lessonId={lesson.id}
                             scheduledDate={lesson.scheduledDate}
@@ -334,18 +334,15 @@ export default function SchedulePage() {
                             />
                             <input
                               type="text"
-                              placeholder={
-                                isInsideRescheduleGate(lesson.scheduledDate)
-                                  ? "Reason (required - inside 24 hours)"
-                                  : "Reason (optional)"
-                              }
+                              placeholder="Reason (required)"
                               value={rescheduleReason}
                               onChange={(e) => setRescheduleReason(e.target.value)}
                               className="border rounded-md px-2 py-1 text-sm flex-1 min-w-[12rem]"
                             />
                             <button
                               onClick={() => handleRequestReschedule(lesson.id, lesson.scheduledDate, lesson.durationMinutes)}
-                              className="bg-blue-600 text-white rounded-md px-3 py-1.5 text-xs hover:bg-blue-700"
+                              disabled={!rescheduleReason.trim()}
+                              className="bg-blue-600 text-white rounded-md px-3 py-1.5 text-xs hover:bg-blue-700 disabled:opacity-50"
                             >
                               Submit request
                             </button>
@@ -353,7 +350,7 @@ export default function SchedulePage() {
                           <p className="text-xs text-gray-500 mt-1">
                             The new time always needs admin confirmation with the tutor.
                             {isInsideRescheduleGate(lesson.scheduledDate) &&
-                              " This class starts within 24 hours, so a reason is required and it will be flagged urgent."}
+                              " This class starts within 24 hours, so it will be flagged urgent."}
                           </p>
                           <p className="text-xs text-gray-500 mt-1">
                             Tutor&apos;s available times: {formatAvailability(tutorAvailability)}
@@ -367,25 +364,22 @@ export default function SchedulePage() {
                           <div className="flex flex-wrap items-center gap-2">
                             <input
                               type="text"
-                              placeholder={
-                                isInsideRescheduleGate(lesson.scheduledDate)
-                                  ? "Reason (required - inside 24 hours)"
-                                  : "Reason (optional)"
-                              }
+                              placeholder="Reason (required)"
                               value={cancelReason}
                               onChange={(e) => setCancelReason(e.target.value)}
                               className="border rounded-md px-2 py-1 text-sm flex-1 min-w-[12rem]"
                             />
                             <button
                               onClick={() => handleCancel(lesson.id, lesson.scheduledDate)}
-                              className="bg-red-600 text-white rounded-md px-3 py-1.5 text-xs hover:bg-red-700"
+                              disabled={!cancelReason.trim()}
+                              className="bg-red-600 text-white rounded-md px-3 py-1.5 text-xs hover:bg-red-700 disabled:opacity-50"
                             >
                               Confirm cancellation
                             </button>
                           </div>
                           <p className="text-xs text-gray-500 mt-1">
                             {isInsideRescheduleGate(lesson.scheduledDate)
-                              ? "This class starts within 24 hours - cancelling now requires a reason and needs admin approval before it's final."
+                              ? "This class starts within 24 hours, so cancelling now needs admin approval before it's final."
                               : "24 hours or more out, so this cancels immediately."}
                           </p>
                         </td>

@@ -2,15 +2,25 @@
 
 import { useEffect, useState } from "react";
 import { CreditCard } from "lucide-react";
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
-import { GetPaymentsAction, VerifyPaymentAction } from "@/server/payment";
-import { Payment, PaymentStatus } from "@/types/payment";
+import { GetMySpendingSummaryAction, GetPaymentsAction, VerifyPaymentAction } from "@/server/payment";
+import { Payment, PaymentStatus, SpendingSummary } from "@/types/payment";
 import { ToastError, ToastSuccess } from "@/components/ui/custom/toast";
+
+const MONTH_LABELS = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+];
+
+function formatMonth(month: string): string {
+  const [year, m] = month.split("-").map(Number);
+  return `${MONTH_LABELS[(m ?? 1) - 1]} '${String(year).slice(2)}`;
+}
 
 const STATUS_STYLES: Record<PaymentStatus, string> = {
   [PaymentStatus.COMPLETED]: "bg-green-50 text-green-700 border-green-200",
@@ -32,6 +42,7 @@ interface PaymentsListProps {
 // list/resume/verify behavior, only the copy differs (see `variant`).
 export default function PaymentsList({ variant }: PaymentsListProps) {
   const [payments, setPayments] = useState<Payment[]>([]);
+  const [summary, setSummary] = useState<SpendingSummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [payingId, setPayingId] = useState<string | null>(null);
@@ -42,6 +53,7 @@ export default function PaymentsList({ variant }: PaymentsListProps) {
       setError(err);
       setIsLoading(false);
     });
+    GetMySpendingSummaryAction().then(([res]) => setSummary(res?.data ?? null));
   };
 
   useEffect(refresh, []);
@@ -96,6 +108,51 @@ export default function PaymentsList({ variant }: PaymentsListProps) {
             : "A record of every payment made for your enrollments."}
         </p>
       </div>
+
+      {summary && summary.totalSpent > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Spending Summary</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div>
+                <p className="text-2xl font-bold text-gray-900">
+                  {summary.currency} {summary.totalSpent.toLocaleString()}
+                </p>
+                <p className="text-sm text-gray-500">Total spent all-time</p>
+              </div>
+              {variant === "parent" && summary.byChild.length > 1 && (
+                <div className="space-y-1">
+                  <p className="text-sm text-gray-500 mb-1">By child</p>
+                  {summary.byChild.map((c) => (
+                    <div key={c.studentId ?? "other"} className="flex justify-between text-sm">
+                      <span className="text-gray-600">{c.studentName}</span>
+                      <span className="font-medium">
+                        {summary.currency} {c.total.toLocaleString()}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            {summary.byMonth.length > 1 && (
+              <div>
+                <p className="text-sm text-gray-500 mb-2">Spend over time</p>
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={summary.byMonth.map((p) => ({ name: formatMonth(p.month), value: p.total }))}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                    <YAxis tick={{ fontSize: 12 }} />
+                    <Tooltip formatter={(value: number) => [`${summary.currency} ${value.toLocaleString()}`, "Spent"]} />
+                    <Bar dataKey="value" fill="#2563eb" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>

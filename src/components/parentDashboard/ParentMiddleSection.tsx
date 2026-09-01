@@ -11,6 +11,7 @@ import { GetEnrollmentsAction, GetLinkedStudentsAction } from "@/server/enrollme
 import { GetStudentCoursesAction } from "@/server/course-enrollment";
 import { GetNotificationsAction } from "@/server/notification";
 import { Notification } from "@/types/notification";
+import { useSelectedStudent } from "@/contexts/selected-student-context";
 
 interface ChildProgress {
   name: string;
@@ -18,6 +19,7 @@ interface ChildProgress {
 }
 
 export default function ParentMiddleSection() {
+  const { selectedId, isAllSelected } = useSelectedStudent();
   const [data, setData] = useState<ChildProgress[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -26,7 +28,8 @@ export default function ParentMiddleSection() {
     const load = async () => {
       const [linkedRes] = await GetLinkedStudentsAction();
       const [ownRes] = await GetEnrollmentsAction();
-      const students = [...(linkedRes?.data ?? []), ...(ownRes?.data ?? [])];
+      const allStudents = [...(linkedRes?.data ?? []), ...(ownRes?.data ?? [])];
+      const students = isAllSelected ? allStudents : allStudents.filter((s) => s.id === selectedId);
 
       const courseEnrollmentLists = await Promise.all(
         students.map((s) => GetStudentCoursesAction(s.id))
@@ -49,7 +52,7 @@ export default function ParentMiddleSection() {
       setIsLoading(false);
     };
     load();
-  }, []);
+  }, [selectedId, isAllSelected]);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
@@ -58,7 +61,9 @@ export default function ParentMiddleSection() {
       <Card className="lg:col-span-2">
         <CardHeader className="flex items-center justify-between">
           <CardTitle>Performance Overview</CardTitle>
-          <p className="text-sm text-gray-500">Avg. course progress</p>
+          <p className="text-sm text-gray-500">
+            {isAllSelected ? "Avg. course progress by child" : "Avg. course progress"}
+          </p>
         </CardHeader>
         <CardContent>
           {isLoading ? (

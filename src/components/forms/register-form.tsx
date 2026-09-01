@@ -28,6 +28,7 @@ const formSchema = z.object({
   lastName: z.string().min(1, { message: "Surname/LastName is required" }),
   phone: z.string().min(10, { message: "Phone number must be at least 10 digits" }),
   role: z.enum([UserRole.PARENT, UserRole.STUDENT]),
+  referralCode: z.string().optional(),
   confirmPassword: z.string().min(1, { message: "Confirm password is required" })
 }).superRefine(({ confirmPassword, password }, ctx) => {
   if (confirmPassword !== password) {
@@ -54,11 +55,13 @@ export default function RegisterForm() {
       password: "",
       confirmPassword: "",
       role: UserRole.PARENT,
+      referralCode: ref ?? "",
     },
   });
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
-    const [res, error] = await RegisterAction(ref ? { ...data, ref } : data);
+    const { referralCode, ...rest } = data;
+    const [res, error] = await RegisterAction(referralCode ? { ...rest, ref: referralCode } : rest);
 
     if (res) {
       ToastSuccess(res.message);
@@ -153,6 +156,20 @@ export default function RegisterForm() {
                       Student (enrolling myself)
                     </label>
                   </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="referralCode"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Referral code (optional)</FormLabel>
+                <FormControl>
+                  <Input {...field} type="text" placeholder="Have a referral code or link? Enter it here" />
                 </FormControl>
                 <FormMessage />
               </FormItem>

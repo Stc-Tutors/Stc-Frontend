@@ -274,6 +274,7 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
     serviceData.curriculum,
     serviceData.country,
     serviceData.gradeLevel,
+    serviceData.classFormat,
     serviceData.billingWeeks,
     isPathC,
     selectedCourse,
@@ -464,8 +465,32 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
               <Label>Find subjects for your {isPathBExam ? "exam" : "curriculum"}</Label>
               <CurriculumDrilldown
                 serviceType={serviceType as CurriculumServiceType}
-                onSubjectsResolved={setResolvedSubjects}
+                onSubjectsResolved={(subjects, path) => {
+                  setResolvedSubjects(subjects);
+                  // Apply the exact path that produced these subjects in the
+                  // same callback, rather than relying solely on the
+                  // separate onPathChange effect below to have already
+                  // landed - see CurriculumDrilldown's onSubjectsResolved
+                  // doc for the race this closes (subjects resolving before
+                  // country/educationLevel/exam/examCategory actually synced).
+                  if (path) handleCurriculumPath(path);
+                }}
                 onPathChange={handleCurriculumPath}
+                initialPath={
+                  isPathB
+                    ? {
+                        country: serviceData.country || undefined,
+                        curriculum: serviceData.examPreparationDetails.educationLevel || undefined,
+                        level: serviceData.curriculum || undefined,
+                        klass: serviceData.examCategory || undefined,
+                      }
+                    : {
+                        country: serviceData.country || undefined,
+                        curriculum: serviceData.curriculum || undefined,
+                        level: serviceData.gradeLevel || undefined,
+                        klass: serviceData.classYear || undefined,
+                      }
+                }
               />
             </div>
           )}

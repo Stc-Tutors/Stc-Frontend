@@ -21,6 +21,8 @@ import {
   TutorSearchResult,
   RequestMoreInfoPayload,
   SubmitVettingQuestionnairePayload,
+  ReferenceInfo,
+  SubmitReferenceResponsePayload,
 } from "@/types/tutor-application";
 import { Message } from "@/types/message";
 
@@ -68,11 +70,58 @@ export async function ApproveTutorApplicationAction(
   return [resData, error];
 }
 
+// Public, token-gated - see stcbe's tutor-reference.middleware.ts. Called
+// from the unauthenticated /reference/[applicationId]/[slot] page a
+// reference lands on from the reference-check email's link.
+export async function GetReferenceInfoAction(
+  applicationId: string,
+  slot: 1 | 2,
+  token: string
+): Promise<[ApiResponse<ReferenceInfo> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: `/tutor-applications/${applicationId}/reference/${slot}?token=${encodeURIComponent(token)}`,
+    request: { method: "GET", headers: { "Content-Type": "application/json" } },
+  });
+
+  const resData = res ? ((await res.json()) as ApiResponse<ReferenceInfo>) : null;
+  return [resData, error];
+}
+
+export async function SubmitReferenceResponseAction(
+  applicationId: string,
+  slot: 1 | 2,
+  token: string,
+  data: SubmitReferenceResponsePayload
+): Promise<[ApiResponse<null> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: `/tutor-applications/${applicationId}/reference/${slot}?token=${encodeURIComponent(token)}`,
+    request: { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) },
+  });
+
+  const resData = res ? ((await res.json()) as ApiResponse<null>) : null;
+  return [resData, error];
+}
+
 // Reviewer nudge for a tutor sitting in APPROVED_PENDING_VETTING - just
 // re-sends the notification/email, no state change.
 export async function RemindVettingAction(id: string): Promise<[ApiResponse<null> | null, string | null]> {
   const [res, error] = await fetchAPI({
     url: `/tutor-applications/${id}/remind-vetting`,
+    request: { method: "PATCH", headers: { "Content-Type": "application/json" } },
+  });
+
+  const resData = res ? ((await res.json()) as ApiResponse<null>) : null;
+  return [resData, error];
+}
+
+// Reviewer nudge for a reference who hasn't responded yet - just re-sends
+// the email with a fresh link, no state change.
+export async function RemindReferenceAction(
+  applicationId: string,
+  slot: 1 | 2
+): Promise<[ApiResponse<null> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: `/tutor-applications/${applicationId}/reference/${slot}/remind`,
     request: { method: "PATCH", headers: { "Content-Type": "application/json" } },
   });
 

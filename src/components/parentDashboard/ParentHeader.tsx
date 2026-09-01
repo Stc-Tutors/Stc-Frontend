@@ -10,10 +10,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useSelectedStudent } from "@/contexts/selected-student-context";
+import { ALL_CHILDREN_ID, useSelectedStudent } from "@/contexts/selected-student-context";
 
 export default function ParentHeader() {
-  const { students, selectedId, setSelectedId, selectedStudent: selected, isLoading } = useSelectedStudent();
+  const {
+    students,
+    selectedId,
+    setSelectedId,
+    selectedStudent: selected,
+    isAllSelected,
+    isLoading,
+  } = useSelectedStudent();
 
   return (
     <div className="bg-white rounded-2xl shadow-sm p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -38,6 +45,7 @@ export default function ParentHeader() {
                   <SelectValue placeholder="Select Student" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value={ALL_CHILDREN_ID}>All Children</SelectItem>
                   {students.map((s) => (
                     <SelectItem key={s.id} value={s.id}>
                       {s.fullName}
@@ -46,10 +54,16 @@ export default function ParentHeader() {
                 </SelectContent>
               </Select>
 
-              {selected && (
+              {isAllSelected ? (
                 <span className="text-gray-500 text-sm">
-                  {selected.serviceDetails?.ageLevel} · {selected.serviceDetails?.selectedSubjects?.join(", ")}
+                  Showing a combined summary for all {students.length} children
                 </span>
+              ) : (
+                selected && (
+                  <span className="text-gray-500 text-sm">
+                    {selected.serviceDetails?.ageLevel} · {selected.serviceDetails?.selectedSubjects?.join(", ")}
+                  </span>
+                )
               )}
             </>
           )}

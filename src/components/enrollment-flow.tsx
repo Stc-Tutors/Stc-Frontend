@@ -17,6 +17,7 @@ import { GetServicesAction } from "@/server/service-catalog";
 import { GetLinkedStudentsAction } from "@/server/enrollment";
 import { EnrollmentStatus } from "@/types/student";
 import { VerifyPaymentAction } from "@/server/payment";
+import PaymentConsentModal from "./payment-consent-modal";
 
 const steps = [
   { id: 1, title: "Service Selection", component: ServiceSelection },
@@ -53,12 +54,26 @@ export default function EnrollmentFlow({ forcedUserType, dashboardPath, paymentH
     // payment: 5,
   };
 
+  // Waits for a `continue=<id>` draft to actually finish loading before the
+  // `?step=` deep link is allowed to jump the wizard to that step. Without
+  // this, "Continue Registration" (which sets both `continue` and
+  // `step=subjects` at once - see enrollment-list.tsx) jumped straight to
+  // Subjects & Schedule on the very first render, before loadEnrollment
+  // below had resolved - that step's local state (serviceData, schedule,
+  // Country/Curriculum/Category selections) is seeded from enrollmentData
+  // only once, at mount, via useState, so it silently mounted with
+  // everything blank and never picked up the draft once it did load a
+  // moment later. That's what looked like "Education Level not loading"
+  // (really: the whole draft's country/curriculum path never restored).
+  const [continueLoadDone, setContinueLoadDone] = useState(false);
+
   useEffect(() => {
+    if (!continueLoadDone) return;
     const step = searchParams.get("step");
     if (step && stepMap[step] !==undefined) {
       setCurrentStep(stepMap[step]);
     }
-  },[searchParams,setCurrentStep]);
+  },[searchParams,setCurrentStep,continueLoadDone]);
 
   // Pre-select a service from a `?service=<slug>` deep link (e.g. the public
   // marketing pages' Register card) and skip straight to Child Info, since
@@ -85,6 +100,7 @@ export default function EnrollmentFlow({ forcedUserType, dashboardPath, paymentH
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const [showPaymentConsent, setShowPaymentConsent] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
@@ -92,9 +108,12 @@ export default function EnrollmentFlow({ forcedUserType, dashboardPath, paymentH
 
   // Load existing enrollment if continuing
   useEffect(() => {
-    if (continueId && isClient) {
-      loadEnrollment(continueId);
+    if (!continueId) {
+      setContinueLoadDone(true);
+      return;
     }
+    if (!isClient) return;
+    loadEnrollment(continueId).finally(() => setContinueLoadDone(true));
   }, [continueId, loadEnrollment, isClient]);
 
   // Deep link from Marketplace: a parent picked an already-enrolled child
@@ -109,11 +128,38 @@ export default function EnrollmentFlow({ forcedUserType, dashboardPath, paymentH
   // child ends up with two separate service enrollments, same as picking a
   // course in Marketplace would have produced.
   const prefillChildId = searchParams.get("prefillChildId");
+  const prefillServiceSlug = searchParams.get("service");
   useEffect(() => {
     if (!prefillChildId || !isClient || enrollmentData.childInfo?.fullName) return;
     GetLinkedStudentsAction().then(([res]) => {
-      const match = res?.data?.find((s) => s.id === prefillChildId);
+      const list = res?.data ?? [];
+      const match = list.find((s) => s.id === prefillChildId);
       if (!match) return;
+
+      // A previous attempt at enrolling this same child in this same
+      // service may already have been autosaved as a draft (e.g. the parent
+      // backed out or hit an error partway through and came back to this
+      // same Marketplace link) - resume that record instead of prefilling a
+      // brand-new one. Without this, every retry spawns another separate
+      // Student row that shows up as a whole new "child" in the dashboard/
+      // child switcher, since saveEnrollment's autosave always creates a
+      // fresh Student the first time enrollmentData.id is empty.
+      const existingDraft = prefillServiceSlug
+        ? list.find(
+            (s) =>
+              s.id !== match.id &&
+              s.fullName.trim().toLowerCase() === match.fullName.trim().toLowerCase() &&
+              s.serviceDetails?.serviceType === prefillServiceSlug &&
+              (s.enrollmentStatus === EnrollmentStatus.DRAFT || s.enrollmentStatus === EnrollmentStatus.PENDING)
+          )
+        : undefined;
+
+      if (existingDraft) {
+        loadEnrollment(existingDraft.id);
+        setCurrentStep(3);
+        return;
+      }
+
       updateChildInfo({
         userType: "parent",
         fullName: match.fullName,
@@ -136,50 +182,58 @@ export default function EnrollmentFlow({ forcedUserType, dashboardPath, paymentH
 
   const handleNext = async () => {
     if (currentStep === steps.length) {
-      setIsSaving(true);
-      try {
-        const result = await saveEnrollment();
-        if (result.success && result.data) {
-          setErrors({});
-          // Task 3/5 - a cohort/group placement can land the student on a
-          // waitlist instead of a confirmed seat; payment is still initiated
-          // either way, but call that out distinctly rather than implying a
-          // guaranteed spot.
-          if (result.data.student?.enrollmentStatus === EnrollmentStatus.WAITLISTED) {
-            ToastSuccess("You've been placed on a waitlist until a seat opens up. You can still complete payment now to hold your spot.");
-          }
-          const { default: PaystackPop } = await import("@paystack/inline-js");
-          const popup = new PaystackPop();
-          popup.resumeTransaction(result.data.payment.access_code, {
-            onSuccess: async () => {
-              // Paystack's own popup reporting success doesn't mean our
-              // backend has heard about it yet - that only happens via
-              // Paystack's webhook, which may be slow, misconfigured, or
-              // (in local dev) unreachable entirely. Verify directly so the
-              // enrollment doesn't sit at "Pending" despite being paid.
-              await VerifyPaymentAction(result.data!.payment.reference);
-              ToastSuccess("Enrollment successful");
-              router.push(paymentHistoryPath || ROUTES.DASHBOARD.PAYMENT_HISTORY);
-            },
-            onCancel: () => {
-              ToastError("Payment was not completed. You can finish it anytime from Payment History.");
-              router.push(paymentHistoryPath || ROUTES.DASHBOARD.PAYMENT_HISTORY);
-            },
-            onError: (error) => {
-              ToastError(error?.message || "Payment failed. Please try again.");
-            },
-          });
-        } else {
-          ToastError(result.error || "Failed to save enrollment");
-        }
-      } catch (error) {
-        ToastError("An unexpected error occurred while saving enrollment");
-      } finally {
-        setIsSaving(false);
-      }
+      // Show the brief cancellation/privacy/tutor-contact consent pop-up
+      // before actually saving and opening Paystack - submitAndPay runs the
+      // logic that used to live directly here once the parent agrees.
+      setShowPaymentConsent(true);
     } else if (currentStep < steps.length) {
       setCurrentStep(currentStep + 1);
       setErrors({});
+    }
+  };
+
+  const submitAndPay = async () => {
+    setShowPaymentConsent(false);
+    setIsSaving(true);
+    try {
+      const result = await saveEnrollment();
+      if (result.success && result.data) {
+        setErrors({});
+        // Task 3/5 - a cohort/group placement can land the student on a
+        // waitlist instead of a confirmed seat; payment is still initiated
+        // either way, but call that out distinctly rather than implying a
+        // guaranteed spot.
+        if (result.data.student?.enrollmentStatus === EnrollmentStatus.WAITLISTED) {
+          ToastSuccess("You've been placed on a waitlist until a seat opens up. You can still complete payment now to hold your spot.");
+        }
+        const { default: PaystackPop } = await import("@paystack/inline-js");
+        const popup = new PaystackPop();
+        popup.resumeTransaction(result.data.payment.access_code, {
+          onSuccess: async () => {
+            // Paystack's own popup reporting success doesn't mean our
+            // backend has heard about it yet - that only happens via
+            // Paystack's webhook, which may be slow, misconfigured, or
+            // (in local dev) unreachable entirely. Verify directly so the
+            // enrollment doesn't sit at "Pending" despite being paid.
+            await VerifyPaymentAction(result.data!.payment.reference);
+            ToastSuccess("Enrollment successful");
+            router.push(paymentHistoryPath || ROUTES.DASHBOARD.PAYMENT_HISTORY);
+          },
+          onCancel: () => {
+            ToastError("Payment was not completed. You can finish it anytime from Payment History.");
+            router.push(paymentHistoryPath || ROUTES.DASHBOARD.PAYMENT_HISTORY);
+          },
+          onError: (error) => {
+            ToastError(error?.message || "Payment failed. Please try again.");
+          },
+        });
+      } else {
+        ToastError(result.error || "Failed to save enrollment");
+      }
+    } catch (error) {
+      ToastError("An unexpected error occurred while saving enrollment");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -242,8 +296,12 @@ export default function EnrollmentFlow({ forcedUserType, dashboardPath, paymentH
             <CardTitle>{currentStepData?.title}</CardTitle>
           </CardHeader>
           <CardContent>
-            {CurrentStepComponent && (
-              <CurrentStepComponent onNext={handleStepValidation} errors={errors} forcedUserType={forcedUserType} />
+            {!continueLoadDone ? (
+              <p className="text-sm text-gray-500 py-8 text-center">Loading your enrollment...</p>
+            ) : (
+              CurrentStepComponent && (
+                <CurrentStepComponent onNext={handleStepValidation} errors={errors} forcedUserType={forcedUserType} />
+              )
             )}
           </CardContent>
         </Card>
@@ -272,6 +330,13 @@ export default function EnrollmentFlow({ forcedUserType, dashboardPath, paymentH
           </div>
         )}
       </div>
+
+      <PaymentConsentModal
+        open={showPaymentConsent}
+        onOpenChange={setShowPaymentConsent}
+        onAgree={submitAndPay}
+        isSubmitting={isSaving}
+      />
     </div>
   );
 }

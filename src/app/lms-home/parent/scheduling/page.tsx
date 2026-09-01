@@ -19,15 +19,19 @@ import { ScheduleReviewStatus, Student } from "@/types/student";
 import { formatScheduleDateTime } from "@/lib/datetime";
 import { isInsideRescheduleGate, isWithinTutorAvailability, formatAvailability, AvailabilityBlock } from "@/lib/schedule-gate";
 import { GetTutorProfileAction } from "@/server/tutor-profile";
+import { ChildSwitcherDropdown } from "@/components/child-switcher-dropdown";
+import { useSelectedStudent } from "@/contexts/selected-student-context";
 
 interface Row {
   lesson: Lesson;
   course: Course;
+  childId: string;
   childName: string;
 }
 
 export default function ParentSchedulePage() {
   const router = useRouter();
+  const { selectedId, isAllSelected } = useSelectedStudent();
   const [rows, setRows] = useState<Row[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [rescheduleLessonId, setRescheduleLessonId] = useState<string | null>(null);
@@ -77,7 +81,9 @@ export default function ParentSchedulePage() {
 
       const lessonLists = await Promise.all(courses.map((c) => GetCourseLessonsAction(c.id)));
       lessonLists.forEach(([res], i) => {
-        (res?.data ?? []).forEach((lesson) => allRows.push({ lesson, course: courses[i], childName: child.fullName }));
+        (res?.data ?? []).forEach((lesson) =>
+          allRows.push({ lesson, course: courses[i], childId: child.id, childName: child.fullName })
+        );
       });
     }
 
@@ -90,6 +96,8 @@ export default function ParentSchedulePage() {
     load();
     loadConfirmations();
   }, []);
+
+  const visibleRows = isAllSelected ? rows : rows.filter((r) => r.childId === selectedId);
 
   const openReschedule = async (lesson: Lesson, course: Course) => {
     setCancelLessonId(null);
@@ -112,15 +120,15 @@ export default function ParentSchedulePage() {
       setMessage("Pick a new date and time first");
       return;
     }
-    if (isInsideRescheduleGate(scheduledDate) && !rescheduleReason.trim()) {
-      setMessage("A reason is required to reschedule inside 24 hours of the class");
+    if (!rescheduleReason.trim()) {
+      setMessage("A reason is required - it's what the tutor/admin use to decide whether to grant it");
       return;
     }
     if (!isWithinTutorAvailability(tutorAvailability, newDate, durationMinutes, tutorTimezone)) {
       setMessage(`That time is outside your tutor's available hours. Available: ${formatAvailability(tutorAvailability)}`);
       return;
     }
-    const [res, error] = await RescheduleLessonAction(lessonId, new Date(newDate).toISOString(), rescheduleReason || undefined);
+    const [res, error] = await RescheduleLessonAction(lessonId, new Date(newDate).toISOString(), rescheduleReason);
     setMessage(
       error ||
         (res?.data?.applied
@@ -136,11 +144,11 @@ export default function ParentSchedulePage() {
   };
 
   const handleCancel = async (lessonId: string, scheduledDate: string) => {
-    if (isInsideRescheduleGate(scheduledDate) && !cancelReason.trim()) {
-      setMessage("A reason is required to cancel inside 24 hours of the class");
+    if (!cancelReason.trim()) {
+      setMessage("A reason is required to cancel a class");
       return;
     }
-    const [res, error] = await CancelLessonAction(lessonId, cancelReason || undefined);
+    const [res, error] = await CancelLessonAction(lessonId, cancelReason);
     setMessage(
       error ||
         (res?.data?.applied ? "Class cancelled" : "Cancellation requested - awaiting admin approval")
@@ -162,9 +170,12 @@ export default function ParentSchedulePage() {
         <span className="text-1xl font-bold">BACK</span>
       </button>
 
-      <div className="flex items-center gap-3">
-        <CalendarSync className="text-blue-500" />
-        <h1 className="text-lg font-semibold text-gray-800">Schedule</h1>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <CalendarSync className="text-blue-500" />
+          <h1 className="text-lg font-semibold text-gray-800">Schedule</h1>
+        </div>
+        <ChildSwitcherDropdown />
       </div>
 
       {pendingSchedules.length > 0 && (
@@ -244,17 +255,18 @@ export default function ParentSchedulePage() {
 
         {isLoading ? (
           <p className="text-sm text-gray-500 py-4">Loading schedule...</p>
-        ) : rows.length === 0 ? (
+        ) : visibleRows.length === 0 ? (
           <p className="text-sm text-gray-500 py-4">
-            No classes scheduled yet. Once a child is enrolled in a course and their tutor schedules a session, it
-            will show up here.
+            {rows.length === 0
+              ? "No classes scheduled yet. Once a child is enrolled in a course and their tutor schedules a session, it will show up here."
+              : "No classes scheduled for this child yet."}
           </p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="text-gray-500 border-b">
                 <tr>
-                  <th className="py-2 text-left">Child</th>
+                  {isAllSelected && <th className="py-2 text-left">Child</th>}
                   <th className="py-2 text-left">Course</th>
                   <th className="py-2 text-left">Lesson</th>
                   <th className="py-2 text-left">Date</th>
@@ -263,10 +275,10 @@ export default function ParentSchedulePage() {
                 </tr>
               </thead>
               <tbody>
-                {rows.map(({ lesson, course, childName }) => (
+                {visibleRows.map(({ lesson, course, childName }) => (
                   <Fragment key={lesson.id}>
                     <tr className="border-b">
-                      <td className="py-3">{childName}</td>
+                      {isAllSelected && <td className="py-3">{childName}</td>}
                       <td className="py-3">{course.title}</td>
                       <td className="py-3">{lesson.title}</td>
                       <td className="py-3">{formatScheduleDateTime(lesson.scheduledDate)}</td>
@@ -284,7 +296,7 @@ export default function ParentSchedulePage() {
                         </span>
                       </td>
                       <td className="py-3 space-x-3">
-                        {lesson.meetingUrl && lesson.status === LessonStatus.SCHEDULED && (
+                        {lesson.status === LessonStatus.SCHEDULED && (
                           <JoinClassLink
                             lessonId={lesson.id}
                             scheduledDate={lesson.scheduledDate}
@@ -316,7 +328,7 @@ export default function ParentSchedulePage() {
                     </tr>
                     {rescheduleLessonId === lesson.id && (
                       <tr className="border-b bg-gray-50">
-                        <td colSpan={6} className="py-3 px-2">
+                        <td colSpan={isAllSelected ? 6 : 5} className="py-3 px-2">
                           <div className="flex flex-wrap items-center gap-2">
                             <input
                               type="datetime-local"
@@ -326,18 +338,15 @@ export default function ParentSchedulePage() {
                             />
                             <input
                               type="text"
-                              placeholder={
-                                isInsideRescheduleGate(lesson.scheduledDate)
-                                  ? "Reason (required - inside 24 hours)"
-                                  : "Reason (optional)"
-                              }
+                              placeholder="Reason (required)"
                               value={rescheduleReason}
                               onChange={(e) => setRescheduleReason(e.target.value)}
                               className="border rounded-md px-2 py-1 text-sm flex-1 min-w-[12rem]"
                             />
                             <button
                               onClick={() => handleRequestReschedule(lesson.id, lesson.scheduledDate, lesson.durationMinutes)}
-                              className="bg-blue-600 text-white rounded-md px-3 py-1.5 text-xs hover:bg-blue-700"
+                              disabled={!rescheduleReason.trim()}
+                              className="bg-blue-600 text-white rounded-md px-3 py-1.5 text-xs hover:bg-blue-700 disabled:opacity-50"
                             >
                               Submit request
                             </button>
@@ -345,7 +354,7 @@ export default function ParentSchedulePage() {
                           <p className="text-xs text-gray-500 mt-1">
                             The new time always needs admin confirmation with the tutor.
                             {isInsideRescheduleGate(lesson.scheduledDate) &&
-                              " This class starts within 24 hours, so a reason is required and it will be flagged urgent."}
+                              " This class starts within 24 hours, so it will be flagged urgent."}
                           </p>
                           <p className="text-xs text-gray-500 mt-1">
                             Tutor&apos;s available times: {formatAvailability(tutorAvailability)}
@@ -355,29 +364,26 @@ export default function ParentSchedulePage() {
                     )}
                     {cancelLessonId === lesson.id && (
                       <tr className="border-b bg-gray-50">
-                        <td colSpan={6} className="py-3 px-2">
+                        <td colSpan={isAllSelected ? 6 : 5} className="py-3 px-2">
                           <div className="flex flex-wrap items-center gap-2">
                             <input
                               type="text"
-                              placeholder={
-                                isInsideRescheduleGate(lesson.scheduledDate)
-                                  ? "Reason (required - inside 24 hours)"
-                                  : "Reason (optional)"
-                              }
+                              placeholder="Reason (required)"
                               value={cancelReason}
                               onChange={(e) => setCancelReason(e.target.value)}
                               className="border rounded-md px-2 py-1 text-sm flex-1 min-w-[12rem]"
                             />
                             <button
                               onClick={() => handleCancel(lesson.id, lesson.scheduledDate)}
-                              className="bg-red-600 text-white rounded-md px-3 py-1.5 text-xs hover:bg-red-700"
+                              disabled={!cancelReason.trim()}
+                              className="bg-red-600 text-white rounded-md px-3 py-1.5 text-xs hover:bg-red-700 disabled:opacity-50"
                             >
                               Confirm cancellation
                             </button>
                           </div>
                           <p className="text-xs text-gray-500 mt-1">
                             {isInsideRescheduleGate(lesson.scheduledDate)
-                              ? "This class starts within 24 hours - cancelling now requires a reason and needs admin approval before it's final."
+                              ? "This class starts within 24 hours, so cancelling now needs admin approval before it's final."
                               : "24 hours or more out, so this cancels immediately."}
                           </p>
                         </td>

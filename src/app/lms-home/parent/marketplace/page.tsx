@@ -19,6 +19,7 @@ import { QuotePricingAction } from "@/server/pricing";
 import { PricingQuote } from "@/types/pricing";
 import { EnrollInCourseAction } from "@/server/course-enrollment";
 import { InitiatePaymentAction, VerifyPaymentAction } from "@/server/payment";
+import PaymentConsentModal from "@/components/payment-consent-modal";
 
 // Lets a parent add a new course/service to an EXISTING child's enrollments
 // (as opposed to /enrollment/new, which registers a brand-new child). Steps:
@@ -46,6 +47,7 @@ export default function ParentMarketplacePage() {
   const [quoteError, setQuoteError] = useState<string | null>(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPaymentConsent, setShowPaymentConsent] = useState(false);
 
   const selectedService = services.find((s) => s.slug === selectedSlug) ?? null;
   const selectedCourse = courses.find((c) => c.id === selectedCourseId) ?? null;
@@ -101,6 +103,7 @@ export default function ParentMarketplacePage() {
   const handleConfirm = async () => {
     if (!selectedStudent || !selectedCourse || !selectedService) return;
 
+    setShowPaymentConsent(false);
     setIsSubmitting(true);
     try {
       const [enrollRes, enrollError] = await EnrollInCourseAction(selectedCourse.id, selectedStudent.id);
@@ -300,7 +303,7 @@ export default function ParentMarketplacePage() {
             </div>
 
             <Button
-              onClick={handleConfirm}
+              onClick={() => (displayAmount > 0 ? setShowPaymentConsent(true) : handleConfirm())}
               disabled={isSubmitting || quoteLoading || !selectedStudent}
               className="w-full md:w-auto"
             >
@@ -309,6 +312,13 @@ export default function ParentMarketplacePage() {
           </CardContent>
         </Card>
       )}
+
+      <PaymentConsentModal
+        open={showPaymentConsent}
+        onOpenChange={setShowPaymentConsent}
+        onAgree={handleConfirm}
+        isSubmitting={isSubmitting}
+      />
     </div>
   );
 }

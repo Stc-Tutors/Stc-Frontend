@@ -28,6 +28,9 @@ export interface ServicePricing {
   courseId?: string;
   country?: string;
   gradeLevel?: string;
+  // One-on-one vs group - a row with this unset matches either format (see
+  // stcbe's IServicePricing.classFormat/ServicePricingRepository.findMatching).
+  classFormat?: "one-on-one" | "group";
   prices: PricePoint[];
   isActive: boolean;
 }

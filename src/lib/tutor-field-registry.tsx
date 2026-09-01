@@ -570,7 +570,7 @@ export const TUTOR_FIELD_REGISTRY: TutorFieldEntry[] = [
     stepId: 10,
     stepTitle: "Payment & Referral",
     getValue: (a) => a.referringTutorId,
-    format: (v) => v,
+    format: (v: TutorApplication["referringTutorId"]) => (typeof v === "string" ? v : `${v!.firstName} ${v!.lastName}`),
   },
 
   // Step 11: Agreements & Consent

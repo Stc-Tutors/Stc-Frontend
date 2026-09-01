@@ -3,12 +3,20 @@
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
-import { GetMyPayoutRequestsAction } from "@/server/payout";
-import { PayoutRequestStatus } from "@/types/payout";
+import { GetMyEarningsTimeSeriesAction } from "@/server/payout";
 
 interface MonthTotal {
   name: string;
   value: number;
+}
+
+const MONTH_LABELS = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+];
+
+function formatMonth(month: string): string {
+  const [year, m] = month.split("-").map(Number);
+  return `${MONTH_LABELS[(m ?? 1) - 1]} '${String(year).slice(2)}`;
 }
 
 export default function RevenueChart() {
@@ -16,35 +24,19 @@ export default function RevenueChart() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const load = async () => {
-      const [res] = await GetMyPayoutRequestsAction();
-      const requests = res?.data ?? [];
-      const paid = requests.filter((r) => r.status === PayoutRequestStatus.PAID && r.paidAt);
-
-      const now = new Date();
-      const buckets = Array.from({ length: 6 }, (_, i) => {
-        const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
-        return { name: d.toLocaleString("default", { month: "short" }), value: 0, key: `${d.getFullYear()}-${d.getMonth()}` };
-      });
-
-      paid.forEach((r) => {
-        const d = new Date(r.paidAt!);
-        const key = `${d.getFullYear()}-${d.getMonth()}`;
-        const bucket = buckets.find((b) => b.key === key);
-        if (bucket) bucket.value += r.amount;
-      });
-
-      setData(buckets.map(({ name, value }) => ({ name, value })));
+    GetMyEarningsTimeSeriesAction(12).then(([res]) => {
+      setData((res?.data ?? []).map((point) => ({ name: formatMonth(point.month), value: point.total })));
       setIsLoading(false);
-    };
-    load();
+    });
   }, []);
 
   return (
     <Card className="bg-white rounded-xl shadow-sm p-6">
-      <h3 className="text-lg font-semibold mb-4">Revenue (last 6 months)</h3>
+      <h3 className="text-lg font-semibold mb-4">Earnings (last 12 months)</h3>
       {isLoading ? (
         <p className="text-sm text-gray-500">Loading...</p>
+      ) : data.length === 0 ? (
+        <p className="text-sm text-gray-500">No paid-out earnings yet.</p>
       ) : (
         <ResponsiveContainer width="100%" height={200}>
           <BarChart data={data}>

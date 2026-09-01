@@ -18,15 +18,35 @@ interface CurriculumDrilldownProps {
   // Fires with the resolved SUBJECT leaves once the drill-down reaches them
   // (some branches skip Class/Year - see handleLevel below) - the caller
   // renders these as its own multi-select checkboxes, since a student picks
-  // several subjects, not one.
-  onSubjectsResolved: (subjects: CurriculumNode[]) => void;
+  // several subjects, not one. Also carries the exact path that produced
+  // these subjects (omitted when merely clearing to []) - a caller that
+  // needs the two in sync (e.g. also persisting country/examCategory
+  // alongside the subjects) should apply both from this single callback
+  // rather than relying on onPathChange separately. Without this, subjects
+  // resolving (an imperative call inside an async handler) and onPathChange
+  // firing (a separate useEffect reacting to state a render later) had no
+  // guaranteed order - under real network timing this could resolve subjects
+  // successfully while the parent's country/curriculum/examCategory state
+  // still reflected an earlier, blanker path, so a real submission could
+  // reach payment with genuine subjects selected but educationLevel/exam/
+  // examCategory silently empty.
+  onSubjectsResolved: (subjects: CurriculumNode[], path?: CurriculumPath) => void;
   // Optional: fires with the current Country/Curriculum/Level/Class
-  // selections on every change. The student enrollment flow doesn't need
-  // this (it only cares about the resolved subject names), but a caller
-  // that has to persist the full path - e.g. a tutor's teaching-combination
-  // picker, which stores country/curriculum/gradeLevel alongside subjects -
-  // does.
+  // selections on every change - a live running commentary, useful for
+  // breadcrumb-style display, but NOT guaranteed to be in sync with the most
+  // recent onSubjectsResolved call (see that prop's doc). A caller that
+  // needs the two consistent should read the path from onSubjectsResolved.
   onPathChange?: (path: CurriculumPath) => void;
+  // Names (not ids - callers only persist the resolved node names, e.g.
+  // ServiceDetails.country/curriculum/examCategory) to walk the tree down to
+  // and restore on mount, instead of always starting blank. Without this, a
+  // step that remounts with a previously-completed selection already in its
+  // state (e.g. the enrollment wizard's Subjects & Schedule step re-mounting
+  // after "Edit" from Review, or resuming a saved draft) forced the parent
+  // to redo the entire Country -> ... -> Category drill-down from scratch,
+  // and any subject/category picked before that redo finished got treated
+  // as unresolved - the "my selection keeps getting deleted" bug.
+  initialPath?: { country?: string; curriculum?: string; level?: string; klass?: string };
 }
 
 const selectClass = "border rounded-md px-3 py-2 text-sm w-full";
@@ -49,7 +69,7 @@ function labelsFromStages(stages: ITaxonomyStage[]) {
   };
 }
 
-export default function CurriculumDrilldown({ serviceType, onSubjectsResolved, onPathChange }: CurriculumDrilldownProps) {
+export default function CurriculumDrilldown({ serviceType, onSubjectsResolved, onPathChange, initialPath }: CurriculumDrilldownProps) {
   const [labels, setLabels] = useState(DEFAULT_LABELS);
 
   useEffect(() => {
@@ -76,6 +96,7 @@ export default function CurriculumDrilldown({ serviceType, onSubjectsResolved, o
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
     setCountry(undefined);
     setCurriculum(undefined);
     setLevel(undefined);
@@ -84,7 +105,64 @@ export default function CurriculumDrilldown({ serviceType, onSubjectsResolved, o
     setLevels([]);
     setClasses([]);
     onSubjectsResolved([]);
-    GetCurriculumChildrenAction(null, serviceType).then(([res]) => setCountries(res?.data ?? []));
+
+    const restore = async () => {
+      const [countriesRes] = await GetCurriculumChildrenAction(null, serviceType);
+      const countryList = countriesRes?.data ?? [];
+      if (cancelled) return;
+      setCountries(countryList);
+      if (!initialPath?.country) return;
+
+      const countryNode = countryList.find((c) => c.name === initialPath.country);
+      if (!countryNode) return;
+      setCountry(countryNode);
+      const [curriculaRes] = await GetCurriculumChildrenAction(countryNode.id, serviceType);
+      const curriculaList = curriculaRes?.data ?? [];
+      if (cancelled) return;
+      setCurricula(curriculaList);
+      if (!initialPath.curriculum) return;
+
+      const curriculumNode = curriculaList.find((c) => c.name === initialPath.curriculum);
+      if (!curriculumNode) return;
+      setCurriculum(curriculumNode);
+      const [levelsRes] = await GetCurriculumChildrenAction(curriculumNode.id, serviceType);
+      const levelList = levelsRes?.data ?? [];
+      if (cancelled) return;
+      setLevels(levelList);
+      if (!initialPath.level) return;
+
+      const levelNode = levelList.find((l) => l.name === initialPath.level);
+      if (!levelNode) return;
+      setLevel(levelNode);
+      setIsLoading(true);
+      const [childrenRes] = await GetCurriculumChildrenAction(levelNode.id, serviceType);
+      const children = childrenRes?.data ?? [];
+      setIsLoading(false);
+      if (cancelled) return;
+
+      // Same branch as handleLevel below - some exams skip the Category
+      // layer entirely and attach subjects straight to the level above.
+      if (children.length > 0 && children[0].type === CurriculumNodeType.SUBJECT) {
+        onSubjectsResolved(children, { country: countryNode, curriculum: curriculumNode, level: levelNode });
+        return;
+      }
+      setClasses(children);
+      if (!initialPath.klass) return;
+
+      const klassNode = children.find((c) => c.name === initialPath.klass);
+      if (!klassNode) return;
+      setKlass(klassNode);
+      setIsLoading(true);
+      const [subjectsRes] = await GetCurriculumChildrenAction(klassNode.id, serviceType);
+      setIsLoading(false);
+      if (cancelled) return;
+      onSubjectsResolved(subjectsRes?.data ?? [], { country: countryNode, curriculum: curriculumNode, level: levelNode, klass: klassNode });
+    };
+    restore();
+
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [serviceType]);
 
@@ -137,7 +215,7 @@ export default function CurriculumDrilldown({ serviceType, onSubjectsResolved, o
     // curricula with no Class/Year, or exam-preparation exams with no
     // Category (JAMB) - subjects attach straight to the level above.
     if (children.length > 0 && children[0].type === CurriculumNodeType.SUBJECT) {
-      onSubjectsResolved(children);
+      onSubjectsResolved(children, { country, curriculum, level: next });
     } else {
       setClasses(children);
     }
@@ -152,7 +230,7 @@ export default function CurriculumDrilldown({ serviceType, onSubjectsResolved, o
     setIsLoading(true);
     const [res] = await GetCurriculumChildrenAction(id, serviceType);
     setIsLoading(false);
-    onSubjectsResolved(res?.data ?? []);
+    onSubjectsResolved(res?.data ?? [], { country, curriculum, level, klass: next });
   };
 
   return (
