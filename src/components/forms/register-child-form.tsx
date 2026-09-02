@@ -16,6 +16,7 @@ import { Loader2, Copy } from "lucide-react";
 import { childPasswordSchema } from "@/lib/password-policy";
 import { GetTaxonomyOptionsAction } from "@/server/taxonomy-option";
 import { TaxonomyOptionKind } from "@/types/service-catalog";
+import { useSelectedStudent } from "@/contexts/selected-student-context";
 
 const formSchema = z
   .object({
@@ -42,6 +43,7 @@ const formSchema = z
   });
 
 export default function RegisterChildForm() {
+  const { refresh: refreshLinkedChildren } = useSelectedStudent();
   const [createdStudentId, setCreatedStudentId] = useState<string | null>(null);
   const [countryOptions, setCountryOptions] = useState<{ label: string; value: string }[]>([]);
   const [languageOptions, setLanguageOptions] = useState<{ label: string; value: string }[]>([]);
@@ -78,6 +80,12 @@ export default function RegisterChildForm() {
       ToastSuccess(res.message);
       setCreatedStudentId(res.data.studentId);
       form.reset();
+      // Without this, the shared child list (SelectedStudentProvider) only
+      // ever fetched once on mount - a parent who adds a child then
+      // navigates to Marketplace via client-side routing (no full page
+      // reload) would still see the stale pre-add list, with the new child
+      // missing from the "shopping for" switcher entirely.
+      refreshLinkedChildren();
     }
     if (error) {
       ToastError(error);
