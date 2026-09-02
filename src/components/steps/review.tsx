@@ -25,7 +25,7 @@ interface StepProps {
 const STAGE = "student-registration:review" as const;
 
 export default function EnrollmentReview({ onNext, errors }: StepProps) {
-  const { enrollmentData, setCurrentStep, calculateCost, updateCustomFieldResponse } = useEnrollment();
+  const { enrollmentData, setCurrentStep, calculateCost, updateCustomFieldResponse, setEnrollmentData } = useEnrollment();
   // const { enrollmentData, setCurrentStep } = useEnrollment();
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [acceptPrivacy, setAcceptPrivacy] = useState(false);
@@ -404,6 +404,28 @@ export default function EnrollmentReview({ onNext, errors }: StepProps) {
             </Button>
           </div>
           {referralMessage && <p className="text-sm text-gray-500">{referralMessage}</p>}
+        </CardContent>
+      </Card>
+
+      {/* Payment bypass token - a Super Admin-issued single-use code for
+          scholarship/discounted students (see stcbe's
+          generatePaymentBypassToken). Redeemed server-side at finalize, not
+          validated here - an invalid/expired code just surfaces as a save
+          error when they click Save & Continue. */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Have a Payment Bypass Code? (optional)</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <p className="text-sm text-gray-600">
+            If an admin gave you a code to skip payment for this enrollment, enter it here.
+          </p>
+          <Input
+            placeholder="Bypass code"
+            value={enrollmentData.bypassToken ?? ""}
+            onChange={(e) => setEnrollmentData((prev) => ({ ...prev, bypassToken: e.target.value }))}
+            className="max-w-xs"
+          />
         </CardContent>
       </Card>
 

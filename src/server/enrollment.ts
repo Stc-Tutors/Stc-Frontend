@@ -6,7 +6,10 @@ import { PaymentRequest } from "@/types/payment";
 
 export interface EnrollmentResponse {
   student: Student;
-  payment: PaymentRequest;
+  // null when finalized with a payment-bypass token (see
+  // enrollment-context.tsx's bypassToken) - no Payment record is created in
+  // that case, and the caller should skip opening Paystack entirely.
+  payment: PaymentRequest | null;
 }
 
 export async function EnrollAction(data: any): Promise<[ApiResponse<EnrollmentResponse> | null, string | null]> {
@@ -75,10 +78,15 @@ export async function RemoveLinkedChildAction(id: string): Promise<[ApiResponse<
   return [resData, error];
 }
 
+// payment is non-null only for an admin full registration (see
+// StudentService.createFullRegistrationByAdmin) where the admin required
+// payment - confirming then behaves like finalizeEnrollment, sending the
+// owner to checkout. It's null for a bare admin stub or a waived
+// registration, which just activate straight to ENROLLED.
 export async function ConfirmEnrollmentAction(
   id: string,
   updates: Partial<Student>
-): Promise<[ApiResponse<Student> | null, string | null]> {
+): Promise<[ApiResponse<{ student: Student; payment: PaymentRequest | null }> | null, string | null]> {
   const [res, error] = await fetchAPI({
     url: `/enrollments/${id}/confirm`,
     request: {
@@ -88,7 +96,7 @@ export async function ConfirmEnrollmentAction(
     },
   });
 
-  const resData = res ? ((await res.json()) as ApiResponse<Student>) : null;
+  const resData = res ? ((await res.json()) as ApiResponse<{ student: Student; payment: PaymentRequest | null }>) : null;
   return [resData, error];
 }
 

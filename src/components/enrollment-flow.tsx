@@ -206,16 +206,27 @@ export default function EnrollmentFlow({ forcedUserType, dashboardPath, paymentH
         if (result.data.student?.enrollmentStatus === EnrollmentStatus.WAITLISTED) {
           ToastSuccess("You've been placed on a waitlist until a seat opens up. You can still complete payment now to hold your spot.");
         }
+
+        // A redeemed payment-bypass token (see the Review step) skips the
+        // gateway entirely - no Payment record exists to open, the
+        // enrollment is already ENROLLED (or left WAITLISTED) directly.
+        if (!result.data.payment) {
+          ToastSuccess("Enrollment successful - no payment required");
+          router.push(dashboardPath || ROUTES.DASHBOARD.HOME);
+          return;
+        }
+
+        const payment = result.data.payment;
         const { default: PaystackPop } = await import("@paystack/inline-js");
         const popup = new PaystackPop();
-        popup.resumeTransaction(result.data.payment.access_code, {
+        popup.resumeTransaction(payment.access_code, {
           onSuccess: async () => {
             // Paystack's own popup reporting success doesn't mean our
             // backend has heard about it yet - that only happens via
             // Paystack's webhook, which may be slow, misconfigured, or
             // (in local dev) unreachable entirely. Verify directly so the
             // enrollment doesn't sit at "Pending" despite being paid.
-            await VerifyPaymentAction(result.data!.payment.reference);
+            await VerifyPaymentAction(payment.reference);
             ToastSuccess("Enrollment successful");
             router.push(paymentHistoryPath || ROUTES.DASHBOARD.PAYMENT_HISTORY);
           },

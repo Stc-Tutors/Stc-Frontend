@@ -29,6 +29,7 @@ import {
 import BrandLogo from "@/components/shared/BrandLogo";
 import LogoutButton from "@/components/shared/LogoutButton";
 import { UserProfileDropdown } from "@/components/user-profile-dropdown";
+import NotificationBell from "@/components/notification-bell";
 import AccessRestrictionGate from "@/components/shared/AccessRestrictionGate";
 
 // export const metadata = {
@@ -149,7 +150,6 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
                                 className="flex items-center gap-3 text-gray-600 hover:text-[#38b6ff] hover:translate-x-3">
                                     <Bell className="w-5 h-5" />
                                     Notifications
-                                    <span className="ml-auto w-2.5 h-2.5 bg-red-500 rounded-full"></span>
                                     </Link>
                                     
                                     {/* Logout */}
@@ -195,12 +195,7 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
               <MessageSquare className="w-5 h-5 text-gray-600" />
             </Link>
 
-            <Link
-              href="/lms-home/student/notification"
-              className="group relative p-2 rounded-full hover:bg-gray-100 cursor-pointer transition"
-            >
-              <Bell className="w-5 h-5 text-gray-600" />
-            </Link>
+            <NotificationBell viewAllHref="/lms-home/student/notification" />
 
             <UserProfileDropdown />
           </div>

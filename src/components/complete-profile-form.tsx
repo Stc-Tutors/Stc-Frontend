@@ -10,9 +10,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { SearchableCombobox } from "@/components/ui/searchable-combobox";
 import { useUser } from "@/contexts/user-context";
 import { ConfirmEnrollmentAction, GetEnrollmentAction, RejectEnrollmentAction } from "@/server/enrollment";
+import { VerifyPaymentAction } from "@/server/payment";
 import { GetTaxonomyOptionsAction } from "@/server/taxonomy-option";
 import { ITaxonomyOption, TaxonomyOptionKind } from "@/types/service-catalog";
+import { IServiceDetails, ISchedule } from "@/types/student";
 import { UserRole } from "@/types/user";
+import { ToastError, ToastSuccess } from "@/components/ui/custom/toast";
 
 export default function CompleteProfileForm({ studentId, dashboardPath }: { studentId: string; dashboardPath: string }) {
   const router = useRouter();
@@ -31,6 +34,9 @@ export default function CompleteProfileForm({ studentId, dashboardPath }: { stud
   const [parentEmail, setParentEmail] = useState("");
   const [countries, setCountries] = useState<ITaxonomyOption[]>([]);
   const [isLoadingCountries, setIsLoadingCountries] = useState(true);
+  const [serviceDetails, setServiceDetails] = useState<IServiceDetails | undefined>(undefined);
+  const [schedule, setSchedule] = useState<ISchedule[] | undefined>(undefined);
+  const [requiresPayment, setRequiresPayment] = useState(false);
 
   const isSelfEnrolling = user?.role === UserRole.STUDENT;
 
@@ -59,6 +65,12 @@ export default function CompleteProfileForm({ studentId, dashboardPath }: { stud
       setParentName(s.parentName || "");
       setParentPhone(s.parentPhone || "");
       setParentEmail(s.parentEmail || "");
+      // Only present on a full registration an admin completed on your
+      // behalf (StudentService.createFullRegistrationByAdmin) - a bare stub
+      // has no serviceDetails yet, that's still up to you to fill in later.
+      setServiceDetails(s.serviceDetails);
+      setSchedule(s.schedule);
+      setRequiresPayment(!!s.adminRegistrationRequiresPayment);
       setIsLoading(false);
     })();
   }, [studentId]);
@@ -75,7 +87,7 @@ export default function CompleteProfileForm({ studentId, dashboardPath }: { stud
 
     setIsSaving(true);
     setError(null);
-    const [, err] = await ConfirmEnrollmentAction(studentId, {
+    const [res, err] = await ConfirmEnrollmentAction(studentId, {
       fullName,
       gender,
       dateOfBirth: new Date(dateOfBirth),
@@ -85,11 +97,35 @@ export default function CompleteProfileForm({ studentId, dashboardPath }: { stud
       ...(isSelfEnrolling ? { parentName, parentPhone, parentEmail } : {}),
     });
     setIsSaving(false);
-    if (err) {
-      setError(err);
+    if (err || !res?.data) {
+      setError(err || "Could not confirm this enrollment");
       return;
     }
-    router.push(dashboardPath);
+
+    const { payment } = res.data;
+    if (!payment) {
+      router.push(dashboardPath);
+      return;
+    }
+
+    // A full registration where the admin required payment - same checkout
+    // flow as finishing the self-service wizard (enrollment-flow.tsx).
+    const { default: PaystackPop } = await import("@paystack/inline-js");
+    const popup = new PaystackPop();
+    popup.resumeTransaction(payment.access_code, {
+      onSuccess: async () => {
+        await VerifyPaymentAction(payment.reference);
+        ToastSuccess("Payment successful - enrollment complete");
+        router.push(dashboardPath);
+      },
+      onCancel: () => {
+        ToastError("Payment was not completed. You can finish it anytime from Payment History.");
+        router.push(dashboardPath);
+      },
+      onError: (paystackError: { message?: string }) => {
+        ToastError(paystackError?.message || "Payment failed. Please try again.");
+      },
+    });
   };
 
   const handleReject = async () => {
@@ -112,6 +148,40 @@ export default function CompleteProfileForm({ studentId, dashboardPath }: { stud
       </div>
 
       {error && <p className="text-red-600 text-sm">{error}</p>}
+
+      {serviceDetails?.serviceType && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Service &amp; Schedule</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            <p><span className="font-medium">Service:</span> {serviceDetails.serviceType}</p>
+            {serviceDetails.selectedSubjects && serviceDetails.selectedSubjects.length > 0 && (
+              <p><span className="font-medium">Subjects:</span> {serviceDetails.selectedSubjects.join(", ")}</p>
+            )}
+            {requiresPayment && !!serviceDetails.totalCost && (
+              <p><span className="font-medium">Cost:</span> {serviceDetails.totalCost.toLocaleString()}</p>
+            )}
+            {schedule && schedule.length > 0 && (
+              <div>
+                <span className="font-medium">Schedule:</span>
+                <ul className="list-disc list-inside mt-1">
+                  {schedule.map((s, i) => (
+                    <li key={i}>{s.subject}: {s.days.join(", ")} at {s.time} ({s.duration} min)</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <p className="pt-2 border-t">
+              {requiresPayment ? (
+                <>Confirming will take you to payment to complete this registration.</>
+              ) : (
+                <>This registration has been waived - confirming activates it immediately, no payment needed.</>
+              )}
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>
@@ -199,7 +269,7 @@ export default function CompleteProfileForm({ studentId, dashboardPath }: { stud
 
       <div className="flex gap-3">
         <Button onClick={handleConfirm} disabled={isSaving}>
-          {isSaving ? "Saving..." : "Confirm"}
+          {isSaving ? "Saving..." : requiresPayment ? "Confirm & Pay" : "Confirm"}
         </Button>
         <Button variant="outline" onClick={handleReject} disabled={isSaving}>
           Reject

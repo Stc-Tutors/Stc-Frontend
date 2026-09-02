@@ -40,6 +40,7 @@ import { GetMySubjectEnrollmentsAction } from "@/server/subject-enrollment"
 import { type Student, EnrollmentStatus, studentLoginId } from "@/types/student"
 import { SUBJECT_ENROLLMENT_STATUS_LABELS, SubjectEnrollment, SubjectEnrollmentStatus } from "@/types/subject-enrollment"
 import { ToastError, ToastSuccess } from "@/components/ui/custom/toast"
+import { groupStudentsByChild, type ChildGroup } from "@/contexts/selected-student-context"
 
 interface EnrollmentListProps {
   // "mine" = the logged-in user's own enrollments (student self-registered);
@@ -59,9 +60,9 @@ export default function EnrollmentList({ source, basePath }: EnrollmentListProps
   const [serviceTypeFilter, setServiceTypeFilter] = useState("all")
   const [enrollmentRestricted, setEnrollmentRestricted] = useState(false)
   const [subjectEnrollments, setSubjectEnrollments] = useState<SubjectEnrollment[]>([])
-  const [childToRemove, setChildToRemove] = useState<Student | null>(null)
+  const [childToRemove, setChildToRemove] = useState<ChildGroup | null>(null)
   const [isRemoving, setIsRemoving] = useState(false)
-  const [viewingLoginId, setViewingLoginId] = useState<Student | null>(null)
+  const [viewingLoginId, setViewingLoginId] = useState<ChildGroup | null>(null)
 
   useEffect(() => {
     GetMyRestrictionsAction().then(([res]) => setEnrollmentRestricted(!!res?.data?.courseEnrollmentRestricted))
@@ -152,16 +153,21 @@ export default function EnrollmentList({ source, basePath }: EnrollmentListProps
     }, 0)
   }
 
+  // Removing a child removes every one of their enrollments (see stcbe's
+  // /remove-child, which soft-deletes one Student record at a time) - a
+  // child with 2 services needs both marked REMOVED, not just one.
   const handleRemoveChild = async () => {
     if (!childToRemove) return
     setIsRemoving(true)
     try {
-      const [res, error] = await RemoveLinkedChildAction(childToRemove.id)
-      if (error || !res?.data) {
-        ToastError(error || "Failed to remove child")
+      const results = await Promise.all(childToRemove.enrollments.map((e) => RemoveLinkedChildAction(e.id)))
+      const failure = results.find(([, error]) => error)
+      if (failure) {
+        ToastError(failure[1] || "Failed to remove child")
         return
       }
-      setStudents((prev) => prev.filter((s) => s.id !== childToRemove.id))
+      const removedIds = new Set(childToRemove.enrollments.map((e) => e.id))
+      setStudents((prev) => prev.filter((s) => !removedIds.has(s.id)))
       ToastSuccess(`${childToRemove.fullName} has been removed from your account`)
       setChildToRemove(null)
     } catch {
@@ -213,6 +219,13 @@ export default function EnrollmentList({ source, basePath }: EnrollmentListProps
   }
 
   const stats = getStatusStats()
+  // Grouping the already-filtered list means a status/service filter
+  // correctly narrows to just the matching enrollment(s) within a child's
+  // card, while a name search (which matches identically across every
+  // sibling enrollment, since fullName is the same child) still shows the
+  // whole child.
+  const childGroups = groupStudentsByChild(filteredStudents)
+  const totalChildren = groupStudentsByChild(students).length
 
   return (
     <div className="w-full flex-1 py-2">
@@ -223,7 +236,9 @@ export default function EnrollmentList({ source, basePath }: EnrollmentListProps
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Enrollment</h1>
               <p className="text-gray-600 mt-1">
-                {source === "linked" ? "Manage your children's enrollments" : "Manage and track your enrollments"}
+                {source === "linked"
+                  ? `Manage your children's enrollments – ${totalChildren} child${totalChildren === 1 ? "" : "ren"}`
+                  : "Manage and track your enrollments"}
               </p>
             </div>
             <Button
@@ -249,12 +264,14 @@ export default function EnrollmentList({ source, basePath }: EnrollmentListProps
           </Card>
         )}
 
-        {/* Stats Overview */}
+        {/* Stats Overview - counts of enrollments (a child in 2 services
+            counts twice here by design; see "child" above the header for
+            the distinct-child count) */}
         <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
           <Card>
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
-              <div className="text-sm text-gray-600">Total</div>
+              <div className="text-sm text-gray-600">Total Enrollments</div>
             </CardContent>
           </Card>
           <Card>
@@ -344,9 +361,9 @@ export default function EnrollmentList({ source, basePath }: EnrollmentListProps
           </CardContent>
         </Card>
 
-        {/* Enrollments List */}
+        {/* Children (one card per real child, their enrollments nested) */}
         <div className="space-y-4">
-          {filteredStudents.length === 0 ? (
+          {childGroups.length === 0 ? (
             <Card>
               <CardContent className="p-12 text-center">
                 <GraduationCap className="w-16 h-16 text-gray-400 mx-auto mb-4" />
@@ -367,175 +384,196 @@ export default function EnrollmentList({ source, basePath }: EnrollmentListProps
               </CardContent>
             </Card>
           ) : (
-            filteredStudents.map((student) => (
-              <Card key={student.id} className="hover:shadow-lg transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    {/* Student Info */}
-                    <div className="flex items-center space-x-4 flex-1">
-                      <Avatar className="w-14 h-14">
-                        <AvatarFallback className="bg-blue-100 text-blue-600 text-lg font-semibold">
-                          {getInitials(student.fullName)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-xl text-gray-900">{student.fullName}</h3>
-                        <div className="flex flex-wrap items-center gap-2 mt-2">
-                          <Badge className={`${getStatusColor(student.enrollmentStatus)} border`}>
-                            {student.enrollmentStatus}
-                          </Badge>
-                          <Badge variant="outline" className="text-xs">
-                            {student.serviceDetails?.ageLevel}
-                          </Badge>
-                          <Badge variant="secondary" className="text-xs">
-                            {student.serviceDetails?.serviceType.replace("-", " ")}
-                          </Badge>
-                        </div>
-                        <div className="flex items-center space-x-4 mt-2 text-sm text-gray-600">
-                          <div className="flex items-center">
-                            <User className="w-3 h-3 mr-1" />
-                            {student.parentName}
-                          </div>
-                          <div className="flex items-center">
-                            <Globe className="w-3 h-3 mr-1" />
-                            {student.countryOfResidence}
-                          </div>
+            childGroups.map((child) => {
+              const loginId = child.enrollments.map((e) => studentLoginId(e.studentUser)).find(Boolean)
+              return (
+                <Card key={child.key} className="hover:shadow-lg transition-shadow">
+                  <CardContent className="p-6 space-y-4">
+                    {/* Child header */}
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      <div className="flex items-center space-x-4">
+                        <Avatar className="w-14 h-14">
+                          <AvatarFallback className="bg-blue-100 text-blue-600 text-lg font-semibold">
+                            {getInitials(child.fullName)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <h3 className="font-semibold text-xl text-gray-900">{child.fullName}</h3>
+                          {child.enrollments.length > 1 && (
+                            <p className="text-sm text-gray-500">{child.enrollments.length} enrollments</p>
+                          )}
                         </div>
                       </div>
-                    </div>
-
-                    {/* Cost and Actions */}
-                    <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
-                      <div className="text-right">
-                        <div className="flex items-center text-lg font-bold text-gray-900">
-                          ₦{(student.serviceDetails?.totalCost ?? 0).toLocaleString()}
-                        </div>
-                        <p className="text-sm text-gray-500">total cost</p>
-                      </div>
-
-                      <div className="flex items-center space-x-2">
-                        {student.enrollmentStatus === EnrollmentStatus.DRAFT && (
-                          <Button
-                            size="sm"
-                            className="bg-amber-600 hover:bg-amber-700"
-                            onClick={() => router.push(`${basePath}/new?continue=${student.id}&step=subjects`)}
-                          >
-                            Continue Registration
-                          </Button>
-                        )}
-                        {student.enrollmentStatus === EnrollmentStatus.PENDING && (
-                          <Button
-                            size="sm"
-                            className="bg-amber-600 hover:bg-amber-700"
-                            onClick={() =>
-                              router.push(source === "linked" ? "/lms-home/parent/payments" : "/lms-home/student/payments")
-                            }
-                          >
-                            Complete Payment
-                          </Button>
-                        )}
-                        <Button variant="outline" size="sm" onClick={() => router.push(`${basePath}/${student.id}`)}>
-                          <Eye className="w-4 h-4 mr-1" />
-                          View
-                        </Button>
-                        {source === "linked" && studentLoginId(student.studentUser) && (
-                          <Button variant="outline" size="sm" onClick={() => setViewingLoginId(student)}>
-                            <KeyRound className="w-4 h-4 mr-1" />
-                            Login ID
-                          </Button>
-                        )}
-                        {source === "linked" && (
+                      {source === "linked" && (
+                        <div className="flex items-center gap-2">
+                          {loginId && (
+                            <Button variant="outline" size="sm" onClick={() => setViewingLoginId(child)}>
+                              <KeyRound className="w-4 h-4 mr-1" />
+                              Login ID
+                            </Button>
+                          )}
                           <Button
                             variant="outline"
                             size="sm"
                             className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
-                            onClick={() => setChildToRemove(student)}
+                            onClick={() => setChildToRemove(child)}
                           >
                             <UserMinus className="w-4 h-4 mr-1" />
                             Remove
                           </Button>
-                        )}
-                      </div>
+                        </div>
+                      )}
                     </div>
-                  </div>
 
-                  <Separator className="my-4" />
+                    <Separator />
 
-                  {/* Additional Details */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
-                    {/* Subjects */}
-                    <div>
-                      <div className="flex items-center text-gray-600 mb-2">
-                        <BookOpen className="w-4 h-4 mr-1" />
-                        <span className="font-medium">Subjects</span>
-                      </div>
-                      <div className="flex flex-wrap gap-1">
-                        {student.serviceDetails?.selectedSubjects.slice(0, 3).map((subject) => {
-                          const status = getSubjectStatus(student.id, subject)
-                          return (
-                            <span key={subject} className="flex items-center gap-1">
-                              <Badge variant="secondary" className="text-xs">
-                                {subject}
-                              </Badge>
-                              {status && (
-                                <Badge className={`${getSubjectStatusColor(status)} border text-[10px]`}>
-                                  {SUBJECT_ENROLLMENT_STATUS_LABELS[status]}
+                    {/* Enrollments */}
+                    <div className="space-y-4">
+                      {child.enrollments.map((student) => (
+                        <div key={student.id} className="border rounded-lg p-4">
+                          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div className="flex-1">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <Badge className={`${getStatusColor(student.enrollmentStatus)} border`}>
+                                  {student.enrollmentStatus}
                                 </Badge>
-                              )}
-                            </span>
-                          )
-                        })}
-                        {(student.serviceDetails?.selectedSubjects.length ?? 0) > 3 && (
-                          <Badge variant="secondary" className="text-xs">
-                            +{(student.serviceDetails?.selectedSubjects.length ?? 0) - 3} more
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
+                                <Badge variant="outline" className="text-xs">
+                                  {student.serviceDetails?.ageLevel}
+                                </Badge>
+                                <Badge variant="secondary" className="text-xs">
+                                  {student.serviceDetails?.serviceType?.replace("-", " ")}
+                                </Badge>
+                              </div>
+                              <div className="flex items-center space-x-4 mt-2 text-sm text-gray-600">
+                                <div className="flex items-center">
+                                  <User className="w-3 h-3 mr-1" />
+                                  {student.parentName}
+                                </div>
+                                <div className="flex items-center">
+                                  <Globe className="w-3 h-3 mr-1" />
+                                  {student.countryOfResidence}
+                                </div>
+                              </div>
+                            </div>
 
-                    {/* Schedule */}
-                    <div>
-                      <div className="flex items-center text-gray-600 mb-2">
-                        <Calendar className="w-4 h-4 mr-1" />
-                        <span className="font-medium">Schedule</span>
-                      </div>
-                      <div className="space-y-1">
-                        {(student.schedule ?? []).slice(0, 2).map((schedule, index) => (
-                          <div key={index} className="text-gray-900">
-                            <div className="font-medium">{schedule.subject}</div>
-                            <div className="text-xs text-gray-600">
-                              {schedule.days.join(", ")} at {schedule.time}
+                            <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+                              <div className="text-right">
+                                <div className="flex items-center text-lg font-bold text-gray-900">
+                                  ₦{(student.serviceDetails?.totalCost ?? 0).toLocaleString()}
+                                </div>
+                                <p className="text-sm text-gray-500">total cost</p>
+                              </div>
+
+                              <div className="flex items-center space-x-2">
+                                {student.enrollmentStatus === EnrollmentStatus.DRAFT && (
+                                  <Button
+                                    size="sm"
+                                    className="bg-amber-600 hover:bg-amber-700"
+                                    onClick={() => router.push(`${basePath}/new?continue=${student.id}&step=subjects`)}
+                                  >
+                                    Continue Registration
+                                  </Button>
+                                )}
+                                {student.enrollmentStatus === EnrollmentStatus.PENDING && (
+                                  <Button
+                                    size="sm"
+                                    className="bg-amber-600 hover:bg-amber-700"
+                                    onClick={() =>
+                                      router.push(source === "linked" ? "/lms-home/parent/payments" : "/lms-home/student/payments")
+                                    }
+                                  >
+                                    Complete Payment
+                                  </Button>
+                                )}
+                                <Button variant="outline" size="sm" onClick={() => router.push(`${basePath}/${student.id}`)}>
+                                  <Eye className="w-4 h-4 mr-1" />
+                                  View
+                                </Button>
+                              </div>
                             </div>
                           </div>
-                        ))}
-                        {(student.schedule ?? []).length > 2 && (
-                          <div className="text-xs text-gray-500">+{(student.schedule ?? []).length - 2} more sessions</div>
-                        )}
-                      </div>
-                    </div>
 
-                    {/* Weekly Hours & Tutor */}
-                    <div>
-                      <div className="flex items-center text-gray-600 mb-2">
-                        <Clock className="w-4 h-4 mr-1" />
-                        <span className="font-medium">Details</span>
-                      </div>
-                      <div className="space-y-1">
-                        <div className="text-gray-900">
-                          <span className="font-medium">{calculateTotalWeeklyHours(student).toFixed(1)} hrs</span>
-                          <span className="text-gray-600 text-xs ml-1">per week</span>
+                          <Separator className="my-4" />
+
+                          {/* Additional Details */}
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+                            {/* Subjects */}
+                            <div>
+                              <div className="flex items-center text-gray-600 mb-2">
+                                <BookOpen className="w-4 h-4 mr-1" />
+                                <span className="font-medium">Subjects</span>
+                              </div>
+                              <div className="flex flex-wrap gap-1">
+                                {student.serviceDetails?.selectedSubjects?.slice(0, 3).map((subject) => {
+                                  const status = getSubjectStatus(student.id, subject)
+                                  return (
+                                    <span key={subject} className="flex items-center gap-1">
+                                      <Badge variant="secondary" className="text-xs">
+                                        {subject}
+                                      </Badge>
+                                      {status && (
+                                        <Badge className={`${getSubjectStatusColor(status)} border text-[10px]`}>
+                                          {SUBJECT_ENROLLMENT_STATUS_LABELS[status]}
+                                        </Badge>
+                                      )}
+                                    </span>
+                                  )
+                                })}
+                                {(student.serviceDetails?.selectedSubjects?.length ?? 0) > 3 && (
+                                  <Badge variant="secondary" className="text-xs">
+                                    +{(student.serviceDetails?.selectedSubjects?.length ?? 0) - 3} more
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Schedule */}
+                            <div>
+                              <div className="flex items-center text-gray-600 mb-2">
+                                <Calendar className="w-4 h-4 mr-1" />
+                                <span className="font-medium">Schedule</span>
+                              </div>
+                              <div className="space-y-1">
+                                {(student.schedule ?? []).slice(0, 2).map((schedule, index) => (
+                                  <div key={index} className="text-gray-900">
+                                    <div className="font-medium">{schedule.subject}</div>
+                                    <div className="text-xs text-gray-600">
+                                      {schedule.days.join(", ")} at {schedule.time}
+                                    </div>
+                                  </div>
+                                ))}
+                                {(student.schedule ?? []).length > 2 && (
+                                  <div className="text-xs text-gray-500">+{(student.schedule ?? []).length - 2} more sessions</div>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Weekly Hours & Tutor */}
+                            <div>
+                              <div className="flex items-center text-gray-600 mb-2">
+                                <Clock className="w-4 h-4 mr-1" />
+                                <span className="font-medium">Details</span>
+                              </div>
+                              <div className="space-y-1">
+                                <div className="text-gray-900">
+                                  <span className="font-medium">{calculateTotalWeeklyHours(student).toFixed(1)} hrs</span>
+                                  <span className="text-gray-600 text-xs ml-1">per week</span>
+                                </div>
+                                <div className="text-gray-900">
+                                  <span className="font-medium">{student.serviceDetails?.tutorGender}</span>
+                                  <span className="text-gray-600 text-xs ml-1">tutor</span>
+                                </div>
+                                <div className="text-gray-600 text-xs">Focus: {student.serviceDetails?.learningFocus}</div>
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                        <div className="text-gray-900">
-                          <span className="font-medium">{student.serviceDetails?.tutorGender}</span>
-                          <span className="text-gray-600 text-xs ml-1">tutor</span>
-                        </div>
-                        <div className="text-gray-600 text-xs">Focus: {student.serviceDetails?.learningFocus}</div>
-                      </div>
+                      ))}
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
+                  </CardContent>
+                </Card>
+              )
+            })
           )}
         </div>
 
@@ -545,7 +583,8 @@ export default function EnrollmentList({ source, basePath }: EnrollmentListProps
             <CardContent className="p-4">
               <div className="flex justify-between items-center text-sm text-gray-600">
                 <span>
-                  Showing {filteredStudents.length} of {students.length} enrollments
+                  Showing {childGroups.length} child{childGroups.length === 1 ? "" : "ren"} ({filteredStudents.length} of{" "}
+                  {students.length} enrollments)
                 </span>
                 <span>
                   Total weekly hours:{" "}
@@ -564,10 +603,13 @@ export default function EnrollmentList({ source, basePath }: EnrollmentListProps
           <AlertDialogHeader>
             <AlertDialogTitle>Remove {childToRemove?.fullName}?</AlertDialogTitle>
             <AlertDialogDescription>
-              This removes {childToRemove?.fullName} from your account - they'll no longer appear in your dashboard,
-              child switcher, or schedule. Their payment and lesson history is kept and an administrator can restore
-              access if this was a mistake. This does not cancel any active lessons directly - contact support if you
-              also need those cancelled.
+              This removes {childToRemove?.fullName}
+              {childToRemove && childToRemove.enrollments.length > 1
+                ? ` and all ${childToRemove.enrollments.length} of their enrollments`
+                : ""}{" "}
+              from your account - they'll no longer appear in your dashboard, child switcher, or schedule. Their
+              payment and lesson history is kept and an administrator can restore access if this was a mistake. This
+              does not cancel any active lessons directly - contact support if you also need those cancelled.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -596,12 +638,12 @@ export default function EnrollmentList({ source, basePath }: EnrollmentListProps
           </DialogHeader>
           <div className="flex items-center justify-center gap-2 bg-blue-50 border border-blue-200 rounded-lg py-3 px-4">
             <span className="text-lg font-mono font-semibold text-blue-900">
-              {studentLoginId(viewingLoginId?.studentUser)}
+              {viewingLoginId?.enrollments.map((e) => studentLoginId(e.studentUser)).find(Boolean)}
             </span>
             <button
               type="button"
               onClick={() => {
-                const id = studentLoginId(viewingLoginId?.studentUser)
+                const id = viewingLoginId?.enrollments.map((e) => studentLoginId(e.studentUser)).find(Boolean)
                 if (!id) return
                 navigator.clipboard.writeText(id)
                 ToastSuccess("Copied to clipboard")

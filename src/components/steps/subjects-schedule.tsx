@@ -92,6 +92,7 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
     language: enrollmentData.serviceDetails?.language || "",
     classFormat: enrollmentData.serviceDetails?.classFormat,
     startDate: enrollmentData.serviceDetails?.startDate || "",
+    flexibleSchedule: enrollmentData.serviceDetails?.flexibleSchedule || false,
     classGroupId: enrollmentData.serviceDetails?.classGroupId || "",
     examPreparationDetails: enrollmentData.serviceDetails?.examPreparationDetails || ({} as ExamPreparationDetails),
     // How many weeks of tuition to pay for up front - only meaningful for
@@ -302,7 +303,7 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
         stepErrors.classGroupId = "Please select a class group to join";
       }
 
-      if (!isPathC && !schedule.some((s) => s.days.length > 0)) {
+      if (!isPathC && !serviceData.flexibleSchedule && !schedule.some((s) => s.days.length > 0)) {
         stepErrors.schedule = "Please select at least one day for at least one subject";
       }
       if (isPathC && serviceData.selectedSubjects.length > 0 && schedule.length === 0) {
@@ -355,7 +356,13 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
           .filter((n) => serviceData.selectedSubjects.includes(n.name))
           .map((n) => n.id);
         updateServiceDetails({ ...serviceData, selectedSubjectNodeIds });
-        updateSchedule(schedule);
+        // A flexible one-on-one schedule submits no days/times at all - the
+        // per-subject rows above only exist locally to drive the "which
+        // subjects need a schedule" UI, not real picked days (see
+        // validateScheduleDaysRequired on the backend, which would otherwise
+        // reject each row's empty `days`).
+        const submittedSchedule = !isPathC && serviceData.flexibleSchedule ? [] : schedule;
+        updateSchedule(submittedSchedule);
         setTotalCost(isPathC ? selectedCourse?.price ?? 0 : calculateCost(schedule, serviceData));
       }
 
@@ -938,6 +945,7 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
                     ...prev,
                     classFormat: value as ClassFormat,
                     startDate: value === "group" ? "" : prev.startDate,
+                    flexibleSchedule: value === "group" ? false : prev.flexibleSchedule,
                   }))
                 }
               >
@@ -962,6 +970,22 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
                 />
                 {errors.startDate && <p className="text-red-600 text-sm">{errors.startDate}</p>}
               </div>
+            )}
+
+            {serviceData.classFormat === "one-on-one" && (
+              <label className="flex items-start space-x-2">
+                <Checkbox
+                  className="mt-0.5"
+                  checked={serviceData.flexibleSchedule}
+                  onCheckedChange={(checked) =>
+                    setServiceData((prev) => ({ ...prev, flexibleSchedule: checked === true }))
+                  }
+                />
+                <span className="text-sm text-gray-700">
+                  My schedule is flexible - I'd rather agree the exact days/times with an admin after enrolling
+                  instead of picking them now.
+                </span>
+              </label>
             )}
 
             {serviceData.classFormat === "group" && (
@@ -993,6 +1017,13 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
                 ) : (
                   <p className="text-sm text-gray-600">Schedule to be confirmed by your tutor after enrollment.</p>
                 )}
+              </div>
+            ) : serviceData.flexibleSchedule ? (
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <p className="text-sm text-gray-700">
+                  No days/times needed now - an admin will reach out after enrollment to agree a schedule that works
+                  for {serviceData.selectedSubjects.join(", ")}.
+                </p>
               </div>
             ) : (
               <div className="space-y-4">

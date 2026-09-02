@@ -1,20 +1,26 @@
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import fetchAPI from "@/lib/fetch";
 
 // Bridges the httpOnly "token" cookie (unreachable from client JS, see
 // server/auth.ts) to the browser so it can authenticate a Socket.IO
-// connection - the client hits this same-origin route, which reads the
-// cookie server-side and hands the JWT back. This doesn't weaken anything:
-// the browser making this request already *is* the authenticated session: it
-// already carries the httpOnly cookie on every request to this app and can
-// already do anything that token allows via the existing server actions.
+// connection. This used to just echo the real session JWT back to the
+// client - a 24h, full-API-privilege bearer token - which meant any XSS
+// able to run JS on this page could call this same-origin route and walk
+// away with something usable against the entire REST API from anywhere, not
+// just the socket handshake. Instead this asks the backend to mint a
+// narrow, 5-minute, socket-only token (see stcbe's AuthService.
+// issueSocketToken) and hands back that instead - the real session cookie
+// is never exposed to client JS at all.
 export async function GET() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("token")?.value;
+  const [res] = await fetchAPI<{ token: string }>({
+    url: "/auth/socket-token",
+    request: { method: "GET" },
+  });
 
-  if (!token) {
+  if (!res) {
     return NextResponse.json({ token: null }, { status: 401 });
   }
 
-  return NextResponse.json({ token });
+  const body = (await res.json()) as { data?: { token: string } };
+  return NextResponse.json({ token: body.data?.token ?? null });
 }

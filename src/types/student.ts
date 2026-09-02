@@ -122,6 +122,13 @@ export function studentLoginId(studentUser: Student["studentUser"]): string | un
 
 export interface Student {
   id: string;
+  // Links this enrollment to its real, durable Child identity - see the
+  // backend's IChild. Absent on enrollments created before the Child/
+  // Student split (pending stcbe's backfill-children script). Multiple
+  // Student records sharing the same childId are the same physical child
+  // enrolled in different services - see groupStudentsByChild in
+  // selected-student-context.tsx.
+  childId?: string;
   user: string | StudentUserRef;
   parentUser?: string;
   studentUser?: string;
@@ -142,6 +149,12 @@ export interface Student {
   scheduleReviewedAt?: string;
   enrollmentStatus: EnrollmentStatus;
   createdByAdmin?: boolean;
+  // Only meaningful while enrollmentStatus is PENDING_PARENT_CONFIRMATION on
+  // a createdByAdmin record with serviceDetails already filled in (an admin
+  // full registration, not a bare name-only stub) - tells the confirm page
+  // whether confirming will send the owner to checkout (true) or activate
+  // for free (false). See stcbe's StudentService.confirmByOwner.
+  adminRegistrationRequiresPayment?: boolean;
   // Admin-facing profile fields (Basic/Identification/Health Details)
   grade?: string;
   admissionDate?: string;

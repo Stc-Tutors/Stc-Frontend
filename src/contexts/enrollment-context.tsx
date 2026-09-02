@@ -107,6 +107,9 @@ export type ServiceDetails = {
   classFormat?: ClassFormat;
   // One-on-one only - ISO string, must be >=24h from now.
   startDate?: string;
+  // One-on-one only - family wants to agree exact days/times with an admin
+  // instead of picking them upfront (see stcbe's IServiceDetails.flexibleSchedule).
+  flexibleSchedule?: boolean;
   // Required whenever flowRequirements.requires_cohort is true - the
   // IClassGroup the student picked from GET /public/class-groups.
   classGroupId?: string;
@@ -139,6 +142,11 @@ export type EnrollmentData = {
   // Task 6 - answers to every active ICustomFormField across all stages,
   // keyed by field id, merged into the final submission as-is.
   customFieldResponses: CustomFieldResponses;
+  // Optional Super Admin-issued single-use code (see stcbe's
+  // generatePaymentBypassToken) that skips the payment gateway entirely on
+  // finalize - scholarship/discounted students. Entered by the family at
+  // Review, not shown/set anywhere else.
+  bypassToken?: string;
 };
 
 type EnrollmentContextType = {
@@ -359,6 +367,12 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
         // IStudent.timezone.
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         customFieldResponses: enrollmentData.customFieldResponses,
+        // Only honored by finalizeEnrollment (the FinalizeEnrollmentAction
+        // branch below) - see stcbe's StudentService.finalizeEnrollment.
+        // Harmless to include on a bare EnrollAction call too (that path
+        // simply doesn't read it), which in practice never happens anyway
+        // since autosave-as-draft starts as soon as Child Info is filled in.
+        bypassToken: enrollmentData.bypassToken || undefined,
       };
 
       // If this enrollment was autosaved as a draft along the way (see the
