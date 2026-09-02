@@ -42,7 +42,7 @@ export default function EnrollmentFlow({ forcedUserType, dashboardPath, paymentH
   const searchParams = useSearchParams();
   const continueId = searchParams.get("continue");
 
-  const { currentStep, setCurrentStep, isLoading, saveEnrollment, loadEnrollment, enrollmentData, updateChildInfo, updateServiceDetails, updateSelectedService } =
+  const { currentStep, setCurrentStep, isLoading, saveEnrollment, loadEnrollment, enrollmentData, updateChildInfo, updateServiceDetails, updateSelectedService, setEnrollmentData } =
     useEnrollment();
 
   const stepMap: Record<string, number> = {
@@ -156,10 +156,21 @@ export default function EnrollmentFlow({ forcedUserType, dashboardPath, paymentH
 
       if (existingDraft) {
         loadEnrollment(existingDraft.id);
+        // loadEnrollment doesn't know about childId (a resumed draft/pending
+        // record already carries its own from when it was first created) -
+        // but set it explicitly anyway from the matched child, so this
+        // stays correctly linked even for a pre-Child-split existingDraft
+        // that predates childId.
+        setEnrollmentData((prev) => ({ ...prev, childId: match.childId || undefined }));
         setCurrentStep(3);
         return;
       }
 
+      // childId (not the copied fields below) is what actually links this
+      // new enrollment to the existing Child on the backend (see
+      // StudentService.resolveChildForEnrollment) - the family never sees a
+      // Child Info step for this flow at all (jumps straight to step 3), so
+      // the copied fields here only matter for Review's display.
       updateChildInfo({
         userType: "parent",
         fullName: match.fullName,
@@ -172,6 +183,7 @@ export default function EnrollmentFlow({ forcedUserType, dashboardPath, paymentH
         parentPhone: match.parentPhone,
         parentEmail: match.parentEmail,
       });
+      setEnrollmentData((prev) => ({ ...prev, childId: match.childId || undefined }));
       setCurrentStep(3);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps

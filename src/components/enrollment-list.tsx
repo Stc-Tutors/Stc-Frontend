@@ -406,6 +406,15 @@ export default function EnrollmentList({ source, basePath }: EnrollmentListProps
                       </div>
                       {source === "linked" && (
                         <div className="flex items-center gap-2">
+                          {/* Only real Child records (post-backfill-children)
+                              have a profile to view - a pre-split legacy
+                              enrollment's group key falls back to its own
+                              Student id, which isn't a Child id. */}
+                          {child.enrollments.some((e) => e.childId) && (
+                            <Button variant="outline" size="sm" onClick={() => router.push(`/lms-home/parent/children/${child.key}`)}>
+                              Profile
+                            </Button>
+                          )}
                           {loginId && (
                             <Button variant="outline" size="sm" onClick={() => setViewingLoginId(child)}>
                               <KeyRound className="w-4 h-4 mr-1" />

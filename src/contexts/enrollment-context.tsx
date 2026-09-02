@@ -147,6 +147,13 @@ export type EnrollmentData = {
   // finalize - scholarship/discounted students. Entered by the family at
   // Review, not shown/set anywhere else.
   bypassToken?: string;
+  // Present = this is another service enrollment for a child the parent/
+  // student already has (see stcbe's IStudent.childId) - the backend links
+  // the new enrollment to that existing Child instead of creating a
+  // lookalike duplicate. Set by enrollment-flow.tsx's prefillChildId flow
+  // (Marketplace's "continue enrollment for this child"); absent for a
+  // brand-new child, where the backend creates a fresh Child from childInfo.
+  childId?: string;
 };
 
 type EnrollmentContextType = {
@@ -359,6 +366,7 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
 
       const dataToSave = {
         ...enrollmentData.childInfo,
+        childId: enrollmentData.childId || undefined,
         serviceDetails,
         schedule: enrollmentData.schedule,
         // IANA timezone the `schedule` times above were entered in - captured
