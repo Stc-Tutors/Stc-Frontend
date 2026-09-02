@@ -83,6 +83,9 @@ export async function RegisterChildAction(data: {
   password: string;
   dateOfBirth?: string;
   gender?: string;
+  phone?: string;
+  countryOfResidence?: string;
+  primaryLanguage?: string;
 }): Promise<[ApiResponse<{ user: UserLogin["user"]; studentId: string }> | null, string | null]> {
   const [res, error] = await fetchAPI({
     url: "/auth/children",

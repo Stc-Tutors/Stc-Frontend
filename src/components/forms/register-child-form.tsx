@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,8 +10,12 @@ import { ToastError, ToastSuccess } from "../ui/custom/toast";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { PasswordInput } from "../ui/custom/password-input";
+import { SearchableCombobox } from "../ui/searchable-combobox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { Loader2, Copy } from "lucide-react";
 import { childPasswordSchema } from "@/lib/password-policy";
+import { GetTaxonomyOptionsAction } from "@/server/taxonomy-option";
+import { TaxonomyOptionKind } from "@/types/service-catalog";
 
 const formSchema = z
   .object({
@@ -23,6 +27,13 @@ const formSchema = z
     confirmPassword: z.string().min(1, { message: "Confirm password is required" }),
     dateOfBirth: z.string().optional(),
     gender: z.string().optional(),
+    // Previously never collected on this quick-add path at all - a child
+    // added here, then given a service via Marketplace's "continue
+    // enrollment for this child" (which correctly skips re-asking Child Info
+    // once a record exists), never had these fields collected anywhere.
+    phone: z.string().optional(),
+    countryOfResidence: z.string().optional(),
+    primaryLanguage: z.string().optional(),
   })
   .superRefine(({ confirmPassword, password }, ctx) => {
     if (confirmPassword !== password) {
@@ -32,6 +43,17 @@ const formSchema = z
 
 export default function RegisterChildForm() {
   const [createdStudentId, setCreatedStudentId] = useState<string | null>(null);
+  const [countryOptions, setCountryOptions] = useState<{ label: string; value: string }[]>([]);
+  const [languageOptions, setLanguageOptions] = useState<{ label: string; value: string }[]>([]);
+
+  useEffect(() => {
+    GetTaxonomyOptionsAction(TaxonomyOptionKind.COUNTRY).then(([res]) =>
+      setCountryOptions((res?.data ?? []).map((o) => ({ label: o.label, value: o.value })))
+    );
+    GetTaxonomyOptionsAction(TaxonomyOptionKind.LANGUAGE).then(([res]) =>
+      setLanguageOptions((res?.data ?? []).map((o) => ({ label: o.label, value: o.value })))
+    );
+  }, []);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -42,6 +64,9 @@ export default function RegisterChildForm() {
       confirmPassword: "",
       dateOfBirth: "",
       gender: "",
+      phone: "",
+      countryOfResidence: "",
+      primaryLanguage: "",
     },
   });
 
@@ -127,6 +152,71 @@ export default function RegisterChildForm() {
               <FormLabel>Date of Birth (optional)</FormLabel>
               <FormControl>
                 <Input {...field} type="date" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="gender"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Gender (optional)</FormLabel>
+              <Select value={field.value} onValueChange={field.onChange}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select gender" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="Male">Male</SelectItem>
+                  <SelectItem value="Female">Female</SelectItem>
+                  <SelectItem value="Prefer not to say">Prefer not to say</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="phone"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Phone Number (optional)</FormLabel>
+              <FormControl>
+                <Input {...field} placeholder="Child's phone number" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="countryOfResidence"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Country of Residence (optional)</FormLabel>
+              <FormControl>
+                <SearchableCombobox options={countryOptions} value={field.value ?? ""} onChange={field.onChange} placeholder="Select country" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="primaryLanguage"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Primary Language (optional)</FormLabel>
+              <FormControl>
+                <SearchableCombobox options={languageOptions} value={field.value ?? ""} onChange={field.onChange} placeholder="Select language" />
               </FormControl>
               <FormMessage />
             </FormItem>

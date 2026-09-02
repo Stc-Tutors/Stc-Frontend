@@ -139,7 +139,13 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
         (profile.careerCoachingTopics?.length ?? 0) > 0 ||
         (profile.selfDevTopics?.length ?? 0) > 0 ||
         (profile.adultEdFocusAreas?.length ?? 0) > 0;
-      if (!hasDeclaredWhatTheyTeach) {
+      // ageLevelsTaught has no equivalent anywhere in the registration
+      // wizard (unlike everything checked above, which is carried over from
+      // TutorApplication at approval) - it's only ever collected here, so
+      // it's the one thing that still sends an otherwise-fully-registered
+      // tutor through onboarding.
+      const hasDeclaredAgeLevels = (profile.ageLevelsTaught?.length ?? 0) > 0;
+      if (!hasDeclaredWhatTheyTeach || !hasDeclaredAgeLevels) {
         router.replace(ONBOARDING_PATH);
       }
     })();

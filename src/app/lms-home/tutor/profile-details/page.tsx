@@ -13,7 +13,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { SearchableCombobox } from "@/components/ui/searchable-combobox";
 import { X } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { GetMyTutorProfileAction, UpdateMyTutorProfileAction } from "@/server/tutor-profile";
+import {
+  GetMyTutorProfileAction,
+  GetMyPendingTutorProfileEditAction,
+  UpdateMyTutorProfileAction,
+  TutorProfileEditRequest,
+} from "@/server/tutor-profile";
 import { GetTaxonomyOptionsAction } from "@/server/taxonomy-option";
 import { GetUserAction, UpdateUserAction } from "@/server/user";
 import { ITaxonomyOption, TaxonomyOptionKind } from "@/types/service-catalog";
@@ -59,6 +64,11 @@ export default function TutorProfileDetailsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  // Every profile field edit now needs admin approval before it goes live
+  // (see stcbe's TutorProfileService.updateMine) - this is the tutor's own
+  // in-progress draft, if any, merged over the last-approved profile below
+  // so the form shows what they submitted rather than reverting to stale data.
+  const [pendingEdit, setPendingEdit] = useState<TutorProfileEditRequest | null>(null);
 
   // Account (was a separate "Profile" page/nav item - folded in here so
   // there's one place to edit everything about a tutor's profile).
@@ -121,7 +131,7 @@ export default function TutorProfileDetailsPage() {
 
   useEffect(() => {
     (async () => {
-      const [[res], [countryRes], [languageRes], [certificationRes], [deviceRes], [qualificationRes], [userRes]] =
+      const [[res], [countryRes], [languageRes], [certificationRes], [deviceRes], [qualificationRes], [userRes], [pendingEditRes]] =
         await Promise.all([
           GetMyTutorProfileAction(),
           GetTaxonomyOptionsAction(TaxonomyOptionKind.COUNTRY),
@@ -130,8 +140,10 @@ export default function TutorProfileDetailsPage() {
           GetTaxonomyOptionsAction(TaxonomyOptionKind.TUTOR_DEVICE_TYPE),
           GetTaxonomyOptionsAction(TaxonomyOptionKind.EDUCATION_QUALIFICATION),
           GetUserAction(),
+          GetMyPendingTutorProfileEditAction(),
         ]);
       setCountries(countryRes?.data ?? []);
+      setPendingEdit(pendingEditRes?.data ?? null);
       setLanguages(languageRes?.data ?? []);
       setCertificationOptions(certificationRes?.data ?? []);
       setDeviceOptions(deviceRes?.data ?? []);
@@ -145,7 +157,7 @@ export default function TutorProfileDetailsPage() {
         setAvatarUrl(userRes.data.avatarUrl || "");
       }
 
-      const profile = res?.data;
+      const profile = res?.data ? { ...res.data, ...(pendingEditRes?.data?.changes ?? {}) } : res?.data;
       if (profile) {
         setBio(profile.bio || "");
         setTeachingCombinations(profile.teachingCombinations || []);
@@ -265,7 +277,7 @@ export default function TutorProfileDetailsPage() {
 
   const handleSave = async () => {
     setIsSaving(true);
-    const [, error] = await UpdateMyTutorProfileAction({
+    const [res, error] = await UpdateMyTutorProfileAction({
       bio,
       teachingCombinations,
       availability,
@@ -303,7 +315,11 @@ export default function TutorProfileDetailsPage() {
       accountName: isBankTransfer ? accountName : undefined,
     });
     setIsSaving(false);
-    setMessage(error || "Profile saved. Students and parents will see this on your public profile.");
+    if (res?.data) setPendingEdit(res.data);
+    setMessage(
+      error ||
+        "Changes submitted for admin review. Your public profile keeps showing the last-approved version until they're approved."
+    );
   };
 
   if (isLoading) return <p className="text-sm text-gray-500">Loading...</p>;
@@ -320,6 +336,18 @@ export default function TutorProfileDetailsPage() {
       </div>
 
       {message && <p className="text-sm text-blue-600">{message}</p>}
+
+      {pendingEdit && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-800">
+          <p className="font-semibold">Changes awaiting admin approval</p>
+          <p className="mt-1">
+            You submitted changes on {new Date(pendingEdit.submittedAt).toLocaleDateString()} that haven't been
+            approved yet - the form below shows your draft, but students, parents, and admins still see your
+            last-approved profile until it's reviewed. You can keep editing and resubmit; it replaces the pending
+            draft.
+          </p>
+        </div>
+      )}
 
       <Card>
         <CardHeader>

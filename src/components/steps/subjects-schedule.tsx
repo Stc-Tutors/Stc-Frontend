@@ -351,10 +351,19 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
         // Same order/index as selectedSubjects - lets the backend price by
         // the exact node instead of only the legacy named fields, for
         // services whose Flow Tree doesn't map cleanly onto those (see
-        // ServiceDetails.selectedSubjectNodeIds).
-        const selectedSubjectNodeIds = resolvedSubjects
-          .filter((n) => serviceData.selectedSubjects.includes(n.name))
-          .map((n) => n.id);
+        // ServiceDetails.selectedSubjectNodeIds). Must be built by mapping
+        // over selectedSubjects (the order that has to be preserved), not by
+        // filtering resolvedSubjects - resolvedSubjects comes back from the
+        // backend sorted by {order, name} (see CurriculumNodeRepository),
+        // which is unrelated to the family's click order, so filtering it
+        // silently produced a full positional scramble against
+        // selectedSubjects whenever the two orders differed (e.g. "Chemistry,
+        // Biology, Physics, English Language" selected, but nodeIds coming
+        // back alphabetical - "Biology, Chemistry, English Language,
+        // Physics" - cross-wiring every subject to the wrong node).
+        const selectedSubjectNodeIds = serviceData.selectedSubjects.map(
+          (name) => resolvedSubjects.find((n) => n.name === name)?.id ?? ""
+        );
         updateServiceDetails({ ...serviceData, selectedSubjectNodeIds });
         // A flexible one-on-one schedule submits no days/times at all - the
         // per-subject rows above only exist locally to drive the "which
@@ -579,9 +588,9 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
           stcbe's IVideoCourse). Never a requirement to proceed. */}
       {(isPathA || isPathB) && (
         <RecommendedVideoCourses
-          subjectNodeIds={resolvedSubjects
-            .filter((n) => serviceData.selectedSubjects.includes(n.name))
-            .map((n) => n.id)}
+          subjectNodeIds={serviceData.selectedSubjects
+            .map((name) => resolvedSubjects.find((n) => n.name === name)?.id)
+            .filter((id): id is string => !!id)}
         />
       )}
 

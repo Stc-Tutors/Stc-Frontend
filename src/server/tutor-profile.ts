@@ -20,15 +20,44 @@ export type UpdateTutorProfileInput = Partial<
   Omit<TutorProfile, "id" | "tutor" | "profileCompleted" | "createdAt" | "updatedAt">
 >;
 
+// A submitted edit no longer applies straight to the live profile - it
+// lands as a PENDING request an admin must approve (see stcbe's
+// TutorProfileService.updateMine/approveEdit). `changes` mirrors whatever
+// was submitted, applied over the live profile once approved.
+export interface TutorProfileEditRequest {
+  id: string;
+  tutor: string;
+  changes: UpdateTutorProfileInput;
+  status: "PENDING" | "APPROVED" | "REJECTED";
+  submittedAt: string;
+  reviewedBy?: string;
+  reviewedAt?: string;
+  rejectionReason?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export async function UpdateMyTutorProfileAction(
   data: UpdateTutorProfileInput
-): Promise<[ApiResponse<TutorProfile> | null, string | null]> {
+): Promise<[ApiResponse<TutorProfileEditRequest> | null, string | null]> {
   const [res, error] = await fetchAPI({
     url: "/tutor-profile/me",
     request: { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) },
   });
 
-  const resData = res ? ((await res.json()) as ApiResponse<TutorProfile>) : null;
+  const resData = res ? ((await res.json()) as ApiResponse<TutorProfileEditRequest>) : null;
+  return [resData, error];
+}
+
+export async function GetMyPendingTutorProfileEditAction(): Promise<
+  [ApiResponse<TutorProfileEditRequest | null> | null, string | null]
+> {
+  const [res, error] = await fetchAPI({
+    url: "/tutor-profile/me/pending-edit",
+    request: { method: "GET", headers: { "Content-Type": "application/json" } },
+  });
+
+  const resData = res ? ((await res.json()) as ApiResponse<TutorProfileEditRequest | null>) : null;
   return [resData, error];
 }
 

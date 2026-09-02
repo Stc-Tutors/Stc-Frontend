@@ -2,10 +2,13 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import RegisterCTA from "@/components/register-cta";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { GetServicePageBySlugAction } from "@/server/content";
+import { GetServiceBySlugAction } from "@/server/service-catalog";
+import { ServiceCatalogStatus } from "@/types/service-catalog";
 import { ServiceContent } from "@/types/content";
 import { sanitizeRichText } from "@/lib/sanitize-html";
 
@@ -113,17 +116,61 @@ export default function ServicePage({
   content?: ServiceContent;
 }) {
   const [content, setContent] = useState<ServiceContent>(providedContent ?? defaults);
+  const router = useRouter();
+  // undefined = not checked yet, null = check skipped (providedContent) or
+  // the lookup failed - either way, don't gate rendering on it.
+  const [status, setStatus] = useState<ServiceCatalogStatus | null | undefined>(providedContent ? null : undefined);
 
   useEffect(() => {
     if (providedContent) return;
     GetServicePageBySlugAction(slug).then(([res]) => {
       if (res?.data) setContent(mergeWithDefaults(defaults, res.data));
     });
+    // Every hardcoded /services/<slug> page (unlike the [slug] catch-all,
+    // which already checks this) used to render its full content
+    // regardless of the matching Service Catalog entry's status - a
+    // service an admin left at PLANNED, or hasn't created in the catalog
+    // at all yet, was fully live and enrollable-looking to visitors. Gate
+    // here instead, once, so every page that renders through ServicePage
+    // gets this for free. A lookup failure (service not in the catalog at
+    // all) is deliberately NOT treated as "not Active" - it just skips the
+    // gate, since a page still under active development shouldn't 404/gate
+    // just because nobody's created its catalog entry yet.
+    GetServiceBySlugAction(slug).then(([res]) => {
+      setStatus(res?.data?.status ?? null);
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug, providedContent]);
 
   const embedUrl = content.videoUrl ? getYouTubeEmbedUrl(content.videoUrl) : null;
   const ctaServiceType = serviceType || slug;
+
+  if (status && status !== ServiceCatalogStatus.ACTIVE) {
+    return (
+      <main className="flex flex-col items-center justify-center py-24 px-6 text-center min-h-[50vh]">
+        <h1 className="text-4xl font-bold text-gray-900 mb-3">{content.heroHeading}</h1>
+        <p className="text-2xl font-semibold text-[#38b6ff] mb-4">Coming Soon</p>
+        <p className="text-gray-600 max-w-md mb-8">
+          We&apos;re still putting the finishing touches on this program. Check back soon, or explore our other
+          services in the meantime.
+        </p>
+        <div className="flex gap-4">
+          <button
+            onClick={() => router.back()}
+            className="bg-gray-200 text-gray-800 px-6 py-3 rounded-lg hover:bg-gray-300 transition"
+          >
+            ← Back
+          </button>
+          <button
+            onClick={() => router.push("/services")}
+            className="bg-[#38b6ff] text-white px-6 py-3 rounded-lg hover:bg-[#1c2574] transition"
+          >
+            Browse Services
+          </button>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="container mx-auto px-6 py-10">
