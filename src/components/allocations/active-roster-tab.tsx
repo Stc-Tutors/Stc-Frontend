@@ -15,15 +15,22 @@ import { User, UserRole } from "@/types/user";
 function tutorLabel(subjectEnrollment: SubjectEnrollment, tutorsById: Map<string, User>) {
   const courseEnrollment = typeof subjectEnrollment.courseEnrollment === "object" ? subjectEnrollment.courseEnrollment : undefined;
   const course = courseEnrollment && typeof courseEnrollment.course === "object" ? courseEnrollment.course : undefined;
-  const tutorId = course ? (typeof course.tutor === "string" ? course.tutor : course.tutor?.id) : undefined;
+  // PENDING_TUTOR_ACCEPTANCE has no courseEnrollment yet - the proposed
+  // tutor lives on pendingTutor instead until they accept.
+  const tutorId = course
+    ? typeof course.tutor === "string"
+      ? course.tutor
+      : course.tutor?.id
+    : subjectEnrollment.pendingTutor;
   const tutor = tutorId ? tutorsById.get(tutorId) : undefined;
   return tutor ? `${tutor.firstName} ${tutor.lastName}` : "Unknown tutor";
 }
 
-// Every subject enrollment that already has a tutor (PENDING_CONFIRMATION or
-// ACTIVE), across the whole roster - the "move this student to a different
-// tutor" view assignTutor/Teaching Roster can't cover, since that flow only
-// ever handles a fresh UNASSIGNED_TUTOR row.
+// Every subject enrollment that already has a tutor in the picture -
+// proposed but not yet accepted (PENDING_TUTOR_ACCEPTANCE), or confirmed
+// (PENDING_CONFIRMATION/ACTIVE) - across the whole roster. The "move this
+// student to a different tutor" view assignTutor/Teaching Roster can't
+// cover, since that flow only ever handles a fresh UNASSIGNED_TUTOR row.
 export default function ActiveRosterTab({ jumpToken = 0 }: { jumpToken?: number }) {
   const [rows, setRows] = useState<SubjectEnrollment[]>([]);
   const [tutorsById, setTutorsById] = useState<Map<string, User>>(new Map());
@@ -33,7 +40,13 @@ export default function ActiveRosterTab({ jumpToken = 0 }: { jumpToken?: number 
   const load = useCallback(async () => {
     setIsLoading(true);
     const [[enrollmentsRes, error], [tutorsRes]] = await Promise.all([
-      ListAllocationEnrollmentsAction({ statuses: [SubjectEnrollmentStatus.PENDING_CONFIRMATION, SubjectEnrollmentStatus.ACTIVE] }),
+      ListAllocationEnrollmentsAction({
+        statuses: [
+          SubjectEnrollmentStatus.PENDING_TUTOR_ACCEPTANCE,
+          SubjectEnrollmentStatus.PENDING_CONFIRMATION,
+          SubjectEnrollmentStatus.ACTIVE,
+        ],
+      }),
       GetUsersAction({ role: UserRole.TUTOR, limit: 1000 }),
     ]);
     if (error) toast.error(error);
@@ -59,11 +72,15 @@ export default function ActiveRosterTab({ jumpToken = 0 }: { jumpToken?: number 
     {
       header: "",
       className: "text-right",
-      cell: (row) => (
-        <Button variant="outline" size="sm" onClick={() => setReassignTarget(row)}>
-          Reassign
-        </Button>
-      ),
+      cell: (row) =>
+        // Reassigning only makes sense once a tutor has actually accepted -
+        // a still-PENDING_TUTOR_ACCEPTANCE row has no CourseEnrollment yet
+        // for reassignTutor to move (it'd just reject with an error).
+        row.status === SubjectEnrollmentStatus.PENDING_TUTOR_ACCEPTANCE ? null : (
+          <Button variant="outline" size="sm" onClick={() => setReassignTarget(row)}>
+            Reassign
+          </Button>
+        ),
     },
   ];
 

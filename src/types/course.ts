@@ -52,6 +52,12 @@ export interface Course {
   targetAudience?: string[];
   requirements?: string[];
   status: CourseStatus;
+  // True only for the bare-minimum record auto-created for a 1:1 tutoring
+  // assignment (Academic Tutoring/Exam Preparation) - bookkeeping the schema
+  // needs, never a real product listing. Never show a "Publish" call to
+  // action or DRAFT/moderation messaging for one of these - see stcbe's
+  // AllocationHubService.resolveCourseForTutorSubject.
+  isBookkeeping?: boolean;
   createdAt: string;
   updatedAt: string;
 }

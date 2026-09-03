@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useUser } from "@/contexts/user-context";
 import { RegisterDeviceTokenAction } from "@/server/device-token";
+import { playNotificationSound } from "@/lib/notification-alert";
 
 // Renders nothing - just registers this device for push once a user is
 // logged in, and only inside the Capacitor-wrapped Android app (Stc-Mobile).
@@ -33,6 +34,15 @@ export default function PushNotificationRegistrar() {
       });
       PushNotifications.addListener("registrationError", (err) => {
         console.error("Push registration failed", err);
+      });
+      // Android's FCM SDK only auto-shows a push in the system tray while
+      // this app is backgrounded - a push that arrives while it's open in
+      // the foreground reaches here instead with no system UI of its own,
+      // so without this listener it was silently dropped: no banner, no
+      // sound, nothing (the polling NotificationBell would eventually pick
+      // it up too, but the point of push is not waiting on that).
+      PushNotifications.addListener("pushNotificationReceived", () => {
+        playNotificationSound();
       });
       // Tapping a notification (app backgrounded or cold-started from it) -
       // navigate straight to the conversation/page it's about instead of

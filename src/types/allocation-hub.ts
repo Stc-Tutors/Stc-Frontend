@@ -4,8 +4,10 @@ import { User } from "@/types/user";
 
 export enum SubjectEnrollmentStatus {
   UNASSIGNED_TUTOR = "UNASSIGNED_TUTOR",
-  // A tutor has been allocated but the Google Meet link hasn't been entered
-  // yet - shown as "Pending Confirmation".
+  // A tutor has been proposed but hasn't accepted/declined yet.
+  PENDING_TUTOR_ACCEPTANCE = "PENDING_TUTOR_ACCEPTANCE",
+  // The tutor accepted, but the Google Meet link hasn't been entered yet -
+  // shown as "Pending Confirmation".
   PENDING_CONFIRMATION = "PENDING_CONFIRMATION",
   // The Meet link has been saved - shown as "Active".
   ACTIVE = "ACTIVE",
@@ -13,6 +15,7 @@ export enum SubjectEnrollmentStatus {
 
 export const SUBJECT_ENROLLMENT_STATUS_LABELS: Record<SubjectEnrollmentStatus, string> = {
   [SubjectEnrollmentStatus.UNASSIGNED_TUTOR]: "Unassigned",
+  [SubjectEnrollmentStatus.PENDING_TUTOR_ACCEPTANCE]: "Awaiting Tutor Response",
   [SubjectEnrollmentStatus.PENDING_CONFIRMATION]: "Pending Confirmation",
   [SubjectEnrollmentStatus.ACTIVE]: "Active",
 };
@@ -33,12 +36,21 @@ export interface SubjectEnrollment {
   subjectNodeId?: string;
   // IService.slug this subject was paid under.
   serviceType?: string;
+  // Set for a Group Class registration once payment succeeds - every row
+  // sharing this id is meant to end up in the same Course once a tutor is
+  // assigned to the whole group.
+  classGroup?: string;
   payment: string;
   status: SubjectEnrollmentStatus;
+  // Set while status is PENDING_TUTOR_ACCEPTANCE - who's being asked.
+  // courseEnrollment (and so its tutor) doesn't exist yet at that point.
+  pendingTutor?: string;
   courseEnrollment?: CourseEnrollment | string;
   // Static Google Meet URL - set via SetMeetingLinkAction, the trigger that
   // flips status PENDING_CONFIRMATION -> ACTIVE.
   meetingUrl?: string;
+  lastRejectedBy?: string;
+  lastRejectionReason?: string;
   createdAt: string;
   updatedAt: string;
 }

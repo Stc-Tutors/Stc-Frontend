@@ -105,7 +105,7 @@ export default function UnassignedQueueDetailDialog({ enrollment, onOpenChange, 
       toast.error(error || failed?.message || "Failed to assign tutor");
       return;
     }
-    toast.success("Tutor assigned - now Pending Confirmation until a meeting link is set");
+    toast.success("Tutor proposed - awaiting their acceptance before anything is scheduled");
     onChanged();
   };
 
@@ -217,7 +217,15 @@ export default function UnassignedQueueDetailDialog({ enrollment, onOpenChange, 
           </div>
         )}
 
-        {enrollment.status !== SubjectEnrollmentStatus.UNASSIGNED_TUTOR && (
+        {enrollment.status === SubjectEnrollmentStatus.PENDING_TUTOR_ACCEPTANCE && (
+          <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
+            Waiting on the tutor to accept or decline this assignment - nothing is scheduled yet. If they decline,
+            this drops back to Unassigned for you to try someone else.
+          </p>
+        )}
+
+        {(enrollment.status === SubjectEnrollmentStatus.PENDING_CONFIRMATION ||
+          enrollment.status === SubjectEnrollmentStatus.ACTIVE) && (
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-gray-700 block">Google Meet URL</label>
             <input

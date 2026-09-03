@@ -1,29 +1,56 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Bell } from "lucide-react";
 import { GetNotificationsAction, MarkAllNotificationsReadAction, MarkNotificationReadAction } from "@/server/notification";
 import { Notification } from "@/types/notification";
 import { navigateToNotificationLink } from "@/lib/notification-link";
+import { ensureNotificationPermission, playNotificationSound, showBrowserNotification } from "@/lib/notification-alert";
 
 // Live topbar bell (poll + unread badge + preview dropdown), same pattern as
 // Stc-SuperAdmin's notification-bell.tsx - replaces the plain static Bell
 // icon every /lms-home/* layout used to link straight to the notification
-// page with no indication anything had actually happened.
+// page with no indication anything had actually happened. Also the only
+// thing today giving the general Notification model (as opposed to chat
+// messages, see useMessagingSocket) a sound + OS-level popup - see
+// notification-alert.ts for why this is poll-driven, not push-driven.
 export default function NotificationBell({ viewAllHref }: { viewAllHref: string }) {
   const router = useRouter();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
+  // null until the first load resolves, so that load doesn't fire a sound/
+  // popup for every notification already sitting there on mount - only for
+  // ones that show up in a later poll.
+  const seenIdsRef = useRef<Set<string> | null>(null);
 
   const load = () => {
-    GetNotificationsAction().then(([res]) => setNotifications(res?.data ?? []));
+    GetNotificationsAction().then(([res]) => {
+      const list = res?.data ?? [];
+      const seen = seenIdsRef.current;
+      if (seen) {
+        const fresh = list.filter((n) => !n.read && !seen.has(n.id));
+        if (fresh.length > 0) {
+          playNotificationSound();
+          fresh.slice(0, 3).forEach((n) =>
+            showBrowserNotification(n.title, n.body, () => {
+              if (n.link) navigateToNotificationLink(router, n.link);
+              else router.push(viewAllHref);
+            })
+          );
+        }
+      }
+      seenIdsRef.current = new Set(list.map((n) => n.id));
+      setNotifications(list);
+    });
   };
 
   useEffect(() => {
+    ensureNotificationPermission();
     load();
     const interval = setInterval(load, 30000);
     return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const unreadCount = notifications.filter((n) => !n.read).length;

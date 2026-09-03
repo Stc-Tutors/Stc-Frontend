@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { GetCoursesAction } from "@/server/course";
 import { GetLessonsAdminAction } from "@/server/lesson";
+import { ListStudentsForAdminAction } from "@/server/admin";
+import { GetServicesAction } from "@/server/service-catalog";
 import {
   ApproveResourceAction,
   GetResourcesForAdminAction,
@@ -16,12 +18,14 @@ import {
 import { Course } from "@/types/course";
 import { CourseResource, ResourceStatus, ResourceType } from "@/types/resource";
 import ResourcesTabs, { RecordingItem } from "@/components/resources/ResourcesTabs";
-import StudentTargetPicker from "@/components/resources/StudentTargetPicker";
+import ResourceTargetPicker, { EMPTY_TARGET, TargetValue } from "@/components/resources/ResourceTargetPicker";
+import { toGoogleDriveEmbedUrl } from "@/lib/google-drive";
 
 const resourceTypeLabels: Record<ResourceType, string> = {
   [ResourceType.DOCUMENT]: "Document",
   [ResourceType.VIDEO]: "Video",
   [ResourceType.AUDIO]: "Audio",
+  [ResourceType.LIVE_RECORDING]: "Live Recording",
 };
 
 // listForAdmin (GET /resources/admin/all) defaults to PENDING when no status
@@ -36,11 +40,10 @@ export default function AdminResourcesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
 
-  const [courseId, setCourseId] = useState("");
+  const [target, setTarget] = useState<TargetValue>(EMPTY_TARGET);
   const [title, setTitle] = useState("");
   const [fileUrl, setFileUrl] = useState("");
   const [type, setType] = useState<ResourceType>(ResourceType.DOCUMENT);
-  const [targetStudentIds, setTargetStudentIds] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const load = async () => {
@@ -48,7 +51,7 @@ export default function AdminResourcesPage() {
     const [coursesRes] = await GetCoursesAction();
     const allCourses = coursesRes?.data ?? [];
     setCourses(allCourses);
-    if (!courseId && allCourses.length) setCourseId(allCourses[0].id);
+    if (!target.course && allCourses.length) setTarget((t) => (t.mode === "course" ? { ...t, course: allCourses[0].id } : t));
 
     const statusResults = await Promise.all(ALL_STATUSES.map((s) => GetResourcesForAdminAction(s)));
     const merged = statusResults.flatMap(([res]) => res?.data ?? []);
@@ -72,25 +75,37 @@ export default function AdminResourcesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const driveError = fileUrl.trim() && !toGoogleDriveEmbedUrl(fileUrl) ? "Must be a Google Drive share link" : null;
+  const targetError =
+    target.mode === "course" && !target.course
+      ? "Pick a course"
+      : target.mode === "subject" && (!target.subject || !target.serviceType)
+      ? "Pick a service and subject"
+      : target.mode === "students" && target.students.length === 0
+      ? "Pick at least one student"
+      : null;
+
   const handleUpload = async () => {
-    if (!courseId || !title || !fileUrl) {
-      setMessage("Pick a course and fill in title + file link");
+    if (!title || !fileUrl || driveError || targetError) {
+      setMessage(driveError || targetError || "Fill in title + file link");
       return;
     }
     setIsSubmitting(true);
     const [, error] = await UploadResourceAction({
       title,
       fileUrl,
-      course: courseId,
       type,
-      students: targetStudentIds.length ? targetStudentIds : undefined,
+      course: target.mode === "course" ? target.course : undefined,
+      subject: target.mode === "subject" ? target.subject : undefined,
+      serviceType: target.mode === "subject" ? target.serviceType : undefined,
+      students: target.mode === "students" ? target.students : undefined,
     });
     setMessage(error || "Uploaded");
     if (!error) {
       setTitle("");
       setFileUrl("");
       setType(ResourceType.DOCUMENT);
-      setTargetStudentIds([]);
+      setTarget(EMPTY_TARGET);
       load();
     }
     setIsSubmitting(false);
@@ -114,29 +129,26 @@ export default function AdminResourcesPage() {
 
       <div className="bg-gray-50 p-4 rounded-lg space-y-3">
         <h3 className="font-semibold text-gray-800">Upload resource</h3>
-        {courses.length === 0 ? (
-          <p className="text-sm text-gray-500">No courses available yet.</p>
-        ) : (
+        <div className="space-y-2">
+          <ResourceTargetPicker
+            courses={courses}
+            fetchStudents={async () => {
+              const [res] = await ListStudentsForAdminAction({ limit: 200 });
+              return (res?.data ?? []).map((s) => ({ id: s.id, fullName: s.fullName }));
+            }}
+            fetchServices={async () => {
+              const [res] = await GetServicesAction();
+              return (res?.data ?? []).map((s) => ({ slug: s.slug, serviceName: s.serviceName }));
+            }}
+            value={target}
+            onChange={setTarget}
+          />
+          <Input placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
+          <div>
+            <Input placeholder="File link (must be a Google Drive share link)" value={fileUrl} onChange={(e) => setFileUrl(e.target.value)} />
+            {driveError && <p className="text-xs text-red-600 mt-1">{driveError}</p>}
+          </div>
           <div className="space-y-2">
-            <Select
-              value={courseId}
-              onValueChange={(v) => {
-                setCourseId(v);
-                setTargetStudentIds([]);
-              }}
-            >
-              <SelectTrigger size="sm" className="w-full sm:w-[240px]">
-                <SelectValue placeholder="Select a course" />
-              </SelectTrigger>
-              <SelectContent>
-                {courses.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Input placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
-            <Input placeholder="File link (Google Drive, Dropbox, ...)" value={fileUrl} onChange={(e) => setFileUrl(e.target.value)} />
-            <StudentTargetPicker courseId={courseId} value={targetStudentIds} onChange={setTargetStudentIds} />
             <Select value={type} onValueChange={(v) => setType(v as ResourceType)}>
               <SelectTrigger size="sm" className="w-full sm:w-[180px]">
                 <SelectValue />
@@ -151,7 +163,7 @@ export default function AdminResourcesPage() {
               {isSubmitting ? "Uploading..." : "Upload"}
             </Button>
           </div>
-        )}
+        </div>
       </div>
 
       {message && <p className="text-sm text-blue-600">{message}</p>}

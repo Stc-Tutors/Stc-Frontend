@@ -17,6 +17,7 @@ const TYPE_LABELS: Record<NotificationType, string> = {
   [NotificationType.PAYOUT_STATUS]: "Payout Status",
   [NotificationType.REFERRAL_STATUS]: "Referral Status",
   [NotificationType.CLASS_CONFIRMED]: "Class Confirmed",
+  [NotificationType.EVENT_INVITE]: "Event Invite",
 };
 
 export default function NotificationList() {

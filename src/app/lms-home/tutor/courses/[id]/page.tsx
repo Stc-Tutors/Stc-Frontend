@@ -163,10 +163,17 @@ export default function TutorCourseDetailPage() {
           <div>
             <h1 className="text-xl font-bold">{course.title}</h1>
             <p className="text-sm text-gray-500">
-              {course.category} · {enrollments.length} students · {course.status}
+              {course.category} · {enrollments.length} students
+              {/* A bookkeeping course (a 1:1 tutoring assignment, not a real
+                  product listing) was never meant to go through the
+                  DRAFT/PENDING_REVIEW/PUBLISHED marketplace pipeline - the
+                  raw status here would just read as an unexplained warning. */}
+              {!course.isBookkeeping && ` · ${course.status}`}
             </p>
           </div>
-          {course.status !== CourseStatus.PUBLISHED && <Button onClick={handlePublish}>Publish</Button>}
+          {!course.isBookkeeping && course.status !== CourseStatus.PUBLISHED && (
+            <Button onClick={handlePublish}>Publish</Button>
+          )}
         </div>
       </div>
 

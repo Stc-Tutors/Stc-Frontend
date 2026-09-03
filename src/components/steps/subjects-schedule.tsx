@@ -32,6 +32,7 @@ import { useCustomFormFields } from "@/hooks/use-custom-form-fields";
 import DynamicQuestionField from "@/components/forms/dynamic-question-field";
 import { Input } from "@/components/ui/input";
 import { findScheduleOverlap } from "@/lib/schedule-overlap";
+import { scheduleTimeFrom24Hour, scheduleTimeTo24Hour } from "@/lib/datetime";
 
 const EXAM_MONTHS = [
   "January", "February", "March", "April", "May", "June",
@@ -47,10 +48,6 @@ interface StepProps {
 import { WEEKDAYS } from "@/constants/weekdays";
 const daysOfWeek: readonly string[] = WEEKDAYS;
 
-const timeOptions = [
-  "8:00am", "9:00am", "10:00am", "11:00am", "12:00pm",
-  "1:00pm", "2:00pm", "3:00pm", "4:00pm", "5:00pm", "6:00pm", "7:00pm",
-];
 
 const durationOptions = [
   { value: 30, label: "30 minutes" },
@@ -303,7 +300,19 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
         stepErrors.classGroupId = "Please select a class group to join";
       }
 
-      if (!isPathC && !serviceData.flexibleSchedule && !schedule.some((s) => s.days.length > 0)) {
+      // Group/cohort placement is confirmed after enrollment, not picked
+      // upfront - same exemption as flexibleSchedule (one-on-one only). This
+      // used to force a family who picked "Group Class" to also fill in
+      // specific days/times just to pass validation, even though the
+      // Schedule section below never even asked them to (or, before that was
+      // fixed, showed the picker but nothing downstream used what they
+      // entered) - see the Schedule section's classFormat === "group" branch.
+      if (
+        !isPathC &&
+        !serviceData.flexibleSchedule &&
+        serviceData.classFormat !== "group" &&
+        !schedule.some((s) => s.days.length > 0)
+      ) {
         stepErrors.schedule = "Please select at least one day for at least one subject";
       }
       if (isPathC && serviceData.selectedSubjects.length > 0 && schedule.length === 0) {
@@ -365,12 +374,15 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
           (name) => resolvedSubjects.find((n) => n.name === name)?.id ?? ""
         );
         updateServiceDetails({ ...serviceData, selectedSubjectNodeIds });
-        // A flexible one-on-one schedule submits no days/times at all - the
-        // per-subject rows above only exist locally to drive the "which
-        // subjects need a schedule" UI, not real picked days (see
+        // A flexible one-on-one schedule, or a group-format one (placement
+        // confirmed after enrollment, not picked upfront - see the Schedule
+        // section's classFormat === "group" branch), submits no days/times
+        // at all - the per-subject rows above only exist locally to drive
+        // the "which subjects need a schedule" UI, not real picked days (see
         // validateScheduleDaysRequired on the backend, which would otherwise
         // reject each row's empty `days`).
-        const submittedSchedule = !isPathC && serviceData.flexibleSchedule ? [] : schedule;
+        const submittedSchedule =
+          !isPathC && (serviceData.flexibleSchedule || serviceData.classFormat === "group") ? [] : schedule;
         updateSchedule(submittedSchedule);
         setTotalCost(isPathC ? selectedCourse?.price ?? 0 : calculateCost(schedule, serviceData));
       }
@@ -1034,6 +1046,19 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
                   for {serviceData.selectedSubjects.join(", ")}.
                 </p>
               </div>
+            ) : serviceData.classFormat === "group" ? (
+              // Group/cohort placement is confirmed after enrollment (see the
+              // Class Format card's own "next available group class" note
+              // above) - this section used to fall through to the
+              // interactive one-on-one day/time builder below regardless of
+              // classFormat, silently asking a "Group Class" family to pick
+              // specific days/times that nothing downstream ever used.
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <p className="text-sm text-gray-700">
+                  No days/times to pick - you&apos;ll be placed in the next available group class for{" "}
+                  {serviceData.selectedSubjects.join(", ")}, and we&apos;ll confirm the schedule after enrollment.
+                </p>
+              </div>
             ) : (
               <div className="space-y-4">
                 {schedule.map((item, index) => (
@@ -1064,17 +1089,17 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
                       </div>
                       <div>
                         <Label className="text-sm">Time</Label>
-                        <Select
-                          value={item.time}
-                          onValueChange={(value) => handleScheduleChange(index, "time", value)}
-                        >
-                          <SelectTrigger><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            {timeOptions.map((time) => (
-                              <SelectItem key={time} value={time}>{time}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        {/* Native picker gives every minute of the day (the
+                            browser renders its own locale-appropriate AM/PM
+                            or 24-hour clock UI), not just a fixed hourly
+                            list - see scheduleTimeTo24Hour/From24Hour, which
+                            convert to/from the "8:00am"-style string this
+                            actually gets saved as. */}
+                        <Input
+                          type="time"
+                          value={scheduleTimeTo24Hour(item.time)}
+                          onChange={(e) => handleScheduleChange(index, "time", scheduleTimeFrom24Hour(e.target.value))}
+                        />
                       </div>
                       <div>
                         <Label className="text-sm">Duration</Label>

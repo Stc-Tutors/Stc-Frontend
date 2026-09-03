@@ -8,6 +8,7 @@ export enum NotificationType {
   PAYOUT_STATUS = "PAYOUT_STATUS",
   REFERRAL_STATUS = "REFERRAL_STATUS",
   CLASS_CONFIRMED = "CLASS_CONFIRMED",
+  EVENT_INVITE = "EVENT_INVITE",
 }
 
 export interface Notification {

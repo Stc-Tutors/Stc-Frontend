@@ -45,14 +45,24 @@ const typeIcon: Record<ResourceType, typeof FileText> = {
   [ResourceType.DOCUMENT]: FileText,
   [ResourceType.VIDEO]: Video,
   [ResourceType.AUDIO]: Music,
+  [ResourceType.LIVE_RECORDING]: PlayCircle,
 };
 
 function courseIdOf(course: CourseResource["course"]) {
+  if (!course) return undefined;
   return typeof course === "string" ? course : course.id;
 }
 
 function courseTitleOf(course: CourseResource["course"]) {
+  if (!course) return undefined;
   return typeof course === "string" ? course : course.title;
+}
+
+// A resource has no course when it targets a subject or specific students
+// directly instead - see CourseResource. Falls back to describing whichever
+// of those two modes applies.
+function targetLabelOf(r: CourseResource): string {
+  return courseTitleOf(r.course) ?? (r.subject ? `Subject: ${r.subject}` : "Specific students");
 }
 
 function sortResourceList(list: CourseResource[], sort: SortOption) {
@@ -85,7 +95,11 @@ export default function ResourcesTabs({
   const [courseFilter, setCourseFilter] = useState<string>("all");
   const [preview, setPreview] = useState<{ title: string; url: string } | null>(null);
 
-  const showRecordings = recordings !== undefined;
+  // A LIVE_RECORDING-typed resource is a manually-uploaded recording -
+  // merged into the same "Lesson Recordings" tab as auto-sourced
+  // ILesson.recordingUrl entries so viewers see every recording in one
+  // place, whichever way it got there.
+  const showRecordings = recordings !== undefined || resources.some((r) => r.type === ResourceType.LIVE_RECORDING);
   const showCourseFilter = (courses?.length ?? 0) > 1;
 
   const filteredResources = useMemo(() => {
@@ -106,7 +120,13 @@ export default function ResourcesTabs({
     () => allResources.filter((r) => (r.type ?? ResourceType.DOCUMENT) === ResourceType.AUDIO),
     [allResources]
   );
-  const sortedRecordings = useMemo(() => sortRecordingList(recordings ?? [], sort), [recordings, sort]);
+  const combinedRecordings = useMemo(() => {
+    const uploaded: RecordingItem[] = allResources
+      .filter((r) => r.type === ResourceType.LIVE_RECORDING)
+      .map((r) => ({ id: r.id, title: r.title, date: r.createdAt, url: r.fileUrl, meta: targetLabelOf(r) }));
+    return [...(recordings ?? []), ...uploaded];
+  }, [allResources, recordings]);
+  const sortedRecordings = useMemo(() => sortRecordingList(combinedRecordings, sort), [combinedRecordings, sort]);
 
   const renderResourceRow = (r: CourseResource) => {
     const type = r.type ?? ResourceType.DOCUMENT;
@@ -138,7 +158,7 @@ export default function ResourcesTabs({
               )}
             </div>
             <p className="text-sm text-gray-500 truncate">
-              {courseTitleOf(r.course)} • {new Date(r.createdAt).toLocaleDateString()}
+              {targetLabelOf(r)} • {new Date(r.createdAt).toLocaleDateString()}
             </p>
             {renderExtraActions?.(r)}
           </div>

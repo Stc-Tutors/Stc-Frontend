@@ -25,7 +25,8 @@ import {
   Target,
   FolderUp,
   Gift,
-  AlertCircle
+  AlertCircle,
+  UserCheck
 } from "lucide-react";
 import BrandLogo from "@/components/shared/BrandLogo";
 import LogoutButton from "@/components/shared/LogoutButton";
@@ -43,6 +44,7 @@ import { Network } from "lucide-react";
 const sidebarLinks = [
   { label: "Dashboard", icon: Home, href: "/lms-home/tutor/dashboard" },
   { label: "Schedule", icon: Calendar, href: "/lms-home/tutor/scheduling" },
+  { label: "Pending Assignments", icon: UserCheck, href: "/lms-home/tutor/pending-assignments" },
   { label: "Classroom", icon: Users, href: "/lms-home/tutor/classroom" },
   { label: "Student Progress", icon: Target, href: "/lms-home/tutor/student-progress" },
   { label: "Assignments", icon: BookOpen, href: "/lms-home/tutor/assignments" },

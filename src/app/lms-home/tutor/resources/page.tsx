@@ -5,18 +5,20 @@ import { FolderUp } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { GetMyCoursesAction } from "@/server/course";
+import { GetMyCoursesAction, GetMyCourseStudentsAction } from "@/server/course";
 import { GetCourseLessonsAction } from "@/server/lesson";
 import { GetMyResourcesAction, UploadResourceAction } from "@/server/resource";
 import { Course } from "@/types/course";
 import { CourseResource, ResourceStatus, ResourceType } from "@/types/resource";
 import ResourcesTabs, { RecordingItem } from "@/components/resources/ResourcesTabs";
-import StudentTargetPicker from "@/components/resources/StudentTargetPicker";
+import ResourceTargetPicker, { EMPTY_TARGET, TargetValue } from "@/components/resources/ResourceTargetPicker";
+import { toGoogleDriveEmbedUrl } from "@/lib/google-drive";
 
 const resourceTypeLabels: Record<ResourceType, string> = {
   [ResourceType.DOCUMENT]: "Document",
   [ResourceType.VIDEO]: "Video",
   [ResourceType.AUDIO]: "Audio",
+  [ResourceType.LIVE_RECORDING]: "Live Recording",
 };
 
 export default function TutorResourcesPage() {
@@ -26,11 +28,10 @@ export default function TutorResourcesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
 
-  const [courseId, setCourseId] = useState("");
+  const [target, setTarget] = useState<TargetValue>(EMPTY_TARGET);
   const [title, setTitle] = useState("");
   const [fileUrl, setFileUrl] = useState("");
   const [type, setType] = useState<ResourceType>(ResourceType.DOCUMENT);
-  const [targetStudentIds, setTargetStudentIds] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const load = async () => {
@@ -40,7 +41,7 @@ export default function TutorResourcesPage() {
     const myCourses = coursesRes?.data ?? [];
     setCourses(myCourses);
     setResources(resourcesRes?.data ?? []);
-    if (!courseId && myCourses.length) setCourseId(myCourses[0].id);
+    if (!target.course && myCourses.length) setTarget((t) => (t.mode === "course" ? { ...t, course: myCourses[0].id } : t));
 
     const lessonLists = await Promise.all(myCourses.map((c) => GetCourseLessonsAction(c.id)));
     const allRecordings: RecordingItem[] = [];
@@ -67,25 +68,37 @@ export default function TutorResourcesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const driveError = fileUrl.trim() && !toGoogleDriveEmbedUrl(fileUrl) ? "Must be a Google Drive share link" : null;
+  const targetError =
+    target.mode === "course" && !target.course
+      ? "Pick a course"
+      : target.mode === "subject" && (!target.subject || !target.serviceType)
+      ? "Pick a subject you teach"
+      : target.mode === "students" && target.students.length === 0
+      ? "Pick at least one student"
+      : null;
+
   const handleUpload = async () => {
-    if (!courseId || !title || !fileUrl) {
-      setMessage("Pick a course and fill in title + file link");
+    if (!title || !fileUrl || driveError || targetError) {
+      setMessage(driveError || targetError || "Fill in title + file link");
       return;
     }
     setIsSubmitting(true);
     const [, error] = await UploadResourceAction({
       title,
       fileUrl,
-      course: courseId,
       type,
-      students: targetStudentIds.length ? targetStudentIds : undefined,
+      course: target.mode === "course" ? target.course : undefined,
+      subject: target.mode === "subject" ? target.subject : undefined,
+      serviceType: target.mode === "subject" ? target.serviceType : undefined,
+      students: target.mode === "students" ? target.students : undefined,
     });
     setMessage(error || "Uploaded - awaiting admin approval");
     if (!error) {
       setTitle("");
       setFileUrl("");
       setType(ResourceType.DOCUMENT);
-      setTargetStudentIds([]);
+      setTarget(EMPTY_TARGET);
       load();
     }
     setIsSubmitting(false);
@@ -101,8 +114,9 @@ export default function TutorResourcesPage() {
       <div className="bg-white p-4 rounded-lg shadow-sm space-y-3">
         <h3 className="font-semibold text-gray-800">Upload instructional material</h3>
         <p className="text-xs text-gray-500">
-          PDFs, audio, or video for a course you teach. Paste a link to the file (e.g. a Google Drive share link) -
-          it stays hidden from students until an admin approves it.
+          PDFs, audio, video, or a live-session recording - target it to a course, a whole subject you teach, or
+          specific students. Paste a Google Drive share link; it stays hidden from students until an admin approves
+          it.
         </p>
         {message && <p className="text-sm text-blue-600">{message}</p>}
 
@@ -113,21 +127,20 @@ export default function TutorResourcesPage() {
           </p>
         ) : (
           <div className="space-y-2">
-            <select
-              value={courseId}
-              onChange={(e) => {
-                setCourseId(e.target.value);
-                setTargetStudentIds([]);
+            <ResourceTargetPicker
+              courses={courses}
+              fetchStudents={async () => {
+                const [res] = await GetMyCourseStudentsAction();
+                return res?.data ?? [];
               }}
-              className="border border-gray-300 rounded-md p-2 text-sm w-full"
-            >
-              {courses.map((c) => (
-                <option key={c.id} value={c.id}>{c.title}</option>
-              ))}
-            </select>
+              value={target}
+              onChange={setTarget}
+            />
             <Input placeholder="Title (e.g. Week 3 worksheet)" value={title} onChange={(e) => setTitle(e.target.value)} />
-            <Input placeholder="File link (Google Drive, Dropbox, ...)" value={fileUrl} onChange={(e) => setFileUrl(e.target.value)} />
-            <StudentTargetPicker courseId={courseId} value={targetStudentIds} onChange={setTargetStudentIds} />
+            <div>
+              <Input placeholder="File link (must be a Google Drive share link)" value={fileUrl} onChange={(e) => setFileUrl(e.target.value)} />
+              {driveError && <p className="text-xs text-red-600 mt-1">{driveError}</p>}
+            </div>
             <Select value={type} onValueChange={(v) => setType(v as ResourceType)}>
               <SelectTrigger size="sm" className="w-full sm:w-[180px]">
                 <SelectValue />

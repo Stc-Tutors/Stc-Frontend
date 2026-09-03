@@ -22,7 +22,10 @@ export default function TutorAnalyticsPage() {
       const [coursesRes] = await GetMyCoursesAction();
       const [hoursRes] = await GetMyTutorHoursAction();
       const [statsRes] = await GetMySessionStatsAction();
-      setCourses(coursesRes?.data ?? []);
+      // Excludes bookkeeping courses (1:1 tutoring assignments - see
+      // Course.isBookkeeping) - this list is "courses you built", not every
+      // Course document you happen to be attached to.
+      setCourses((coursesRes?.data ?? []).filter((c) => !c.isBookkeeping));
       setHours(hoursRes?.data ?? null);
       setSessionStats(statsRes?.data ?? null);
       setIsLoading(false);

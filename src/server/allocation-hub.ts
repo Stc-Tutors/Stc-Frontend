@@ -178,6 +178,52 @@ export async function AssignOversightToEnrollmentsAction(
   return [resData, error];
 }
 
+// Tutor-facing: their own proposed-but-not-yet-decided assignments
+// (PENDING_TUTOR_ACCEPTANCE) - see AllocationHubService.
+// listPendingAcceptanceForTutor.
+export async function GetMyPendingAssignmentsAction(): Promise<
+  [ApiResponse<SubjectEnrollment[]> | null, string | null]
+> {
+  const [res, error] = await fetchAPI({
+    url: "/allocation-hub/my-pending-assignments",
+    request: { method: "GET", headers: { "Content-Type": "application/json" } },
+  });
+  const resData = res ? ((await res.json()) as ApiResponse<SubjectEnrollment[]>) : null;
+  return [resData, error];
+}
+
+// Only now does the actual CourseEnrollment (and, for an already-approved
+// one-on-one slot, the Lesson batch) get created - see
+// AllocationHubService.acceptAssignment.
+export async function AcceptAssignmentAction(
+  subjectEnrollmentId: string
+): Promise<[ApiResponse<SubjectEnrollment> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: `/allocation-hub/subject-enrollments/${subjectEnrollmentId}/accept`,
+    request: { method: "PATCH", headers: { "Content-Type": "application/json" } },
+  });
+  const resData = res ? ((await res.json()) as ApiResponse<SubjectEnrollment>) : null;
+  return [resData, error];
+}
+
+// Sends the enrollment back to UNASSIGNED_TUTOR for an admin/HOD to try a
+// different tutor - see AllocationHubService.rejectAssignment.
+export async function RejectAssignmentAction(
+  subjectEnrollmentId: string,
+  reason?: string
+): Promise<[ApiResponse<SubjectEnrollment> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: `/allocation-hub/subject-enrollments/${subjectEnrollmentId}/reject`,
+    request: {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reason }),
+    },
+  });
+  const resData = res ? ((await res.json()) as ApiResponse<SubjectEnrollment>) : null;
+  return [resData, error];
+}
+
 export async function OffboardTutorAction(
   tutorId: string,
   newTutorId: string

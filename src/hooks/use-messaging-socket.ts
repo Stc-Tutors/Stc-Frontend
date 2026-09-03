@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
 import { Message } from "@/types/message";
+import { playNotificationSound } from "@/lib/notification-alert";
 
 // NEXT_PUBLIC_API_URL is the REST base (".../api") - Socket.IO attaches
 // directly to stcbe's HTTP server root, not under Express's /api prefix, so
@@ -69,8 +70,11 @@ export function useMessagingSocket({
         // both get this for free via the standard web Notification API -
         // only fires while the page/tab isn't focused, so it doesn't nag
         // someone already looking at the conversation.
-        if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted" && document.hidden) {
-          new Notification("New message", { body: message.body.slice(0, 120) });
+        if (typeof window !== "undefined" && document.hidden) {
+          playNotificationSound();
+          if ("Notification" in window && Notification.permission === "granted") {
+            new Notification("New message", { body: message.body.slice(0, 120) });
+          }
         }
       });
       socket.on("message:delivered", (payload: { conversationId: string; userId: string }) =>

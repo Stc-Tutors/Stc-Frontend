@@ -12,6 +12,7 @@ import { GetCoursesAction } from "@/server/course";
 import { ISchedule, ScheduleReviewStatus, Student } from "@/types/student";
 import { User, UserRole } from "@/types/user";
 import { Course } from "@/types/course";
+import { scheduleTimeFrom24Hour, scheduleTimeTo24Hour } from "@/lib/datetime";
 
 import { WEEKDAYS_ABBREVIATED } from "@/constants/weekdays";
 const DAYS = WEEKDAYS_ABBREVIATED;
@@ -122,6 +123,10 @@ export default function ScheduleReviewPanel({ student, onChanged }: { student: S
 
   if (!student.scheduleReviewStatus || !student.schedule?.length) return null;
 
+  // The family already picked these at registration - no reason to make an
+  // admin retype a subject name that's sitting right here on the record.
+  const availableSubjects = student.serviceDetails?.selectedSubjects ?? [];
+
   const toggleDay = (day: string) => {
     setDays((prev) => (prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]));
   };
@@ -174,7 +179,14 @@ export default function ScheduleReviewPanel({ student, onChanged }: { student: S
             <Button size="sm" onClick={handleApprove} disabled={isApproving}>
               {isApproving ? "Approving..." : "Approve as submitted"}
             </Button>
-            <Button size="sm" variant="outline" onClick={() => setIsProposing((s) => !s)}>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                setIsProposing((s) => !s);
+                if (!isProposing && !subject) setSubject(availableSubjects[0] ?? "");
+              }}
+            >
               {isProposing ? "Cancel" : "Propose a different schedule"}
             </Button>
           </div>
@@ -182,7 +194,21 @@ export default function ScheduleReviewPanel({ student, onChanged }: { student: S
 
         {isProposing && (
           <div className="border-t border-gray-100 pt-3 space-y-2">
-            <Input placeholder="Subject" value={subject} onChange={(e) => setSubject(e.target.value)} />
+            {availableSubjects.length > 0 ? (
+              <select
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+                className="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm"
+              >
+                {availableSubjects.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <Input placeholder="Subject" value={subject} onChange={(e) => setSubject(e.target.value)} />
+            )}
             <div className="flex flex-wrap gap-2">
               {DAYS.map((d) => (
                 <button
@@ -197,7 +223,18 @@ export default function ScheduleReviewPanel({ student, onChanged }: { student: S
               ))}
             </div>
             <div className="grid grid-cols-2 gap-2">
-              <Input placeholder="Time (e.g. 16:00)" value={time} onChange={(e) => setTime(e.target.value)} />
+              {/* Native picker, not a typed string - see scheduleTimeTo24Hour/
+                  From24Hour, which convert to/from the "8:00am"-style string
+                  this actually saves as (what parseTimeToMinutes requires
+                  for conflict detection and Lesson generation - typing a
+                  24-hour "16:00" string here before, per the old placeholder
+                  text, silently failed to ever produce lessons once a tutor
+                  was allocated). */}
+              <Input
+                type="time"
+                value={scheduleTimeTo24Hour(time)}
+                onChange={(e) => setTime(scheduleTimeFrom24Hour(e.target.value))}
+              />
               <Input type="number" min="1" placeholder="Duration (minutes)" value={duration} onChange={(e) => setDuration(e.target.value)} />
             </div>
             <Button size="sm" onClick={handlePropose}>

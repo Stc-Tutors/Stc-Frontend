@@ -231,10 +231,14 @@ export default function ServicePage({
       {/* Key Features */}
       {content.keyFeatures.length > 0 && (
         <section className="mb-12">
-          <h2 className="text-2xl font-semibold mb-6">Key Features</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <h2 className="text-2xl font-semibold mb-6 text-center">Key Features</h2>
+          {/* flex+justify-center instead of a fixed-column grid so a row with
+              fewer cards than the column count (e.g. 2 features) centers as a
+              group instead of hugging the left with empty grid cells on the
+              right. */}
+          <div className="flex flex-wrap justify-center gap-6">
             {content.keyFeatures.map((f, i) => (
-              <div key={i} className="text-center p-4 border rounded-lg">
+              <div key={i} className="w-40 sm:w-48 md:w-56 text-center p-4 border rounded-lg">
                 {f.icon && <div className="text-4xl mb-2">{f.icon}</div>}
                 <h3 className="font-medium">{f.title}</h3>
                 {f.description && <p className="text-sm text-gray-600 mt-1">{f.description}</p>}
@@ -269,9 +273,11 @@ export default function ServicePage({
       {content.benefits.length > 0 && (
         <section className="mb-12">
           <h2 className="text-2xl font-semibold mb-8 text-center">Benefits</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+          {/* Same flex+justify-center reasoning as Key Features - a grid
+              leaves 1-2 benefits stuck on the left instead of centered. */}
+          <div className="flex flex-wrap justify-center gap-8 text-center">
             {content.benefits.map((b, i) => (
-              <div key={i}>
+              <div key={i} className="w-full sm:w-72 md:w-80">
                 <h3 className="text-xl font-semibold mb-2">{b.title}</h3>
                 <p dangerouslySetInnerHTML={{ __html: sanitizeRichText(b.description) }} />
               </div>

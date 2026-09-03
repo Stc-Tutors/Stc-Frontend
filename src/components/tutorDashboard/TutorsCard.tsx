@@ -12,7 +12,11 @@ export default function TutorsCard() {
     const load = async () => {
       const [coursesRes] = await GetMyCoursesAction();
       const [studentsRes] = await GetMyCourseStudentsAction();
-      const courses = coursesRes?.data ?? [];
+      // Excludes bookkeeping courses (1:1 tutoring assignments, not real
+      // course listings this tutor built - see Course.isBookkeeping) so
+      // "Draft Courses" doesn't read as a to-do list of things to publish
+      // that were never meant to be published in the first place.
+      const courses = (coursesRes?.data ?? []).filter((c) => !c.isBookkeeping);
 
       setStats({
         total: courses.length,

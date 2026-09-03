@@ -26,12 +26,31 @@ export async function GetMyResourcesAction(): Promise<[ApiResponse<CourseResourc
   return [resData, error];
 }
 
+// Every resource visible to the current student/parent across all three
+// target modes at once (course/subject/students) - see stcbe's
+// ResourceService.getForLearner. Unlike GetResourcesByCourseAction, this
+// isn't scoped to one course, so it also surfaces subject-wide and
+// directly-targeted resources with no course of their own.
+export async function GetResourcesForMeAction(): Promise<[ApiResponse<CourseResource[]> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: `/resources/for-me`,
+    request: { method: "GET", headers: { "Content-Type": "application/json" } },
+  });
+
+  const resData = res ? ((await res.json()) as ApiResponse<CourseResource[]>) : null;
+  return [resData, error];
+}
+
+// Exactly one of course/(subject+serviceType)/students must be set - see
+// stcbe's IResource. fileUrl must be a Google Drive (or Docs/Sheets/Slides)
+// share link, enforced server-side (400 otherwise).
 export async function UploadResourceAction(data: {
   title: string;
   fileUrl: string;
-  course: string;
   type: ResourceType;
-  // Omit/leave empty to target every student enrolled in the course.
+  course?: string;
+  subject?: string;
+  serviceType?: string;
   students?: string[];
 }): Promise<[ApiResponse<CourseResource> | null, string | null]> {
   const [res, error] = await fetchAPI({
