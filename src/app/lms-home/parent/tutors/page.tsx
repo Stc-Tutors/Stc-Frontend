@@ -142,6 +142,110 @@ export default function ParentTutorsPage() {
                   <span className="font-medium">Languages:</span> {row.profile.preferredLanguages.join(", ")}
                 </p>
               )}
+
+              {row.profile.highestQualification && (
+                <p className="text-sm text-gray-600">
+                  <span className="font-medium">Highest qualification:</span> {row.profile.highestQualification}
+                </p>
+              )}
+
+              {row.profile.otherQualificationsHeld && row.profile.otherQualificationsHeld.length > 0 && (
+                <p className="text-sm text-gray-600">
+                  <span className="font-medium">Other qualifications:</span>{" "}
+                  {row.profile.otherQualificationsHeld.join(", ")}
+                </p>
+              )}
+
+              {row.profile.teachingCombinations?.length > 0 && (
+                <div className="text-sm text-gray-600">
+                  <span className="font-medium">Subjects taught:</span>
+                  <ul className="list-disc list-inside">
+                    {row.profile.teachingCombinations.map((tc, i) => (
+                      <li key={i}>
+                        {tc.subjectsTaught.join(", ")}
+                        {tc.curriculum ? ` (${[tc.curriculum, tc.gradeLevel].filter(Boolean).join(" - ")})` : ""}
+                        {tc.country ? ` · ${tc.country}` : ""}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {row.profile.ageLevelsTaught && row.profile.ageLevelsTaught.length > 0 && (
+                <p className="text-sm text-gray-600">
+                  <span className="font-medium">Age groups taught:</span> {row.profile.ageLevelsTaught.join(", ")}
+                </p>
+              )}
+
+              {[
+                ["Digital skills", row.profile.digitalSkillsBundles],
+                ["Music instruments", row.profile.musicInstruments],
+                ["Soft skills topics", row.profile.softSkillsTopics],
+                ["Career coaching topics", row.profile.careerCoachingTopics],
+                ["Self-development topics", row.profile.selfDevTopics],
+                ["Adult education focus areas", row.profile.adultEdFocusAreas],
+              ]
+                .filter(([, list]) => Array.isArray(list) && list.length > 0)
+                .map(([label, list]) => (
+                  <p key={label as string} className="text-sm text-gray-600">
+                    <span className="font-medium">{label}:</span> {(list as string[]).join(", ")}
+                  </p>
+                ))}
+
+              {row.profile.yearsOnlineTutoringExperience != null && (
+                <p className="text-sm text-gray-600">
+                  <span className="font-medium">Online tutoring experience:</span>{" "}
+                  {row.profile.yearsOnlineTutoringExperience} years
+                </p>
+              )}
+
+              {row.profile.previousPlatforms && (
+                <p className="text-sm text-gray-600">
+                  <span className="font-medium">Previously taught on:</span> {row.profile.previousPlatforms}
+                </p>
+              )}
+
+              {row.profile.teachingExperienceHistory && row.profile.teachingExperienceHistory.length > 0 && (
+                <div className="text-sm text-gray-600">
+                  <span className="font-medium">Teaching history:</span>
+                  <ul className="list-disc list-inside">
+                    {row.profile.teachingExperienceHistory.map((entry, i) => (
+                      <li key={i}>
+                        {entry.role} at {entry.institution} ({entry.startDate}
+                        {" - "}
+                        {entry.currentlyWorkHere ? "present" : entry.endDate ?? ""})
+                        {entry.description ? ` - ${entry.description}` : ""}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {row.profile.preferredClassFormat && (
+                <p className="text-sm text-gray-600">
+                  <span className="font-medium">Preferred class format:</span>{" "}
+                  {row.profile.preferredClassFormat.replace(/[-_]/g, " ")}
+                </p>
+              )}
+
+              {row.profile.maxWeeklyHours && (
+                <p className="text-sm text-gray-600">
+                  <span className="font-medium">Max weekly hours:</span> {row.profile.maxWeeklyHours.replace(/[-_]/g, " ")}
+                </p>
+              )}
+
+              {row.profile.availability && row.profile.availability.length > 0 && (
+                <div className="text-sm text-gray-600">
+                  <span className="font-medium">General availability:</span>
+                  <ul className="list-disc list-inside">
+                    {row.profile.availability.map((slot, i) => (
+                      <li key={i}>
+                        {slot.dayOfWeek}: {slot.startTime} - {slot.endTime}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           ))}
         </div>
