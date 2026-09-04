@@ -1,7 +1,7 @@
 "use server";
 
 import fetchAPI, { type ApiResponse } from "@/lib/fetch";
-import { TutorProfile } from "@/types/tutor-profile";
+import { TutorProfile, TutorSummary } from "@/types/tutor-profile";
 import { TeachingCombination } from "@/types/curriculum";
 
 export async function GetMyTutorProfileAction(): Promise<[ApiResponse<TutorProfile> | null, string | null]> {
@@ -23,10 +23,12 @@ export type UpdateTutorProfileInput = Partial<
 // A submitted edit no longer applies straight to the live profile - it
 // lands as a PENDING request an admin must approve (see stcbe's
 // TutorProfileService.updateMine/approveEdit). `changes` mirrors whatever
-// was submitted, applied over the live profile once approved.
+// was submitted, applied over the live profile once approved. `tutor` is a
+// plain id from /me/pending-edit (the tutor already knows who they are) but
+// populated (name/avatar) from the admin review list below.
 export interface TutorProfileEditRequest {
   id: string;
-  tutor: string;
+  tutor: string | TutorSummary;
   changes: UpdateTutorProfileInput;
   status: "PENDING" | "APPROVED" | "REJECTED";
   submittedAt: string;
@@ -71,6 +73,50 @@ export async function UpdateMyTutorPreferencesAction(data: {
   });
 
   const resData = res ? ((await res.json()) as ApiResponse<TutorProfile>) : null;
+  return [resData, error];
+}
+
+// Admin review queue - see stcbe's TutorProfileService.listPendingEdits.
+// Gated on AdminPermission.APPROVE_TUTOR_PROFILE_EDITS (HOD/SUPER_ADMIN/
+// ALMIGHTY_ADMIN always pass).
+export async function ListPendingTutorProfileEditsAction(): Promise<
+  [ApiResponse<TutorProfileEditRequest[]> | null, string | null]
+> {
+  const [res, error] = await fetchAPI({
+    url: "/tutor-profile/admin/edits",
+    request: { method: "GET", headers: { "Content-Type": "application/json" } },
+  });
+
+  const resData = res ? ((await res.json()) as ApiResponse<TutorProfileEditRequest[]>) : null;
+  return [resData, error];
+}
+
+export async function ApproveTutorProfileEditAction(
+  id: string
+): Promise<[ApiResponse<TutorProfileEditRequest> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: `/tutor-profile/admin/edits/${id}/approve`,
+    request: { method: "PATCH", headers: { "Content-Type": "application/json" } },
+  });
+
+  const resData = res ? ((await res.json()) as ApiResponse<TutorProfileEditRequest>) : null;
+  return [resData, error];
+}
+
+export async function RejectTutorProfileEditAction(
+  id: string,
+  reason?: string
+): Promise<[ApiResponse<TutorProfileEditRequest> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: `/tutor-profile/admin/edits/${id}/reject`,
+    request: {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reason }),
+    },
+  });
+
+  const resData = res ? ((await res.json()) as ApiResponse<TutorProfileEditRequest>) : null;
   return [resData, error];
 }
 

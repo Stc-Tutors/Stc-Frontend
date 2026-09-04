@@ -51,6 +51,11 @@ function otherParticipant(conversation: Conversation, myId: string): Conversatio
 export default function MessagesPanel({ initialConversationId }: { initialConversationId?: string | null }) {
   const { user } = useUser();
   const [rows, setRows] = useState<ContactRow[]>([]);
+  // Full conversation objects (not just the ContactRow projection) so a
+  // message's sender can be resolved by name/role even in a multi-participant
+  // thread (e.g. a support thread with several admins) where "not mine"
+  // alone doesn't say which of them actually sent it.
+  const [conversations, setConversations] = useState<Conversation[]>([]);
   const [isLoadingContacts, setIsLoadingContacts] = useState(true);
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
   const [conversationId, setConversationId] = useState<string | null>(null);
@@ -67,6 +72,16 @@ export default function MessagesPanel({ initialConversationId }: { initialConver
   const bottomRef = useRef<HTMLDivElement>(null);
   const conversationIdRef = useRef<string | null>(null);
   conversationIdRef.current = conversationId;
+  // Guards against out-of-order responses: clicking contact A then quickly
+  // clicking contact B starts two overlapping openContact() calls, and
+  // without this, whichever one's network request happens to resolve last
+  // wins - even if that's A, resolving after B was already selected. That
+  // silently left the header showing B while `conversationId`/`messages`
+  // (and therefore where a reply actually gets sent) were still A's,
+  // making replies appear to go to the wrong person. Each call captures the
+  // counter's value at its start and checks it's still current before
+  // committing any state.
+  const openRequestRef = useRef(0);
 
   const { joinConversation, leaveConversation } = useMessagingSocket({
     onMessageNew: (message) => {
@@ -104,11 +119,12 @@ export default function MessagesPanel({ initialConversationId }: { initialConver
     const [contactsRes] = await GetMyContactsAction();
     const [conversationsRes] = await GetConversationsAction();
     const contacts = contactsRes?.data ?? [];
-    const conversations = conversationsRes?.data ?? [];
+    const fetchedConversations = conversationsRes?.data ?? [];
+    setConversations(fetchedConversations);
 
     const merged: ContactRow[] = contacts.map((contact) => {
       const match = user
-        ? conversations.find((c) => otherParticipant(c, user.id)?.id === contact.id)
+        ? fetchedConversations.find((c) => otherParticipant(c, user.id)?.id === contact.id)
         : undefined;
       return {
         contact,
@@ -160,6 +176,7 @@ export default function MessagesPanel({ initialConversationId }: { initialConver
   }, [conversationId]);
 
   const openContact = async (row: ContactRow) => {
+    const requestId = ++openRequestRef.current;
     setSelectedContactId(row.contact.id);
     setError(null);
     setIsLoadingThread(true);
@@ -168,10 +185,12 @@ export default function MessagesPanel({ initialConversationId }: { initialConver
     // conversation (which would let a message get typed and sent to
     // whoever was previously selected instead of a visible error).
     setConversationId(null);
+    setMessages([]);
 
     let id = row.conversationId;
     if (!id) {
       const [res, err] = await StartConversationWithAction(row.contact.id);
+      if (openRequestRef.current !== requestId) return; // superseded by a newer click
       if (err || !res?.data) {
         setIsLoadingThread(false);
         setError(err || "Could not start conversation");
@@ -180,10 +199,12 @@ export default function MessagesPanel({ initialConversationId }: { initialConver
       id = res.data.id;
     }
 
-    setConversationId(id);
     const [msgRes] = await GetMessagesAction(id);
+    if (openRequestRef.current !== requestId) return; // superseded by a newer click
+    setConversationId(id);
     setMessages(msgRes?.data ?? []);
     await MarkConversationReadAction(id);
+    if (openRequestRef.current !== requestId) return;
     setIsLoadingThread(false);
     setRows((prev) => prev.map((r) => (r.contact.id === row.contact.id ? { ...r, unreadCount: 0 } : r)));
     loadContacts();
@@ -191,20 +212,40 @@ export default function MessagesPanel({ initialConversationId }: { initialConver
 
   const handleSend = async () => {
     if (!conversationId || !body.trim() || isSending) return;
+    const sendingToConversationId = conversationId;
     setIsSending(true);
-    const [, err] = await SendMessageAction(conversationId, body.trim());
+    const [, err] = await SendMessageAction(sendingToConversationId, body.trim());
     setIsSending(false);
     if (err) {
       setError(err);
       return;
     }
     setBody("");
-    const [res] = await GetMessagesAction(conversationId);
-    setMessages(res?.data ?? []);
+    const [res] = await GetMessagesAction(sendingToConversationId);
+    // Only apply this refetch if the user hasn't switched to a different
+    // conversation while it was in flight - otherwise it would overwrite
+    // whatever's now on screen with the conversation we just sent to.
+    if (conversationIdRef.current === sendingToConversationId) setMessages(res?.data ?? []);
     loadContacts();
   };
 
   const selectedContact = rows.find((r) => r.contact.id === selectedContactId)?.contact;
+  const activeConversation = conversations.find((c) => c.id === conversationId);
+
+  // Resolves a message's sender to "Name (Role)" - looks at the open
+  // conversation's actual participant list first (so a group/support thread
+  // with several admins shows which specific one sent a given message, not
+  // just "not me"), falling back to the selected contact for the moment
+  // right after starting a brand new 1:1 thread, before its conversation
+  // object has round-tripped back into state.
+  const senderLabel = (senderId: string): string => {
+    if (senderId === user?.id) return user ? `You (${ROLE_LABELS[user.role] ?? user.role})` : "You";
+    const participants =
+      activeConversation?.participants.filter((p): p is ConversationParticipant => typeof p !== "string") ?? [];
+    const sender = participants.find((p) => p.id === senderId) ?? selectedContact;
+    if (!sender) return "Unknown";
+    return `${sender.firstName} ${sender.lastName} (${ROLE_LABELS[sender.role] ?? sender.role})`;
+  };
 
   return (
     <div className="flex h-[calc(100vh-9rem)] bg-white shadow rounded-lg overflow-hidden">
@@ -302,6 +343,9 @@ export default function MessagesPanel({ initialConversationId }: { initialConver
                     const isMine = m.sender === user?.id;
                     return (
                       <div key={m.id} className={`max-w-md ${isMine ? "ml-auto" : ""}`}>
+                        <p className={`text-[11px] font-medium text-gray-500 mb-0.5 ${isMine ? "text-right" : ""}`}>
+                          {senderLabel(m.sender)}
+                        </p>
                         <div
                           className={`p-3 rounded-2xl text-sm ${
                             isMine ? "bg-blue-600 text-white rounded-br-sm" : "bg-gray-100 text-gray-800 rounded-bl-sm"

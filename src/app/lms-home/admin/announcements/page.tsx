@@ -16,6 +16,7 @@ const AUDIENCE_LABELS: Record<AnnouncementAudience, string> = {
   [AnnouncementAudience.PARENTS]: "Parents",
   [AnnouncementAudience.TUTORS]: "Tutors",
   [AnnouncementAudience.CUSTOM]: "Custom recipients",
+  [AnnouncementAudience.HOD_SCOPE]: "HOD broadcast (scoped tutors/admins)",
 };
 
 export default function AdminAnnouncementsPage() {

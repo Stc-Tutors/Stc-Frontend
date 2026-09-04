@@ -104,6 +104,7 @@ export default function AdminFinancePage() {
           {pendingStudents.length === 0 ? (
             <p className="text-sm text-gray-500">None pending.</p>
           ) : (
+            <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-xs text-gray-400 border-b">
@@ -122,6 +123,7 @@ export default function AdminFinancePage() {
                 ))}
               </tbody>
             </table>
+            </div>
           )}
         </div>
 
@@ -131,6 +133,7 @@ export default function AdminFinancePage() {
           {payouts.length === 0 ? (
             <p className="text-sm text-gray-500">No payouts made yet.</p>
           ) : (
+            <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-xs text-gray-400 border-b">
@@ -147,6 +150,7 @@ export default function AdminFinancePage() {
                 ))}
               </tbody>
             </table>
+            </div>
           )}
         </div>
       </div>

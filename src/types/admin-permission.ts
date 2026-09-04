@@ -19,9 +19,20 @@ export enum AdminPermission {
   // separately from the operational reports (enrollments, attendance,
   // tutor-performance, ...), which stay open to any assigned admin.
   VIEW_FINANCIAL_REPORTS = "VIEW_FINANCIAL_REPORTS",
+  // Standalone Video Courses (IVideoCourse) - deliberately its own
+  // permission rather than reusing APPROVE_RESOURCES/MANAGE_TAXONOMY, since
+  // Video Courses are explicitly decoupled from the Service Catalog.
+  MANAGE_VIDEO_COURSES = "MANAGE_VIDEO_COURSES",
   // Set/edit a Lesson's meetingUrl - TUTOR can never do this regardless of
   // this toggle; only controls whether a plain STC_ADMIN/TUTOR_ADMIN can.
   MANAGE_MEETING_LINKS = "MANAGE_MEETING_LINKS",
+  // Grant/revoke a direct-messaging override between two specific non-admin
+  // users - see TutorMessagingPermissionService.
+  MANAGE_MESSAGING_PERMISSIONS = "MANAGE_MESSAGING_PERMISSIONS",
+  // Review/approve-or-reject a tutor's self-service profile edits before
+  // they go live - distinct from REVIEW_TUTOR_APPLICATIONS (the one-time
+  // signup wizard).
+  APPROVE_TUTOR_PROFILE_EDITS = "APPROVE_TUTOR_PROFILE_EDITS",
 }
 
 // The GET /users/me/permissions response shape: '*' means unrestricted

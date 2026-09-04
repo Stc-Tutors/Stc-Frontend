@@ -79,13 +79,6 @@ export function UserProfileDropdown() {
           Dashboard
         </DropdownMenuItem>
 
-        {isAlsoHod && (
-          <DropdownMenuItem className="cursor-pointer" onClick={() => router.push("/lms-home/admin/hod-scope")}>
-            <LayoutDashboard className="w-4 h-4 mr-2" />
-            My HOD Scope
-          </DropdownMenuItem>
-        )}
-
         <DropdownMenuSeparator />
 
         <DropdownMenuItem

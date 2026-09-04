@@ -1,8 +1,9 @@
 "use server";
 
 import fetchAPI, { type ApiResponse } from "@/lib/fetch";
-import { HodAssignment } from "@/types/hod";
+import { HodAssignment, HodDetailedReportRow } from "@/types/hod";
 import { SubjectEnrollment } from "@/types/allocation-hub";
+import { Announcement } from "@/types/announcement";
 import { User, UserStatus } from "@/types/user";
 
 export interface HodScopeOverview {
@@ -64,5 +65,35 @@ export async function GetScopedTutorsAction(
   });
 
   const resData = res ? ((await res.json()) as ApiResponse<Partial<User>[]>) : null;
+  return [resData, error];
+}
+
+// Granular per-(student, course) drill-down behind GetHodOverviewAction's
+// cards - see stcbe's HodService.getDetailedReport.
+export async function GetHodDetailedReportAction(): Promise<[ApiResponse<HodDetailedReportRow[]> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: "/hod/detailed-report",
+    request: { method: "GET", headers: { "Content-Type": "application/json" } },
+  });
+
+  const resData = res ? ((await res.json()) as ApiResponse<HodDetailedReportRow[]>) : null;
+  return [resData, error];
+}
+
+// One message pushed to every Tutor/Admin within the caller's own HOD scope
+// - see stcbe's HodService.broadcast. Recipients are resolved server-side
+// (the same tutors GetScopedTutorsAction shows, plus whichever admins
+// actually manage them) - nothing to pick here beyond what to say.
+export async function BroadcastHodMessageAction(data: {
+  title: string;
+  body: string;
+  link?: string;
+}): Promise<[ApiResponse<Announcement> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: "/hod/broadcast",
+    request: { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) },
+  });
+
+  const resData = res ? ((await res.json()) as ApiResponse<Announcement>) : null;
   return [resData, error];
 }

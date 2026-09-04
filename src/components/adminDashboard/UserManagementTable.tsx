@@ -56,6 +56,7 @@ export default function UserManagementTable() {
         students.length === 0 ? (
           <p className="text-sm text-gray-500 py-4">No students yet.</p>
         ) : (
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-xs text-gray-400 border-b">
@@ -90,10 +91,12 @@ export default function UserManagementTable() {
               ))}
             </tbody>
           </table>
+          </div>
         )
       ) : tutors.length === 0 ? (
         <p className="text-sm text-gray-500 py-4">No tutors yet.</p>
       ) : (
+        <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-xs text-gray-400 border-b">
@@ -126,6 +129,7 @@ export default function UserManagementTable() {
             ))}
           </tbody>
         </table>
+        </div>
       )}
     </div>
   );

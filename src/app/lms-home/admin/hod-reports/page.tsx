@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useUser } from "@/contexts/user-context";
 import { GetHodOverviewAction, HodScopeOverview } from "@/server/hod";
+import { HodDetailedReportTable } from "@/components/hod/HodDetailedReportTable";
 import { HodPermission } from "@/types/hod";
 
 // VIEW_REPORTS-scoped view of an HOD's own service(s) - one card per scope,
@@ -84,6 +85,8 @@ export default function HodReportsPage() {
           ))}
         </div>
       )}
+
+      {!isLoading && overview.length > 0 && <HodDetailedReportTable />}
     </div>
   );
 }

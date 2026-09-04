@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Check, X, Pencil } from "lucide-react";
+import { Fragment, useEffect, useState } from "react";
+import { Check, X, Pencil, Ban } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -19,6 +19,7 @@ import {
   RejectRescheduleAction,
   ForwardRescheduleToParentAction,
   UpdateLessonAction,
+  CancelLessonAction,
 } from "@/server/lesson";
 import { formatScheduleDateTime } from "@/lib/datetime";
 import { Lesson, LessonCourseRef, LessonStatus, RescheduleRequest, RescheduleRequestStatus } from "@/types/lesson";
@@ -35,6 +36,12 @@ export default function AdminSessionsPage() {
   // (LessonService.assertCanSetMeetingUrl only gates STC_ADMIN/TUTOR_ADMIN
   // behind this permission - HOD and SUPER_ADMIN/ALMIGHTY_ADMIN always pass).
   const canManageMeetingLinks = user?.role === UserRole.HOD || hasPermission(AdminPermission.MANAGE_MEETING_LINKS);
+  // Unlike meeting links, HOD has no direct-cancel path at all (see stcbe's
+  // LessonService.cancel - only family or STC_ADMIN/TUTOR_ADMIN/SUPER_ADMIN/
+  // ALMIGHTY_ADMIN qualify; a HOD gets the same 403 a tutor would and has to
+  // go through reschedule() instead), so this is a plain permission check
+  // with no HOD carve-out.
+  const canCancelClasses = hasPermission(AdminPermission.CANCEL_CLASSES);
 
   const [filter, setFilter] = useState<Filter>("upcoming");
   const [lessons, setLessons] = useState<Lesson[]>([]);
@@ -48,6 +55,11 @@ export default function AdminSessionsPage() {
 
   // Per reschedule-request choice: reuse the lesson's existing link, or type a new one.
   const [newLinkFor, setNewLinkFor] = useState<Record<string, string>>({});
+
+  // Which lesson's cancellation reason prompt is currently open.
+  const [cancellingLessonId, setCancellingLessonId] = useState<string | null>(null);
+  const [cancelReason, setCancelReason] = useState("");
+  const [isCancelling, setIsCancelling] = useState(false);
 
   const load = async (f: Filter) => {
     setIsLoading(true);
@@ -97,6 +109,22 @@ export default function AdminSessionsPage() {
     setMessage(error || "Meeting link saved");
     setEditingLessonId(null);
     load(filter);
+  };
+
+  const handleCancel = async (lessonId: string) => {
+    if (!cancelReason.trim()) {
+      setMessage("A reason is required to cancel a class");
+      return;
+    }
+    setIsCancelling(true);
+    const [, error] = await CancelLessonAction(lessonId, cancelReason.trim());
+    setIsCancelling(false);
+    setMessage(error || "Class cancelled - the student/parent and tutor have been notified");
+    if (!error) {
+      setCancellingLessonId(null);
+      setCancelReason("");
+      load(filter);
+    }
   };
 
   const courseTitle = (course: Lesson["course"]) =>
@@ -221,55 +249,102 @@ export default function AdminSessionsPage() {
           </TableHeader>
           <TableBody>
             {lessons.map((lesson) => (
-              <TableRow key={lesson.id}>
-                <TableCell>{courseTitle(lesson.course)}</TableCell>
-                <TableCell>{formatScheduleDateTime(lesson.scheduledDate)}</TableCell>
-                <TableCell>
-                  <span className={`text-xs px-2 py-1 rounded-full ${lesson.status === LessonStatus.CANCELLED ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"}`}>
-                    {lesson.status}
-                  </span>
-                </TableCell>
-                {filter === "upcoming" && (
+              <Fragment key={lesson.id}>
+                <TableRow>
+                  <TableCell>{courseTitle(lesson.course)}</TableCell>
+                  <TableCell>{formatScheduleDateTime(lesson.scheduledDate)}</TableCell>
                   <TableCell>
-                    {editingLessonId === lesson.id ? (
-                      <div className="flex items-center gap-1">
-                        <Input
-                          value={editingUrl}
-                          onChange={(e) => setEditingUrl(e.target.value)}
-                          className="h-7 text-xs w-56"
-                          placeholder="Google Meet URL"
-                        />
-                        <Button size="sm" className="h-7 px-2 text-xs" onClick={() => saveLink(lesson.id)}>
-                          Save
-                        </Button>
-                        <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => setEditingLessonId(null)}>
-                          Cancel
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2 text-xs">
-                        <span className="text-gray-500 truncate max-w-[10rem]">{lesson.meetingUrl || "Not set"}</span>
-                        {canManageMeetingLinks && (
-                          <button onClick={() => startEditLink(lesson)} title="Edit meeting link" className="text-gray-400 hover:text-blue-600">
-                            <Pencil className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                      </div>
-                    )}
+                    <span className={`text-xs px-2 py-1 rounded-full ${lesson.status === LessonStatus.CANCELLED ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"}`}>
+                      {lesson.status}
+                    </span>
                   </TableCell>
-                )}
-                <TableCell className="text-right">
-                  {lesson.meetingUrl && lesson.status === LessonStatus.SCHEDULED && (
-                    <JoinClassLink
-                      lessonId={lesson.id}
-                      scheduledDate={lesson.scheduledDate}
-                      durationMinutes={lesson.durationMinutes}
-                      className="text-blue-600 hover:underline text-xs font-medium"
-                      label="Join"
-                    />
+                  {filter === "upcoming" && (
+                    <TableCell>
+                      {editingLessonId === lesson.id ? (
+                        <div className="flex items-center gap-1">
+                          <Input
+                            value={editingUrl}
+                            onChange={(e) => setEditingUrl(e.target.value)}
+                            className="h-7 text-xs w-56"
+                            placeholder="Google Meet URL"
+                          />
+                          <Button size="sm" className="h-7 px-2 text-xs" onClick={() => saveLink(lesson.id)}>
+                            Save
+                          </Button>
+                          <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => setEditingLessonId(null)}>
+                            Cancel
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 text-xs">
+                          <span className="text-gray-500 truncate max-w-[10rem]">{lesson.meetingUrl || "Not set"}</span>
+                          {canManageMeetingLinks && (
+                            <button onClick={() => startEditLink(lesson)} title="Edit meeting link" className="text-gray-400 hover:text-blue-600">
+                              <Pencil className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </TableCell>
                   )}
-                </TableCell>
-              </TableRow>
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-3">
+                      {lesson.meetingUrl && lesson.status === LessonStatus.SCHEDULED && (
+                        <JoinClassLink
+                          lessonId={lesson.id}
+                          scheduledDate={lesson.scheduledDate}
+                          durationMinutes={lesson.durationMinutes}
+                          className="text-blue-600 hover:underline text-xs font-medium"
+                          label="Join"
+                        />
+                      )}
+                      {canCancelClasses && lesson.status === LessonStatus.SCHEDULED && (
+                        <button
+                          onClick={() => {
+                            setCancellingLessonId(cancellingLessonId === lesson.id ? null : lesson.id);
+                            setCancelReason("");
+                          }}
+                          title="Cancel class"
+                          className="text-gray-400 hover:text-red-600"
+                        >
+                          <Ban className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+                {cancellingLessonId === lesson.id && (
+                  <TableRow>
+                    <TableCell colSpan={filter === "upcoming" ? 5 : 4} className="bg-red-50">
+                      <div className="flex items-center gap-2 py-1">
+                        <Input
+                          value={cancelReason}
+                          onChange={(e) => setCancelReason(e.target.value)}
+                          placeholder="Reason for cancelling (required - the student/parent and tutor will see this)"
+                          className="h-7 text-xs flex-1"
+                        />
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          className="h-7 px-2 text-xs"
+                          disabled={isCancelling || !cancelReason.trim()}
+                          onClick={() => handleCancel(lesson.id)}
+                        >
+                          {isCancelling ? "Cancelling..." : "Confirm cancel"}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 px-2 text-xs"
+                          onClick={() => setCancellingLessonId(null)}
+                        >
+                          Dismiss
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </Fragment>
             ))}
           </TableBody>
         </Table>

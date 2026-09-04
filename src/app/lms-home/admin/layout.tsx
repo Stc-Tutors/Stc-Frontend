@@ -78,13 +78,24 @@ const sidebarLinks: {
   { label: "Parents", icon: Baby, href: "/lms-home/admin/parents", permission: AdminPermission.MANAGE_STUDENTS },
   { label: "Users", icon: Users, href: "/lms-home/admin/users", permission: AdminPermission.MANAGE_USERS },
   {
+    label: "Messaging Permissions",
+    icon: MessageSquare,
+    href: "/lms-home/admin/messaging-permissions",
+    permission: AdminPermission.MANAGE_MESSAGING_PERMISSIONS,
+  },
+  {
     label: "Tutor Applications",
     icon: GraduationCap,
     href: "/lms-home/admin/tutor-applications",
     permission: AdminPermission.REVIEW_TUTOR_APPLICATIONS,
     hodPermission: HodPermission.REVIEW_TUTOR_APPLICATIONS,
   },
-  { label: "My HOD Scope", icon: Network, href: "/lms-home/admin/hod-scope", hodOnly: true },
+  {
+    label: "Tutor Profile Edits",
+    icon: FileCheck2,
+    href: "/lms-home/admin/tutor-profile-edits",
+    permission: AdminPermission.APPROVE_TUTOR_PROFILE_EDITS,
+  },
   { label: "HOD Reports", icon: BarChart2, href: "/lms-home/admin/hod-reports", hodPermission: HodPermission.VIEW_REPORTS },
   {
     label: "My Unassigned Queue",
@@ -101,7 +112,7 @@ const sidebarLinks: {
     href: "/lms-home/admin/hod-tutors",
     hodPermission: [HodPermission.MANAGE_COURSES, HodPermission.VIEW_REPORTS],
   },
-  { label: "Video Courses", icon: BookOpen, href: "/lms-home/admin/video-courses", permission: AdminPermission.APPROVE_RESOURCES },
+  { label: "Video Courses", icon: BookOpen, href: "/lms-home/admin/video-courses", permission: AdminPermission.MANAGE_VIDEO_COURSES },
   {
     label: "Curriculum Taxonomy",
     icon: Network,

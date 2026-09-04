@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import {
   Table,
   TableBody,
@@ -57,9 +58,11 @@ export default function AdminMyTutorsPage() {
             </TableHeader>
             <TableBody>
               {tutors.map((t) => (
-                <TableRow key={t.id}>
+                <TableRow key={t.id} className="hover:bg-gray-50">
                   <TableCell>
-                    {t.firstName} {t.lastName}
+                    <Link href={`/lms-home/profile/${t.id}`} className="text-blue-600 hover:underline">
+                      {t.firstName} {t.lastName}
+                    </Link>
                   </TableCell>
                   <TableCell>{t.email || "Hidden"}</TableCell>
                   <TableCell>{t.status ?? "ACTIVE"}</TableCell>

@@ -173,6 +173,117 @@ export default function ViewProfile({ userId }: { userId: string }) {
             </div>
           )}
 
+          {/* Staff-tier fields (documents, payout details, DOB, technical
+              readiness) - present in the API response only for platform
+              staff or an HOD scoped to this tutor (see stcbe's
+              TutorProfileService.getForTutor); absent entirely from a public
+              profile view, so nothing to conditionally hide here either. */}
+          {(tutorProfile.govIdFile ||
+            tutorProfile.cvFile ||
+            tutorProfile.supportingDocumentsFile ||
+            (tutorProfile.certificationProofs && tutorProfile.certificationProofs.length > 0) ||
+            tutorProfile.dateOfBirth ||
+            tutorProfile.countryOfResidence ||
+            tutorProfile.payoutMethod ||
+            tutorProfile.maxWeeklyHours ||
+            tutorProfile.internetSpeed ||
+            (tutorProfile.devices && tutorProfile.devices.length > 0) ||
+            (tutorProfile.toolProficiency && tutorProfile.toolProficiency.length > 0)) && (
+            <div className="space-y-3 border-t pt-4">
+              <p className="text-sm font-semibold text-gray-800">Staff-only details</p>
+
+              {(tutorProfile.dateOfBirth || tutorProfile.countryOfResidence) && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {tutorProfile.dateOfBirth && (
+                    <div>
+                      <p className="text-sm font-medium text-gray-700 mb-1">Date of birth</p>
+                      <p className="text-sm text-gray-900">{new Date(tutorProfile.dateOfBirth).toLocaleDateString()}</p>
+                    </div>
+                  )}
+                  {tutorProfile.countryOfResidence && (
+                    <div>
+                      <p className="text-sm font-medium text-gray-700 mb-1">Country of residence</p>
+                      <p className="text-sm text-gray-900">{tutorProfile.countryOfResidence}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {(tutorProfile.govIdFile || tutorProfile.cvFile || tutorProfile.supportingDocumentsFile ||
+                (tutorProfile.certificationProofs && tutorProfile.certificationProofs.length > 0)) && (
+                <div>
+                  <p className="text-sm font-medium text-gray-700 mb-1">Documents</p>
+                  <ul className="text-sm space-y-1">
+                    {tutorProfile.govIdFile && (
+                      <li>
+                        <a href={tutorProfile.govIdFile.url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
+                          Government ID
+                        </a>
+                      </li>
+                    )}
+                    {tutorProfile.cvFile && (
+                      <li>
+                        <a href={tutorProfile.cvFile.url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
+                          CV/Resume
+                        </a>
+                      </li>
+                    )}
+                    {tutorProfile.supportingDocumentsFile && (
+                      <li>
+                        <a href={tutorProfile.supportingDocumentsFile.url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
+                          Supporting Documents
+                        </a>
+                      </li>
+                    )}
+                    {(tutorProfile.certificationProofs ?? []).map((proof, i) => (
+                      <li key={i}>
+                        <a href={proof.file.url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
+                          {proof.certification} (proof)
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {tutorProfile.payoutMethod && (
+                <div>
+                  <p className="text-sm font-medium text-gray-700 mb-1">Payout details</p>
+                  <p className="text-sm text-gray-900">
+                    {tutorProfile.payoutMethod}
+                    {tutorProfile.bankName ? ` · ${tutorProfile.bankName}` : ""}
+                    {tutorProfile.accountNumber ? ` · ${tutorProfile.accountNumber}` : ""}
+                    {tutorProfile.accountName ? ` (${tutorProfile.accountName})` : ""}
+                  </p>
+                </div>
+              )}
+
+              {(tutorProfile.maxWeeklyHours || tutorProfile.internetSpeed ||
+                (tutorProfile.devices && tutorProfile.devices.length > 0) ||
+                (tutorProfile.toolProficiency && tutorProfile.toolProficiency.length > 0)) && (
+                <div>
+                  <p className="text-sm font-medium text-gray-700 mb-1">Technical readiness</p>
+                  <ul className="text-sm text-gray-900 space-y-1">
+                    {tutorProfile.maxWeeklyHours && <li>Max weekly hours: {tutorProfile.maxWeeklyHours}</li>}
+                    {tutorProfile.internetSpeed && <li>Internet speed: {tutorProfile.internetSpeed}</li>}
+                    {tutorProfile.devices && tutorProfile.devices.length > 0 && (
+                      <li>Devices: {tutorProfile.devices.join(", ")}</li>
+                    )}
+                    {tutorProfile.toolProficiency && tutorProfile.toolProficiency.length > 0 && (
+                      <li>Tools: {tutorProfile.toolProficiency.join(", ")}</li>
+                    )}
+                    {tutorProfile.hasQuietEnvironment !== undefined && (
+                      <li>Quiet environment: {tutorProfile.hasQuietEnvironment ? "Yes" : "No"}</li>
+                    )}
+                    {tutorProfile.hasPeripherals !== undefined && (
+                      <li>Has peripherals: {tutorProfile.hasPeripherals ? "Yes" : "No"}</li>
+                    )}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+
           {reviews.length > 0 && (
             <div>
               <p className="text-sm font-medium text-gray-700 mb-2">Reviews</p>

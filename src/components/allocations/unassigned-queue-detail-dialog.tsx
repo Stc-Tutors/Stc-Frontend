@@ -217,6 +217,13 @@ export default function UnassignedQueueDetailDialog({ enrollment, onOpenChange, 
           </div>
         )}
 
+        {enrollment.status === SubjectEnrollmentStatus.PENDING_ADMIN_APPROVAL && (
+          <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
+            Your proposed tutor is awaiting Super Admin approval - they haven&apos;t been notified yet. You&apos;ll
+            be notified if this is rejected so you can try someone else.
+          </p>
+        )}
+
         {enrollment.status === SubjectEnrollmentStatus.PENDING_TUTOR_ACCEPTANCE && (
           <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
             Waiting on the tutor to accept or decline this assignment - nothing is scheduled yet. If they decline,

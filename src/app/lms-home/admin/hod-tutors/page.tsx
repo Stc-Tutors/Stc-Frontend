@@ -1,9 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { toast } from "sonner";
 import { useUser } from "@/contexts/user-context";
 import { GetScopedTutorsAction } from "@/server/hod";
+import { HodBroadcastDialog } from "@/components/hod/HodBroadcastDialog";
 import { HodPermission } from "@/types/hod";
 import { User, UserStatus } from "@/types/user";
 
@@ -58,18 +60,21 @@ export default function HodTutorsPage() {
             through an admin to reach a tutor directly.
           </p>
         </div>
-        <select
-          value={status}
-          onChange={(e) => setStatus(e.target.value as UserStatus | "")}
-          className="border rounded-md px-3 py-2 text-sm"
-        >
-          <option value="">All statuses</option>
-          {Object.values(UserStatus).map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
-        </select>
+        <div className="flex items-center gap-2">
+          <select
+            value={status}
+            onChange={(e) => setStatus(e.target.value as UserStatus | "")}
+            className="border rounded-md px-3 py-2 text-sm"
+          >
+            <option value="">All statuses</option>
+            {Object.values(UserStatus).map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
+          <HodBroadcastDialog />
+        </div>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm overflow-hidden">
@@ -88,9 +93,11 @@ export default function HodTutorsPage() {
             </thead>
             <tbody className="divide-y">
               {tutors.map((t) => (
-                <tr key={t.id}>
+                <tr key={t.id} className="hover:bg-gray-50">
                   <td className="p-3">
-                    {t.firstName} {t.lastName}
+                    <Link href={`/lms-home/profile/${t.id}`} className="text-blue-600 hover:underline">
+                      {t.firstName} {t.lastName}
+                    </Link>
                   </td>
                   <td className="p-3">{t.status ?? "ACTIVE"}</td>
                 </tr>

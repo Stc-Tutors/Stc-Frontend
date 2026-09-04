@@ -52,3 +52,20 @@ export interface HodAssignment {
 export function hodHasPermission(assignment: HodAssignment | null | undefined, permission: HodPermission): boolean {
   return !!assignment?.hodScopes.some((scope) => scope.permissions.includes(permission));
 }
+
+// One row per (student, course) - see stcbe's HodService.getDetailedReport.
+// Percentages are null (not 0) when there's nothing to compute one from yet.
+export interface HodDetailedReportRow {
+  studentId: string;
+  studentName: string;
+  courseId: string;
+  courseTitle: string;
+  subject: string;
+  tutorId: string | null;
+  tutorName: string;
+  tutorVettingStatus: string;
+  attendanceRate: number | null;
+  attendanceRecordCount: number;
+  academicPerformance: number | null;
+  gradedAssignmentCount: number;
+}

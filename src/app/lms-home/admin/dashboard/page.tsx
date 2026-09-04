@@ -12,10 +12,9 @@ import UserManagementTable from "@/components/adminDashboard/UserManagementTable
 import AdminFinanceChart from "@/components/adminDashboard/AdminFinanceChart";
 import { useUser } from "@/contexts/user-context";
 import { isAdminOrAbove } from "@/lib/roles";
-import { HOD_PERMISSION_LABELS } from "@/types/hod";
 
 export default function AdminDashboardPage() {
-  const { user, isLoading: isLoadingUser, hodAssignment } = useUser();
+  const { user, isLoading: isLoadingUser } = useUser();
   const [overview, setOverview] = useState<AdminOverview | null>(null);
   const [platformRating, setPlatformRating] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -54,26 +53,10 @@ export default function AdminDashboardPage() {
       <div className="space-y-6">
         <section className="bg-[#38b6ff] p-6 rounded-lg shadow-sm">
           <h2 className="text-xl font-bold text-white">HOD Overview</h2>
-          <p className="text-white mt-1">Your Head of Department scope and where to act on it.</p>
+          <p className="text-white mt-1">Where to act on your Head of Department responsibilities.</p>
         </section>
 
-        {!hodAssignment || hodAssignment.hodScopes.length === 0 ? (
-          <p className="text-sm text-gray-500">No HOD scope assigned yet - ask a Super Admin to grant one.</p>
-        ) : (
-          <div className="space-y-3">
-            {hodAssignment.hodScopes.map((scope, i) => (
-              <div key={i} className="bg-white rounded-xl shadow-sm p-4">
-                <p className="font-medium text-gray-900">{scope.service}</p>
-                <p className="text-sm text-gray-500">{scope.permissions.map((p) => HOD_PERMISSION_LABELS[p]).join(", ")}</p>
-              </div>
-            ))}
-          </div>
-        )}
-
         <div className="flex flex-wrap gap-3">
-          <Link href="/lms-home/admin/hod-scope" className="text-sm text-blue-600 hover:underline">
-            Full scope details →
-          </Link>
           <Link href="/lms-home/admin/hod-reports" className="text-sm text-blue-600 hover:underline">
             HOD Reports →
           </Link>

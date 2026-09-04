@@ -6,6 +6,9 @@ export enum AnnouncementAudience {
   // Set when the sender picked an explicit recipient list instead of a
   // broad category - see SendAnnouncementPayload.
   CUSTOM = "CUSTOM",
+  // An HOD's broadcast to the Tutors/Admins in their own HOD scope - see
+  // BroadcastHodMessageAction.
+  HOD_SCOPE = "HOD_SCOPE",
 }
 
 export interface Announcement {

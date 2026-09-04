@@ -5,15 +5,14 @@ import { UserRole } from "./types/user";
 import { ADMIN_ROLES, isSuperOrAlmighty } from "./lib/roles";
 
 // HOD status is additive (see stcbe's HodService.assign) - a Tutor or Admin
-// keeps their own role and simply gains hodScopes on top, so these 4 shared
-// pages (all under /lms-home/admin, self-gated by hodAssignment/permission -
-// see hod-scope/page.tsx) need to stay reachable for UserRole.TUTOR too, not
-// just ADMIN_ROLES. Checked before the general "/lms-home/admin" entry below
-// since Object.keys(...).find() takes the first (most specific) match.
+// keeps their own role and simply gains hodScopes on top, so these shared
+// pages (all under /lms-home/admin, self-gated by hodAssignment/permission)
+// need to stay reachable for UserRole.TUTOR too, not just ADMIN_ROLES.
+// Checked before the general "/lms-home/admin" entry below since
+// Object.keys(...).find() takes the first (most specific) match.
 const HOD_SHARED_PAGE_ROLES = [...ADMIN_ROLES, UserRole.HOD, UserRole.TUTOR];
 
 const ROLE_SECTION_PREFIX: Record<string, UserRole[]> = {
-  "/lms-home/admin/hod-scope": HOD_SHARED_PAGE_ROLES,
   "/lms-home/admin/tutor-applications": HOD_SHARED_PAGE_ROLES,
   "/lms-home/admin/hod-reports": HOD_SHARED_PAGE_ROLES,
   "/lms-home/admin/hod-unassigned-queue": HOD_SHARED_PAGE_ROLES,

@@ -62,12 +62,15 @@ export default function ReferAndEarn() {
   const [isRequesting, setIsRequesting] = useState(false);
 
   const load = async () => {
-    const [linkRes] = await GetMyReferralLinkAction();
+    const [linkRes, linkError] = await GetMyReferralLinkAction();
     const [balanceRes] = await GetMyReferralBalanceAction();
     const [earningsRes] = await GetMyReferralEarningsAction();
     const [withdrawalsRes] = await GetMyReferralWithdrawalsAction();
     const [profileRes] = await GetMyReferralProfileAction();
     const [settingsRes] = await GetReferralSettingsAction();
+    if (linkError) {
+      ToastError(`Couldn't load your referral link: ${linkError}`);
+    }
     setLink(linkRes?.data?.link ?? "");
     setCode(linkRes?.data?.code ?? "");
     setBalance(balanceRes?.data ?? null);

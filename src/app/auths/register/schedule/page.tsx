@@ -121,6 +121,7 @@ export default function SchedulingPage() {
           <div className="flex flex-col lg:flex-row gap-6">
             {/* Left: Schedule Table */}
             <div className="md:col-span-2 bg-white rounded-lg shadow overflow-hidden">
+              <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
@@ -197,6 +198,7 @@ export default function SchedulingPage() {
                   ))}
                 </tbody>
               </table>
+              </div>
 
               <div className="px-6 py-4 bg-gray-50 flex justify-between">
                 <button

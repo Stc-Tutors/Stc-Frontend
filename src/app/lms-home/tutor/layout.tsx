@@ -73,7 +73,6 @@ const HOD_LINKS: {
   hodPermission?: HodPermission | HodPermission[];
   hodOnly?: boolean;
 }[] = [
-  { label: "My HOD Scope", icon: Network, href: "/lms-home/admin/hod-scope", hodOnly: true },
   { label: "Tutor Applications", icon: FileUser, href: "/lms-home/admin/tutor-applications", hodPermission: HodPermission.REVIEW_TUTOR_APPLICATIONS },
   { label: "HOD Reports", icon: BarChart2, href: "/lms-home/admin/hod-reports", hodPermission: HodPermission.VIEW_REPORTS },
   { label: "My Unassigned Queue", icon: Users, href: "/lms-home/admin/hod-unassigned-queue", hodPermission: HodPermission.MANAGE_UNASSIGNED_QUEUE },

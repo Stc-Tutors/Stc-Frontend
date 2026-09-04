@@ -4,6 +4,9 @@ import { User } from "@/types/user";
 
 export enum SubjectEnrollmentStatus {
   UNASSIGNED_TUTOR = "UNASSIGNED_TUTOR",
+  // An HOD proposed a tutor under a scope that requires Super Admin
+  // approval - the tutor hasn't been notified yet.
+  PENDING_ADMIN_APPROVAL = "PENDING_ADMIN_APPROVAL",
   // A tutor has been proposed but hasn't accepted/declined yet.
   PENDING_TUTOR_ACCEPTANCE = "PENDING_TUTOR_ACCEPTANCE",
   // The tutor accepted, but the Google Meet link hasn't been entered yet -
@@ -15,6 +18,7 @@ export enum SubjectEnrollmentStatus {
 
 export const SUBJECT_ENROLLMENT_STATUS_LABELS: Record<SubjectEnrollmentStatus, string> = {
   [SubjectEnrollmentStatus.UNASSIGNED_TUTOR]: "Unassigned",
+  [SubjectEnrollmentStatus.PENDING_ADMIN_APPROVAL]: "Awaiting Super Admin Approval",
   [SubjectEnrollmentStatus.PENDING_TUTOR_ACCEPTANCE]: "Awaiting Tutor Response",
   [SubjectEnrollmentStatus.PENDING_CONFIRMATION]: "Pending Confirmation",
   [SubjectEnrollmentStatus.ACTIVE]: "Active",
