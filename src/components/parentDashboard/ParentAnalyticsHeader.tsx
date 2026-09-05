@@ -4,7 +4,9 @@ import { Button } from "@/components/ui/button";
 import { MessageSquare, CalendarDays } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ChevronDown } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { GetLinkedStudentsAction, GetEnrollmentsAction } from "@/server/enrollment";
+import { StartSupportConversationAction } from "@/server/message";
 import { Student } from "@/types/student";
 
 interface ParentAnalyticsHeaderProps {
@@ -12,9 +14,11 @@ interface ParentAnalyticsHeaderProps {
 }
 
 export default function ParentAnalyticsHeader({ onStudentChange }: ParentAnalyticsHeaderProps) {
+  const router = useRouter();
   const [students, setStudents] = useState<Student[]>([]);
   const [selectedId, setSelectedId] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
+  const [isMessaging, setIsMessaging] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -41,6 +45,14 @@ export default function ParentAnalyticsHeader({ onStudentChange }: ParentAnalyti
     onStudentChange?.(id);
   };
 
+  const handleMessageAdmin = async () => {
+    setIsMessaging(true);
+    const [res, error] = await StartSupportConversationAction();
+    setIsMessaging(false);
+    if (error || !res?.data) return;
+    router.push(`/lms-home/parent/messages?conversationId=${res.data.id}`);
+  };
+
   const selected = students.find((s) => s.id === selectedId);
 
   return (
@@ -57,11 +69,19 @@ export default function ParentAnalyticsHeader({ onStudentChange }: ParentAnalyti
 
         {/* Right: Buttons */}
         <div className="flex items-center gap-3">
-          <Button variant="outline" className="flex items-center gap-2 border-blue-500 text-blue-600 hover:bg-blue-50">
+          <Button
+            variant="outline"
+            className="flex items-center gap-2 border-blue-500 text-blue-600 hover:bg-blue-50"
+            onClick={handleMessageAdmin}
+            disabled={isMessaging}
+          >
             <MessageSquare size={16} />
-            Message Admin
+            {isMessaging ? "Opening..." : "Message Admin"}
           </Button>
-          <Button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white">
+          <Button
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+            onClick={() => router.push("/lms-home/parent/scheduling")}
+          >
             <CalendarDays size={16} />
             Schedule Session
           </Button>
