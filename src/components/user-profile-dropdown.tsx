@@ -32,7 +32,7 @@ export function UserProfileDropdown() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger >
+      <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="flex items-center space-x-3 h-auto p-2">
           <Avatar className="w-8 h-8">
             <AvatarImage src={user?.profilePicture || "/placeholder.svg"} alt={`${user.firstName} ${user.lastName}`} />

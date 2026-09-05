@@ -38,7 +38,7 @@ export function ChildSwitcherDropdown() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger>
+      <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="flex items-center space-x-2 h-auto p-2">
           <Avatar className="w-7 h-7">
             <AvatarImage src={selectedStudent?.photoUrl || "/placeholder.svg"} alt={selectedStudent?.fullName} />
