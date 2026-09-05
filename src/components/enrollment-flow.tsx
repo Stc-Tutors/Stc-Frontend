@@ -21,6 +21,8 @@ import PaymentConsentModal from "./payment-consent-modal";
 
 const steps = [
   { id: 1, title: "Service Selection", component: ServiceSelection },
+  // Step 2's title is a placeholder - a self-registering student isn't a
+  // "child", see the userType-aware override where currentStepData is used.
   { id: 2, title: "Child Information", component: ChildInfo },
   { id: 3, title: "Subjects & Schedule", component: SubjectsSchedule },
   { id: 4, title: "Review & Submit", component: EnrollmentReview },
@@ -191,6 +193,12 @@ export default function EnrollmentFlow({ forcedUserType, dashboardPath, paymentH
 
   const currentStepData = steps.find(step => step.id === currentStep);
   const CurrentStepComponent = currentStepData?.component;
+  // Same fallback child-info.tsx itself uses (forcedUserType, then the
+  // wizard's own saved draft, defaulting to "parent") - this is a
+  // self-registering student's own enrollment, not a parent's child, so the
+  // step title and page heading shouldn't call them one.
+  const isSelfRegisteringStudent = (forcedUserType || enrollmentData.childInfo?.userType || "parent") === "student";
+  const stepTitle = currentStepData?.id === 2 && isSelfRegisteringStudent ? "Student Information" : currentStepData?.title;
 
   const handleNext = async () => {
     if (currentStep === steps.length) {
@@ -225,6 +233,14 @@ export default function EnrollmentFlow({ forcedUserType, dashboardPath, paymentH
         if (!result.data.payment) {
           ToastSuccess("Enrollment successful - no payment required");
           router.push(dashboardPath || ROUTES.DASHBOARD.HOME);
+          return;
+        }
+
+        // Wallet balance covered the full amount - the backend already
+        // completed the payment, there's no Paystack transaction to open.
+        if (result.data.payment.fullyCoveredByWallet) {
+          ToastSuccess("Enrollment successful - paid from your wallet balance");
+          router.push(paymentHistoryPath || ROUTES.DASHBOARD.PAYMENT_HISTORY);
           return;
         }
 
@@ -290,7 +306,7 @@ export default function EnrollmentFlow({ forcedUserType, dashboardPath, paymentH
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-bold text-gray-900">
-              {continueId ? "Continue Enrollment" : "Enroll Your Child"}
+              {continueId ? "Continue Enrollment" : isSelfRegisteringStudent ? "Complete Your Registration" : "Enroll Your Child"}
             </h1>
             <Button
               variant="ghost"
@@ -307,7 +323,7 @@ export default function EnrollmentFlow({ forcedUserType, dashboardPath, paymentH
               <span>
                 Step {currentStep} of {steps.length}
               </span>
-              <span>{currentStepData?.title}</span>
+              <span>{stepTitle}</span>
             </div>
             <Progress value={progress} className="h-2" />
           </div>
@@ -316,7 +332,7 @@ export default function EnrollmentFlow({ forcedUserType, dashboardPath, paymentH
         {/* Step Content */}
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle>{currentStepData?.title}</CardTitle>
+            <CardTitle>{stepTitle}</CardTitle>
           </CardHeader>
           <CardContent>
             {!continueLoadDone ? (

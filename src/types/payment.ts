@@ -31,6 +31,12 @@ export interface PaymentRequest {
   authorization_url: string;
   access_code: string;
   reference: string;
+  // When the amount was fully covered by the payer's wallet balance, the
+  // backend skips Paystack entirely and completes the payment immediately -
+  // authorization_url/access_code/reference are then meaningless and the
+  // Paystack popup must not be opened at all. See stcbe's
+  // PaymentService.initiatePayment.
+  fullyCoveredByWallet?: boolean;
 }
 
 // POST /payments/initialize body - mirrors stcbe's CreatePaymentDto

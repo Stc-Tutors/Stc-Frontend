@@ -26,12 +26,14 @@ import {
   Gift,
   GraduationCap,
   FolderOpen,
+  Wallet,
 } from "lucide-react";
 import BrandLogo from "@/components/shared/BrandLogo";
 import LogoutButton from "@/components/shared/LogoutButton";
 import { UserProfileDropdown } from "@/components/user-profile-dropdown";
 import NotificationBell from "@/components/notification-bell";
 import AccessRestrictionGate from "@/components/shared/AccessRestrictionGate";
+import { useUser } from "@/contexts/user-context";
 
 // export const metadata = {
 //   title: "STC Tutors LMS",
@@ -52,6 +54,7 @@ const sidebarLinks = [
   { label: "Courses", icon: NotebookPen, href: "/lms-home/student/courses" },
   { label: "Subscription", icon: CreditCard, href: "/lms-home/student/subscription" },
   { label: "Payments", icon: CreditCard, href: "/lms-home/student/payments" },
+  { label: "Wallet", icon: Wallet, href: "/lms-home/student/wallet" },
   { label: "Refer & Earn", icon: Gift, href: "/lms-home/student/refer-earn" },
   { label: "Profile", icon: UserRound, href: "/lms-home/student/profile" },
   { label: "Support", icon: Headphones, href: "/lms-home/student/complaints" },
@@ -68,11 +71,22 @@ const NEW_ENROLLMENT_PATH = "/lms-home/student/enrollment/new";
 export default function LMSLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
+  const { user, isLoading } = useUser();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // A student with no registered service can't use any other LMS feature -
   // keep sending them back to the registration wizard until they have one.
+  // Except a parent-created child login (user.studentId set, no email -
+  // see AuthService.registerChild in stcbe) - registering a new service is
+  // their parent's call, not theirs, so redirecting them into the wizard
+  // would just dead-end them on a flow the backend refuses to let them
+  // submit. Wait for the user to actually load before deciding anything -
+  // `user` starts null on mount, and treating that as "definitely not a
+  // child login" would wrongly redirect a parent-registered child for the
+  // instant before their profile arrives.
   useEffect(() => {
+    if (isLoading || !user) return;
+    if (user.studentId) return;
     if (pathname.startsWith(ENROLLMENT_PATH) || pathname.startsWith(COMPLETE_PROFILE_PATH)) return;
     (async () => {
       const [res] = await GetEnrollmentsAction();
@@ -80,7 +94,7 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
         router.replace(NEW_ENROLLMENT_PATH);
       }
     })();
-  }, [pathname, router]);
+  }, [pathname, router, user, isLoading]);
 
   // The registration wizard is a bare full-screen step - no sidebar/topbar
   // chrome, so a student with nothing registered yet can't wander off via

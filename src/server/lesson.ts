@@ -85,14 +85,15 @@ export async function UpdateLessonAction(
 export async function RescheduleLessonAction(
   id: string,
   scheduledDate: string,
-  reason: string
+  reason: string,
+  student?: string
 ): Promise<[ApiResponse<ScheduleChangeResult> | null, string | null]> {
   const [res, error] = await fetchAPI({
     url: `/lessons/${id}/reschedule`,
     request: {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ scheduledDate, reason }),
+      body: JSON.stringify({ scheduledDate, reason, student }),
     },
   });
 
@@ -243,14 +244,15 @@ export async function ConfirmTutorRescheduleAction(
 
 export async function CancelLessonAction(
   id: string,
-  reason: string
+  reason: string,
+  student?: string
 ): Promise<[ApiResponse<ScheduleChangeResult> | null, string | null]> {
   const [res, error] = await fetchAPI({
     url: `/lessons/${id}/cancel`,
     request: {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ reason }),
+      body: JSON.stringify({ reason, student }),
     },
   });
 

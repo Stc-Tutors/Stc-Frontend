@@ -128,6 +128,15 @@ export default function ParentMarketplacePage() {
           return;
         }
 
+        // Wallet balance covered the full amount - the backend already
+        // completed the payment and applied enrollment side effects, so
+        // there's no Paystack transaction to open at all.
+        if (payRes.data.fullyCoveredByWallet) {
+          ToastSuccess("Paid from your wallet balance - course added");
+          router.push("/lms-home/parent/payments");
+          return;
+        }
+
         // Mirrors the resume-transaction pattern already used to complete
         // checkout after enrollment-flow.tsx's saveEnrollment (see
         // handleNext there) rather than a raw redirect, so the parent gets

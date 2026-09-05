@@ -26,6 +26,7 @@ import {
   CalendarDays,
   GraduationCap,
   FolderOpen,
+  Wallet,
 } from "lucide-react";
 import BrandLogo from "@/components/shared/BrandLogo";
 import LogoutButton from "@/components/shared/LogoutButton";
@@ -52,6 +53,7 @@ const sidebarLinks = [
   { label: "Analytics", icon: BarChart2, href: "/lms-home/parent/analytics" },
   { label: "Subscription", icon: CreditCard, href: "/lms-home/parent/subscription" },
   { label: "Payments", icon: CreditCard, href: "/lms-home/parent/payments" },
+  { label: "Wallet", icon: Wallet, href: "/lms-home/parent/wallet" },
   { label: "Refer & Earn", icon: Gift, href: "/lms-home/parent/refer-earn" },
   { label: "Add Child", icon: UserPlus, href: "/lms-home/parent/add-child" },
   { label: "Profile", icon: UserRound, href: "/lms-home/parent/profile" },

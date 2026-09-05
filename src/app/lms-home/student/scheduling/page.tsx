@@ -20,6 +20,8 @@ import { ScheduleReviewStatus } from "@/types/student";
 import { formatScheduleDateTime } from "@/lib/datetime";
 import { isInsideRescheduleGate, isWithinTutorAvailability, formatAvailability, AvailabilityBlock } from "@/lib/schedule-gate";
 import { GetTutorProfileAction } from "@/server/tutor-profile";
+import { ReportTutorNoShowAction, GetMyTutorNoShowReportsAction } from "@/server/penalty";
+import { DEFAULT_NO_SHOW_GRACE_PERIOD_MINUTES } from "@/types/penalty";
 
 interface Row {
   lesson: Lesson;
@@ -42,6 +44,8 @@ export default function SchedulePage() {
   const [scheduleIsPending, setScheduleIsPending] = useState(false);
   const [rejectingConfirmationId, setRejectingConfirmationId] = useState<string | null>(null);
   const [confirmationRejectReason, setConfirmationRejectReason] = useState("");
+  const [reportedLessonIds, setReportedLessonIds] = useState<Set<string>>(new Set());
+  const [myStudentId, setMyStudentId] = useState<string | null>(null);
 
   const loadConfirmations = async () => {
     const [res] = await GetMyPendingRescheduleConfirmationsAction();
@@ -66,6 +70,7 @@ export default function SchedulePage() {
   const load = async () => {
     const [enrollmentsRes] = await GetEnrollmentsAction();
     const studentId = enrollmentsRes?.data?.[0]?.id;
+    setMyStudentId(studentId ?? null);
     setScheduleIsPending(enrollmentsRes?.data?.[0]?.scheduleReviewStatus === ScheduleReviewStatus.PENDING);
     if (!studentId) {
       setIsLoading(false);
@@ -87,12 +92,30 @@ export default function SchedulePage() {
     allRows.sort((a, b) => new Date(a.lesson.scheduledDate).getTime() - new Date(b.lesson.scheduledDate).getTime());
     setRows(allRows);
     setIsLoading(false);
+
+    const [reportsRes] = await GetMyTutorNoShowReportsAction();
+    setReportedLessonIds(new Set((reportsRes?.data ?? []).map((r) => r.lesson)));
   };
 
   useEffect(() => {
     load();
     loadConfirmations();
   }, []);
+
+  // Client-side default guess for button visibility only - mirrors the
+  // server's default grace period; the server is the real source of truth
+  // and rejects a too-early report with a clear message.
+  const canReportTutorNoShow = (lesson: Lesson) =>
+    lesson.status === LessonStatus.SCHEDULED &&
+    Date.now() >= new Date(lesson.scheduledDate).getTime() + DEFAULT_NO_SHOW_GRACE_PERIOD_MINUTES * 60 * 1000;
+
+  const handleReportTutorNoShow = async (lessonId: string) => {
+    const [, error] = await ReportTutorNoShowAction({ lessonId, studentId: myStudentId ?? undefined });
+    setMessage(error || "Reported - an admin will review and confirm what happened.");
+    if (!error) {
+      setReportedLessonIds((prev) => new Set(prev).add(lessonId));
+    }
+  };
 
   const handleBack = () => {
     router.push(`/lms-home/student/dashboard`);
@@ -125,7 +148,12 @@ export default function SchedulePage() {
       setMessage(`That time is outside your tutor's available hours. Available: ${formatAvailability(tutorAvailability)}`);
       return;
     }
-    const [res, error] = await RescheduleLessonAction(lessonId, new Date(newDate).toISOString(), rescheduleReason);
+    const [res, error] = await RescheduleLessonAction(
+      lessonId,
+      new Date(newDate).toISOString(),
+      rescheduleReason,
+      myStudentId ?? undefined
+    );
     setMessage(
       error ||
         (res?.data?.applied
@@ -145,7 +173,7 @@ export default function SchedulePage() {
       setMessage("A reason is required to cancel a class");
       return;
     }
-    const [res, error] = await CancelLessonAction(lessonId, cancelReason);
+    const [res, error] = await CancelLessonAction(lessonId, cancelReason, myStudentId ?? undefined);
     setMessage(
       error ||
         (res?.data?.applied ? "Class cancelled" : "Cancellation requested - awaiting admin approval")
@@ -320,6 +348,17 @@ export default function SchedulePage() {
                             </button>
                           </>
                         )}
+                        {canReportTutorNoShow(lesson) &&
+                          (reportedLessonIds.has(lesson.id) ? (
+                            <span className="text-gray-400 text-xs">Reported - under review</span>
+                          ) : (
+                            <button
+                              className="text-amber-600 hover:underline"
+                              onClick={() => handleReportTutorNoShow(lesson.id)}
+                            >
+                              Report tutor no-show
+                            </button>
+                          ))}
                       </td>
                     </tr>
                     {rescheduleLessonId === lesson.id && (

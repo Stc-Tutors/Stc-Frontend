@@ -91,6 +91,19 @@ export default function TodaysSessions() {
   };
 
   const handleMarkAttendance = async (row: Row, studentId: string, status: AttendanceStatus) => {
+    // Marking a student ABSENT here fires the no-show wallet-penalty flow
+    // immediately server-side (see stcbe's AttendanceService.mark) - the
+    // tutor's own mark is treated as confirmation of their own presence, so
+    // this warrants a deliberate confirmation step rather than a one-click
+    // action like the other statuses.
+    if (
+      status === AttendanceStatus.ABSENT &&
+      !window.confirm(
+        "Mark this student absent? This charges them a no-show penalty (per the platform's current settings) and credits the remainder to their wallet."
+      )
+    ) {
+      return;
+    }
     const [, error] = await MarkAttendanceAction({
       course: row.course.id,
       lesson: row.lesson.id,

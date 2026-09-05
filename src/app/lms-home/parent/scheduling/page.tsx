@@ -21,6 +21,8 @@ import { isInsideRescheduleGate, isWithinTutorAvailability, formatAvailability, 
 import { GetTutorProfileAction } from "@/server/tutor-profile";
 import { ChildSwitcherDropdown } from "@/components/child-switcher-dropdown";
 import { useSelectedStudent } from "@/contexts/selected-student-context";
+import { ReportTutorNoShowAction, GetMyTutorNoShowReportsAction } from "@/server/penalty";
+import { DEFAULT_NO_SHOW_GRACE_PERIOD_MINUTES } from "@/types/penalty";
 
 interface Row {
   lesson: Lesson;
@@ -46,6 +48,7 @@ export default function ParentSchedulePage() {
   const [pendingSchedules, setPendingSchedules] = useState<Student[]>([]);
   const [rejectingConfirmationId, setRejectingConfirmationId] = useState<string | null>(null);
   const [confirmationRejectReason, setConfirmationRejectReason] = useState("");
+  const [reportedLessonIds, setReportedLessonIds] = useState<Set<string>>(new Set());
 
   const loadConfirmations = async () => {
     const [res] = await GetMyPendingRescheduleConfirmationsAction();
@@ -90,6 +93,9 @@ export default function ParentSchedulePage() {
     allRows.sort((a, b) => new Date(a.lesson.scheduledDate).getTime() - new Date(b.lesson.scheduledDate).getTime());
     setRows(allRows);
     setIsLoading(false);
+
+    const [reportsRes] = await GetMyTutorNoShowReportsAction();
+    setReportedLessonIds(new Set((reportsRes?.data ?? []).map((r) => r.lesson)));
   };
 
   useEffect(() => {
@@ -98,6 +104,23 @@ export default function ParentSchedulePage() {
   }, []);
 
   const visibleRows = isAllSelected ? rows : rows.filter((r) => r.childId === selectedId);
+
+  // Only the tutor's confirmed absence can be *reported* here - the same
+  // grace period AttendanceService.mark() enforces server-side for the
+  // student-absence direction (this is a client-side default guess for
+  // button visibility only; the server is the real source of truth and
+  // rejects a too-early report with a clear message).
+  const canReportTutorNoShow = (lesson: Lesson) =>
+    lesson.status === LessonStatus.SCHEDULED &&
+    Date.now() >= new Date(lesson.scheduledDate).getTime() + DEFAULT_NO_SHOW_GRACE_PERIOD_MINUTES * 60 * 1000;
+
+  const handleReportTutorNoShow = async (lessonId: string, studentId: string) => {
+    const [, error] = await ReportTutorNoShowAction({ lessonId, studentId });
+    setMessage(error || "Reported - an admin will review and confirm what happened.");
+    if (!error) {
+      setReportedLessonIds((prev) => new Set(prev).add(lessonId));
+    }
+  };
 
   const openReschedule = async (lesson: Lesson, course: Course) => {
     setCancelLessonId(null);
@@ -115,7 +138,12 @@ export default function ParentSchedulePage() {
     }
   };
 
-  const handleRequestReschedule = async (lessonId: string, scheduledDate: string, durationMinutes: number) => {
+  const handleRequestReschedule = async (
+    lessonId: string,
+    scheduledDate: string,
+    durationMinutes: number,
+    studentId: string
+  ) => {
     if (!newDate) {
       setMessage("Pick a new date and time first");
       return;
@@ -128,7 +156,7 @@ export default function ParentSchedulePage() {
       setMessage(`That time is outside your tutor's available hours. Available: ${formatAvailability(tutorAvailability)}`);
       return;
     }
-    const [res, error] = await RescheduleLessonAction(lessonId, new Date(newDate).toISOString(), rescheduleReason);
+    const [res, error] = await RescheduleLessonAction(lessonId, new Date(newDate).toISOString(), rescheduleReason, studentId);
     setMessage(
       error ||
         (res?.data?.applied
@@ -143,12 +171,12 @@ export default function ParentSchedulePage() {
     }
   };
 
-  const handleCancel = async (lessonId: string, scheduledDate: string) => {
+  const handleCancel = async (lessonId: string, scheduledDate: string, studentId: string) => {
     if (!cancelReason.trim()) {
       setMessage("A reason is required to cancel a class");
       return;
     }
-    const [res, error] = await CancelLessonAction(lessonId, cancelReason);
+    const [res, error] = await CancelLessonAction(lessonId, cancelReason, studentId);
     setMessage(
       error ||
         (res?.data?.applied ? "Class cancelled" : "Cancellation requested - awaiting admin approval")
@@ -275,8 +303,13 @@ export default function ParentSchedulePage() {
                 </tr>
               </thead>
               <tbody>
-                {visibleRows.map(({ lesson, course, childName }) => (
-                  <Fragment key={lesson.id}>
+                {visibleRows.map(({ lesson, course, childId, childName }) => (
+                  // Keyed on childId+lesson.id, not lesson.id alone - a group
+                  // class shared by more than one of this parent's children
+                  // (e.g. siblings in the same cohort) produces one row per
+                  // child for the very same lesson, so lesson.id alone
+                  // collides across those rows.
+                  <Fragment key={`${childId}-${lesson.id}`}>
                     <tr className="border-b">
                       {isAllSelected && <td className="py-3">{childName}</td>}
                       <td className="py-3">{course.title}</td>
@@ -324,6 +357,17 @@ export default function ParentSchedulePage() {
                             </button>
                           </>
                         )}
+                        {canReportTutorNoShow(lesson) &&
+                          (reportedLessonIds.has(lesson.id) ? (
+                            <span className="text-gray-400 text-xs">Reported - under review</span>
+                          ) : (
+                            <button
+                              className="text-amber-600 hover:underline"
+                              onClick={() => handleReportTutorNoShow(lesson.id, childId)}
+                            >
+                              Report tutor no-show
+                            </button>
+                          ))}
                       </td>
                     </tr>
                     {rescheduleLessonId === lesson.id && (
@@ -344,7 +388,9 @@ export default function ParentSchedulePage() {
                               className="border rounded-md px-2 py-1 text-sm flex-1 min-w-[12rem]"
                             />
                             <button
-                              onClick={() => handleRequestReschedule(lesson.id, lesson.scheduledDate, lesson.durationMinutes)}
+                              onClick={() =>
+                                handleRequestReschedule(lesson.id, lesson.scheduledDate, lesson.durationMinutes, childId)
+                              }
                               disabled={!rescheduleReason.trim()}
                               className="bg-blue-600 text-white rounded-md px-3 py-1.5 text-xs hover:bg-blue-700 disabled:opacity-50"
                             >
@@ -374,7 +420,7 @@ export default function ParentSchedulePage() {
                               className="border rounded-md px-2 py-1 text-sm flex-1 min-w-[12rem]"
                             />
                             <button
-                              onClick={() => handleCancel(lesson.id, lesson.scheduledDate)}
+                              onClick={() => handleCancel(lesson.id, lesson.scheduledDate, childId)}
                               disabled={!cancelReason.trim()}
                               className="bg-red-600 text-white rounded-md px-3 py-1.5 text-xs hover:bg-red-700 disabled:opacity-50"
                             >
