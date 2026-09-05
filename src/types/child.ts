@@ -26,6 +26,11 @@ export interface Child {
   bloodGroup?: string;
   createdAt?: string;
   updatedAt?: string;
+  // This child's own login username (User.studentId), when they have a
+  // login-enabled STUDENT account at all - only set via the "Add Child"
+  // flow (RegisterChildAction), not every child gets one. Never a password -
+  // see ResetStudentPasswordAction for why that can only ever be set, not shown.
+  studentLoginId?: string;
 }
 
 export type UpdateChildProfileInput = Partial<

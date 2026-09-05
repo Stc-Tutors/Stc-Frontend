@@ -2,13 +2,22 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Copy, KeyRound } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { GetChildAction, UpdateChildProfileAction } from "@/server/child";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { PasswordInput } from "@/components/ui/custom/password-input";
+import { GetChildAction, ResetStudentPasswordAction, UpdateChildProfileAction } from "@/server/child";
 import { Child } from "@/types/child";
 import { ToastError, ToastSuccess } from "@/components/ui/custom/toast";
 
@@ -25,6 +34,11 @@ export default function ChildProfilePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [isResetting, setIsResetting] = useState(false);
+  const [resetResult, setResetResult] = useState<{ studentLoginId: string; password: string } | null>(null);
 
   useEffect(() => {
     GetChildAction(id as string).then(([res, error]) => {
@@ -69,6 +83,45 @@ export default function ChildProfilePage() {
     setChild(res.data);
     setForm(res.data);
     ToastSuccess("Profile updated");
+  };
+
+  const openResetDialog = () => {
+    setNewPassword("");
+    setConfirmNewPassword("");
+    setResetResult(null);
+    setIsResetDialogOpen(true);
+  };
+
+  const handleResetPassword = async (generate: boolean) => {
+    if (!generate) {
+      if (newPassword.length < 8) {
+        ToastError("Password must be at least 8 characters");
+        return;
+      }
+      if (newPassword !== confirmNewPassword) {
+        ToastError("The passwords do not match");
+        return;
+      }
+    }
+    setIsResetting(true);
+    const [res, error] = await ResetStudentPasswordAction(id as string, generate ? undefined : newPassword);
+    setIsResetting(false);
+    if (error || !res?.data) {
+      ToastError(error || "Failed to reset password");
+      return;
+    }
+    setResetResult(res.data);
+    setNewPassword("");
+    setConfirmNewPassword("");
+  };
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      ToastSuccess("Copied");
+    } catch {
+      ToastError("Could not copy - select and copy it manually");
+    }
   };
 
   if (isLoading) return <p className="text-sm text-gray-500 p-6">Loading...</p>;
@@ -147,6 +200,40 @@ export default function ChildProfilePage() {
               onChange={(e) => set("photoUrl", e.target.value)}
             />
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Login Credentials</CardTitle>
+          <p className="text-gray-500 text-sm mt-1">
+            Keep these handy in case {child.fullName.split(" ")[0]} forgets how to log in.
+          </p>
+        </CardHeader>
+        <CardContent>
+          {child.studentLoginId ? (
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div className="space-y-1.5">
+                <Label>Student ID</Label>
+                <div className="flex items-center gap-2">
+                  <Input readOnly value={child.studentLoginId} className="max-w-[220px] font-mono" />
+                  <Button type="button" variant="outline" size="icon" onClick={() => copyToClipboard(child.studentLoginId!)}>
+                    <Copy className="w-4 h-4" />
+                  </Button>
+                </div>
+                <p className="text-xs text-gray-400">This is what your child types in instead of an email to log in.</p>
+              </div>
+              <Button type="button" variant="outline" onClick={openResetDialog} className="flex items-center gap-2">
+                <KeyRound className="w-4 h-4" />
+                Reset Password
+              </Button>
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500">
+              This child doesn&apos;t have their own login yet - they were added without a Student ID/password. Use
+              &quot;Add Child&quot; from your profile if you&apos;d like to give them one.
+            </p>
+          )}
         </CardContent>
       </Card>
 
@@ -244,6 +331,82 @@ export default function ChildProfilePage() {
           {isSaving ? "Saving..." : "Save Changes"}
         </Button>
       </div>
+
+      <Dialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reset {child.fullName}&apos;s Password</DialogTitle>
+            <DialogDescription>
+              Their old password can&apos;t be recovered or shown - it isn&apos;t stored in a readable form. Set a
+              new one below, or have one generated for you.
+            </DialogDescription>
+          </DialogHeader>
+
+          {resetResult ? (
+            <div className="space-y-3">
+              <p className="text-sm text-green-700">
+                Password reset. Share these with {child.fullName.split(" ")[0]} now - the password won&apos;t be
+                shown again.
+              </p>
+              <div className="space-y-1.5">
+                <Label>Student ID</Label>
+                <div className="flex items-center gap-2">
+                  <Input readOnly value={resetResult.studentLoginId} className="font-mono" />
+                  <Button type="button" variant="outline" size="icon" onClick={() => copyToClipboard(resetResult.studentLoginId)}>
+                    <Copy className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label>New Password</Label>
+                <div className="flex items-center gap-2">
+                  <Input readOnly value={resetResult.password} className="font-mono" />
+                  <Button type="button" variant="outline" size="icon" onClick={() => copyToClipboard(resetResult.password)}>
+                    <Copy className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <Label>New Password</Label>
+                <PasswordInput
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="At least 8 characters"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Confirm New Password</Label>
+                <PasswordInput
+                  value={confirmNewPassword}
+                  onChange={(e) => setConfirmNewPassword(e.target.value)}
+                  placeholder="Re-enter the password"
+                />
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            {resetResult ? (
+              <Button onClick={() => setIsResetDialogOpen(false)}>Done</Button>
+            ) : (
+              <>
+                <Button type="button" variant="outline" onClick={() => handleResetPassword(true)} disabled={isResetting}>
+                  Generate one for me
+                </Button>
+                <Button
+                  onClick={() => handleResetPassword(false)}
+                  disabled={isResetting || !newPassword || !confirmNewPassword}
+                >
+                  {isResetting ? "Resetting..." : "Set this password"}
+                </Button>
+              </>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
