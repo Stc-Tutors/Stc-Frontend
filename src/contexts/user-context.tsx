@@ -43,6 +43,13 @@ export function UserProvider({ children }: { children: ReactNode }) {
         if (!res || error) {
           console.error("Failed to fetch user:", error)
           setUser(null)
+          // A 401 here means the session cookie no longer maps to a real
+          // user (e.g. the account was deleted from the database) - clear
+          // the stale cookie and send them to login instead of leaving them
+          // stranded on a page that has no user to render.
+          if (error === "Unauthorized") {
+            await logout()
+          }
           return;
         }
         if (res.data) {
