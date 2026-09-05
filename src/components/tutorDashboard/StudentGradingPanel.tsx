@@ -81,6 +81,16 @@ export default function StudentGradingPanel({ studentId }: { studentId: string }
           </div>
 
           {row.submission?.content && <p className="text-sm text-gray-600 mb-2">{row.submission.content}</p>}
+          {row.submission?.fileUrl && (
+            <a href={row.submission.fileUrl} target="_blank" rel="noreferrer" className="block text-sm text-blue-600 hover:underline mb-2">
+              {row.submission.fileUrl}
+            </a>
+          )}
+          {row.submission?.attachment && (
+            <a href={row.submission.attachment.url} target="_blank" rel="noreferrer" className="block text-sm text-blue-600 hover:underline mb-2">
+              {row.submission.attachment.fileName}
+            </a>
+          )}
 
           {row.submission && row.submission.status !== "GRADED" && (
             <div className="flex gap-2 items-center mt-2">

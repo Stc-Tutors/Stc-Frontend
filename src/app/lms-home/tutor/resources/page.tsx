@@ -121,10 +121,14 @@ export default function TutorResourcesPage() {
         {message && <p className="text-sm text-blue-600">{message}</p>}
 
         {courses.length === 0 ? (
-          <p className="text-sm text-gray-500">
-            You aren&apos;t assigned to any courses yet. An admin needs to assign you to a course before you can
-            upload resources for it.
-          </p>
+          <div className="bg-amber-50 border border-amber-200 rounded-md p-4 text-sm text-amber-800">
+            <p className="font-semibold">No students yet - nothing to upload for</p>
+            <p className="mt-1">
+              The upload form (and its target picker) only appears once you&apos;ve accepted at least one student
+              assignment - accepting is what creates the course this resource would be attached to. Once you accept
+              an assignment from your dashboard, this form will appear here automatically.
+            </p>
+          </div>
         ) : (
           <div className="space-y-2">
             <ResourceTargetPicker

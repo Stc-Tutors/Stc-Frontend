@@ -6,11 +6,14 @@ import { ArrowLeft } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import FileUploadField from "@/components/ui/custom/file-upload-field";
 import { GetAssignmentAction } from "@/server/assignment";
 import { GetMySubmissionsAction, SubmitAssignmentAction } from "@/server/submission";
 import { GetEnrollmentsAction } from "@/server/enrollment";
 import { Assignment } from "@/types/assignment";
 import { Submission } from "@/types/submission";
+import { UploadedFile } from "@/lib/cloudinary-upload";
+import { SUBMISSION_ATTACHMENT_UPLOAD_LIMITS } from "@/constants/upload-limits";
 
 export default function AssignmentDetailPage() {
   const { assignmentId } = useParams();
@@ -20,6 +23,7 @@ export default function AssignmentDetailPage() {
   const [studentId, setStudentId] = useState<string | null>(null);
   const [content, setContent] = useState("");
   const [fileUrl, setFileUrl] = useState("");
+  const [attachment, setAttachment] = useState<UploadedFile | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -59,6 +63,7 @@ export default function AssignmentDetailPage() {
       studentId,
       content: content || undefined,
       fileUrl: fileUrl || undefined,
+      attachment,
     });
     setIsSubmitting(false);
     if (error || !res?.data) {
@@ -96,9 +101,17 @@ export default function AssignmentDetailPage() {
           {submission.content && <p className="text-sm text-gray-600">Your answer: {submission.content}</p>}
           {submission.fileUrl && (
             <p className="text-sm text-gray-600">
-              File:{" "}
+              File link:{" "}
               <a href={submission.fileUrl} className="text-blue-600 hover:underline" target="_blank" rel="noreferrer">
                 {submission.fileUrl}
+              </a>
+            </p>
+          )}
+          {submission.attachment && (
+            <p className="text-sm text-gray-600">
+              Attachment:{" "}
+              <a href={submission.attachment.url} className="text-blue-600 hover:underline" target="_blank" rel="noreferrer">
+                {submission.attachment.fileName}
               </a>
             </p>
           )}
@@ -123,6 +136,16 @@ export default function AssignmentDetailPage() {
             value={fileUrl}
             onChange={(e) => setFileUrl(e.target.value)}
           />
+          <div>
+            <p className="text-xs text-gray-500 mb-1">Or attach a file (optional)</p>
+            <FileUploadField
+              id="submission-attachment"
+              folder="submissions/attachments"
+              value={attachment}
+              onChange={setAttachment}
+              limits={SUBMISSION_ATTACHMENT_UPLOAD_LIMITS}
+            />
+          </div>
           <Button onClick={handleSubmit} disabled={isSubmitting}>
             {isSubmitting ? "Submitting..." : "Submit Assignment"}
           </Button>

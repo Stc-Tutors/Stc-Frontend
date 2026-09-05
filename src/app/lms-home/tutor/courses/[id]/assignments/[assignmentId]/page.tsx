@@ -103,8 +103,13 @@ export default function AssignmentSubmissionsPage() {
                   </div>
                   {s.content && <p className="text-sm text-gray-700">{s.content}</p>}
                   {s.fileUrl && (
-                    <a href={s.fileUrl} target="_blank" rel="noreferrer" className="text-sm text-blue-600 hover:underline">
+                    <a href={s.fileUrl} target="_blank" rel="noreferrer" className="block text-sm text-blue-600 hover:underline">
                       {s.fileUrl}
+                    </a>
+                  )}
+                  {s.attachment && (
+                    <a href={s.attachment.url} target="_blank" rel="noreferrer" className="block text-sm text-blue-600 hover:underline">
+                      {s.attachment.fileName}
                     </a>
                   )}
                   <div className="flex gap-2 items-start pt-2">

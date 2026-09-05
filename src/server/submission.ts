@@ -2,12 +2,14 @@
 
 import fetchAPI, { type ApiResponse } from "@/lib/fetch";
 import { Submission } from "@/types/submission";
+import { UploadedFile } from "@/lib/cloudinary-upload";
 
 export async function SubmitAssignmentAction(data: {
   assignmentId: string;
   studentId: string;
   content?: string;
   fileUrl?: string;
+  attachment?: UploadedFile;
 }): Promise<[ApiResponse<Submission> | null, string | null]> {
   const [res, error] = await fetchAPI({
     url: "/submissions",

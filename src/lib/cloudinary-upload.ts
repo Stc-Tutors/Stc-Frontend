@@ -7,7 +7,8 @@ export type UploadFolder =
   | "tutor-applications/headshot"
   | "tutor-applications/cert-proof"
   | "tutor-applications/supporting-documents"
-  | "assignments/attachments";
+  | "assignments/attachments"
+  | "submissions/attachments";
 
 // Metadata captured at upload time - see stcbe's IUploadedFile. Cloudinary's
 // upload response has all of this already; discarding everything but the

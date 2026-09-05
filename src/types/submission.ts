@@ -1,5 +1,6 @@
 import { Assignment } from "./assignment";
 import { Student } from "./student";
+import { UploadedFile } from "@/lib/cloudinary-upload";
 
 export enum SubmissionStatus {
   SUBMITTED = "SUBMITTED",
@@ -13,6 +14,7 @@ export interface Submission {
   student: Student | string;
   content?: string;
   fileUrl?: string;
+  attachment?: UploadedFile;
   submittedAt: string;
   status: SubmissionStatus;
   score?: number;

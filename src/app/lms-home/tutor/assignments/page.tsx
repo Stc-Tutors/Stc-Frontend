@@ -114,7 +114,14 @@ export default function TutorAssignmentsPage() {
       <div className="bg-white rounded-2xl shadow p-6">
         <h2 className="font-semibold mb-4">Give a new assignment</h2>
         {courses.length === 0 ? (
-          <p className="text-sm text-gray-500">You need a course before you can create an assignment.</p>
+          <div className="bg-amber-50 border border-amber-200 rounded-md p-4 text-sm text-amber-800">
+            <p className="font-semibold">No students yet - nothing to assign to</p>
+            <p className="mt-1">
+              This form only appears once you&apos;ve accepted at least one student assignment - accepting is what
+              creates the course this assignment would belong to. Once you accept an assignment from your dashboard,
+              this form will appear here automatically.
+            </p>
+          </div>
         ) : (
           <div className="space-y-2">
             <select

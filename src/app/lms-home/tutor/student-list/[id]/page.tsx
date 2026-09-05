@@ -11,6 +11,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { GetEnrollmentAction } from "@/server/enrollment";
 import { GetAcademicSummaryAction } from "@/server/admin";
 import StudentGradingPanel from "@/components/tutorDashboard/StudentGradingPanel";
+import GiveAssignmentPanel from "@/components/tutorDashboard/GiveAssignmentPanel";
+import GiveResourcePanel from "@/components/tutorDashboard/GiveResourcePanel";
 import { AcademicSummary, Student, studentAvatarUrl } from "@/types/student";
 
 // Same ring pattern as the admin student-detail page's academic tab.
@@ -46,6 +48,9 @@ export default function StudentProfilePage() {
   const [summary, setSummary] = useState<AcademicSummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // Bumped after giving an assignment so StudentGradingPanel (keyed on this)
+  // remounts and refetches rather than showing a stale "no assignments yet".
+  const [gradingRefreshKey, setGradingRefreshKey] = useState(0);
 
   useEffect(() => {
     const load = async () => {
@@ -196,8 +201,26 @@ export default function StudentProfilePage() {
       </section>
 
       <section className="bg-white mt-8 ml-8 mr-9 pl-12 pr-9 py-5">
+        <h2 className="font-bold text-xl mb-1">Give an Assignment</h2>
+        <p className="text-xs text-gray-500 mb-4">Targeted at just {student.fullName}.</p>
+        <div className="max-w-lg">
+          <GiveAssignmentPanel studentId={student.id} onCreated={() => setGradingRefreshKey((k) => k + 1)} />
+        </div>
+      </section>
+
+      <section className="bg-white mt-8 ml-8 mr-9 pl-12 pr-9 py-5">
+        <h2 className="font-bold text-xl mb-1">Give a Resource</h2>
+        <p className="text-xs text-gray-500 mb-4">
+          Targeted at just {student.fullName} - stays hidden from them until an admin approves it.
+        </p>
+        <div className="max-w-lg">
+          <GiveResourcePanel studentId={student.id} />
+        </div>
+      </section>
+
+      <section className="bg-white mt-8 ml-8 mr-9 pl-12 pr-9 py-5">
         <h2 className="font-bold text-xl mb-4">Assignments &amp; Grading</h2>
-        <StudentGradingPanel studentId={student.id} />
+        <StudentGradingPanel key={gradingRefreshKey} studentId={student.id} />
       </section>
     </section>
   );
