@@ -8,13 +8,23 @@ import { GetStudentCoursesAction } from "@/server/course-enrollment";
 import { GetTutorProfileAction } from "@/server/tutor-profile";
 import { Course } from "@/types/course";
 import { TutorProfile, TutorSummary } from "@/types/tutor-profile";
+import { SERVICE_TYPE_LABELS } from "@/constants/taxonomy";
+
+// One specific thing this tutor teaches this parent's family - a child in
+// two courses with the same tutor gets two of these, not one vague "also
+// teaches X" line.
+interface TeachingAssignment {
+  childName: string;
+  courseTitle: string;
+  serviceType: string;
+}
 
 interface TutorRow {
   tutorId: string;
   name: string;
   avatarUrl?: string;
   profile: TutorProfile;
-  children: string[]; // names of this parent's children this tutor teaches
+  assignments: TeachingAssignment[];
 }
 
 function tutorName(tutor: TutorProfile["tutor"]): string {
@@ -45,13 +55,22 @@ export default function ParentTutorsPage() {
           .map((e) => (typeof e.course === "string" ? null : e.course))
           .filter((c): c is Course => !!c);
 
-        const tutorIds = new Set(
-          courses.map((c) => (typeof c.tutor === "string" ? c.tutor : c.tutor?.id)).filter((id): id is string => !!id)
-        );
+        // Per course, not per tutor - the same tutor can teach this child
+        // more than one subject/service, and each is its own assignment
+        // line rather than being collapsed into one vague "also teaches X".
+        for (const course of courses) {
+          const tutorId = typeof course.tutor === "string" ? course.tutor : course.tutor?.id;
+          if (!tutorId) continue;
 
-        for (const tutorId of tutorIds) {
-          if (byTutor.has(tutorId)) {
-            byTutor.get(tutorId)!.children.push(child.fullName);
+          const assignment: TeachingAssignment = {
+            childName: child.fullName,
+            courseTitle: course.title,
+            serviceType: course.serviceType,
+          };
+
+          const existingRow = byTutor.get(tutorId);
+          if (existingRow) {
+            existingRow.assignments.push(assignment);
             continue;
           }
           const [profileRes] = await GetTutorProfileAction(tutorId);
@@ -62,7 +81,7 @@ export default function ParentTutorsPage() {
             name: tutorName(t),
             avatarUrl: typeof t === "string" ? undefined : t.avatarUrl,
             profile: profileRes.data,
-            children: [child.fullName],
+            assignments: [assignment],
           });
         }
       }
@@ -98,11 +117,65 @@ export default function ParentTutorsPage() {
                 </Avatar>
                 <div>
                   <h2 className="font-semibold text-gray-900">{row.name}</h2>
-                  <p className="text-xs text-gray-500">Teaches: {row.children.join(", ")}</p>
                 </div>
               </div>
 
-              {row.profile.bio && <p className="text-sm text-gray-700">{row.profile.bio}</p>}
+              <div className="text-sm text-gray-600">
+                <span className="font-medium">Teaching your family:</span>
+                <ul className="list-disc list-inside">
+                  {row.assignments.map((a, i) => (
+                    <li key={i}>
+                      <span className="text-gray-900">{a.childName}</span> — {a.courseTitle}
+                      <span className="text-gray-500">
+                        {" "}
+                        ({SERVICE_TYPE_LABELS[a.serviceType] ?? a.serviceType})
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {row.profile.bio && (
+                <div className="text-sm text-gray-700">
+                  <span className="font-medium">Bio:</span> {row.profile.bio}
+                </div>
+              )}
+
+              {row.profile.teachingCombinations?.length > 0 && (
+                <div className="text-sm text-gray-600">
+                  <span className="font-medium">Can teach:</span>
+                  <ul className="list-disc list-inside">
+                    {row.profile.teachingCombinations.map((tc, i) => (
+                      <li key={i}>
+                        {tc.subjectsTaught.join(", ")}
+                        {tc.curriculum ? ` (${[tc.curriculum, tc.gradeLevel].filter(Boolean).join(" - ")})` : ""}
+                        {tc.country ? ` · ${tc.country}` : ""}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {row.profile.ageLevelsTaught && row.profile.ageLevelsTaught.length > 0 && (
+                <p className="text-sm text-gray-600">
+                  <span className="font-medium">Age groups taught:</span> {row.profile.ageLevelsTaught.join(", ")}
+                </p>
+              )}
+
+              {[
+                ["Digital skills", row.profile.digitalSkillsBundles],
+                ["Music instruments", row.profile.musicInstruments],
+                ["Soft skills topics", row.profile.softSkillsTopics],
+                ["Career coaching topics", row.profile.careerCoachingTopics],
+                ["Self-development topics", row.profile.selfDevTopics],
+                ["Adult education focus areas", row.profile.adultEdFocusAreas],
+              ]
+                .filter(([, list]) => Array.isArray(list) && list.length > 0)
+                .map(([label, list]) => (
+                  <p key={`can-teach-${label}`} className="text-sm text-gray-600">
+                    <span className="font-medium">{label}:</span> {(list as string[]).join(", ")}
+                  </p>
+                ))}
 
               {row.profile.yearsOfExperience != null && (
                 <p className="text-sm text-gray-600">
@@ -155,42 +228,6 @@ export default function ParentTutorsPage() {
                   {row.profile.otherQualificationsHeld.join(", ")}
                 </p>
               )}
-
-              {row.profile.teachingCombinations?.length > 0 && (
-                <div className="text-sm text-gray-600">
-                  <span className="font-medium">Subjects taught:</span>
-                  <ul className="list-disc list-inside">
-                    {row.profile.teachingCombinations.map((tc, i) => (
-                      <li key={i}>
-                        {tc.subjectsTaught.join(", ")}
-                        {tc.curriculum ? ` (${[tc.curriculum, tc.gradeLevel].filter(Boolean).join(" - ")})` : ""}
-                        {tc.country ? ` · ${tc.country}` : ""}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {row.profile.ageLevelsTaught && row.profile.ageLevelsTaught.length > 0 && (
-                <p className="text-sm text-gray-600">
-                  <span className="font-medium">Age groups taught:</span> {row.profile.ageLevelsTaught.join(", ")}
-                </p>
-              )}
-
-              {[
-                ["Digital skills", row.profile.digitalSkillsBundles],
-                ["Music instruments", row.profile.musicInstruments],
-                ["Soft skills topics", row.profile.softSkillsTopics],
-                ["Career coaching topics", row.profile.careerCoachingTopics],
-                ["Self-development topics", row.profile.selfDevTopics],
-                ["Adult education focus areas", row.profile.adultEdFocusAreas],
-              ]
-                .filter(([, list]) => Array.isArray(list) && list.length > 0)
-                .map(([label, list]) => (
-                  <p key={label as string} className="text-sm text-gray-600">
-                    <span className="font-medium">{label}:</span> {(list as string[]).join(", ")}
-                  </p>
-                ))}
 
               {row.profile.yearsOnlineTutoringExperience != null && (
                 <p className="text-sm text-gray-600">
