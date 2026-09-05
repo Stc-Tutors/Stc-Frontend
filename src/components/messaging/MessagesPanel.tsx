@@ -116,8 +116,7 @@ export default function MessagesPanel({ initialConversationId }: { initialConver
 
   const loadContacts = async () => {
     setIsLoadingContacts(true);
-    const [contactsRes] = await GetMyContactsAction();
-    const [conversationsRes] = await GetConversationsAction();
+    const [[contactsRes], [conversationsRes]] = await Promise.all([GetMyContactsAction(), GetConversationsAction()]);
     const contacts = contactsRes?.data ?? [];
     const fetchedConversations = conversationsRes?.data ?? [];
     setConversations(fetchedConversations);
@@ -203,11 +202,11 @@ export default function MessagesPanel({ initialConversationId }: { initialConver
     if (openRequestRef.current !== requestId) return; // superseded by a newer click
     setConversationId(id);
     setMessages(msgRes?.data ?? []);
-    await MarkConversationReadAction(id);
-    if (openRequestRef.current !== requestId) return;
     setIsLoadingThread(false);
     setRows((prev) => prev.map((r) => (r.contact.id === row.contact.id ? { ...r, unreadCount: 0 } : r)));
-    loadContacts();
+    // Marking read is a side-effect write, not something the thread's
+    // display depends on - don't block showing the just-fetched messages on it.
+    MarkConversationReadAction(id).then(() => loadContacts());
   };
 
   const handleSend = async () => {

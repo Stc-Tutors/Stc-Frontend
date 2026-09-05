@@ -35,11 +35,15 @@ export default function ViewProfile({ userId }: { userId: string }) {
       if (res?.data) {
         setUser(res.data);
         if (res.data.role === UserRole.TUTOR) {
-          const [tutorRes] = await GetTutorProfileAction(userId);
+          // Independent of each other - fetched in parallel instead of one
+          // round trip after another.
+          const [[tutorRes], [summaryRes], [reviewsRes]] = await Promise.all([
+            GetTutorProfileAction(userId),
+            GetTutorRatingSummaryAction(userId),
+            GetTutorReviewsAction(userId),
+          ]);
           setTutorProfile(tutorRes?.data ?? null);
-          const [summaryRes] = await GetTutorRatingSummaryAction(userId);
           setRatingSummary(summaryRes?.data ?? null);
-          const [reviewsRes] = await GetTutorReviewsAction(userId);
           setReviews(reviewsRes?.data ?? []);
         }
       } else if (error) {
