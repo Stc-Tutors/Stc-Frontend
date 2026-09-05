@@ -11,6 +11,7 @@ import { GetTaxonomyOptionsAction } from "@/server/taxonomy-option"
 import { ITaxonomyOption, TaxonomyOptionKind } from "@/types/service-catalog"
 import { useCustomFormFields } from "@/hooks/use-custom-form-fields"
 import DynamicQuestionField from "@/components/forms/dynamic-question-field"
+import { useUser } from "@/contexts/user-context"
 
 
 interface StepProps {
@@ -44,6 +45,7 @@ function calculateAge(dateOfBirth: string): number | null {
 
 export default function ChildInfoStep({ onNext, errors, forcedUserType }: StepProps) {
   const { enrollmentData, updateChildInfo, updateCustomFieldResponse } = useEnrollment()
+  const { user } = useUser()
   const [formData, setFormData] = useState({
     userType: forcedUserType || enrollmentData.childInfo?.userType || "parent",
     fullName: enrollmentData.childInfo?.fullName || "",
@@ -77,6 +79,21 @@ export default function ChildInfoStep({ onNext, errors, forcedUserType }: StepPr
 
   const countryOptions = countries.map((c) => ({ value: c.value, label: c.label }))
   const languageOptions = languages.map((l) => ({ value: l.value, label: l.label }))
+
+  // A self-registering student already gave their name and phone number when
+  // they created their account (see auth/register) - don't make them retype
+  // what's already on file. Only fills fields still blank, so it never
+  // clobbers a value they've since edited or a resumed draft.
+  useEffect(() => {
+    if (formData.userType !== "student" || !user) return
+    setFormData((prev) => {
+      if (prev.fullName.trim() && prev.phone.trim()) return prev
+      const fullName = prev.fullName.trim() || `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim()
+      const phone = prev.phone.trim() || user.phone || ""
+      if (fullName === prev.fullName && phone === prev.phone) return prev
+      return { ...prev, fullName, phone }
+    })
+  }, [user, formData.userType])
 
   const { fields: customFields } = useCustomFormFields(STAGE, enrollmentData.serviceDetails?.serviceType)
   const customFieldResponses = enrollmentData.customFieldResponses ?? {}
@@ -201,7 +218,7 @@ export default function ChildInfoStep({ onNext, errors, forcedUserType }: StepPr
       {/* Student/Child Information */}
       <Card>
         <CardHeader>
-          <CardTitle>{formData.userType === "parent" ? "Child Information" : "Your Information"}</CardTitle>
+          <CardTitle>{formData.userType === "parent" ? "Child Information" : "Student Information"}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
