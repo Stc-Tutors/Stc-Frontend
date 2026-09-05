@@ -35,6 +35,9 @@ export interface HodScopeAssignment {
   service: string;
   taxonomyNodeIds?: string[];
   courseIds?: string[];
+  // User ids of specific tutors pinned to this scope - every one of their
+  // courses under this scope's service, regardless of which course/node.
+  tutorIds?: string[];
   context?: HodScopeContext;
   subjects?: string[];
   permissions: HodPermission[];
