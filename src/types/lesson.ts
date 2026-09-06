@@ -84,6 +84,16 @@ export interface RescheduleSurchargeSettings {
   updatedAt: string;
 }
 
+// Admin-configurable, read by anyone before submitting a cancel/reschedule so
+// their UI shows the exact notice window that applies to their role.
+export interface RescheduleNoticeSettings {
+  id: string;
+  studentNoticeHours: number;
+  parentNoticeHours: number;
+  tutorNoticeHours: number;
+  updatedAt: string;
+}
+
 // `lesson`/`course`/`requestedBy` come back populated from GET /lessons/reschedule-requests
 // (see RescheduleRequestRepository.findMany) - stay as plain id strings only
 // if the backend ever stops populating them.

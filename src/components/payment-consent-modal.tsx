@@ -7,14 +7,15 @@ import { CalendarX, Lock, MessageCircleWarning, ShieldCheck } from "lucide-react
 // Brief, plain-language callouts a parent should see once, right before
 // paying - deliberately shorter/more scannable than the full Terms &
 // Conditions/Privacy Policy links already in the Review step's checkboxes,
-// which most people skim past. Wording mirrors what's actually implemented
-// elsewhere (24h reschedule/cancel gate - see lib/schedule-gate.ts's
-// isInsideRescheduleGate) rather than a generic legal boilerplate.
+// which most people skim past. The notice window mirrors the family default
+// in RescheduleNoticeSettings (super-admin configurable - see
+// lib/schedule-gate.ts's DEFAULT_FAMILY_NOTICE_HOURS) rather than a generic
+// legal boilerplate; this is informational copy only, not itself dynamic.
 const CONSENT_POINTS = [
   {
     icon: CalendarX,
     title: "Class cancellations & rescheduling",
-    body: "Reschedule or cancel at least 24 hours before a class to avoid it counting as missed. Requests inside that 24-hour window still go through, but need admin approval first.",
+    body: "Reschedule or cancel at least 12 hours before a class to avoid it counting as missed. Requests inside that window still go through, but need admin approval first.",
   },
   {
     icon: Lock,

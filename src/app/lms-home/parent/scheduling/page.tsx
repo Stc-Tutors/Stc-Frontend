@@ -12,12 +12,19 @@ import {
   CancelLessonAction,
   GetMyPendingRescheduleConfirmationsAction,
   ConfirmTutorRescheduleAction,
+  GetRescheduleNoticeSettingsAction,
 } from "@/server/lesson";
 import { Course } from "@/types/course";
 import { Lesson, LessonStatus, RescheduleRequest } from "@/types/lesson";
 import { ScheduleReviewStatus, Student } from "@/types/student";
 import { formatScheduleDateTime } from "@/lib/datetime";
-import { isInsideRescheduleGate, isWithinTutorAvailability, formatAvailability, AvailabilityBlock } from "@/lib/schedule-gate";
+import {
+  isInsideRescheduleGate,
+  isWithinTutorAvailability,
+  formatAvailability,
+  AvailabilityBlock,
+  DEFAULT_FAMILY_NOTICE_HOURS,
+} from "@/lib/schedule-gate";
 import { GetTutorProfileAction } from "@/server/tutor-profile";
 import { ChildSwitcherDropdown } from "@/components/child-switcher-dropdown";
 import { useSelectedStudent } from "@/contexts/selected-student-context";
@@ -49,6 +56,12 @@ export default function ParentSchedulePage() {
   const [rejectingConfirmationId, setRejectingConfirmationId] = useState<string | null>(null);
   const [confirmationRejectReason, setConfirmationRejectReason] = useState("");
   const [reportedLessonIds, setReportedLessonIds] = useState<Set<string>>(new Set());
+  const [parentNoticeHours, setParentNoticeHours] = useState(DEFAULT_FAMILY_NOTICE_HOURS);
+
+  const loadNoticeSettings = async () => {
+    const [res] = await GetRescheduleNoticeSettingsAction();
+    if (res?.data) setParentNoticeHours(res.data.parentNoticeHours);
+  };
 
   const loadConfirmations = async () => {
     const [res] = await GetMyPendingRescheduleConfirmationsAction();
@@ -101,6 +114,7 @@ export default function ParentSchedulePage() {
   useEffect(() => {
     load();
     loadConfirmations();
+    loadNoticeSettings();
   }, []);
 
   const visibleRows = isAllSelected ? rows : rows.filter((r) => r.childId === selectedId);
@@ -399,8 +413,8 @@ export default function ParentSchedulePage() {
                           </div>
                           <p className="text-xs text-gray-500 mt-1">
                             The new time always needs admin confirmation with the tutor.
-                            {isInsideRescheduleGate(lesson.scheduledDate) &&
-                              " This class starts within 24 hours, so it will be flagged urgent."}
+                            {isInsideRescheduleGate(lesson.scheduledDate, Date.now(), parentNoticeHours) &&
+                              ` This class starts within ${parentNoticeHours} hours, so it will be flagged urgent.`}
                           </p>
                           <p className="text-xs text-gray-500 mt-1">
                             Tutor&apos;s available times: {formatAvailability(tutorAvailability)}
@@ -428,9 +442,9 @@ export default function ParentSchedulePage() {
                             </button>
                           </div>
                           <p className="text-xs text-gray-500 mt-1">
-                            {isInsideRescheduleGate(lesson.scheduledDate)
-                              ? "This class starts within 24 hours, so cancelling now needs admin approval before it's final."
-                              : "24 hours or more out, so this cancels immediately."}
+                            {isInsideRescheduleGate(lesson.scheduledDate, Date.now(), parentNoticeHours)
+                              ? `This class starts within ${parentNoticeHours} hours, so cancelling now needs admin approval before it's final.`
+                              : `${parentNoticeHours} hours or more out, so this cancels immediately.`}
                           </p>
                         </td>
                       </tr>

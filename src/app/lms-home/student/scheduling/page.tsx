@@ -13,12 +13,19 @@ import {
   CancelLessonAction,
   GetMyPendingRescheduleConfirmationsAction,
   ConfirmTutorRescheduleAction,
+  GetRescheduleNoticeSettingsAction,
 } from "@/server/lesson";
 import { Course } from "@/types/course";
 import { Lesson, LessonStatus, RescheduleRequest } from "@/types/lesson";
 import { ScheduleReviewStatus } from "@/types/student";
 import { formatScheduleDateTime } from "@/lib/datetime";
-import { isInsideRescheduleGate, isWithinTutorAvailability, formatAvailability, AvailabilityBlock } from "@/lib/schedule-gate";
+import {
+  isInsideRescheduleGate,
+  isWithinTutorAvailability,
+  formatAvailability,
+  AvailabilityBlock,
+  DEFAULT_FAMILY_NOTICE_HOURS,
+} from "@/lib/schedule-gate";
 import { GetTutorProfileAction } from "@/server/tutor-profile";
 import { ReportTutorNoShowAction, GetMyTutorNoShowReportsAction } from "@/server/penalty";
 import { DEFAULT_NO_SHOW_GRACE_PERIOD_MINUTES } from "@/types/penalty";
@@ -46,6 +53,12 @@ export default function SchedulePage() {
   const [confirmationRejectReason, setConfirmationRejectReason] = useState("");
   const [reportedLessonIds, setReportedLessonIds] = useState<Set<string>>(new Set());
   const [myStudentId, setMyStudentId] = useState<string | null>(null);
+  const [studentNoticeHours, setStudentNoticeHours] = useState(DEFAULT_FAMILY_NOTICE_HOURS);
+
+  const loadNoticeSettings = async () => {
+    const [res] = await GetRescheduleNoticeSettingsAction();
+    if (res?.data) setStudentNoticeHours(res.data.studentNoticeHours);
+  };
 
   const loadConfirmations = async () => {
     const [res] = await GetMyPendingRescheduleConfirmationsAction();
@@ -100,6 +113,7 @@ export default function SchedulePage() {
   useEffect(() => {
     load();
     loadConfirmations();
+    loadNoticeSettings();
   }, []);
 
   // Client-side default guess for button visibility only - mirrors the
@@ -388,8 +402,8 @@ export default function SchedulePage() {
                           </div>
                           <p className="text-xs text-gray-500 mt-1">
                             The new time always needs admin confirmation with the tutor.
-                            {isInsideRescheduleGate(lesson.scheduledDate) &&
-                              " This class starts within 24 hours, so it will be flagged urgent."}
+                            {isInsideRescheduleGate(lesson.scheduledDate, Date.now(), studentNoticeHours) &&
+                              ` This class starts within ${studentNoticeHours} hours, so it will be flagged urgent.`}
                           </p>
                           <p className="text-xs text-gray-500 mt-1">
                             Tutor&apos;s available times: {formatAvailability(tutorAvailability)}
@@ -417,9 +431,9 @@ export default function SchedulePage() {
                             </button>
                           </div>
                           <p className="text-xs text-gray-500 mt-1">
-                            {isInsideRescheduleGate(lesson.scheduledDate)
-                              ? "This class starts within 24 hours, so cancelling now needs admin approval before it's final."
-                              : "24 hours or more out, so this cancels immediately."}
+                            {isInsideRescheduleGate(lesson.scheduledDate, Date.now(), studentNoticeHours)
+                              ? `This class starts within ${studentNoticeHours} hours, so cancelling now needs admin approval before it's final.`
+                              : `${studentNoticeHours} hours or more out, so this cancels immediately.`}
                           </p>
                         </td>
                       </tr>

@@ -3,6 +3,7 @@
 import fetchAPI, { type ApiResponse } from "@/lib/fetch";
 import {
   Lesson,
+  RescheduleNoticeSettings,
   RescheduleRequest,
   RescheduleSurchargeSettings,
   RescheduleSurchargeType,
@@ -303,6 +304,21 @@ export async function GetRescheduleSurchargeSettingsAction(): Promise<
   });
 
   const resData = res ? ((await res.json()) as ApiResponse<RescheduleSurchargeSettings>) : null;
+  return [resData, error];
+}
+
+// Read broadly so a tutor/parent/student's own scheduling UI shows the exact
+// notice window their role needs to give before a cancel/reschedule is
+// hard-blocked into the admin queue.
+export async function GetRescheduleNoticeSettingsAction(): Promise<
+  [ApiResponse<RescheduleNoticeSettings> | null, string | null]
+> {
+  const [res, error] = await fetchAPI({
+    url: "/lessons/reschedule-notice-settings",
+    request: { method: "GET", headers: { "Content-Type": "application/json" } },
+  });
+
+  const resData = res ? ((await res.json()) as ApiResponse<RescheduleNoticeSettings>) : null;
   return [resData, error];
 }
 

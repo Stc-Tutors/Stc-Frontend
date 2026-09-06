@@ -18,8 +18,10 @@ export interface SubscriptionUser {
 
 export interface Subscription {
   id: string;
-  user: SubscriptionUser | string;
-  plan: PricingPlan | string;
+  // null when the referenced account/plan has since been deleted - a
+  // populated ref resolves to null rather than the string id in that case.
+  user: SubscriptionUser | string | null;
+  plan: PricingPlan | string | null;
   status: SubscriptionStatus;
   reference: string;
   currentPeriodStart?: string;

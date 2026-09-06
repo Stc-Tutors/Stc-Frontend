@@ -1,28 +1,37 @@
-// Mirrors LessonService's RESCHEDULE_GATE_MS - used only for UI hints (when
-// to show/require a reason before submitting); the backend re-validates and
-// is the actual source of truth.
-export const RESCHEDULE_GATE_MS = 24 * 60 * 60 * 1000;
+// Default student/parent notice window, in hours - mirrors
+// RescheduleNoticeSettings' defaults. Only a fallback for the brief window
+// before GetRescheduleNoticeSettingsAction resolves, or if it fails - the
+// admin-configured value (fetched per page) is the real one; the backend
+// re-validates against it regardless and is the actual source of truth.
+export const DEFAULT_FAMILY_NOTICE_HOURS = 12;
 
-export function isInsideRescheduleGate(scheduledDate: string, now: number = Date.now()): boolean {
-  return new Date(scheduledDate).getTime() - now < RESCHEDULE_GATE_MS;
+export function isInsideRescheduleGate(
+  scheduledDate: string,
+  now: number = Date.now(),
+  noticeHours: number = DEFAULT_FAMILY_NOTICE_HOURS
+): boolean {
+  return new Date(scheduledDate).getTime() - now < noticeHours * 60 * 60 * 1000;
 }
 
-// Mirrors LessonService's TUTOR_RESCHEDULE_NOTICE_MS - a tutor/HOD reschedule
-// always goes tutor -> admin -> parent. Inside this window a late-notice
-// surcharge applies (see RescheduleSurchargeSettings) rather than the old
-// flat block; the request is only actually refused inside the shorter hard
-// floor below.
-export const TUTOR_RESCHEDULE_NOTICE_MS = 48 * 60 * 60 * 1000;
+// Default tutor/HOD notice window, in hours - a tutor/HOD reschedule always
+// goes tutor -> admin -> parent. Inside this window a late-notice surcharge
+// applies (see RescheduleSurchargeSettings) rather than a flat block; the
+// request is only actually refused inside the shorter hard floor below.
+export const DEFAULT_TUTOR_NOTICE_HOURS = 24;
 
 // Mirrors LessonService's TUTOR_RESCHEDULE_HARD_FLOOR_MS - below this there's
 // no realistic way to relay a reschedule to admin and get parent
 // confirmation before the lesson starts, so it's refused outright regardless
-// of surcharge.
+// of surcharge. Not admin-configurable, unlike the two notice windows above.
 export const TUTOR_RESCHEDULE_HARD_FLOOR_MS = 2 * 60 * 60 * 1000;
 
 // True once a tutor reschedule request would carry a late-notice surcharge.
-export function isInsideTutorRescheduleGate(scheduledDate: string, now: number = Date.now()): boolean {
-  return new Date(scheduledDate).getTime() - now < TUTOR_RESCHEDULE_NOTICE_MS;
+export function isInsideTutorRescheduleGate(
+  scheduledDate: string,
+  now: number = Date.now(),
+  noticeHours: number = DEFAULT_TUTOR_NOTICE_HOURS
+): boolean {
+  return new Date(scheduledDate).getTime() - now < noticeHours * 60 * 60 * 1000;
 }
 
 // True once a tutor reschedule request is refused outright, no matter the surcharge.

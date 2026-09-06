@@ -13,6 +13,8 @@ import { ISchedule, ScheduleReviewStatus, Student } from "@/types/student";
 import { User, UserRole } from "@/types/user";
 import { Course } from "@/types/course";
 import { scheduleTimeFrom24Hour, scheduleTimeTo24Hour } from "@/lib/datetime";
+import { useUser } from "@/contexts/user-context";
+import { AdminPermission } from "@/types/admin-permission";
 
 import { WEEKDAYS_ABBREVIATED } from "@/constants/weekdays";
 const DAYS = WEEKDAYS_ABBREVIATED;
@@ -33,12 +35,18 @@ function ScheduleList({ schedule }: { schedule: ISchedule[] }) {
 // tutor's existing Courses - the recurring Lesson batch is generated
 // server-side (CourseEnrollmentService.allocateWithSchedule).
 function TutorAllocationForm({ student, onDone }: { student: Student; onDone: () => void }) {
+  const { user, hasPermission } = useUser();
+  // HOD keeps meeting-link access unconditionally, same as the backend and
+  // the admin sessions page (see lms-home/admin/sessions/page.tsx).
+  const canManageMeetingLinks = user?.role === UserRole.HOD || hasPermission(AdminPermission.MANAGE_MEETING_LINKS);
+
   const subjects = Array.from(new Set((student.schedule ?? []).map((s) => s.subject)));
   const [subject, setSubject] = useState(subjects[0] ?? "");
   const [tutors, setTutors] = useState<User[]>([]);
   const [tutorId, setTutorId] = useState("");
   const [courses, setCourses] = useState<Course[]>([]);
   const [courseId, setCourseId] = useState("");
+  const [meetingUrl, setMeetingUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -61,7 +69,7 @@ function TutorAllocationForm({ student, onDone }: { student: Student; onDone: ()
       return;
     }
     setIsSubmitting(true);
-    const [res, error] = await AllocateTutorAction(student.id, courseId, subject);
+    const [res, error] = await AllocateTutorAction(student.id, courseId, subject, meetingUrl);
     setIsSubmitting(false);
     if (error || !res?.data) {
       setMessage(error || "Failed to allocate tutor");
@@ -104,6 +112,13 @@ function TutorAllocationForm({ student, onDone }: { student: Student; onDone: ()
             </option>
           ))}
         </select>
+      )}
+      {canManageMeetingLinks && (
+        <Input
+          placeholder="Google Meet link (optional - applies to every generated class)"
+          value={meetingUrl}
+          onChange={(e) => setMeetingUrl(e.target.value)}
+        />
       )}
       <Button size="sm" onClick={handleAllocate} disabled={isSubmitting || !courseId}>
         {isSubmitting ? "Allocating..." : "Allocate tutor & generate lessons"}

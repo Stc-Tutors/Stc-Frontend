@@ -44,6 +44,7 @@ import BrandLogo from "@/components/shared/BrandLogo";
 import LogoutButton from "@/components/shared/LogoutButton";
 import { UserProfileDropdown } from "@/components/user-profile-dropdown";
 import NotificationBell from "@/components/notification-bell";
+import AnnouncementsOverlay from "@/components/announcements-overlay";
 import { useUser } from "@/contexts/user-context";
 import { AdminPermission } from "@/types/admin-permission";
 import { HodPermission } from "@/types/hod";
@@ -345,6 +346,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             >
               <MessageSquare className="w-5 h-5 text-gray-600" />
             </Link>
+
+            <AnnouncementsOverlay />
 
             <NotificationBell viewAllHref="/lms-home/admin/notification" />
 

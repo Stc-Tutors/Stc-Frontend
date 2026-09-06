@@ -6,11 +6,16 @@ import { useRouter } from "next/navigation";
 import JoinClassLink from "@/components/classroom/JoinClassLink";
 import TutorsCard from "@/components/tutorDashboard/TutorsCard";
 import { GetMyCoursesAction } from "@/server/course";
-import { GetCourseLessonsAction, GetRescheduleSurchargeSettingsAction, RescheduleLessonAction } from "@/server/lesson";
+import {
+  GetCourseLessonsAction,
+  GetRescheduleSurchargeSettingsAction,
+  GetRescheduleNoticeSettingsAction,
+  RescheduleLessonAction,
+} from "@/server/lesson";
 import { Course } from "@/types/course";
 import { Lesson, LessonStatus, RescheduleSurchargeSettings, RescheduleSurchargeType } from "@/types/lesson";
 import { formatScheduleDateTime } from "@/lib/datetime";
-import { isInsideTutorRescheduleGate, isInsideTutorRescheduleHardFloor } from "@/lib/schedule-gate";
+import { isInsideTutorRescheduleGate, isInsideTutorRescheduleHardFloor, DEFAULT_TUTOR_NOTICE_HOURS } from "@/lib/schedule-gate";
 
 interface Row {
   lesson: Lesson;
@@ -25,6 +30,7 @@ export default function TutorSchedulePage() {
   const [newDate, setNewDate] = useState("");
   const [rescheduleReason, setRescheduleReason] = useState("");
   const [surchargeSettings, setSurchargeSettings] = useState<RescheduleSurchargeSettings | null>(null);
+  const [tutorNoticeHours, setTutorNoticeHours] = useState(DEFAULT_TUTOR_NOTICE_HOURS);
   const [message, setMessage] = useState<string | null>(null);
 
   const load = async () => {
@@ -46,6 +52,9 @@ export default function TutorSchedulePage() {
   useEffect(() => {
     load();
     GetRescheduleSurchargeSettingsAction().then(([res]) => setSurchargeSettings(res?.data ?? null));
+    GetRescheduleNoticeSettingsAction().then(([res]) => {
+      if (res?.data) setTutorNoticeHours(res.data.tutorNoticeHours);
+    });
   }, []);
 
   const handleBack = () => {
@@ -200,10 +209,10 @@ export default function TutorSchedulePage() {
                               : "Sent to admin for review, then to the parent to confirm - it only applies once the parent agrees."}
                           </p>
                           {!isInsideTutorRescheduleHardFloor(lesson.scheduledDate) &&
-                            isInsideTutorRescheduleGate(lesson.scheduledDate) &&
+                            isInsideTutorRescheduleGate(lesson.scheduledDate, Date.now(), tutorNoticeHours) &&
                             surchargeSettings && (
                               <p className="text-xs text-amber-600 mt-1">
-                                This is inside 48 hours' notice - a {surchargePreview(surchargeSettings)} applies if
+                                This is inside {tutorNoticeHours} hours' notice - a {surchargePreview(surchargeSettings)} applies if
                                 this reschedule is confirmed (admin can adjust it on review).
                               </p>
                             )}

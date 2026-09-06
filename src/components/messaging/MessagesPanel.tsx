@@ -133,6 +133,25 @@ export default function MessagesPanel({ initialConversationId }: { initialConver
       };
     });
 
+    // A conversation someone else started with this user directly (e.g. a
+    // Super Admin messaging a tutor) is always real - they got a
+    // notification and a live participant slot - even if the sender isn't
+    // someone this user would normally see in their own contact list (see
+    // stcbe's MessageService.getMyContacts: SUPER_ADMIN/ALMIGHTY_ADMIN are
+    // deliberately excluded from a tutor/parent/student's own contacts, so
+    // they don't appear in literally everyone's DM list). Without this, such
+    // a conversation silently vanished from the inbox - visible nowhere,
+    // unreplyable, despite the notification saying otherwise.
+    const coveredConversationIds = new Set(merged.map((r) => r.conversationId).filter((id): id is string => !!id));
+    if (user) {
+      for (const c of fetchedConversations) {
+        if (coveredConversationIds.has(c.id)) continue;
+        const other = otherParticipant(c, user.id);
+        if (!other) continue;
+        merged.push({ contact: other, conversationId: c.id, lastMessageAt: c.lastMessageAt, unreadCount: c.unreadCount ?? 0 });
+      }
+    }
+
     merged.sort((a, b) => {
       if (a.lastMessageAt && b.lastMessageAt) return b.lastMessageAt.localeCompare(a.lastMessageAt);
       if (a.lastMessageAt) return -1;
@@ -213,18 +232,26 @@ export default function MessagesPanel({ initialConversationId }: { initialConver
     if (!conversationId || !body.trim() || isSending) return;
     const sendingToConversationId = conversationId;
     setIsSending(true);
-    const [, err] = await SendMessageAction(sendingToConversationId, body.trim());
+    const [res, err] = await SendMessageAction(sendingToConversationId, body.trim());
     setIsSending(false);
     if (err) {
       setError(err);
       return;
     }
     setBody("");
-    const [res] = await GetMessagesAction(sendingToConversationId);
-    // Only apply this refetch if the user hasn't switched to a different
-    // conversation while it was in flight - otherwise it would overwrite
-    // whatever's now on screen with the conversation we just sent to.
-    if (conversationIdRef.current === sendingToConversationId) setMessages(res?.data ?? []);
+    // The POST response already carries the created message - no need for a
+    // separate GET round-trip to see our own just-sent message (this used to
+    // add a full extra request's worth of latency to every send). The
+    // socket's own message:new echo would eventually add it too, but this
+    // way it appears the instant the send itself completes; onMessageNew's
+    // existing dedup-by-id skips it if the echo arrives moments later. Only
+    // apply it if the user hasn't switched to a different conversation while
+    // the send was in flight - otherwise it'd inject a message into whatever
+    // thread is now on screen.
+    if (res?.data && conversationIdRef.current === sendingToConversationId) {
+      const sent = res.data;
+      setMessages((prev) => (prev.some((m) => m.id === sent.id) ? prev : [...prev, sent]));
+    }
     loadContacts();
   };
 

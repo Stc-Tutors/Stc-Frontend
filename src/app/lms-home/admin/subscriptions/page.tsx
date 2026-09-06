@@ -21,10 +21,20 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { GetAllSubscriptionsAction, PauseSubscriptionAction, ResumeSubscriptionAction } from "@/server/subscription";
-import { Subscription, SubscriptionStatus, SubscriptionUser } from "@/types/subscription";
-import { PricingPlan } from "@/types/pricing-plan";
+import { Subscription, SubscriptionStatus } from "@/types/subscription";
 
 const CONSEQUENCES = ["LMS Access Paused", "Student Portal Readonly", "Course Enrollment Restricted"];
+
+// A populated `user`/`plan` ref resolves to null (not a string, not an
+// object) when the referenced document has since been deleted - e.g. a
+// pricing plan removed while a subscription still pointed at it. Treating
+// that the same as a valid object crashed this whole page (`.name/.email` on
+// null); this normalizes all three shapes into one thing to render.
+function describeRef<T>(ref: string | T | null | undefined, fallback: string, describe: (v: T) => string): string {
+  if (!ref) return fallback;
+  if (typeof ref === "string") return ref;
+  return describe(ref);
+}
 
 export default function AdminSubscriptionsPage() {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
@@ -84,18 +94,12 @@ export default function AdminSubscriptionsPage() {
           </TableHeader>
           <TableBody>
             {subscriptions.map((s) => {
-              const user = s.user as SubscriptionUser;
-              const plan = s.plan as PricingPlan;
               return (
                 <TableRow key={s.id}>
                   <TableCell>
-                    {typeof s.user === "string"
-                      ? s.user
-                      : user.email
-                        ? `${user.firstName} ${user.lastName} (${user.email})`
-                        : `${user.firstName} ${user.lastName}`}
+                    {describeRef(s.user, "Deleted user", (u) => (u.email ? `${u.firstName} ${u.lastName} (${u.email})` : `${u.firstName} ${u.lastName}`))}
                   </TableCell>
-                  <TableCell>{typeof s.plan === "string" ? s.plan : plan.name}</TableCell>
+                  <TableCell>{describeRef(s.plan, "Deleted plan", (p) => p.name)}</TableCell>
                   <TableCell>
                     <span className={`text-xs px-2 py-1 rounded-full ${s.status === SubscriptionStatus.PAUSED ? "bg-amber-100 text-amber-700" : "bg-green-100 text-green-700"}`}>
                       {s.status}
@@ -126,16 +130,14 @@ export default function AdminSubscriptionsPage() {
               <div className="flex items-center gap-3">
                 <Avatar className="h-10 w-10">
                   <AvatarImage
-                    src={typeof target.user === "string" ? undefined : (target.user as SubscriptionUser).email}
-                    alt={typeof target.user === "string" ? target.user : (target.user as SubscriptionUser).firstName}
+                    src={typeof target.user === "object" && target.user ? target.user.email : undefined}
+                    alt={describeRef(target.user, "?", (u) => u.firstName)}
                   />
-                  <AvatarFallback>
-                    {typeof target.user === "string" ? "?" : (target.user as SubscriptionUser).firstName?.[0]}
-                  </AvatarFallback>
+                  <AvatarFallback>{describeRef(target.user, "?", (u) => u.firstName?.[0] ?? "?")}</AvatarFallback>
                 </Avatar>
                 <div>
                   <p className="font-medium text-sm">
-                    {typeof target.user === "string" ? target.user : `${(target.user as SubscriptionUser).firstName} ${(target.user as SubscriptionUser).lastName}`}
+                    {describeRef(target.user, "Deleted user", (u) => `${u.firstName} ${u.lastName}`)}
                   </p>
                   <p className="text-xs text-gray-500">
                     Current status: <span className="font-medium">{target.status}</span>

@@ -33,14 +33,15 @@ export async function EnrollInCourseAction(
 export async function AllocateTutorAction(
   studentId: string,
   courseId: string,
-  subject: string
+  subject: string,
+  meetingUrl?: string
 ): Promise<[ApiResponse<AllocateTutorResult> | null, string | null]> {
   const [res, error] = await fetchAPI({
     url: "/course-enrollments/allocate",
     request: {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ studentId, courseId, subject }),
+      body: JSON.stringify({ studentId, courseId, subject, meetingUrl: meetingUrl?.trim() || undefined }),
     },
   });
 
