@@ -83,6 +83,10 @@ export default function AdminSessionsPage() {
   const [cancelReason, setCancelReason] = useState("");
   const [isCancelling, setIsCancelling] = useState(false);
 
+  // So the "Urgent"/"Late notice" badges below can show the actual
+  // configured threshold instead of a hardcoded number.
+  const [noticeSettings, setNoticeSettings] = useState<RescheduleNoticeSettings | null>(null);
+
   const load = async (f: Filter) => {
     setIsLoading(true);
     if (f === "pending") {
@@ -101,6 +105,10 @@ export default function AdminSessionsPage() {
     load(filter);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter]);
+
+  useEffect(() => {
+    GetRescheduleNoticeSettingsAction().then(([res]) => setNoticeSettings(res?.data ?? null));
+  }, []);
 
   const handleApprove = async (id: string) => {
     const meetingUrl = newLinkFor[id]?.trim() || undefined;
@@ -167,6 +175,19 @@ export default function AdminSessionsPage() {
   const lessonOf = (r: RescheduleRequest) => (typeof r.lesson === "string" ? null : r.lesson);
   const courseOf = (r: RescheduleRequest) => (typeof r.course === "string" ? null : r.course);
 
+  // The "Urgent" badge only ever appears on a family-filed CANCEL/RESCHEDULE
+  // (see stcbe's LessonService.cancel/reschedule) - urgentNoticeHoursFor picks
+  // the requester's own role-specific threshold (RescheduleNoticeSettings is
+  // per-role) rather than guessing. Falls back to whichever setting is
+  // available if the requester's role wasn't populated for some reason.
+  const urgentNoticeHoursFor = (r: RescheduleRequest): number | undefined => {
+    if (!noticeSettings) return undefined;
+    const requesterRole = typeof r.requestedBy === "string" ? undefined : r.requestedBy.role;
+    if (requesterRole === UserRole.STUDENT) return noticeSettings.studentNoticeHours;
+    if (requesterRole === UserRole.PARENT) return noticeSettings.parentNoticeHours;
+    return noticeSettings.studentNoticeHours;
+  };
+
   return (
     <div className="bg-white shadow rounded-2xl p-6">
       <div className="flex items-center justify-between mb-6">
@@ -211,7 +232,7 @@ export default function AdminSessionsPage() {
                         </span>
                         {r.urgent && (
                           <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-amber-100 text-amber-800">
-                            Urgent · inside 24h
+                            Urgent{urgentNoticeHoursFor(r) != null ? ` · inside ${urgentNoticeHoursFor(r)}h` : ""}
                           </span>
                         )}
                         {r.type === "TUTOR_RESCHEDULE" && r.stage === "AWAITING_PARENT" && (
@@ -221,7 +242,7 @@ export default function AdminSessionsPage() {
                         )}
                         {r.lateNotice && (
                           <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-orange-100 text-orange-800">
-                            Late notice · surcharge
+                            Late notice{noticeSettings ? ` · inside ${noticeSettings.tutorNoticeHours}h` : ""} · surcharge
                           </span>
                         )}
                       </div>
