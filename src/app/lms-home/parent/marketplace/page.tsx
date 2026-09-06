@@ -6,6 +6,7 @@ import { Loader2, ShoppingBag, UserPlus } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { ChildSwitcherDropdown } from "@/components/child-switcher-dropdown";
 import { useSelectedStudent } from "@/contexts/selected-student-context";
 import { ToastError, ToastSuccess } from "@/components/ui/custom/toast";
@@ -19,6 +20,7 @@ import { QuotePricingAction } from "@/server/pricing";
 import { PricingQuote } from "@/types/pricing";
 import { EnrollInCourseAction } from "@/server/course-enrollment";
 import { InitiatePaymentAction, VerifyPaymentAction } from "@/server/payment";
+import { RedeemPaymentBypassTokenAction } from "@/server/enrollment";
 import PaymentConsentModal from "@/components/payment-consent-modal";
 
 // Lets a parent add a new course/service to an EXISTING child's enrollments
@@ -48,6 +50,7 @@ export default function ParentMarketplacePage() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPaymentConsent, setShowPaymentConsent] = useState(false);
+  const [bypassCode, setBypassCode] = useState("");
 
   const selectedService = services.find((s) => s.slug === selectedSlug) ?? null;
   const selectedCourse = courses.find((c) => c.id === selectedCourseId) ?? null;
@@ -109,6 +112,20 @@ export default function ParentMarketplacePage() {
       const [enrollRes, enrollError] = await EnrollInCourseAction(selectedCourse.id, selectedStudent.id);
       if (enrollError || !enrollRes?.data) {
         ToastError(enrollError || "Failed to add this course");
+        return;
+      }
+
+      if (displayAmount > 0 && bypassCode.trim()) {
+        const [, redeemError] = await RedeemPaymentBypassTokenAction(selectedStudent.id, bypassCode.trim());
+        if (redeemError) {
+          ToastError(redeemError);
+          router.push("/lms-home/parent/payments");
+          return;
+        }
+        ToastSuccess(`${selectedCourse.title} added - payment waived with your bypass code`);
+        setSelectedCourseId("");
+        setQuote(null);
+        setBypassCode("");
         return;
       }
 
@@ -311,12 +328,28 @@ export default function ParentMarketplacePage() {
               </div>
             </div>
 
+            {displayAmount > 0 && (
+              <div className="space-y-1">
+                <p className="text-sm text-gray-600">Have a payment bypass code? (optional)</p>
+                <Input
+                  placeholder="Bypass code"
+                  value={bypassCode}
+                  onChange={(e) => setBypassCode(e.target.value)}
+                  className="max-w-xs"
+                />
+              </div>
+            )}
+
             <Button
-              onClick={() => (displayAmount > 0 ? setShowPaymentConsent(true) : handleConfirm())}
+              onClick={() => (displayAmount > 0 && !bypassCode.trim() ? setShowPaymentConsent(true) : handleConfirm())}
               disabled={isSubmitting || quoteLoading || !selectedStudent}
               className="w-full md:w-auto"
             >
-              {isSubmitting ? "Processing..." : displayAmount > 0 ? "Confirm & Pay" : "Confirm & Add Course"}
+              {isSubmitting
+                ? "Processing..."
+                : displayAmount > 0 && !bypassCode.trim()
+                ? "Confirm & Pay"
+                : "Confirm & Add Course"}
             </Button>
           </CardContent>
         </Card>

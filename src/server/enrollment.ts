@@ -226,3 +226,25 @@ export async function ApproveScheduleAction(id: string): Promise<[ApiResponse<St
   const resData = res ? ((await res.json()) as ApiResponse<Student>) : null;
   return [resData, error];
 }
+
+// Marketplace "buy another course" counterpart to the registration wizard's
+// own bypassToken field (see EnrollmentResponse above) - validates/consumes
+// a payment-bypass code for an already-enrolled family's student record.
+// On success, the caller should skip InitiatePaymentAction entirely, same
+// as the wizard treats `payment: null`.
+export async function RedeemPaymentBypassTokenAction(
+  studentId: string,
+  token: string
+): Promise<[ApiResponse<null> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: `/enrollments/${studentId}/payment-bypass-token/redeem`,
+    request: {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token }),
+    },
+  });
+
+  const resData = res ? ((await res.json()) as ApiResponse<null>) : null;
+  return [resData, error];
+}
