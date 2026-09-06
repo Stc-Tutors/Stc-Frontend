@@ -20,9 +20,23 @@ import {
   ForwardRescheduleToParentAction,
   UpdateLessonAction,
   CancelLessonAction,
+  OverrideRescheduleSurchargeAction,
+  GetRescheduleSurchargeSettingsAction,
+  UpdateRescheduleSurchargeSettingsAction,
+  GetRescheduleNoticeSettingsAction,
+  UpdateRescheduleNoticeSettingsAction,
 } from "@/server/lesson";
 import { formatScheduleDateTime } from "@/lib/datetime";
-import { Lesson, LessonCourseRef, LessonStatus, RescheduleRequest, RescheduleRequestStatus } from "@/types/lesson";
+import {
+  Lesson,
+  LessonCourseRef,
+  LessonStatus,
+  RescheduleNoticeSettings,
+  RescheduleRequest,
+  RescheduleRequestStatus,
+  RescheduleSurchargeSettings,
+  RescheduleSurchargeType,
+} from "@/types/lesson";
 import { useUser } from "@/contexts/user-context";
 import { AdminPermission } from "@/types/admin-permission";
 import { UserRole } from "@/types/user";
@@ -42,6 +56,12 @@ export default function AdminSessionsPage() {
   // go through reschedule() instead), so this is a plain permission check
   // with no HOD carve-out.
   const canCancelClasses = hasPermission(AdminPermission.CANCEL_CLASSES);
+  // Both of these routes are SUPER_ADMIN/ALMIGHTY_ADMIN or STC_ADMIN/TUTOR_ADMIN
+  // only at the backend role level (HOD isn't even in adminRoles for them), so
+  // no HOD carve-out here - matches AdminAuthorizationService.hasPermission
+  // returning [] (never a bypass) for a plain HOD.
+  const canManageNoticeSettings = hasPermission(AdminPermission.MANAGE_SCHEDULES);
+  const canManagePricing = hasPermission(AdminPermission.MANAGE_PRICING);
 
   const [filter, setFilter] = useState<Filter>("upcoming");
   const [lessons, setLessons] = useState<Lesson[]>([]);
@@ -55,6 +75,8 @@ export default function AdminSessionsPage() {
 
   // Per reschedule-request choice: reuse the lesson's existing link, or type a new one.
   const [newLinkFor, setNewLinkFor] = useState<Record<string, string>>({});
+  // Per reschedule-request override of the auto-computed late-notice surcharge.
+  const [surchargeDraft, setSurchargeDraft] = useState<Record<string, string>>({});
 
   // Which lesson's cancellation reason prompt is currently open.
   const [cancellingLessonId, setCancellingLessonId] = useState<string | null>(null);
@@ -97,6 +119,18 @@ export default function AdminSessionsPage() {
     const [, error] = await ForwardRescheduleToParentAction(id);
     setMessage(error || "Forwarded to the parent for confirmation");
     load(filter);
+  };
+
+  const handleOverrideSurcharge = async (id: string) => {
+    const raw = surchargeDraft[id];
+    const amount = Number(raw);
+    if (!raw || Number.isNaN(amount) || amount < 0) return;
+    const [, error] = await OverrideRescheduleSurchargeAction(id, amount);
+    setMessage(error || "Surcharge updated");
+    if (!error) {
+      setSurchargeDraft((prev) => ({ ...prev, [id]: "" }));
+      load(filter);
+    }
   };
 
   const startEditLink = (lesson: Lesson) => {
@@ -150,6 +184,13 @@ export default function AdminSessionsPage() {
 
       {message && <p className="text-sm text-blue-600 mb-4">{message}</p>}
 
+      {filter === "pending" && (
+        <>
+          {canManageNoticeSettings && <NoticeSettingsPanel />}
+          {canManagePricing && <SurchargeSettingsPanel />}
+        </>
+      )}
+
       {isLoading ? (
         <p className="text-sm text-gray-500 py-4">Loading...</p>
       ) : filter === "pending" ? (
@@ -178,6 +219,11 @@ export default function AdminSessionsPage() {
                             Awaiting parent confirmation
                           </span>
                         )}
+                        {r.lateNotice && (
+                          <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-orange-100 text-orange-800">
+                            Late notice · surcharge
+                          </span>
+                        )}
                       </div>
                       <p className="font-medium text-gray-800">
                         {lesson?.title ?? "Lesson"} {course?.title ? `· ${course.title}` : ""}
@@ -186,6 +232,12 @@ export default function AdminSessionsPage() {
                         {formatScheduleDateTime(r.currentScheduledDate)} &rarr; {r.requestedScheduledDate ? formatScheduleDateTime(r.requestedScheduledDate) : "(cancellation)"}
                       </p>
                       {r.reason && <p className="text-gray-500 mt-1">Reason: {r.reason}</p>}
+                      {r.surcharge && (
+                        <p className="text-gray-500 mt-1">
+                          Surcharge: {r.surcharge.amount} {r.surcharge.currency}
+                          {r.surcharge.overriddenAt ? " (overridden)" : ""}
+                        </p>
+                      )}
                     </div>
                     <div className="flex gap-2 shrink-0">
                       {r.type === "TUTOR_RESCHEDULE" ? (
@@ -204,6 +256,23 @@ export default function AdminSessionsPage() {
                       </Button>
                     </div>
                   </div>
+
+                  {r.lateNotice && (
+                    <div className="text-xs flex items-center gap-2 border-t pt-2 mt-3">
+                      <span className="text-gray-500 whitespace-nowrap">Override surcharge amount:</span>
+                      <Input
+                        type="number"
+                        min={0}
+                        placeholder={r.surcharge ? String(r.surcharge.amount) : "0"}
+                        value={surchargeDraft[r.id] ?? ""}
+                        onChange={(e) => setSurchargeDraft((prev) => ({ ...prev, [r.id]: e.target.value }))}
+                        className="h-7 text-xs w-24"
+                      />
+                      <button onClick={() => handleOverrideSurcharge(r.id)} className="text-blue-600 hover:underline">
+                        Save
+                      </button>
+                    </div>
+                  )}
 
                   {r.type !== "TUTOR_RESCHEDULE" && (
                   <div className="mt-3 pt-3 border-t text-xs space-y-1.5">
@@ -349,6 +418,162 @@ export default function AdminSessionsPage() {
           </TableBody>
         </Table>
       )}
+    </div>
+  );
+}
+
+// Mirrors Stc-SuperAdmin's approvals page NoticeSettingsPanel - same backend
+// endpoint (PUT /lessons/admin/reschedule-notice-settings), gated here on
+// MANAGE_SCHEDULES since a plain STC_ADMIN/TUTOR_ADMIN needs it explicitly
+// granted (SUPER_ADMIN/ALMIGHTY_ADMIN always pass server-side).
+function NoticeSettingsPanel() {
+  const [settings, setSettings] = useState<RescheduleNoticeSettings | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    GetRescheduleNoticeSettingsAction().then(([res]) => setSettings(res?.data ?? null));
+  }, []);
+
+  if (!settings) return null;
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    const [res, error] = await UpdateRescheduleNoticeSettingsAction({
+      studentNoticeHours: settings.studentNoticeHours,
+      parentNoticeHours: settings.parentNoticeHours,
+      tutorNoticeHours: settings.tutorNoticeHours,
+    });
+    setIsSaving(false);
+    if (res?.data) setSettings(res.data);
+    setMessage(error || "Saved");
+  };
+
+  return (
+    <div className="bg-gray-50 border rounded-lg p-4 text-sm space-y-2 mb-4">
+      <p className="font-medium text-gray-900">Cancel/reschedule notice window</p>
+      <p className="text-xs text-gray-500">
+        How much notice each role must give before a class starts for a cancellation or reschedule to apply
+        immediately. Less notice than this hard-blocks the direct action into this review queue instead.
+      </p>
+      <div className="flex flex-wrap items-end gap-4">
+        <label className="flex flex-col gap-1">
+          <span className="text-xs text-gray-500">Student (hours)</span>
+          <input
+            type="number"
+            min={0}
+            value={settings.studentNoticeHours}
+            onChange={(e) => setSettings({ ...settings, studentNoticeHours: Number(e.target.value) })}
+            className="border border-gray-300 rounded-md px-2 py-1 text-xs w-24"
+          />
+        </label>
+        <label className="flex flex-col gap-1">
+          <span className="text-xs text-gray-500">Parent (hours)</span>
+          <input
+            type="number"
+            min={0}
+            value={settings.parentNoticeHours}
+            onChange={(e) => setSettings({ ...settings, parentNoticeHours: Number(e.target.value) })}
+            className="border border-gray-300 rounded-md px-2 py-1 text-xs w-24"
+          />
+        </label>
+        <label className="flex flex-col gap-1">
+          <span className="text-xs text-gray-500">Tutor (hours)</span>
+          <input
+            type="number"
+            min={0}
+            value={settings.tutorNoticeHours}
+            onChange={(e) => setSettings({ ...settings, tutorNoticeHours: Number(e.target.value) })}
+            className="border border-gray-300 rounded-md px-2 py-1 text-xs w-24"
+          />
+        </label>
+        <Button size="sm" onClick={handleSave} disabled={isSaving} className="h-7 px-3 text-xs">
+          {isSaving ? "Saving..." : "Save"}
+        </Button>
+        {message && <span className="text-xs text-gray-500">{message}</span>}
+      </div>
+    </div>
+  );
+}
+
+// Mirrors Stc-SuperAdmin's approvals page SurchargeSettingsPanel - same
+// backend endpoint (PUT /lessons/admin/reschedule-surcharge-settings), gated
+// here on MANAGE_PRICING (also required server-side for a plain STC_ADMIN/
+// TUTOR_ADMIN).
+function SurchargeSettingsPanel() {
+  const [settings, setSettings] = useState<RescheduleSurchargeSettings | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    GetRescheduleSurchargeSettingsAction().then(([res]) => setSettings(res?.data ?? null));
+  }, []);
+
+  if (!settings) return null;
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    const [res, error] = await UpdateRescheduleSurchargeSettingsAction({
+      type: settings.type,
+      flatAmount: settings.flatAmount,
+      percentage: settings.percentage,
+      currency: settings.currency,
+    });
+    setIsSaving(false);
+    if (res?.data) setSettings(res.data);
+    setMessage(error || "Saved");
+  };
+
+  return (
+    <div className="bg-gray-50 border rounded-lg p-4 text-sm space-y-2 mb-4">
+      <p className="font-medium text-gray-900">Late tutor-reschedule surcharge</p>
+      <p className="text-xs text-gray-500">
+        Applied when a tutor requests a reschedule inside their configured notice window (still refused outright
+        inside 2 hours). Tutors/parents/students see this rate before submitting a late request; you can still
+        override the amount on a specific request when reviewing it below.
+      </p>
+      <div className="flex flex-wrap items-center gap-2">
+        <select
+          value={settings.type}
+          onChange={(e) => setSettings({ ...settings, type: e.target.value as RescheduleSurchargeType })}
+          className="border border-gray-300 rounded-md px-2 py-1 text-xs max-w-[10rem]"
+        >
+          <option value={RescheduleSurchargeType.FLAT}>Flat fee</option>
+          <option value={RescheduleSurchargeType.PERCENTAGE}>% of lesson rate</option>
+        </select>
+        {settings.type === RescheduleSurchargeType.FLAT ? (
+          <>
+            <input
+              type="number"
+              min={0}
+              value={settings.flatAmount}
+              onChange={(e) => setSettings({ ...settings, flatAmount: Number(e.target.value) })}
+              className="border border-gray-300 rounded-md px-2 py-1 text-xs w-28"
+            />
+            <input
+              value={settings.currency}
+              onChange={(e) => setSettings({ ...settings, currency: e.target.value })}
+              className="border border-gray-300 rounded-md px-2 py-1 text-xs w-20"
+            />
+          </>
+        ) : (
+          <div className="flex items-center gap-1">
+            <input
+              type="number"
+              min={0}
+              max={100}
+              value={settings.percentage}
+              onChange={(e) => setSettings({ ...settings, percentage: Number(e.target.value) })}
+              className="border border-gray-300 rounded-md px-2 py-1 text-xs w-20"
+            />
+            <span className="text-xs text-gray-500">%</span>
+          </div>
+        )}
+        <Button size="sm" onClick={handleSave} disabled={isSaving} className="h-7 px-3 text-xs">
+          {isSaving ? "Saving..." : "Save"}
+        </Button>
+        {message && <span className="text-xs text-gray-500">{message}</span>}
+      </div>
     </div>
   );
 }

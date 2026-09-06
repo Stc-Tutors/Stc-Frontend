@@ -101,7 +101,7 @@ export interface RescheduleRequest {
   id: string;
   lesson: string | { id: string; title: string; scheduledDate: string; meetingUrl?: string };
   course: string | { id: string; title: string };
-  requestedBy: string | { id: string; firstName: string; lastName: string; email?: string };
+  requestedBy: string | { id: string; firstName: string; lastName: string; email?: string; role?: string };
   type: RescheduleRequestType;
   stage?: TutorRescheduleStage;
   currentScheduledDate: string;

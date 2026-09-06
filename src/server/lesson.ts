@@ -322,6 +322,21 @@ export async function GetRescheduleNoticeSettingsAction(): Promise<
   return [resData, error];
 }
 
+// SUPER_ADMIN/ALMIGHTY_ADMIN always allowed; a lesser admin needs MANAGE_SCHEDULES.
+export async function UpdateRescheduleNoticeSettingsAction(data: {
+  studentNoticeHours: number;
+  parentNoticeHours: number;
+  tutorNoticeHours: number;
+}): Promise<[ApiResponse<RescheduleNoticeSettings> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: "/lessons/admin/reschedule-notice-settings",
+    request: { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) },
+  });
+
+  const resData = res ? ((await res.json()) as ApiResponse<RescheduleNoticeSettings>) : null;
+  return [resData, error];
+}
+
 // SUPER_ADMIN/ALMIGHTY_ADMIN always allowed; a lesser admin needs MANAGE_PRICING.
 export async function UpdateRescheduleSurchargeSettingsAction(data: {
   type: RescheduleSurchargeType;
