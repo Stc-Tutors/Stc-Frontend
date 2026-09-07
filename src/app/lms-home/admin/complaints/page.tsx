@@ -13,9 +13,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ToastError, ToastSuccess } from "@/components/ui/custom/toast";
 import { GetAllComplaintsAction, AssignComplaintAction, ResolveComplaintAction } from "@/server/complaint";
+import { GetUserByIdAction, GetUsersAction } from "@/server/admin";
 import { Complaint, ComplaintCategory, ComplaintStatus } from "@/types/complaint";
+import { User, UserRole } from "@/types/user";
 import { useUser } from "@/contexts/user-context";
 import { AdminPermission } from "@/types/admin-permission";
+
+const ASSIGNEE_ROLES = [UserRole.HOD, UserRole.STC_ADMIN, UserRole.TUTOR_ADMIN, UserRole.SUPER_ADMIN];
 
 const CATEGORY_LABELS: Record<ComplaintCategory, string> = {
   [ComplaintCategory.PAYMENT]: "Payment",
@@ -43,6 +47,10 @@ export default function AdminComplaintsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [assigneeId, setAssigneeId] = useState("");
+  const [assigneeRole, setAssigneeRole] = useState<UserRole>(UserRole.STC_ADMIN);
+  const [assigneeSearch, setAssigneeSearch] = useState("");
+  const [assigneeResults, setAssigneeResults] = useState<User[]>([]);
+  const [assignedToName, setAssignedToName] = useState<string | null>(null);
   const [resolutionStatus, setResolutionStatus] = useState<ComplaintStatus.RESOLVED | ComplaintStatus.DISMISSED>(
     ComplaintStatus.RESOLVED
   );
@@ -65,15 +73,35 @@ export default function AdminComplaintsPage() {
 
   const selected = complaints.find((c) => c.id === selectedId) ?? null;
 
-  const handleAssign = async () => {
-    if (!selectedId || !assigneeId.trim()) {
-      ToastError("Enter an assignee user id");
+  useEffect(() => {
+    if (!selected?.assignedTo) {
+      setAssignedToName(null);
       return;
     }
-    const [, error] = await AssignComplaintAction(selectedId, assigneeId.trim());
+    GetUserByIdAction(selected.assignedTo).then(([res]) => {
+      setAssignedToName(res?.data ? `${res.data.firstName} ${res.data.lastName}` : null);
+    });
+  }, [selected?.assignedTo]);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      GetUsersAction({ role: assigneeRole, search: assigneeSearch || undefined, limit: 10 }).then(([res]) =>
+        setAssigneeResults(res?.data ?? [])
+      );
+    }, 250);
+    return () => clearTimeout(timeout);
+  }, [assigneeRole, assigneeSearch]);
+
+  const handleAssign = async () => {
+    if (!selectedId || !assigneeId) {
+      ToastError("Pick an assignee");
+      return;
+    }
+    const [, error] = await AssignComplaintAction(selectedId, assigneeId);
     if (error) ToastError(error);
     else ToastSuccess("Complaint assigned");
     setAssigneeId("");
+    setAssigneeSearch("");
     load();
   };
 
@@ -174,7 +202,7 @@ export default function AdminComplaintsPage() {
             </p>
             <p className="text-sm text-gray-600 mt-2">{selected.description}</p>
             {selected.assignedTo && (
-              <p className="text-xs text-gray-500 mt-2">Assigned to: {selected.assignedTo}</p>
+              <p className="text-xs text-gray-500 mt-2">Assigned to: {assignedToName ?? "..."}</p>
             )}
             {selected.resolutionNotes && (
               <p className="text-sm text-gray-500 mt-2 border-t pt-2">
@@ -187,17 +215,39 @@ export default function AdminComplaintsPage() {
             <>
               <div className="border-t pt-4">
                 <h3 className="text-sm font-medium mb-2">Assign</h3>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2 mb-2">
+                  <select
+                    value={assigneeRole}
+                    onChange={(e) => {
+                      setAssigneeRole(e.target.value as UserRole);
+                      setAssigneeId("");
+                    }}
+                    className="border rounded-md px-3 py-2 text-sm"
+                  >
+                    {ASSIGNEE_ROLES.map((r) => (
+                      <option key={r} value={r}>{r}</option>
+                    ))}
+                  </select>
                   <Input
-                    placeholder="Assignee user id"
-                    value={assigneeId}
-                    onChange={(e) => setAssigneeId(e.target.value)}
+                    placeholder="Search by name..."
+                    value={assigneeSearch}
+                    onChange={(e) => setAssigneeSearch(e.target.value)}
                     className="max-w-xs"
                   />
-                  <Button size="sm" onClick={handleAssign}>
-                    Assign
-                  </Button>
                 </div>
+                {assigneeResults.length > 0 && (
+                  <div className="flex flex-col gap-1 max-h-32 overflow-y-auto border rounded-md p-2 mb-2">
+                    {assigneeResults.map((u) => (
+                      <label key={u.id} className="flex items-center gap-2 text-sm cursor-pointer">
+                        <input type="radio" checked={assigneeId === u.id} onChange={() => setAssigneeId(u.id)} />
+                        {u.firstName} {u.lastName}
+                      </label>
+                    ))}
+                  </div>
+                )}
+                <Button size="sm" onClick={handleAssign} disabled={!assigneeId}>
+                  Assign
+                </Button>
               </div>
 
               <div className="border-t pt-4">

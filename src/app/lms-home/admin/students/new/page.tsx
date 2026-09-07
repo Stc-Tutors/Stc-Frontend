@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { UserSearchSelect } from "@/components/user-search-select";
 import { CreateEnrollmentByAdminAction } from "@/server/admin";
+import { GetTaxonomyOptionsAction } from "@/server/taxonomy-option";
+import { ITaxonomyOption, TaxonomyOptionKind } from "@/types/service-catalog";
 import { UserRole } from "@/types/user";
 
 export default function AddNewStudentPage() {
@@ -24,6 +26,13 @@ export default function AddNewStudentPage() {
   const [primaryLanguage, setPrimaryLanguage] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [countryOptions, setCountryOptions] = useState<ITaxonomyOption[]>([]);
+  const [languageOptions, setLanguageOptions] = useState<ITaxonomyOption[]>([]);
+
+  useEffect(() => {
+    GetTaxonomyOptionsAction(TaxonomyOptionKind.COUNTRY).then(([res]) => setCountryOptions(res?.data ?? []));
+    GetTaxonomyOptionsAction(TaxonomyOptionKind.LANGUAGE).then(([res]) => setLanguageOptions(res?.data ?? []));
+  }, []);
 
   const handleSubmit = async () => {
     if (!fullName.trim() || !parentUserId) {
@@ -112,11 +121,29 @@ export default function AddNewStudentPage() {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <Label className="mb-1 block">Country of Residence</Label>
-            <Input value={countryOfResidence} onChange={(e) => setCountryOfResidence(e.target.value)} />
+            <select
+              value={countryOfResidence}
+              onChange={(e) => setCountryOfResidence(e.target.value)}
+              className="border border-gray-300 rounded-md px-3 py-2 text-sm w-full"
+            >
+              <option value="">Select a country</option>
+              {countryOptions.map((c) => (
+                <option key={c.id} value={c.value}>{c.label}</option>
+              ))}
+            </select>
           </div>
           <div>
             <Label className="mb-1 block">Primary Language</Label>
-            <Input value={primaryLanguage} onChange={(e) => setPrimaryLanguage(e.target.value)} />
+            <select
+              value={primaryLanguage}
+              onChange={(e) => setPrimaryLanguage(e.target.value)}
+              className="border border-gray-300 rounded-md px-3 py-2 text-sm w-full"
+            >
+              <option value="">Select a language</option>
+              {languageOptions.map((l) => (
+                <option key={l.id} value={l.value}>{l.label}</option>
+              ))}
+            </select>
           </div>
         </div>
 

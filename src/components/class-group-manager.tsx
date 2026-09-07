@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import { CreateClassGroupAction, DeleteClassGroupAction, GetAdminClassGroupsAction, UpdateClassGroupAction } from "@/server/class-group";
 import { GetAdminServicesAction } from "@/server/service-catalog";
+import { GetCoursesAction } from "@/server/course";
 import { CLASS_GROUP_STATUS_LABELS, ClassGroupStatus, IClassGroup, IService } from "@/types/service-catalog";
+import { Course } from "@/types/course";
 
 interface GroupForm {
   serviceType: string;
@@ -67,6 +69,15 @@ export function ClassGroupManager({ serviceType, hideHeading }: { serviceType?: 
   const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState<GroupForm>(emptyForm(serviceType ?? ""));
   const [isSaving, setIsSaving] = useState(false);
+  const [courses, setCourses] = useState<Course[]>([]);
+
+  useEffect(() => {
+    if (!form.serviceType) {
+      setCourses([]);
+      return;
+    }
+    GetCoursesAction({ serviceType: form.serviceType }).then(([res]) => setCourses(res?.data ?? []));
+  }, [form.serviceType]);
 
   const serviceLocked = !!serviceType;
 
@@ -216,12 +227,17 @@ export function ClassGroupManager({ serviceType, hideHeading }: { serviceType?: 
           {!editingId && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <div className="space-y-1">
-                <label className="text-xs text-gray-500">Course (optional)</label>
-                <input
+                <label className="text-xs text-gray-500">Course (optional, Path C cohorts only)</label>
+                <select
                   value={form.course}
                   onChange={(e) => setForm((p) => ({ ...p, course: e.target.value }))}
                   className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-                />
+                >
+                  <option value="">None</option>
+                  {courses.map((c) => (
+                    <option key={c.id} value={c.id}>{c.title}</option>
+                  ))}
+                </select>
               </div>
               <div className="space-y-1">
                 <label className="text-xs text-gray-500">Subject (optional)</label>

@@ -224,6 +224,66 @@ export async function RejectAssignmentAction(
   return [resData, error];
 }
 
+// Tutor-facing: accept/decline a whole Group Class's proposed schedule in
+// one action, once every student has confirmed - see stcbe's
+// AllocationHubService.acceptGroupAssignment/rejectGroupAssignment.
+export async function AcceptGroupAssignmentAction(
+  classGroupId: string
+): Promise<[ApiResponse<BulkActionResult[]> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: `/allocation-hub/class-groups/${classGroupId}/accept`,
+    request: { method: "PATCH", headers: { "Content-Type": "application/json" } },
+  });
+  const resData = res ? ((await res.json()) as ApiResponse<BulkActionResult[]>) : null;
+  return [resData, error];
+}
+
+export async function RejectGroupAssignmentAction(
+  classGroupId: string,
+  reason?: string
+): Promise<[ApiResponse<BulkActionResult[]> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: `/allocation-hub/class-groups/${classGroupId}/reject`,
+    request: {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reason }),
+    },
+  });
+  const resData = res ? ((await res.json()) as ApiResponse<BulkActionResult[]>) : null;
+  return [resData, error];
+}
+
+// Family-facing: confirm/decline a Group Class's proposed day/time matrix -
+// see stcbe's AllocationHubService.confirmGroupSchedule/declineGroupSchedule.
+// Declining reopens the WHOLE group's proposal, not just this student's row.
+export async function ConfirmGroupScheduleAction(
+  subjectEnrollmentId: string
+): Promise<[ApiResponse<SubjectEnrollment> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: `/allocation-hub/subject-enrollments/${subjectEnrollmentId}/confirm-schedule`,
+    request: { method: "PATCH", headers: { "Content-Type": "application/json" } },
+  });
+  const resData = res ? ((await res.json()) as ApiResponse<SubjectEnrollment>) : null;
+  return [resData, error];
+}
+
+export async function DeclineGroupScheduleAction(
+  subjectEnrollmentId: string,
+  reason?: string
+): Promise<[ApiResponse<SubjectEnrollment> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: `/allocation-hub/subject-enrollments/${subjectEnrollmentId}/decline-schedule`,
+    request: {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reason }),
+    },
+  });
+  const resData = res ? ((await res.json()) as ApiResponse<SubjectEnrollment>) : null;
+  return [resData, error];
+}
+
 export async function OffboardTutorAction(
   tutorId: string,
   newTutorId: string

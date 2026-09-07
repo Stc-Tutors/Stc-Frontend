@@ -8,12 +8,14 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import CurriculumDrilldown from "@/components/curriculum-drilldown";
+import GoogleDriveEmbed from "@/components/google-drive-embed";
 import { CurriculumNode } from "@/types/curriculum";
 import { GetServicesAction } from "@/server/service-catalog";
 import { GetCurriculumChildrenAction } from "@/server/curriculum";
+import { GetTaxonomyOptionsAction } from "@/server/taxonomy-option";
 import { CreateCourseAction, GetCourseAction, PublishCourseAction, UpdateCourseAction } from "@/server/course";
 import { CreateCoursePayload } from "@/types/course";
-import { IService } from "@/types/service-catalog";
+import { IService, ITaxonomyOption, TaxonomyOptionKind } from "@/types/service-catalog";
 
 interface CourseFormProps {
   // Set by the admin flow once an instructor is chosen; omitted for a tutor
@@ -82,6 +84,7 @@ export function CourseForm({
   const [price, setPrice] = useState("");
   const [capacity, setCapacity] = useState("");
   const [coverImageUrl, setCoverImageUrl] = useState("");
+  const [languageOptions, setLanguageOptions] = useState<ITaxonomyOption[]>([]);
 
   // Taxonomy attachment - which of the two shapes applies depends on the
   // selected service's terminal stage type (see selectedService below).
@@ -108,6 +111,7 @@ export function CourseForm({
       setServices(res?.data ?? []);
       setIsLoadingServices(false);
     });
+    GetTaxonomyOptionsAction(TaxonomyOptionKind.LANGUAGE).then(([res]) => setLanguageOptions(res?.data ?? []));
   }, []);
 
   // Locked entry point (e.g. "+ New course under X") - pin the service
@@ -276,7 +280,16 @@ export function CourseForm({
         <Textarea placeholder="Description" value={description} onChange={(e) => setDescription(e.target.value)} />
         <div className="grid grid-cols-2 gap-3">
           <Input placeholder="Category" value={category} onChange={(e) => setCategory(e.target.value)} />
-          <Input placeholder="Language" value={language} onChange={(e) => setLanguage(e.target.value)} />
+          <Select value={language} onValueChange={setLanguage}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select language" />
+            </SelectTrigger>
+            <SelectContent>
+              {languageOptions.map((l) => (
+                <SelectItem key={l.id} value={l.value}>{l.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {selectedService && isFlatTree && (
@@ -329,7 +342,7 @@ export function CourseForm({
           <Input type="number" min={0} placeholder="Price" value={price} onChange={(e) => setPrice(e.target.value)} />
           <Input type="number" min={1} placeholder="Capacity (optional)" value={capacity} onChange={(e) => setCapacity(e.target.value)} />
         </div>
-        <Input placeholder="Cover Image URL (optional)" value={coverImageUrl} onChange={(e) => setCoverImageUrl(e.target.value)} />
+        <GoogleDriveEmbed value={coverImageUrl} onChange={setCoverImageUrl} label="Cover Image URL (optional, Google Drive share link)" />
       </div>
 
       <div className="flex justify-end gap-2">

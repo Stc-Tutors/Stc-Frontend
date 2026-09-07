@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { GetCourseAction } from "@/server/course";
 import { Course, CourseTutor } from "@/types/course";
+import { ReportDialog } from "@/components/moderation/report-dialog";
+import { ReportedEntityType } from "@/types/moderation";
 
 export default function CourseDetailPage() {
   const { id } = useParams();
@@ -41,6 +43,7 @@ export default function CourseDetailPage() {
         <p className="text-sm text-gray-500">
           {course.category} &middot; {course.language}
         </p>
+        <ReportDialog entityType={ReportedEntityType.COURSE} entityId={course.id} label="Report this course" className="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-red-600 mt-2" />
       </div>
 
       <div className="mb-10 bg-white rounded-lg shadow-md overflow-hidden">

@@ -29,6 +29,7 @@ import {
 import { GetTutorProfileAction } from "@/server/tutor-profile";
 import { ReportTutorNoShowAction, GetMyTutorNoShowReportsAction } from "@/server/penalty";
 import { DEFAULT_NO_SHOW_GRACE_PERIOD_MINUTES } from "@/types/penalty";
+import GroupScheduleConfirmationBanner from "@/components/group-schedule-confirmation-banner";
 
 interface Row {
   lesson: Lesson;
@@ -223,6 +224,8 @@ export default function SchedulePage() {
           </p>
         </div>
       )}
+
+      <GroupScheduleConfirmationBanner />
 
       {confirmations.length > 0 && (
         <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-purple-400">

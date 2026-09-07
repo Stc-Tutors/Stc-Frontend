@@ -45,6 +45,7 @@ export default function EditEnrollmentForm({
   const [parentOccupation, setParentOccupation] = useState("");
   const [countries, setCountries] = useState<ITaxonomyOption[]>([]);
   const [isLoadingCountries, setIsLoadingCountries] = useState(true);
+  const [languages, setLanguages] = useState<ITaxonomyOption[]>([]);
 
   const isStudentOwner = user?.role === UserRole.STUDENT;
 
@@ -53,6 +54,7 @@ export default function EditEnrollmentForm({
       setCountries(res?.data ?? []);
       setIsLoadingCountries(false);
     });
+    GetTaxonomyOptionsAction(TaxonomyOptionKind.LANGUAGE).then(([res]) => setLanguages(res?.data ?? []));
   }, []);
 
   useEffect(() => {
@@ -173,7 +175,9 @@ export default function EditEnrollmentForm({
                   <SelectValue placeholder="Select language" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="English">English</SelectItem>
+                  {languages.map((l) => (
+                    <SelectItem key={l.id} value={l.value}>{l.label}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

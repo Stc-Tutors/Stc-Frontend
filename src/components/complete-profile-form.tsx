@@ -34,6 +34,7 @@ export default function CompleteProfileForm({ studentId, dashboardPath }: { stud
   const [parentEmail, setParentEmail] = useState("");
   const [countries, setCountries] = useState<ITaxonomyOption[]>([]);
   const [isLoadingCountries, setIsLoadingCountries] = useState(true);
+  const [languages, setLanguages] = useState<ITaxonomyOption[]>([]);
   const [serviceDetails, setServiceDetails] = useState<IServiceDetails | undefined>(undefined);
   const [schedule, setSchedule] = useState<ISchedule[] | undefined>(undefined);
   const [requiresPayment, setRequiresPayment] = useState(false);
@@ -45,6 +46,7 @@ export default function CompleteProfileForm({ studentId, dashboardPath }: { stud
       setCountries(res?.data ?? []);
       setIsLoadingCountries(false);
     });
+    GetTaxonomyOptionsAction(TaxonomyOptionKind.LANGUAGE).then(([res]) => setLanguages(res?.data ?? []));
   }, []);
 
   useEffect(() => {
@@ -235,7 +237,9 @@ export default function CompleteProfileForm({ studentId, dashboardPath }: { stud
                   <SelectValue placeholder="Select language" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="English">English</SelectItem>
+                  {languages.map((l) => (
+                    <SelectItem key={l.id} value={l.value}>{l.label}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

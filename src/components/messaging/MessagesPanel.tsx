@@ -16,6 +16,8 @@ import { Conversation, ConversationParticipant, Message } from "@/types/message"
 import { useMessagingSocket } from "@/hooks/use-messaging-socket";
 import { MessageStatusTicks } from "@/components/messaging/MessageStatusTicks";
 import { PresenceDot } from "@/components/messaging/PresenceDot";
+import { ReportDialog } from "@/components/moderation/report-dialog";
+import { ReportedEntityType } from "@/types/moderation";
 
 const ROLE_LABELS: Record<string, string> = {
   STUDENT: "Student",
@@ -388,6 +390,9 @@ export default function MessagesPanel({ initialConversationId }: { initialConver
                           })}
                           {isMine && <MessageStatusTicks message={m} otherParticipantIds={[selectedContact.id]} />}
                         </p>
+                        {!isMine && (
+                          <ReportDialog entityType={ReportedEntityType.MESSAGE} entityId={m.id} className="text-[11px] text-gray-400 hover:text-red-600" />
+                        )}
                       </div>
                     );
                   })

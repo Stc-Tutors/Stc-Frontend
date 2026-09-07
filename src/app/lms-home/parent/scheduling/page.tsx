@@ -30,6 +30,7 @@ import { ChildSwitcherDropdown } from "@/components/child-switcher-dropdown";
 import { useSelectedStudent } from "@/contexts/selected-student-context";
 import { ReportTutorNoShowAction, GetMyTutorNoShowReportsAction } from "@/server/penalty";
 import { DEFAULT_NO_SHOW_GRACE_PERIOD_MINUTES } from "@/types/penalty";
+import GroupScheduleConfirmationBanner from "@/components/group-schedule-confirmation-banner";
 
 interface Row {
   lesson: Lesson;
@@ -229,6 +230,8 @@ export default function ParentSchedulePage() {
           </p>
         </div>
       )}
+
+      <GroupScheduleConfirmationBanner />
 
       {confirmations.length > 0 && (
         <div className="bg-white p-4 rounded-lg shadow-sm border-l-4 border-purple-400">

@@ -134,6 +134,17 @@ export default function UnassignedQueueDetailDialog({ enrollment, onOpenChange, 
           </DialogDescription>
         </DialogHeader>
 
+        {/* Best-effort audit trail from the most recent decline (either a
+            tutor rejecting an assignment or an admin rejecting a HOD's
+            proposal) - see ISubjectEnrollment.lastRejectionReason. Previously
+            collected on reject but never surfaced anywhere. */}
+        {enrollment.lastRejectionReason && (
+          <div className="bg-amber-50 border border-amber-200 rounded-md p-3 text-xs text-amber-800">
+            <span className="font-medium">Last declined: </span>
+            {enrollment.lastRejectionReason}
+          </div>
+        )}
+
         {enrollment.status === SubjectEnrollmentStatus.UNASSIGNED_TUTOR && (
           <div className="space-y-4">
             <div>
