@@ -7,10 +7,10 @@ import { Input } from "@/components/ui/input";
 import { ApproveScheduleAction } from "@/server/enrollment";
 import { CreateScheduleProposalAction } from "@/server/schedule-proposal";
 import { AllocateTutorAction } from "@/server/course-enrollment";
-import { GetUsersAction } from "@/server/admin";
+import { UserSearchSelect } from "@/components/user-search-select";
 import { GetCoursesAction } from "@/server/course";
 import { ISchedule, ScheduleReviewStatus, Student } from "@/types/student";
-import { User, UserRole } from "@/types/user";
+import { UserRole } from "@/types/user";
 import { Course } from "@/types/course";
 import { scheduleTimeFrom24Hour, scheduleTimeTo24Hour } from "@/lib/datetime";
 import { useUser } from "@/contexts/user-context";
@@ -42,17 +42,12 @@ function TutorAllocationForm({ student, onDone }: { student: Student; onDone: ()
 
   const subjects = Array.from(new Set((student.schedule ?? []).map((s) => s.subject)));
   const [subject, setSubject] = useState(subjects[0] ?? "");
-  const [tutors, setTutors] = useState<User[]>([]);
   const [tutorId, setTutorId] = useState("");
   const [courses, setCourses] = useState<Course[]>([]);
   const [courseId, setCourseId] = useState("");
   const [meetingUrl, setMeetingUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-
-  useEffect(() => {
-    GetUsersAction({ role: UserRole.TUTOR }).then(([res]) => setTutors(res?.data ?? []));
-  }, []);
 
   useEffect(() => {
     setCourseId("");
@@ -92,14 +87,7 @@ function TutorAllocationForm({ student, onDone }: { student: Student; onDone: ()
             </option>
           ))}
         </select>
-        <select value={tutorId} onChange={(e) => setTutorId(e.target.value)} className="border border-gray-300 rounded-md px-2 py-1.5 text-sm">
-          <option value="">Select a tutor...</option>
-          {tutors.map((t) => (
-            <option key={t.id} value={t.id}>
-              {t.firstName} {t.lastName}
-            </option>
-          ))}
-        </select>
+        <UserSearchSelect role={UserRole.TUTOR} value={tutorId} onChange={(id) => setTutorId(id)} placeholder="Search tutor by name or email..." />
       </div>
       {tutorId && (
         <select value={courseId} onChange={(e) => setCourseId(e.target.value)} className="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm">

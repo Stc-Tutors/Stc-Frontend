@@ -15,6 +15,7 @@ import SecureVideoPlayer from "@/components/classroom/SecureVideoPlayer";
 import JoinClassLink from "@/components/classroom/JoinClassLink";
 import NextClassBanner from "@/components/classroom/NextClassBanner";
 import ResourcesTabs from "@/components/resources/ResourcesTabs";
+import ResourcePreviewDialog from "@/components/resources/ResourcePreviewDialog";
 import { ToastError, ToastSuccess } from "@/components/ui/custom/toast";
 
 export default function ClassroomPage() {
@@ -25,6 +26,7 @@ export default function ClassroomPage() {
   const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
   const [resources, setResources] = useState<CourseResource[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [preview, setPreview] = useState<{ title: string; url: string } | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -198,15 +200,13 @@ export default function ClassroomPage() {
                       />
                     )}
                     {selectedLesson.resourceUrls?.map((url, i) => (
-                      <a
+                      <button
                         key={i}
-                        href={url}
-                        target="_blank"
-                        rel="noreferrer"
+                        onClick={() => setPreview({ title: `Resource ${i + 1}`, url })}
                         className="flex items-center px-4 py-2 bg-gray-100 hover:bg-blue-100 hover:text-blue-600 rounded-md text-gray-700 transition-colors"
                       >
                         Resource {i + 1}
-                      </a>
+                      </button>
                     ))}
                     {selectedLesson.tutorComments && (
                       <p className="text-sm text-gray-500 w-full mt-2">Tutor notes: {selectedLesson.tutorComments}</p>
@@ -274,6 +274,10 @@ export default function ClassroomPage() {
           </>
         )}
       </div>
+
+      {preview && (
+        <ResourcePreviewDialog open={!!preview} onOpenChange={(open) => !open && setPreview(null)} title={preview.title} url={preview.url} />
+      )}
     </div>
   );
 }

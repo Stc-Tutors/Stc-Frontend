@@ -5,8 +5,15 @@ import { GetMyHodAssignmentAction } from "@/server/hod"
 import { User } from "@/types/user"
 import { AdminPermission, MyPermissions } from "@/types/admin-permission"
 import { HodAssignment, HodPermission, hodHasPermission } from "@/types/hod"
-import { useRouter } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
+
+// The only two trees that require a session - see config/routes.ts. Every
+// other route (the public marketing site, /auth/*) is meant to be browsed
+// with no session at all, so it must never trigger the session check below.
+function isProtectedPath(pathname: string | null): boolean {
+  return Boolean(pathname && (pathname.startsWith("/dashboard") || pathname.startsWith("/lms-home")))
+}
 
 type UserContextType = {
   user: User | null
@@ -28,13 +35,26 @@ const UserContext = createContext<UserContextType | undefined>(undefined)
 
 export function UserProvider({ children }: { children: ReactNode }) {
   const router = useRouter()
+  const pathname = usePathname()
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [permissions, setPermissions] = useState<MyPermissions | null>(null)
   const [hodAssignment, setHodAssignment] = useState<HodAssignment | null>(null)
 
+  // Runs once per transition into a protected route (not on every nested
+  // navigation within one - isProtectedRoute only flips false->true then
+  // stays true) rather than on every pathname change under /dashboard or
+  // /lms-home, and never at all on public pages. Previously this fired
+  // unconditionally in this app-wide provider, so an anonymous visitor
+  // idling on the public homepage still hit GetUserAction, got the entirely
+  // expected 401 for "no session cookie exists", and the branch below
+  // treated that the same as a real dead session - logging out and
+  // redirecting them to /login mid-browse.
+  const isProtectedRoute = isProtectedPath(pathname)
 
-    useEffect(() => {
+  useEffect(() => {
+    if (!isProtectedRoute) return
+
     const fetchUser = async () => {
       setIsLoading(true)
       try {
@@ -79,7 +99,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     fetchUser()
     fetchPermissions()
     fetchHodAssignment()
-  }, [])
+  }, [isProtectedRoute])
 
   const hasPermission = (permission: AdminPermission): boolean => {
     if (permissions === "*") return true

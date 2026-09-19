@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import { useEnrollment } from "@/contexts/enrollment-context";
+import { useUser } from "@/contexts/user-context";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -15,6 +17,7 @@ import { useCustomFormFields } from "@/hooks/use-custom-form-fields";
 import DynamicQuestionField from "@/components/forms/dynamic-question-field";
 import { Input } from "@/components/ui/input";
 import { ApplyReferralCodeAction } from "@/server/referral";
+import { ValidateCouponAction } from "@/server/coupon";
 
 interface StepProps {
   onNext: (errors: Record<string, string>) => void;
@@ -27,11 +30,20 @@ const STAGE = "student-registration:review" as const;
 export default function EnrollmentReview({ onNext, errors }: StepProps) {
   const { enrollmentData, setCurrentStep, calculateCost, updateCustomFieldResponse, setEnrollmentData } = useEnrollment();
   // const { enrollmentData, setCurrentStep } = useEnrollment();
+  const { user } = useUser();
+  const searchParams = useSearchParams();
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [acceptPrivacy, setAcceptPrivacy] = useState(false);
   const [referralCode, setReferralCode] = useState("");
   const [isApplyingReferral, setIsApplyingReferral] = useState(false);
   const [referralMessage, setReferralMessage] = useState<string | null>(null);
+  // Whether this account already has a referrer on file - either from a
+  // `?ref=` link at sign-up (AuthService.register resolves it immediately)
+  // or an earlier apply-code call. Re-submitting a code once this is true
+  // just 400s ("already referred") - see ReferralService.applyReferralCode.
+  const hasExistingReferrer = !!user?.referredBy;
+  const [isCheckingCoupon, setIsCheckingCoupon] = useState(false);
+  const [couponMessage, setCouponMessage] = useState<string | null>(null);
 
   const { childInfo, serviceDetails, schedule, selectedService } = enrollmentData;
   const isCourseModule = selectedService?.architecturalPath === ArchitecturalPath.COURSE_MODULE;
@@ -97,12 +109,44 @@ export default function EnrollmentReview({ onNext, errors }: StepProps) {
   const getServiceTitle = (serviceType: string) =>
     selectedService?.serviceName || SERVICE_TYPE_LABELS[serviceType] || serviceType;
 
-  const handleApplyReferralCode = async () => {
-    if (!referralCode.trim()) return;
+  const applyReferralCode = async (code: string) => {
+    if (!code.trim()) return;
     setIsApplyingReferral(true);
-    const [, error] = await ApplyReferralCodeAction(referralCode.trim());
+    const [, error] = await ApplyReferralCodeAction(code.trim());
     setIsApplyingReferral(false);
     setReferralMessage(error || "Referral code applied");
+  };
+
+  const handleApplyReferralCode = () => applyReferralCode(referralCode);
+
+  // A `?ref=` code captured at sign-up (register-form.tsx reads the same
+  // param) should reappear here automatically instead of making the family
+  // retype it - auto-populate AND auto-validate it, once, but only when this
+  // account doesn't already have a referrer on file (re-submitting one that
+  // does just 400s - see ReferralService.applyReferralCode).
+  const autoAppliedRef = useRef(false);
+  useEffect(() => {
+    if (autoAppliedRef.current || hasExistingReferrer) return;
+    const ref = searchParams.get("ref");
+    if (!ref) return;
+    autoAppliedRef.current = true;
+    setReferralCode(ref);
+    applyReferralCode(ref);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, hasExistingReferrer]);
+
+  // Read-only preview (CouponService.validate) - the actual redemption only
+  // happens server-side at submit time (StudentService.computeEnrollmentQuote),
+  // this just lets the family see the discount before committing to pay.
+  const handleCheckCoupon = async () => {
+    const code = enrollmentData.couponCode?.trim();
+    if (!code) return;
+    setIsCheckingCoupon(true);
+    const [res, error] = await ValidateCouponAction(code, totalCost);
+    setIsCheckingCoupon(false);
+    setCouponMessage(
+      error || `Coupon valid - ${res?.data?.discountAmount.toLocaleString()} off, new total ₦${res?.data?.discountedAmount.toLocaleString()}`
+    );
   };
 
   return (
@@ -389,21 +433,64 @@ export default function EnrollmentReview({ onNext, errors }: StepProps) {
           <CardTitle>Referral Code (optional)</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
-          <p className="text-sm text-gray-600">
-            Were you referred by a tutor, parent, or student? Enter their code below.
-          </p>
+          {hasExistingReferrer ? (
+            <p className="text-sm text-green-600">
+              A referral code is already on file for your account - nothing more to do here.
+            </p>
+          ) : (
+            <>
+              <p className="text-sm text-gray-600">
+                Were you referred by a tutor, parent, or student? Enter their code below.
+              </p>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Referral code"
+                  value={referralCode}
+                  onChange={(e) => setReferralCode(e.target.value)}
+                  className="max-w-xs"
+                />
+                <Button type="button" variant="outline" onClick={handleApplyReferralCode} disabled={isApplyingReferral || !referralCode.trim()}>
+                  {isApplyingReferral ? "Applying..." : "Apply"}
+                </Button>
+              </div>
+              {referralMessage && <p className="text-sm text-gray-500">{referralMessage}</p>}
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Coupon code - a reusable marketing discount code (see stcbe's
+          CouponService), distinct from the referral code above (which
+          credits the referrer, not the payer) and the bypass code below
+          (waives payment entirely rather than discounting it). Checking here
+          only previews the discount - it's actually redeemed server-side
+          when this enrollment is finalized. */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Coupon Code (optional)</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <p className="text-sm text-gray-600">Have a marketing discount code? Enter it below.</p>
           <div className="flex gap-2">
             <Input
-              placeholder="Referral code"
-              value={referralCode}
-              onChange={(e) => setReferralCode(e.target.value)}
+              placeholder="Coupon code"
+              value={enrollmentData.couponCode ?? ""}
+              onChange={(e) => {
+                setEnrollmentData((prev) => ({ ...prev, couponCode: e.target.value }));
+                setCouponMessage(null);
+              }}
               className="max-w-xs"
             />
-            <Button type="button" variant="outline" onClick={handleApplyReferralCode} disabled={isApplyingReferral || !referralCode.trim()}>
-              {isApplyingReferral ? "Applying..." : "Apply"}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleCheckCoupon}
+              disabled={isCheckingCoupon || !enrollmentData.couponCode?.trim()}
+            >
+              {isCheckingCoupon ? "Checking..." : "Check"}
             </Button>
           </div>
-          {referralMessage && <p className="text-sm text-gray-500">{referralMessage}</p>}
+          {couponMessage && <p className="text-sm text-gray-500">{couponMessage}</p>}
         </CardContent>
       </Card>
 

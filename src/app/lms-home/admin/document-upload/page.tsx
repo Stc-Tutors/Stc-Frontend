@@ -17,6 +17,7 @@ import {
   RejectTutorApplicationAction,
 } from "@/server/tutor-application";
 import { TutorApplication, TutorApplicationApplicant, TutorApplicationStatus } from "@/types/tutor-application";
+import ResourcePreviewDialog from "@/components/resources/ResourcePreviewDialog";
 
 interface DocumentRow {
   applicationId: string;
@@ -31,6 +32,7 @@ export default function AdminDocumentUploadPage() {
   const [filter, setFilter] = useState<TutorApplicationStatus>(TutorApplicationStatus.PENDING);
   const [isLoading, setIsLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
+  const [preview, setPreview] = useState<{ title: string; url: string } | null>(null);
 
   const load = async () => {
     setIsLoading(true);
@@ -109,8 +111,8 @@ export default function AdminDocumentUploadPage() {
                 <TableCell className="text-xs text-gray-500">{new Date(row.submittedAt).toLocaleDateString()}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
-                    <Button size="icon" variant="ghost" asChild>
-                      <a href={row.documentUrl} target="_blank" rel="noreferrer"><Eye className="w-4 h-4 text-gray-500" /></a>
+                    <Button size="icon" variant="ghost" onClick={() => setPreview({ title: `${row.applicantName} - Document ${i + 1}`, url: row.documentUrl })}>
+                      <Eye className="w-4 h-4 text-gray-500" />
                     </Button>
                     {row.status === TutorApplicationStatus.PENDING && (
                       <>
@@ -128,6 +130,10 @@ export default function AdminDocumentUploadPage() {
             ))}
           </TableBody>
         </Table>
+      )}
+
+      {preview && (
+        <ResourcePreviewDialog open={!!preview} onOpenChange={(open) => !open && setPreview(null)} title={preview.title} url={preview.url} />
       )}
     </div>
   );

@@ -9,6 +9,7 @@ import { formatScheduleTime } from "@/lib/datetime";
 import { GetCourseLessonsAction } from "@/server/lesson";
 import { Course } from "@/types/course";
 import { Lesson } from "@/types/lesson";
+import { matchesSelectedStudent, useSelectedStudent } from "@/contexts/selected-student-context";
 
 interface Row {
   lesson: Lesson;
@@ -22,6 +23,7 @@ function isToday(dateStr: string): boolean {
 }
 
 export default function TodayLectures() {
+  const { selectedId, isAllSelected } = useSelectedStudent();
   const [rows, setRows] = useState<Row[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -29,8 +31,10 @@ export default function TodayLectures() {
     const load = async () => {
       const [linkedRes] = await GetLinkedStudentsAction();
       const [ownRes] = await GetEnrollmentsAction();
+      const allStudents = [...(linkedRes?.data ?? []), ...(ownRes?.data ?? [])];
+      const filtered = isAllSelected ? allStudents : allStudents.filter((s) => matchesSelectedStudent(s, selectedId));
       const byId = new Map<string, true>();
-      [...(linkedRes?.data ?? []), ...(ownRes?.data ?? [])].forEach((s) => byId.set(s.id, true));
+      filtered.forEach((s) => byId.set(s.id, true));
 
       const courseEnrollmentLists = await Promise.all(
         Array.from(byId.keys()).map((id) => GetStudentCoursesAction(id))
@@ -61,7 +65,7 @@ export default function TodayLectures() {
       setIsLoading(false);
     };
     load();
-  }, []);
+  }, [selectedId, isAllSelected]);
 
   return (
     <div className="bg-white rounded-lg shadow-sm p-4 space-y-3">

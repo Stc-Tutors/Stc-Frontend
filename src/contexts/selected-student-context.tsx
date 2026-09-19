@@ -1,6 +1,6 @@
 "use client"
 
-import { GetLinkedStudentsAction } from "@/server/enrollment"
+import { GetEnrollmentsAction, GetLinkedStudentsAction } from "@/server/enrollment"
 import { EnrollmentStatus, Student } from "@/types/student"
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
 
@@ -23,6 +23,19 @@ export interface ChildGroup {
   dateOfBirth?: Date
   gender?: string
   enrollments: Student[]
+}
+
+// A Student row's childId is its true "which physical child is this" key -
+// `id` alone only coincides with it for a legacy single-enrollment record
+// (groupStudentsByChild falls back to `id` when childId is missing). Any
+// dashboard widget filtering a raw Student[] list by the switcher's
+// selectedId must match on both, since selectedId can be either a specific
+// enrollment id (ChildSwitcherDropdown's per-enrollment sub-list) or a
+// childId group key (its top-level "one entry per child" list, or
+// ParentHeader) - matching on `id` alone silently dropped every enrollment
+// for a multi-course child whenever the top-level entry was picked.
+export function matchesSelectedStudent(s: Student, selectedId: string): boolean {
+  return s.id === selectedId || s.childId === selectedId
 }
 
 export function groupStudentsByChild(students: Student[]): ChildGroup[] {
@@ -77,7 +90,19 @@ export function SelectedStudentProvider({ children: reactChildren }: { children:
 
   const load = async () => {
     setIsLoading(true)
-    const [res] = await GetLinkedStudentsAction()
+    // GetLinkedStudentsAction only returns children linked via parentUser -
+    // empty for a self-registered adult student, who has no parent and
+    // whose own enrollment(s) instead come back from GetEnrollmentsAction
+    // (their own `user`-owned Student rows). Merging both here, rather than
+    // just the first, is what lets a self-registered student use the same
+    // child-switcher/Marketplace/dashboard-filtering machinery a parent
+    // does - for them it ends up holding exactly one "child": themselves.
+    // Harmless to merge for an actual parent too, since GetEnrollmentsAction
+    // is empty for an account that never went through the STUDENT-role
+    // enrollment path itself.
+    const [[linkedRes], [ownRes]] = await Promise.all([GetLinkedStudentsAction(), GetEnrollmentsAction()])
+    const byId = new Map<string, Student>()
+    ;[...(linkedRes?.data ?? []), ...(ownRes?.data ?? [])].forEach((s) => byId.set(s.id, s))
     // A DRAFT is autosaved wizard progress that was never actually
     // submitted - often several of them, one per abandoned/retried
     // attempt at the same child (see enrollment-flow.tsx's dedup fix for
@@ -86,7 +111,7 @@ export function SelectedStudentProvider({ children: reactChildren }: { children:
     // is confusing and error-prone (which one is real?) - they belong in
     // the enrollment list's "Continue Registration" flow, not this
     // quick-switcher, so they're excluded here specifically.
-    const list = (res?.data ?? []).filter((s) => s.enrollmentStatus !== EnrollmentStatus.DRAFT)
+    const list = Array.from(byId.values()).filter((s) => s.enrollmentStatus !== EnrollmentStatus.DRAFT)
     setStudents(list)
     setSelectedId((current) =>
       current === ALL_CHILDREN_ID || list.some((s) => s.id === current || s.childId === current)

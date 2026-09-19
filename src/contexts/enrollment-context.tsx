@@ -147,6 +147,11 @@ export type EnrollmentData = {
   // finalize - scholarship/discounted students. Entered by the family at
   // Review, not shown/set anywhere else.
   bypassToken?: string;
+  // Reusable marketing discount code (see stcbe's CouponService) - reduces
+  // the charged amount rather than waiving it entirely (contrast bypassToken
+  // above). Entered by the family at Review, validated/redeemed server-side
+  // in StudentService.computeEnrollmentQuote.
+  couponCode?: string;
   // Present = this is another service enrollment for a child the parent/
   // student already has (see stcbe's IStudent.childId) - the backend links
   // the new enrollment to that existing Child instead of creating a
@@ -381,6 +386,10 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
         // simply doesn't read it), which in practice never happens anyway
         // since autosave-as-draft starts as soon as Child Info is filled in.
         bypassToken: enrollmentData.bypassToken || undefined,
+        // Unlike bypassToken above, this is read by computeEnrollmentQuote
+        // itself, so it applies whether this call resolves to EnrollAction
+        // or FinalizeEnrollmentAction - see stcbe's StudentService.
+        couponCode: enrollmentData.couponCode || undefined,
       };
 
       // If this enrollment was autosaved as a draft along the way (see the

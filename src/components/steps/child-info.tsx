@@ -12,6 +12,8 @@ import { ITaxonomyOption, TaxonomyOptionKind } from "@/types/service-catalog"
 import { useCustomFormFields } from "@/hooks/use-custom-form-fields"
 import DynamicQuestionField from "@/components/forms/dynamic-question-field"
 import { useUser } from "@/contexts/user-context"
+import { GetLinkedStudentsAction } from "@/server/enrollment"
+import { groupStudentsByChild, defaultEnrollmentForChild, type ChildGroup } from "@/contexts/selected-student-context"
 
 
 interface StepProps {
@@ -44,7 +46,7 @@ function calculateAge(dateOfBirth: string): number | null {
 }
 
 export default function ChildInfoStep({ onNext, errors, forcedUserType }: StepProps) {
-  const { enrollmentData, updateChildInfo, updateCustomFieldResponse } = useEnrollment()
+  const { enrollmentData, updateChildInfo, updateCustomFieldResponse, setEnrollmentData } = useEnrollment()
   const { user } = useUser()
   const [formData, setFormData] = useState({
     userType: forcedUserType || enrollmentData.childInfo?.userType || "parent",
@@ -58,6 +60,68 @@ export default function ChildInfoStep({ onNext, errors, forcedUserType }: StepPr
     parentPhone: enrollmentData.childInfo?.parentPhone || "",
     parentEmail: enrollmentData.childInfo?.parentEmail || "",
   })
+
+  // A parent adding another service enrollment shouldn't have to retype an
+  // already-registered child's details from scratch (that used to spawn a
+  // duplicate-looking Child every time) - offer picking one of their
+  // existing children instead, which links the new enrollment via `childId`
+  // (see EnrollmentData.childId) rather than creating a new one.
+  const [childMode, setChildMode] = useState<"new" | "existing">(enrollmentData.childId ? "existing" : "new")
+  const [existingChildren, setExistingChildren] = useState<ChildGroup[]>([])
+  const [isLoadingChildren, setIsLoadingChildren] = useState(false)
+  const [selectedChildKey, setSelectedChildKey] = useState(enrollmentData.childId || "")
+
+  useEffect(() => {
+    if (formData.userType !== "parent") return
+    setIsLoadingChildren(true)
+    GetLinkedStudentsAction().then(([res]) => {
+      setExistingChildren(groupStudentsByChild(res?.data ?? []))
+      setIsLoadingChildren(false)
+    })
+  }, [formData.userType])
+
+  const handleSelectExistingChild = (key: string) => {
+    setSelectedChildKey(key)
+    const group = existingChildren.find((g) => g.key === key)
+    if (!group) return
+    const enrollment = defaultEnrollmentForChild(group)
+    setFormData((prev) => ({
+      ...prev,
+      fullName: enrollment.fullName,
+      gender: enrollment.gender || "",
+      dateOfBirth: enrollment.dateOfBirth ? new Date(enrollment.dateOfBirth).toISOString().slice(0, 10) : "",
+      phone: enrollment.phone || "",
+      countryOfResidence: enrollment.countryOfResidence || "",
+      primaryLanguage: enrollment.primaryLanguage || "",
+      parentName: enrollment.parentName || "",
+      parentPhone: enrollment.parentPhone || "",
+      parentEmail: enrollment.parentEmail || "",
+    }))
+    // childId (not the copied fields above) is what actually links this new
+    // enrollment to the existing Child on the backend - see
+    // StudentService.resolveChildForEnrollment.
+    setEnrollmentData((prev) => ({ ...prev, childId: enrollment.childId || group.key }))
+  }
+
+  const handleChildModeChange = (mode: "new" | "existing") => {
+    setChildMode(mode)
+    if (mode === "new") {
+      setSelectedChildKey("")
+      setEnrollmentData((prev) => ({ ...prev, childId: undefined }))
+      setFormData((prev) => ({
+        ...prev,
+        fullName: "",
+        gender: "",
+        dateOfBirth: "",
+        phone: "",
+        countryOfResidence: "",
+        primaryLanguage: "",
+        parentName: "",
+        parentPhone: "",
+        parentEmail: "",
+      }))
+    }
+  }
 
   // Task 2 - Country of residence / Primary language now come from the
   // admin-managed taxonomy-options catalog (GET /public/taxonomy-options)
@@ -115,6 +179,10 @@ export default function ChildInfoStep({ onNext, errors, forcedUserType }: StepPr
 
       if (!formData.userType) {
         stepErrors.userType = "Please select who is signing up"
+      }
+
+      if (formData.userType === "parent" && childMode === "existing" && !selectedChildKey) {
+        stepErrors.existingChild = "Please select which child this enrollment is for"
       }
 
       if (!formData.fullName.trim()) {
@@ -175,7 +243,7 @@ export default function ChildInfoStep({ onNext, errors, forcedUserType }: StepPr
 
     window.addEventListener("validateStep", handleValidation)
     return () => window.removeEventListener("validateStep", handleValidation)
-  }, [formData, customFields, customFieldResponses, isMinorStudent, onNext, updateChildInfo])
+  }, [formData, customFields, customFieldResponses, isMinorStudent, onNext, updateChildInfo, childMode, selectedChildKey])
 
   return (
     <div className="space-y-6 w-full">
@@ -215,7 +283,75 @@ export default function ChildInfoStep({ onNext, errors, forcedUserType }: StepPr
       </Card>
       )}
 
-      {/* Student/Child Information */}
+      {/* New vs Existing Child - only meaningful for a parent, who may
+          already have other children/enrollments registered. */}
+      {formData.userType === "parent" && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Are you enrolling a new child or an existing child?</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <RadioGroup
+              value={childMode}
+              onValueChange={(value) => handleChildModeChange(value as "new" | "existing")}
+              className="grid grid-cols-1 md:grid-cols-2 gap-4"
+            >
+              <div className="flex items-center space-x-2 border rounded-lg p-4">
+                <RadioGroupItem value="new" id="new-child" />
+                <Label htmlFor="new-child" className="flex-1 cursor-pointer">
+                  <div>
+                    <p className="font-medium">New Child</p>
+                    <p className="text-sm text-gray-600">Register a child we haven&apos;t enrolled before</p>
+                  </div>
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2 border rounded-lg p-4">
+                <RadioGroupItem value="existing" id="existing-child" disabled={existingChildren.length === 0} />
+                <Label htmlFor="existing-child" className="flex-1 cursor-pointer">
+                  <div>
+                    <p className="font-medium">Existing Child</p>
+                    <p className="text-sm text-gray-600">Add another course for a child already registered</p>
+                  </div>
+                </Label>
+              </div>
+            </RadioGroup>
+
+            {childMode === "existing" && (
+              <div className="mt-4 space-y-2">
+                <Label htmlFor="existingChild">Select Child *</Label>
+                <Select value={selectedChildKey} onValueChange={handleSelectExistingChild}>
+                  <SelectTrigger className={errors.existingChild ? "border-red-500" : ""}>
+                    <SelectValue placeholder={isLoadingChildren ? "Loading children..." : "Select a child"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {existingChildren.map((group) => (
+                      <SelectItem key={group.key} value={group.key}>
+                        {group.fullName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.existingChild && <p className="text-red-600 text-sm">{errors.existingChild}</p>}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Student/Child Information - collapsed to a summary once an existing
+          child is selected, since re-entering their details would just be
+          re-typing what's already on file for them. */}
+      {childMode === "existing" && selectedChildKey ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Child Information</CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm text-gray-600 space-y-1">
+            <p className="font-medium text-gray-900">{formData.fullName}</p>
+            <p>This new enrollment will be added to {formData.fullName}&apos;s existing profile.</p>
+          </CardContent>
+        </Card>
+      ) : (
       <Card>
         <CardHeader>
           <CardTitle>{formData.userType === "parent" ? "Child Information" : "Student Information"}</CardTitle>
@@ -301,9 +437,10 @@ export default function ChildInfoStep({ onNext, errors, forcedUserType }: StepPr
           </div>
         </CardContent>
       </Card>
+      )}
 
       {/* Parent/Guardian Information (for students under PARENT_INFO_REQUIRED_UNDER_AGE) */}
-      {isMinorStudent && (
+      {isMinorStudent && childMode !== "existing" && (
         <Card>
           <CardHeader>
             <CardTitle>Parent/Guardian Information</CardTitle>

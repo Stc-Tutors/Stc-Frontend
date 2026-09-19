@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import "keen-slider/keen-slider.min.css";
 import { GetEnrollmentsAction } from "@/server/enrollment";
+import { SelectedStudentProvider } from "@/contexts/selected-student-context";
 
 import {
   Home,
@@ -27,6 +28,7 @@ import {
   GraduationCap,
   FolderOpen,
   Wallet,
+  ShoppingBag,
 } from "lucide-react";
 import BrandLogo from "@/components/shared/BrandLogo";
 import LogoutButton from "@/components/shared/LogoutButton";
@@ -35,12 +37,18 @@ import NotificationBell from "@/components/notification-bell";
 import AnnouncementsOverlay from "@/components/announcements-overlay";
 import AccessRestrictionGate from "@/components/shared/AccessRestrictionGate";
 import { useUser } from "@/contexts/user-context";
+import { UserRole } from "@/types/user";
 
 // export const metadata = {
 //   title: "STC Tutors LMS",
 //   description: "Tutor & Student Portal",
 // };
 
+// "Marketplace" (add another course to an existing enrollment without
+// re-registering) is only meaningful for a self-registered adult student -
+// a parent-created child login can't self-service enroll at all (see
+// stcbe's isParentRegisteredChild), so it's appended conditionally below
+// rather than living in this static list.
 const sidebarLinks = [
   { label: "Dashboard", icon: Home, href: "/lms-home/student/dashboard" },
   { label: "Enrollment", icon: ClipboardList, href: "/lms-home/student/enrollment" },
@@ -97,19 +105,31 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
     })();
   }, [pathname, router, user, isLoading]);
 
+  const isSelfRegisteredStudent = user?.role === UserRole.STUDENT && !!user.email && !user.studentId;
+  const links = isSelfRegisteredStudent
+    ? [
+        ...sidebarLinks.slice(0, 2),
+        { label: "Marketplace", icon: ShoppingBag, href: "/lms-home/student/marketplace" },
+        ...sidebarLinks.slice(2),
+      ]
+    : sidebarLinks;
+
   // The registration wizard is a bare full-screen step - no sidebar/topbar
   // chrome, so a student with nothing registered yet can't wander off via
   // the sidebar before completing it.
   if (pathname === NEW_ENROLLMENT_PATH) {
     return (
       <AccessRestrictionGate role="STUDENT">
-        <>{children}</>
+        <SelectedStudentProvider>
+          <>{children}</>
+        </SelectedStudentProvider>
       </AccessRestrictionGate>
     );
   }
 
   return (
     <AccessRestrictionGate role="STUDENT">
+    <SelectedStudentProvider>
     <div className="flex h-screen bg-gray-100 relative">
       {/* Sidebar */}
       <aside
@@ -131,7 +151,7 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
 
           {/* Sidebar Navigation (top section) */}
           <nav className="p-4 space-y-2">
-            {sidebarLinks
+            {links
             .filter(({ label }) => !["Support", "Notifications"].includes(label))
             .map(({ label, icon: Icon, href, badge }) => (
             <Link
@@ -224,6 +244,7 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
         <main className="flex-1 overflow-y-auto p-6">{children}</main>
       </div>
     </div>
+    </SelectedStudentProvider>
     </AccessRestrictionGate>
   );
 }

@@ -17,11 +17,13 @@ import {
   RejectAssignmentAction,
 } from "@/server/assignment";
 import { Assignment, AssignmentCourseRef } from "@/types/assignment";
+import ResourcePreviewDialog from "@/components/resources/ResourcePreviewDialog";
 
 export default function AdminAssignmentsPage() {
   const [rows, setRows] = useState<Assignment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
+  const [preview, setPreview] = useState<{ title: string; url: string } | null>(null);
 
   const load = async () => {
     setIsLoading(true);
@@ -90,14 +92,12 @@ export default function AdminAssignmentsPage() {
                 <TableCell className="text-xs text-gray-500">{new Date(row.dueDate).toLocaleDateString()}</TableCell>
                 <TableCell>
                   {(row.attachmentUrl || row.attachment) && (
-                    <a
-                      href={row.attachment?.url ?? row.attachmentUrl}
-                      target="_blank"
-                      rel="noreferrer"
+                    <button
+                      onClick={() => setPreview({ title: row.title, url: row.attachment?.url ?? row.attachmentUrl! })}
                       className="flex items-center gap-1 text-blue-600 hover:underline text-xs"
                     >
                       <Paperclip className="w-3 h-3" /> View
-                    </a>
+                    </button>
                   )}
                 </TableCell>
                 <TableCell className="text-right">
@@ -114,6 +114,10 @@ export default function AdminAssignmentsPage() {
             ))}
           </TableBody>
         </Table>
+      )}
+
+      {preview && (
+        <ResourcePreviewDialog open={!!preview} onOpenChange={(open) => !open && setPreview(null)} title={preview.title} url={preview.url} />
       )}
     </div>
   );

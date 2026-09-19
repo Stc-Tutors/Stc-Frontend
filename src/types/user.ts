@@ -41,6 +41,12 @@ export interface User {
   // Opt-out for the offline-message email nudge (see stcbe's
   // MessageEmailNotificationJob). Defaults true.
   messagingEmailNotifications?: boolean;
+  // Referrer's User id, set once at registration (from a `?ref=` link) or
+  // via POST /referrals/apply-code - never reassignable after that (see
+  // stcbe's ReferralService.applyReferralCode, which 400s on a second
+  // attempt). Presence alone is enough for the UI to know "already
+  // referred, don't ask again" without needing the referrer's identity.
+  referredBy?: string;
 }
 
 // A tutor applicant who's still PENDING_APPROVAL (drafting or flagged for

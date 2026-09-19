@@ -11,6 +11,7 @@ import { GetSubmissionsForAssignmentAction, GradeSubmissionAction } from "@/serv
 import { Assignment } from "@/types/assignment";
 import { Submission } from "@/types/submission";
 import { Student } from "@/types/student";
+import ResourcePreviewDialog from "@/components/resources/ResourcePreviewDialog";
 
 export default function AssignmentSubmissionsPage() {
   const { id, assignmentId } = useParams();
@@ -23,6 +24,7 @@ export default function AssignmentSubmissionsPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Record<string, { score: string; feedback: string }>>({});
   const [savingId, setSavingId] = useState<string | null>(null);
+  const [preview, setPreview] = useState<{ title: string; url: string } | null>(null);
 
   const load = async () => {
     setIsLoading(true);
@@ -74,14 +76,14 @@ export default function AssignmentSubmissionsPage() {
           Due {new Date(assignment.dueDate).toLocaleDateString()} · Max score: {assignment.maxScore}
         </p>
         {(assignment.attachmentUrl || assignment.attachment) && (
-          <a
-            href={assignment.attachment?.url ?? assignment.attachmentUrl}
-            target="_blank"
-            rel="noreferrer"
+          <button
+            onClick={() =>
+              setPreview({ title: assignment.title, url: assignment.attachment?.url ?? assignment.attachmentUrl! })
+            }
             className="text-sm text-blue-600 hover:underline mt-2 inline-block"
           >
             {assignment.attachment ? assignment.attachment.fileName : "View attachment"}
-          </a>
+          </button>
         )}
       </div>
 
@@ -103,14 +105,20 @@ export default function AssignmentSubmissionsPage() {
                   </div>
                   {s.content && <p className="text-sm text-gray-700">{s.content}</p>}
                   {s.fileUrl && (
-                    <a href={s.fileUrl} target="_blank" rel="noreferrer" className="block text-sm text-blue-600 hover:underline">
+                    <button
+                      onClick={() => setPreview({ title: `${studentName(s.student)}'s submission`, url: s.fileUrl! })}
+                      className="block text-sm text-blue-600 hover:underline"
+                    >
                       {s.fileUrl}
-                    </a>
+                    </button>
                   )}
                   {s.attachment && (
-                    <a href={s.attachment.url} target="_blank" rel="noreferrer" className="block text-sm text-blue-600 hover:underline">
+                    <button
+                      onClick={() => setPreview({ title: `${studentName(s.student)}'s submission`, url: s.attachment!.url })}
+                      className="block text-sm text-blue-600 hover:underline"
+                    >
                       {s.attachment.fileName}
-                    </a>
+                    </button>
                   )}
                   <div className="flex gap-2 items-start pt-2">
                     <Input
@@ -136,6 +144,10 @@ export default function AssignmentSubmissionsPage() {
           </div>
         )}
       </div>
+
+      {preview && (
+        <ResourcePreviewDialog open={!!preview} onOpenChange={(open) => !open && setPreview(null)} title={preview.title} url={preview.url} />
+      )}
     </div>
   );
 }

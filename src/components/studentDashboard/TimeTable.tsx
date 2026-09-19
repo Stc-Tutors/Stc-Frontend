@@ -8,6 +8,7 @@ import { Course } from "@/types/course";
 import { Lesson } from "@/types/lesson";
 import { formatScheduleTime } from "@/lib/datetime";
 import { WEEKDAYS_ABBREVIATED } from "@/constants/weekdays";
+import { matchesSelectedStudent, useSelectedStudent } from "@/contexts/selected-student-context";
 
 interface Row {
   lesson: Lesson;
@@ -31,6 +32,7 @@ function startOfWeek(date: Date): Date {
 
 export default function Timetable() {
   const days = WEEKDAYS_ABBREVIATED.slice(0, 5);
+  const { selectedId, isAllSelected } = useSelectedStudent();
   const [rowsByDay, setRowsByDay] = useState<Record<string, Row[]>>({});
   const [isLoading, setIsLoading] = useState(true);
 
@@ -38,8 +40,10 @@ export default function Timetable() {
     const load = async () => {
       const [linkedRes] = await GetLinkedStudentsAction();
       const [ownRes] = await GetEnrollmentsAction();
+      const allStudents = [...(linkedRes?.data ?? []), ...(ownRes?.data ?? [])];
+      const filtered = isAllSelected ? allStudents : allStudents.filter((s) => matchesSelectedStudent(s, selectedId));
       const byId = new Map<string, true>();
-      [...(linkedRes?.data ?? []), ...(ownRes?.data ?? [])].forEach((s) => byId.set(s.id, true));
+      filtered.forEach((s) => byId.set(s.id, true));
 
       const courseEnrollmentLists = await Promise.all(
         Array.from(byId.keys()).map((id) => GetStudentCoursesAction(id))
@@ -83,7 +87,7 @@ export default function Timetable() {
       setIsLoading(false);
     };
     load();
-  }, []);
+  }, [selectedId, isAllSelected]);
 
   const hasAnyLessons = Object.values(rowsByDay).some((rows) => rows.length > 0);
 

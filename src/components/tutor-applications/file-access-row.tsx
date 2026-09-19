@@ -1,5 +1,9 @@
+"use client";
+
+import { useState } from "react";
 import { Eye, Download } from "lucide-react";
 import { UploadedFile } from "@/lib/cloudinary-upload";
+import ResourcePreviewDialog from "@/components/resources/ResourcePreviewDialog";
 
 function formatFileSize(bytes: number): string {
   if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
@@ -19,6 +23,8 @@ function toDownloadUrl(url: string): string {
 // applicant's record. Used for every file_upload field (gov ID, CV,
 // headshot, supporting documents, each certification proof).
 export default function FileAccessRow({ label, file }: { label: string; file: UploadedFile }) {
+  const [previewOpen, setPreviewOpen] = useState(false);
+
   return (
     <div className="flex items-center justify-between gap-3 border rounded-md px-3 py-2 text-sm">
       <div className="min-w-0">
@@ -29,14 +35,9 @@ export default function FileAccessRow({ label, file }: { label: string; file: Up
         </p>
       </div>
       <div className="flex items-center gap-2 shrink-0">
-        <a
-          href={file.url}
-          target="_blank"
-          rel="noreferrer"
-          className="flex items-center gap-1 text-blue-600 hover:underline text-xs"
-        >
+        <button onClick={() => setPreviewOpen(true)} className="flex items-center gap-1 text-blue-600 hover:underline text-xs">
           <Eye className="h-3.5 w-3.5" /> Preview
-        </a>
+        </button>
         <a
           href={toDownloadUrl(file.url)}
           className="flex items-center gap-1 text-blue-600 hover:underline text-xs"
@@ -44,6 +45,7 @@ export default function FileAccessRow({ label, file }: { label: string; file: Up
           <Download className="h-3.5 w-3.5" /> Download
         </a>
       </div>
+      <ResourcePreviewDialog open={previewOpen} onOpenChange={setPreviewOpen} title={label} url={file.url} />
     </div>
   );
 }

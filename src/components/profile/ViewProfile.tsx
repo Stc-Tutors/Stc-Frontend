@@ -12,6 +12,7 @@ import { SessionFeedback, TutorRatingSummary } from "@/types/session-feedback";
 import { CLASS_FORMAT_LABELS } from "@/types/tutor-application";
 import { ReportDialog } from "@/components/moderation/report-dialog";
 import { ReportedEntityType } from "@/types/moderation";
+import ResourcePreviewDialog from "@/components/resources/ResourcePreviewDialog";
 
 function StarRating({ rating }: { rating: number }) {
   return (
@@ -30,6 +31,7 @@ export default function ViewProfile({ userId }: { userId: string }) {
   const [reviews, setReviews] = useState<SessionFeedback[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isForbidden, setIsForbidden] = useState(false);
+  const [preview, setPreview] = useState<{ title: string; url: string } | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -222,30 +224,44 @@ export default function ViewProfile({ userId }: { userId: string }) {
                   <ul className="text-sm space-y-1">
                     {tutorProfile.govIdFile && (
                       <li>
-                        <a href={tutorProfile.govIdFile.url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
+                        <button
+                          onClick={() => setPreview({ title: "Government ID", url: tutorProfile.govIdFile!.url })}
+                          className="text-blue-600 hover:underline"
+                        >
                           Government ID
-                        </a>
+                        </button>
                       </li>
                     )}
                     {tutorProfile.cvFile && (
                       <li>
-                        <a href={tutorProfile.cvFile.url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
+                        <button
+                          onClick={() => setPreview({ title: "CV/Resume", url: tutorProfile.cvFile!.url })}
+                          className="text-blue-600 hover:underline"
+                        >
                           CV/Resume
-                        </a>
+                        </button>
                       </li>
                     )}
                     {tutorProfile.supportingDocumentsFile && (
                       <li>
-                        <a href={tutorProfile.supportingDocumentsFile.url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
+                        <button
+                          onClick={() =>
+                            setPreview({ title: "Supporting Documents", url: tutorProfile.supportingDocumentsFile!.url })
+                          }
+                          className="text-blue-600 hover:underline"
+                        >
                           Supporting Documents
-                        </a>
+                        </button>
                       </li>
                     )}
                     {(tutorProfile.certificationProofs ?? []).map((proof, i) => (
                       <li key={i}>
-                        <a href={proof.file.url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
+                        <button
+                          onClick={() => setPreview({ title: `${proof.certification} (proof)`, url: proof.file.url })}
+                          className="text-blue-600 hover:underline"
+                        >
                           {proof.certification} (proof)
-                        </a>
+                        </button>
                       </li>
                     ))}
                   </ul>
@@ -311,6 +327,10 @@ export default function ViewProfile({ userId }: { userId: string }) {
             </div>
           )}
         </div>
+      )}
+
+      {preview && (
+        <ResourcePreviewDialog open={!!preview} onOpenChange={(open) => !open && setPreview(null)} title={preview.title} url={preview.url} />
       )}
     </section>
   );

@@ -3,3 +3,11 @@ node_modules
 .next
 dist
 build
+
+# The Dockerfile does `COPY . .` - without this, a real .env.local/.env
+# present in the build context (e.g. from a local `docker build`) gets
+# baked directly into an image layer, where it stays readable via `docker
+# history`/`docker save` even after a later layer deletes it. Real
+# deployments should inject env vars through the hosting platform instead
+# of relying on a file in the image at all.
+.env*

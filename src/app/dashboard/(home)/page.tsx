@@ -380,7 +380,7 @@ export default function DashboardPage() {
                           <div>
                             <span className="text-gray-600 text-sm">Selected Subjects:</span>
                             <div className="flex flex-wrap gap-2 mt-2">
-                              {child.serviceDetails?.selectedSubjects.map((subject, idx) => (
+                              {child.serviceDetails?.selectedSubjects?.map((subject, idx) => (
                                 <Badge key={idx} variant="outline" className="text-xs">
                                   {subject}
                                 </Badge>

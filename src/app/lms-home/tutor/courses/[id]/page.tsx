@@ -34,6 +34,7 @@ import { Assignment, AssignmentStatus } from "@/types/assignment";
 import { CourseEnrollment } from "@/types/course-enrollment";
 import { CourseRatingSummary } from "@/types/session-feedback";
 import { CourseResource, ResourceType } from "@/types/resource";
+import ResourcePreviewDialog from "@/components/resources/ResourcePreviewDialog";
 
 export default function TutorCourseDetailPage() {
   const { id } = useParams();
@@ -48,6 +49,7 @@ export default function TutorCourseDetailPage() {
   const [demographics, setDemographics] = useState<CourseDemographics | null>(null);
   const [ratingSummary, setRatingSummary] = useState<CourseRatingSummary | null>(null);
   const [resources, setResources] = useState<CourseResource[]>([]);
+  const [preview, setPreview] = useState<{ title: string; url: string } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -370,9 +372,9 @@ export default function TutorCourseDetailPage() {
           ) : (
             resources.map((r) => (
               <div key={r.id} className="flex items-center justify-between text-sm border-b pb-2">
-                <a href={r.fileUrl} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
+                <button onClick={() => setPreview({ title: r.title, url: r.fileUrl })} className="text-blue-600 hover:underline">
                   {r.title}
-                </a>
+                </button>
                 <span
                   className={`text-xs px-2 py-0.5 rounded-full ${
                     r.status === "APPROVED"
@@ -405,6 +407,10 @@ export default function TutorCourseDetailPage() {
           </Button>
         </div>
       </div>
+
+      {preview && (
+        <ResourcePreviewDialog open={!!preview} onOpenChange={(open) => !open && setPreview(null)} title={preview.title} url={preview.url} />
+      )}
     </div>
   );
 }

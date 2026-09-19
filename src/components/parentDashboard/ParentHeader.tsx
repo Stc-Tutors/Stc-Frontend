@@ -14,7 +14,7 @@ import { ALL_CHILDREN_ID, useSelectedStudent } from "@/contexts/selected-student
 
 export default function ParentHeader() {
   const {
-    students,
+    children: childGroups,
     selectedId,
     setSelectedId,
     selectedStudent: selected,
@@ -36,19 +36,22 @@ export default function ParentHeader() {
         <div className="flex flex-wrap items-center gap-3 mt-4">
           {isLoading ? (
             <span className="text-sm text-gray-400">Loading students...</span>
-          ) : students.length === 0 ? (
+          ) : childGroups.length === 0 ? (
             <span className="text-sm text-gray-500">No children linked to your account yet.</span>
           ) : (
             <>
+              {/* One entry per physical child (deduped by childId), not per
+                  enrollment - a child with 3 course enrollments used to show
+                  up 3 times here. */}
               <Select value={selectedId} onValueChange={setSelectedId}>
                 <SelectTrigger className="w-[180px] border-gray-300 text-gray-700 focus:ring-0">
                   <SelectValue placeholder="Select Student" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={ALL_CHILDREN_ID}>All Children</SelectItem>
-                  {students.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>
-                      {s.fullName}
+                  {childGroups.map((child) => (
+                    <SelectItem key={child.key} value={child.key}>
+                      {child.fullName}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -56,7 +59,7 @@ export default function ParentHeader() {
 
               {isAllSelected ? (
                 <span className="text-gray-500 text-sm">
-                  Showing a combined summary for all {students.length} children
+                  Showing a combined summary for all {childGroups.length} children
                 </span>
               ) : (
                 selected && (

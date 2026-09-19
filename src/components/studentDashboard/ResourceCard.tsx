@@ -1,5 +1,9 @@
 // components/lms/schedule/ResourceCard.tsx
+"use client";
+
+import { useState } from "react";
 import { FileText, Lock } from "lucide-react";
+import ResourcePreviewDialog from "@/components/resources/ResourcePreviewDialog";
 
 interface ResourceCardProps {
   title: string;
@@ -14,6 +18,7 @@ interface ResourceCardProps {
 }
 
 export default function ResourceCard({ title, type, added, size, href, locked }: ResourceCardProps) {
+  const [previewOpen, setPreviewOpen] = useState(false);
   const content = (
     <>
       <div className="flex items-center space-x-4">
@@ -45,14 +50,15 @@ export default function ResourceCard({ title, type, added, size, href, locked }:
 
   if (href) {
     return (
-      <a
-        href={href}
-        target="_blank"
-        rel="noreferrer"
-        className="flex items-center justify-between border-b py-4 hover:bg-gray-50 transition-colors"
-      >
-        {content}
-      </a>
+      <>
+        <button
+          onClick={() => setPreviewOpen(true)}
+          className="w-full flex items-center justify-between border-b py-4 hover:bg-gray-50 transition-colors text-left"
+        >
+          {content}
+        </button>
+        <ResourcePreviewDialog open={previewOpen} onOpenChange={setPreviewOpen} title={title} url={href} />
+      </>
     );
   }
 

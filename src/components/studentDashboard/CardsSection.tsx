@@ -6,27 +6,30 @@ import {
   CheckSquare,
   Trophy,
   Users,
+  Baby,
 } from "lucide-react";
 import { GetEnrollmentsAction, GetLinkedStudentsAction } from "@/server/enrollment";
 import { GetStudentCoursesAction } from "@/server/course-enrollment";
 import { CourseEnrollmentStatus } from "@/types/course-enrollment";
 import { CourseTutor } from "@/types/course";
-import { useSelectedStudent } from "@/contexts/selected-student-context";
+import { matchesSelectedStudent, useSelectedStudent } from "@/contexts/selected-student-context";
 
-export default function CardsSection() {
-  const { selectedId, isAllSelected } = useSelectedStudent();
+// showChildrenCount is only passed from the Parent dashboard - a student's
+// own dashboard has no "children" concept.
+export default function CardsSection({ showChildrenCount = false }: { showChildrenCount?: boolean }) {
+  const { selectedId, isAllSelected, children } = useSelectedStudent();
   const [stats, setStats] = useState({ enrolled: 0, active: 0, completed: 0, tutors: 0 });
 
   useEffect(() => {
     const load = async () => {
       const [linkedRes] = await GetLinkedStudentsAction();
       const [ownRes] = await GetEnrollmentsAction();
-      const allStudentIds = new Set(
-        [...(linkedRes?.data ?? []), ...(ownRes?.data ?? [])].map((s) => s.id)
+      const allStudents = [...(linkedRes?.data ?? []), ...(ownRes?.data ?? [])];
+      const studentIds = new Set(
+        (isAllSelected ? allStudents : allStudents.filter((s) => matchesSelectedStudent(s, selectedId))).map(
+          (s) => s.id
+        )
       );
-      const studentIds = isAllSelected
-        ? allStudentIds
-        : new Set([selectedId].filter((id) => allStudentIds.has(id)));
       if (studentIds.size === 0) {
         setStats({ enrolled: 0, active: 0, completed: 0, tutors: 0 });
         return;
@@ -54,6 +57,9 @@ export default function CardsSection() {
   }, [selectedId, isAllSelected]);
 
   const cards = [
+    ...(showChildrenCount
+      ? [{ title: "Enrolled Children", value: children.length, icon: Baby, iconColor: "text-pink-500", bgColor: "bg-pink-100" }]
+      : []),
     { title: "Enrolled Courses", value: stats.enrolled, icon: PlayCircle, iconColor: "text-blue-500", bgColor: "bg-blue-100" },
     { title: "Active Courses", value: stats.active, icon: CheckSquare, iconColor: "text-purple-500", bgColor: "bg-purple-100" },
     { title: "Completed Courses", value: stats.completed, icon: Trophy, iconColor: "text-green-500", bgColor: "bg-green-100" },
@@ -61,7 +67,7 @@ export default function CardsSection() {
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 ${showChildrenCount ? "lg:grid-cols-5" : "lg:grid-cols-4"}`}>
       {cards.map(({ title, value, icon: Icon, iconColor, bgColor }) => (
         <div
           key={title}

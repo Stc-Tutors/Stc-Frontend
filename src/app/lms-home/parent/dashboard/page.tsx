@@ -19,7 +19,7 @@ export default function ParentDashboardPage() {
       <ParentHeader />
 
       {/* Cards Section */}
-        <CardsSection />
+        <CardsSection showChildrenCount />
         
         {/* Performance Overview + Calendar + Notifications + Help */}
         <ParentMiddleSection/>

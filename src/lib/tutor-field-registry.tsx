@@ -1,4 +1,5 @@
 import FileAccessRow from "@/components/tutor-applications/file-access-row";
+import { EmbeddedLinkPreview } from "@/components/tutor-applications/embedded-link-preview";
 import {
   AnalyticalOrCreative,
   CLASS_FORMAT_LABELS,
@@ -497,11 +498,7 @@ export const TUTOR_FIELD_REGISTRY: TutorFieldEntry[] = [
     stepId: 9,
     stepTitle: "Final Evaluation",
     getValue: (a) => a.lessonPlanUrl,
-    format: (v) => (
-      <a href={v} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
-        View lesson plan
-      </a>
-    ),
+    format: (v) => <EmbeddedLinkPreview label="View lesson plan" url={v} />,
   },
   {
     id: "lessonPlanText",

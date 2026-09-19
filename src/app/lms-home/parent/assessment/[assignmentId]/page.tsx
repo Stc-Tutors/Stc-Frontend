@@ -7,6 +7,7 @@ import { GetAssignmentAction } from "@/server/assignment";
 import { GetMySubmissionsAction } from "@/server/submission";
 import { Assignment } from "@/types/assignment";
 import { Submission } from "@/types/submission";
+import ResourcePreviewDialog from "@/components/resources/ResourcePreviewDialog";
 
 export default function ParentAssignmentDetailPage() {
   const { assignmentId } = useParams();
@@ -15,6 +16,7 @@ export default function ParentAssignmentDetailPage() {
   const [submission, setSubmission] = useState<Submission | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
+  const [preview, setPreview] = useState<{ title: string; url: string } | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -63,9 +65,12 @@ export default function ParentAssignmentDetailPage() {
           {submission.fileUrl && (
             <p className="text-sm text-gray-600">
               File:{" "}
-              <a href={submission.fileUrl} className="text-blue-600 hover:underline" target="_blank" rel="noreferrer">
+              <button
+                onClick={() => setPreview({ title: `${assignment.title} - submission`, url: submission.fileUrl! })}
+                className="text-blue-600 hover:underline"
+              >
                 {submission.fileUrl}
-              </a>
+              </button>
             </p>
           )}
           {submission.status === "GRADED" && (
@@ -81,6 +86,10 @@ export default function ParentAssignmentDetailPage() {
         <p className="text-sm text-gray-500 border rounded-lg p-4">
           Not submitted yet. Your child can submit this from their own account.
         </p>
+      )}
+
+      {preview && (
+        <ResourcePreviewDialog open={!!preview} onOpenChange={(open) => !open && setPreview(null)} title={preview.title} url={preview.url} />
       )}
     </div>
   );

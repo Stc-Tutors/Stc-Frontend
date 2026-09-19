@@ -11,7 +11,7 @@ import { GetEnrollmentsAction, GetLinkedStudentsAction } from "@/server/enrollme
 import { GetStudentCoursesAction } from "@/server/course-enrollment";
 import { GetNotificationsAction } from "@/server/notification";
 import { Notification } from "@/types/notification";
-import { useSelectedStudent } from "@/contexts/selected-student-context";
+import { groupStudentsByChild, matchesSelectedStudent, useSelectedStudent } from "@/contexts/selected-student-context";
 
 interface ChildProgress {
   name: string;
@@ -29,20 +29,23 @@ export default function ParentMiddleSection() {
       const [linkedRes] = await GetLinkedStudentsAction();
       const [ownRes] = await GetEnrollmentsAction();
       const allStudents = [...(linkedRes?.data ?? []), ...(ownRes?.data ?? [])];
-      const students = isAllSelected ? allStudents : allStudents.filter((s) => s.id === selectedId);
+      const filtered = isAllSelected ? allStudents : allStudents.filter((s) => matchesSelectedStudent(s, selectedId));
 
+      // Group by physical child (not by enrollment) so a child with 3 course
+      // enrollments contributes ONE averaged bar, not 3 identically-named ones.
+      const groups = groupStudentsByChild(filtered);
       const courseEnrollmentLists = await Promise.all(
-        students.map((s) => GetStudentCoursesAction(s.id))
+        groups.map((g) => Promise.all(g.enrollments.map((s) => GetStudentCoursesAction(s.id))))
       );
 
       setData(
-        students.map((s, i) => {
-          const enrollments = courseEnrollmentLists[i][0]?.data ?? [];
+        groups.map((g, i) => {
+          const enrollments = courseEnrollmentLists[i].flatMap(([res]) => res?.data ?? []);
           const avg =
             enrollments.length === 0
               ? 0
               : Math.round(enrollments.reduce((sum, e) => sum + e.progressPercent, 0) / enrollments.length);
-          return { name: s.fullName, progress: avg };
+          return { name: g.fullName, progress: avg };
         })
       );
 

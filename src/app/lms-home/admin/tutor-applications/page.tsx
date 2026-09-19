@@ -18,6 +18,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import FullApplicationDetails from "@/components/tutor-applications/full-application-details";
+import ResourcePreviewDialog from "@/components/resources/ResourcePreviewDialog";
 
 export default function TutorApplicationsPage() {
   const router = useRouter();
@@ -33,6 +34,7 @@ export default function TutorApplicationsPage() {
   const [rejectReasons, setRejectReasons] = useState<Record<string, string>>({});
   const [moreInfoOpenFor, setMoreInfoOpenFor] = useState<string | null>(null);
   const [moreInfoFields, setMoreInfoFields] = useState<Record<string, string[]>>({});
+  const [preview, setPreview] = useState<{ title: string; url: string } | null>(null);
   const [moreInfoNotes, setMoreInfoNotes] = useState<Record<string, string>>({});
   const [expandedFor, setExpandedFor] = useState<string | null>(null);
 
@@ -178,9 +180,13 @@ export default function TutorApplicationsPage() {
                     <p>
                       <span className="font-medium">Documents:</span>{" "}
                       {app.documentUrls.map((url, i) => (
-                        <a key={i} href={url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline mr-2">
+                        <button
+                          key={i}
+                          onClick={() => setPreview({ title: `Doc ${i + 1}`, url })}
+                          className="text-blue-600 hover:underline mr-2"
+                        >
                           Doc {i + 1}
-                        </a>
+                        </button>
                       ))}
                     </p>
                   )}
@@ -289,6 +295,10 @@ export default function TutorApplicationsPage() {
             );
           })}
         </div>
+      )}
+
+      {preview && (
+        <ResourcePreviewDialog open={!!preview} onOpenChange={(open) => !open && setPreview(null)} title={preview.title} url={preview.url} />
       )}
     </div>
   );

@@ -14,6 +14,7 @@ import { Assignment } from "@/types/assignment";
 import { Submission } from "@/types/submission";
 import { UploadedFile } from "@/lib/cloudinary-upload";
 import { SUBMISSION_ATTACHMENT_UPLOAD_LIMITS } from "@/constants/upload-limits";
+import ResourcePreviewDialog from "@/components/resources/ResourcePreviewDialog";
 
 export default function AssignmentDetailPage() {
   const { assignmentId } = useParams();
@@ -27,6 +28,7 @@ export default function AssignmentDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [preview, setPreview] = useState<{ title: string; url: string } | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -102,17 +104,23 @@ export default function AssignmentDetailPage() {
           {submission.fileUrl && (
             <p className="text-sm text-gray-600">
               File link:{" "}
-              <a href={submission.fileUrl} className="text-blue-600 hover:underline" target="_blank" rel="noreferrer">
+              <button
+                onClick={() => setPreview({ title: "Your submission", url: submission.fileUrl! })}
+                className="text-blue-600 hover:underline"
+              >
                 {submission.fileUrl}
-              </a>
+              </button>
             </p>
           )}
           {submission.attachment && (
             <p className="text-sm text-gray-600">
               Attachment:{" "}
-              <a href={submission.attachment.url} className="text-blue-600 hover:underline" target="_blank" rel="noreferrer">
+              <button
+                onClick={() => setPreview({ title: "Your submission", url: submission.attachment!.url })}
+                className="text-blue-600 hover:underline"
+              >
                 {submission.attachment.fileName}
-              </a>
+              </button>
             </p>
           )}
           {submission.status === "GRADED" && (
@@ -150,6 +158,10 @@ export default function AssignmentDetailPage() {
             {isSubmitting ? "Submitting..." : "Submit Assignment"}
           </Button>
         </div>
+      )}
+
+      {preview && (
+        <ResourcePreviewDialog open={!!preview} onOpenChange={(open) => !open && setPreview(null)} title={preview.title} url={preview.url} />
       )}
     </div>
   );

@@ -15,26 +15,20 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { GetUsersAction } from "@/server/admin";
+import { UserSearchSelect } from "@/components/user-search-select";
 import { GetTutorTeachingSummaryAction, OffboardTutorAction } from "@/server/allocation-hub";
 import { BulkActionResult, TutorTeachingSummary } from "@/types/allocation-hub";
-import { User, UserRole } from "@/types/user";
+import { UserRole } from "@/types/user";
 
 // Bulk reassignment flow for a tutor who's resigning/being removed - "This
 // tutor is teaching N active subjects. Who should inherit them?"
 export default function OffboardTutorDialog({ onDone }: { onDone?: () => void }) {
   const [open, setOpen] = useState(false);
-  const [tutors, setTutors] = useState<User[]>([]);
   const [outgoingId, setOutgoingId] = useState("");
   const [incomingId, setIncomingId] = useState("");
   const [summary, setSummary] = useState<TutorTeachingSummary | null>(null);
   const [results, setResults] = useState<BulkActionResult[] | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  useEffect(() => {
-    if (!open) return;
-    GetUsersAction({ role: UserRole.TUTOR, limit: 1000 }).then(([res]) => setTutors(res?.data ?? []));
-  }, [open]);
 
   useEffect(() => {
     setSummary(null);
@@ -52,6 +46,10 @@ export default function OffboardTutorDialog({ onDone }: { onDone?: () => void })
 
   const handleConfirm = async () => {
     if (!outgoingId || !incomingId) return;
+    if (outgoingId === incomingId) {
+      toast.error("Pick a different tutor to receive the departing tutor's subjects");
+      return;
+    }
     setIsSubmitting(true);
     const [res, error] = await OffboardTutorAction(outgoingId, incomingId);
     setIsSubmitting(false);
@@ -88,18 +86,15 @@ export default function OffboardTutorDialog({ onDone }: { onDone?: () => void })
         <div className="space-y-3">
           <div>
             <label className="text-xs font-medium text-gray-600 mb-1 block">Departing tutor</label>
-            <select
+            <UserSearchSelect
+              role={UserRole.TUTOR}
               value={outgoingId}
-              onChange={(e) => setOutgoingId(e.target.value)}
-              className="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm"
-            >
-              <option value="">Select a tutor...</option>
-              {tutors.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.firstName} {t.lastName}
-                </option>
-              ))}
-            </select>
+              onChange={(id) => {
+                setOutgoingId(id);
+                setIncomingId("");
+              }}
+              placeholder="Search tutor by name or email..."
+            />
           </div>
 
           {summary && (
@@ -118,20 +113,12 @@ export default function OffboardTutorDialog({ onDone }: { onDone?: () => void })
           {outgoingId && (
             <div>
               <label className="text-xs font-medium text-gray-600 mb-1 block">Incoming tutor</label>
-              <select
+              <UserSearchSelect
+                role={UserRole.TUTOR}
                 value={incomingId}
-                onChange={(e) => setIncomingId(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm"
-              >
-                <option value="">Select a tutor...</option>
-                {tutors
-                  .filter((t) => t.id !== outgoingId)
-                  .map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.firstName} {t.lastName}
-                    </option>
-                  ))}
-              </select>
+                onChange={(id) => setIncomingId(id)}
+                placeholder="Search tutor by name or email..."
+              />
             </div>
           )}
 

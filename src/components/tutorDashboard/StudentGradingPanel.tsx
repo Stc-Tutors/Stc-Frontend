@@ -9,6 +9,7 @@ import { GetSubmissionsForAssignmentAction, GradeSubmissionAction } from "@/serv
 import { Assignment } from "@/types/assignment";
 import { Submission } from "@/types/submission";
 import { Course } from "@/types/course";
+import ResourcePreviewDialog from "@/components/resources/ResourcePreviewDialog";
 
 interface Row {
   course: Course;
@@ -22,6 +23,7 @@ export default function StudentGradingPanel({ studentId }: { studentId: string }
   const [scores, setScores] = useState<Record<string, string>>({});
   const [feedbacks, setFeedbacks] = useState<Record<string, string>>({});
   const [message, setMessage] = useState<string | null>(null);
+  const [preview, setPreview] = useState<{ title: string; url: string } | null>(null);
 
   const load = async () => {
     setIsLoading(true);
@@ -82,14 +84,20 @@ export default function StudentGradingPanel({ studentId }: { studentId: string }
 
           {row.submission?.content && <p className="text-sm text-gray-600 mb-2">{row.submission.content}</p>}
           {row.submission?.fileUrl && (
-            <a href={row.submission.fileUrl} target="_blank" rel="noreferrer" className="block text-sm text-blue-600 hover:underline mb-2">
+            <button
+              onClick={() => setPreview({ title: row.assignment.title, url: row.submission!.fileUrl! })}
+              className="block text-sm text-blue-600 hover:underline mb-2"
+            >
               {row.submission.fileUrl}
-            </a>
+            </button>
           )}
           {row.submission?.attachment && (
-            <a href={row.submission.attachment.url} target="_blank" rel="noreferrer" className="block text-sm text-blue-600 hover:underline mb-2">
+            <button
+              onClick={() => setPreview({ title: row.assignment.title, url: row.submission!.attachment!.url })}
+              className="block text-sm text-blue-600 hover:underline mb-2"
+            >
               {row.submission.attachment.fileName}
-            </a>
+            </button>
           )}
 
           {row.submission && row.submission.status !== "GRADED" && (
@@ -119,6 +127,10 @@ export default function StudentGradingPanel({ studentId }: { studentId: string }
           )}
         </div>
       ))}
+
+      {preview && (
+        <ResourcePreviewDialog open={!!preview} onOpenChange={(open) => !open && setPreview(null)} title={preview.title} url={preview.url} />
+      )}
     </div>
   );
 }

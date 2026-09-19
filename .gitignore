@@ -32,6 +32,11 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# ...except the onboarding template itself (placeholders only, no real
+# secrets - see that file) - the blanket rule above was silently keeping it
+# out of git too, leaving new developers with no reference for which vars
+# this app needs.
+!.env.example
 
 # vercel
 .vercel
