@@ -306,7 +306,11 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
     const { curriculum, country, gradeLevel, classFormat, selectedSubjects, selectedSubjectNodeIds } = serviceDetails;
     const nodeId = selectedSubjectNodeIds?.[(selectedSubjects ?? []).indexOf(subjectName)];
     if (nodeId) {
-      const nodeRows = candidates.filter((p) => p.taxonomyNodeId === nodeId);
+      // A row priced against the item itself beats one that only reaches it
+      // through a Course attached to the item (the API tags those with the item's id).
+      const nodeRows = candidates
+        .filter((p) => p.taxonomyNodeId === nodeId)
+        .sort((a, b) => Number(!!a.courseId) - Number(!!b.courseId));
       const nodeRow = (classFormat && nodeRows.find((p) => p.classFormat === classFormat)) || nodeRows.find((p) => !p.classFormat);
       if (nodeRow) return nodeRow;
     }

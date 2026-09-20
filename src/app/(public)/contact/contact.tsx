@@ -4,19 +4,9 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import { FaWhatsapp, FaInstagram, FaFacebook, FaLinkedin, FaTiktok, FaGlobe } from "react-icons/fa";
 import { usePageSection } from "@/hooks/use-page-section";
-import { ContactInfoContent, PageSectionKey } from "@/types/content";
+import { PageSectionKey } from "@/types/content";
+import { DEFAULT_CONTACT } from "@/constants/default-contact";
 
-const DEFAULT_CONTACT: ContactInfoContent = {
-  phones: ["+234 706 055 4954"],
-  emails: ["stc.consult24@gmail.com"],
-  socialLinks: [
-    { platform: "WhatsApp", url: "https://wa.me/2347089118528" },
-    { platform: "Instagram", url: "https://instagram.com/stc.consult01" },
-    { platform: "Facebook", url: "https://web.facebook.com/stc.consult01/" },
-    { platform: "LinkedIn", url: "https://linkedin.com/company/yourcompany" },
-    { platform: "TikTok", url: "https://www.tiktok.com/@stc.consult01" },
-  ],
-};
 
 const SOCIAL_ICON: Record<string, typeof FaGlobe> = {
   whatsapp: FaWhatsapp,

@@ -34,6 +34,11 @@ import DynamicQuestionField from "@/components/forms/dynamic-question-field";
 import { Input } from "@/components/ui/input";
 import { findScheduleOverlap } from "@/lib/schedule-overlap";
 import { scheduleTimeFrom24Hour, scheduleTimeTo24Hour } from "@/lib/datetime";
+import ContactSupportActions from "@/components/contact-support-actions";
+
+// The start of the message shown when a picked item has no price - matched to
+// offer a way to contact the team right there (see renderSubjectsError).
+const NO_PRICING_PREFIX = "No pricing has been set up yet for:";
 
 const EXAM_MONTHS = [
   "January", "February", "March", "April", "May", "June",
@@ -98,7 +103,8 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
     selectedSubjects: enrollmentData.serviceDetails?.selectedSubjects || [],
     learningGoals: enrollmentData.serviceDetails?.learningGoals || "",
     specialNeeds: enrollmentData.serviceDetails?.specialNeeds || "",
-    tutorGender: enrollmentData.serviceDetails?.tutorGender || "",
+    // "No preference" unless they choose otherwise - most families have none.
+    tutorGender: enrollmentData.serviceDetails?.tutorGender || "No preference",
     curriculum: enrollmentData.serviceDetails?.curriculum || "",
     country: enrollmentData.serviceDetails?.country || "",
     gradeLevel: enrollmentData.serviceDetails?.gradeLevel || "",
@@ -445,7 +451,7 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
         selectedSubjects: [],
         learningGoals: prev.serviceDetails?.learningGoals ?? "",
         specialNeeds: prev.serviceDetails?.specialNeeds,
-        tutorGender: prev.serviceDetails?.tutorGender ?? "",
+        tutorGender: prev.serviceDetails?.tutorGender ?? "No preference",
         curriculum: "",
       } as ServiceDetails,
       schedule: [],
@@ -623,7 +629,8 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
       if (!isPathC && serviceData.selectedSubjects.length > 0) {
         const unpriced = getUnpricedSubjects(schedule, pricingDetails);
         if (unpriced.length > 0) {
-          stepErrors.subjects = `No pricing has been set up yet for: ${unpriced.join(", ")} - please contact us or choose different subjects.`;
+          const formatNote = effectiveClassFormat ? ` (${effectiveClassFormat === "group" ? "group class" : "one-on-one"})` : "";
+          stepErrors.subjects = `${NO_PRICING_PREFIX} ${unpriced.join(", ")}${formatNote} - please contact us below, or choose a different option.`;
         } else if (serviceData.classFormat === "group" || serviceData.flexibleSchedule || isCohortBased) {
           // No days/times are submitted for these, so a price per hour has nothing
           // to multiply - the total would be 0. Only a flat price works here.
@@ -707,6 +714,29 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
   };
 
   const availableSubjects = resolvedSubjects.map((s) => s.name);
+
+  // The subjects error, and - when the problem is a missing price, which the
+  // student can't fix themselves - one-tap ways to contact the team with the
+  // details already written.
+  const renderSubjectsError = () => {
+    if (!errors.subjects) return null;
+    const missingPrice = errors.subjects.startsWith(NO_PRICING_PREFIX);
+    const what = serviceData.selectedSubjects.join(", ");
+    const formatText = effectiveClassFormat === "group" ? "group class" : effectiveClassFormat === "one-on-one" ? "one-on-one" : "";
+    return (
+      <div className="space-y-1">
+        <p className="text-red-600 text-sm">{errors.subjects}</p>
+        {missingPrice && (
+          <ContactSupportActions
+            subject={`Pricing needed: ${what}`}
+            message={`Hello, I'm trying to register for ${selectedService?.serviceName ?? "a service"} - ${what}${
+              formatText ? ` (${formatText})` : ""
+            } - but it says no price has been set up yet. Could you help me complete my registration?`}
+          />
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -808,7 +838,7 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
                         );
                       })}
                     </div>
-                    {errors.subjects && <p className="text-red-600 text-sm">{errors.subjects}</p>}
+                    {renderSubjectsError()}
                   </div>
                 );
               }
@@ -901,7 +931,7 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
                   </label>
                 ))}
               </div>
-              {errors.subjects && <p className="text-red-600 text-sm">{errors.subjects}</p>}
+              {renderSubjectsError()}
             </div>
           )}
 
@@ -991,7 +1021,7 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
                   </label>
                 ))}
               </div>
-              {errors.subjects && <p className="text-red-600 text-sm">{errors.subjects}</p>}
+              {renderSubjectsError()}
             </div>
           )}
 
