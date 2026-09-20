@@ -11,6 +11,9 @@ export async function GetClassGroupsAction(params: {
   serviceType: string;
   course?: string;
   ageRange?: string;
+  // A group set up for a plain Flow Tree item (no Course) is found by that
+  // item's name.
+  subject?: string;
 }): Promise<[ApiResponse<IClassGroup[]> | null, string | null]> {
   const query = new URLSearchParams(
     Object.entries(params).filter(([, v]) => !!v) as [string, string][]

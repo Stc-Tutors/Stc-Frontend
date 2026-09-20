@@ -12,6 +12,7 @@ import { GetServicesAction } from "@/server/service-catalog";
 import { CURRENCIES, CurrencyCode, EnrollmentServiceType, PricePoint, ServicePricing } from "@/types/service-pricing";
 import { Course } from "@/types/course";
 import { IService } from "@/types/service-catalog";
+import { GetCurriculumNodeAction } from "@/server/curriculum";
 import { CurriculumNode, CurriculumNodeType } from "@/types/curriculum";
 import CurriculumTreeBrowser from "@/components/curriculum-tree-browser";
 
@@ -154,6 +155,30 @@ export default function ServicePricingPage() {
   }, []);
 
   const courseTitleById = (id?: string) => courses.find((c) => c.id === id)?.title ?? id;
+
+  // A price set against one specific Flow Tree item has none of the legacy
+  // columns (curriculum/subject/grade/country) filled in when the service's tree
+  // doesn't use those levels - so without the item's own name the row showed
+  // nothing but dashes and you couldn't tell which price was which.
+  const [nodeNames, setNodeNames] = useState<Record<string, string>>({});
+  useEffect(() => {
+    const missing = Array.from(new Set(pricing.map((p) => p.taxonomyNodeId).filter((id): id is string => !!id))).filter(
+      (id) => !(id in nodeNames)
+    );
+    if (missing.length === 0) return;
+    let cancelled = false;
+    Promise.all(
+      missing.map((id) => GetCurriculumNodeAction(id).then(([res]) => [id, res?.data?.name ?? "(removed item)"] as const))
+    ).then((entries) => {
+      if (!cancelled) setNodeNames((prev) => ({ ...prev, ...Object.fromEntries(entries) }));
+    });
+    return () => {
+      cancelled = true;
+    };
+    // nodeNames is deliberately not a dependency - it's only read to skip ids
+    // already resolved, and depending on it would refetch after every update.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pricing]);
 
   const handleCreate = async () => {
     const prices = draftPricesToPricePoints(draftPrices);
@@ -306,6 +331,7 @@ export default function ServicePricingPage() {
             <thead className="bg-gray-50 text-gray-500 text-left">
               <tr>
                 <th className="p-3">Service</th>
+                <th className="p-3">Item</th>
                 <th className="p-3">Curriculum</th>
                 <th className="p-3">Grade</th>
                 <th className="p-3">Subject</th>
@@ -320,6 +346,7 @@ export default function ServicePricingPage() {
               {pricing.map((row) => (
                 <tr key={row.id} className="align-top">
                   <td className="p-3">{row.serviceType}</td>
+                  <td className="p-3">{row.taxonomyNodeId ? nodeNames[row.taxonomyNodeId] ?? "..." : "-"}</td>
                   <td className="p-3">{row.curriculum ?? "-"}</td>
                   <td className="p-3">{row.gradeLevel ?? "-"}</td>
                   <td className="p-3">{row.subject ?? "-"}</td>

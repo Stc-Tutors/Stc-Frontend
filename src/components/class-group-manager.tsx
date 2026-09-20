@@ -240,12 +240,16 @@ export function ClassGroupManager({ serviceType, hideHeading }: { serviceType?: 
                 </select>
               </div>
               <div className="space-y-1">
-                <label className="text-xs text-gray-500">Subject (optional)</label>
+                <label className="text-xs text-gray-500">Subject / item (optional)</label>
                 <input
                   value={form.subject}
                   onChange={(e) => setForm((p) => ({ ...p, subject: e.target.value }))}
                   className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
                 />
+                <p className="text-xs text-gray-400">
+                  For a flow tree item with no course behind it, type the item&apos;s name exactly as it appears in the
+                  tree - that&apos;s how students are matched to this group.
+                </p>
               </div>
               <div className="space-y-1">
                 <label className="text-xs text-gray-500">Age Range (optional)</label>

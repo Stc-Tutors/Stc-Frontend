@@ -28,7 +28,8 @@ interface StepProps {
 const STAGE = "student-registration:review" as const;
 
 export default function EnrollmentReview({ onNext, errors }: StepProps) {
-  const { enrollmentData, setCurrentStep, calculateCost, updateCustomFieldResponse, setEnrollmentData } = useEnrollment();
+  const { enrollmentData, setCurrentStep, calculateCost, updateCustomFieldResponse, setEnrollmentData, getHourlyPricedSubjects } =
+    useEnrollment();
   // const { enrollmentData, setCurrentStep } = useEnrollment();
   const { user } = useUser();
   const searchParams = useSearchParams();
@@ -51,6 +52,11 @@ export default function EnrollmentReview({ onNext, errors }: StepProps) {
   // Course Module enrolled by plain Flow Tree picks has no Course behind it and
   // is scheduled/priced like a subject, so it shows the same breakdown.
   const isCourseModule = isCourseService && !!(serviceDetails?.courseId || serviceDetails?.courseIds?.length);
+  // Weekly hours / weekly cost / "N weeks" only mean something when at least one
+  // subject is priced per hour. A flat price is one fixed charge for the whole
+  // enrollment, so it's shown as just a total (as a Course always is).
+  const showWeeklyBreakdown =
+    !isCourseModule && getHourlyPricedSubjects(serviceDetails?.selectedSubjects ?? [], serviceDetails ?? {}).length > 0;
   const isExamPrep = selectedService?.architecturalPath === ArchitecturalPath.EXAM_PREP_TAXONOMY;
   const isAcademicTutoring = selectedService?.architecturalPath === ArchitecturalPath.ACADEMIC_TUTORING_TAXONOMY;
 
@@ -403,7 +409,7 @@ export default function EnrollmentReview({ onNext, errors }: StepProps) {
             <div className="space-y-3">
               <h4 className="font-semibold">Cost Breakdown</h4>
               <div className="space-y-2">
-                {!isCourseModule && (
+                {showWeeklyBreakdown && (
                   <>
                     <div className="flex justify-between text-sm">
                       <span>Total weekly hours:</span>
@@ -423,7 +429,7 @@ export default function EnrollmentReview({ onNext, errors }: StepProps) {
                 )}
                 <Separator />
                 <div className="flex justify-between font-semibold text-lg">
-                  <span>{isCourseModule ? "Total:" : `Total (${billingWeeks} week${billingWeeks === 1 ? "" : "s"}):`}</span>
+                  <span>{!showWeeklyBreakdown ? "Total:" : `Total (${billingWeeks} week${billingWeeks === 1 ? "" : "s"}):`}</span>
                   <span className="text-green-600">₦{totalCost.toLocaleString()}</span>
                 </div>
               </div>
@@ -596,7 +602,7 @@ export default function EnrollmentReview({ onNext, errors }: StepProps) {
             </div>
             <div className="text-right">
               <p className="text-2xl font-bold text-green-800">₦{totalCost.toLocaleString()}</p>
-              {!isCourseModule && (
+              {showWeeklyBreakdown && (
                 <p className="text-sm text-green-600">
                   for {billingWeeks} week{billingWeeks === 1 ? "" : "s"}
                 </p>

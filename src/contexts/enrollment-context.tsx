@@ -174,6 +174,7 @@ type EnrollmentContextType = {
   updateCustomFieldResponse: (fieldId: string, value: CustomFieldResponses[string] | undefined) => void;
   calculateCost: (schedule?: Schedule[], serviceDetails?: Partial<ServiceDetails>) => number;
   getUnpricedSubjects: (schedule?: Schedule[], serviceDetails?: Partial<ServiceDetails>) => string[];
+  getHourlyPricedSubjects: (subjects: string[], serviceDetails?: Partial<ServiceDetails>) => string[];
   saveEnrollment: () => Promise<{ success: boolean; data?: EnrollmentResponse; error?: string }>;
   loadEnrollment: (id: string) => Promise<void>;
   isLoading: boolean;
@@ -351,12 +352,20 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
 
     const candidates = pricing.filter((p) => p.serviceType === serviceType);
 
+    // A flat price is charged once per subject, however many schedule rows that
+    // subject has (the server sums one line per subject).
+    const flatCharged = new Set<string>();
+
     return schedule.reduce((total, subject) => {
       const price = pickPrice(priceRowFor(candidates, subject.subject, serviceDetails));
       if (!price) return total;
       // A flat price already covers the whole billing period for this
       // subject - it isn't a rate to multiply by hours or weeks.
-      if (price.flatRate != null) return total + price.flatRate;
+      if (price.flatRate != null) {
+        if (flatCharged.has(subject.subject)) return total;
+        flatCharged.add(subject.subject);
+        return total + price.flatRate;
+      }
       const hoursPerWeek = subject.days.length * (subject.duration / 60);
       return total + (price.ratePerHour ?? 0) * hoursPerWeek * weeks;
     }, 0);
@@ -365,6 +374,19 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
   // Subjects in `schedule` with no matching, priceable ServicePricing row -
   // used to block enrollment on an accurate ₦0 estimate instead of letting
   // it through only to fail at StudentService.enroll's authoritative quote.
+  // Subjects whose price is per hour only (no flat price). An hourly price is
+  // rate x weekly hours x weeks, so it needs a real schedule - a Group Class, a
+  // cohort placement or a flexible schedule submits none, and would total 0. The
+  // Subjects & Schedule step uses this to say so up front rather than at checkout.
+  const getHourlyPricedSubjects = (subjects: string[], serviceDetailsOverride?: Partial<ServiceDetails>): string[] => {
+    const serviceDetails = { ...enrollmentData.serviceDetails, ...serviceDetailsOverride };
+    const candidates = pricing.filter((p) => p.serviceType === serviceDetails.serviceType);
+    return subjects.filter((name) => {
+      const price = pickPrice(priceRowFor(candidates, name, serviceDetails));
+      return !!price && price.flatRate == null;
+    });
+  };
+
   const getUnpricedSubjects = (scheduleOverride?: Schedule[], serviceDetailsOverride?: Partial<ServiceDetails>): string[] => {
     const serviceDetails = { ...enrollmentData.serviceDetails, ...serviceDetailsOverride };
     const schedule = scheduleOverride ?? enrollmentData.schedule;
@@ -391,7 +413,14 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
       const isCourseModule =
         enrollmentData.selectedService?.architecturalPath === ArchitecturalPath.COURSE_MODULE &&
         !!(enrollmentData.serviceDetails?.courseId || enrollmentData.serviceDetails?.courseIds?.length);
-      const totalCost = isCourseModule ? enrollmentData.totalCost ?? 0 : calculateCost();
+      // A Group Class, a cohort placement and a flexible schedule deliberately
+      // submit NO schedule rows, so recomputing from enrollmentData.schedule
+      // here comes out as 0 even for a flat-priced subject - and the API rejects
+      // a total of 0. In that case keep the total the Subjects & Schedule step
+      // already worked out from the real selection (the server recomputes the
+      // authoritative charge either way).
+      const recomputed = calculateCost();
+      const totalCost = isCourseModule ? enrollmentData.totalCost ?? 0 : recomputed > 0 ? recomputed : enrollmentData.totalCost ?? 0;
       setTotalCost(totalCost);
 
       // Build the payload's serviceDetails from this totalCost directly instead
@@ -570,6 +599,7 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
         updateCustomFieldResponse,
         calculateCost,
         getUnpricedSubjects,
+        getHourlyPricedSubjects,
         saveEnrollment,
         loadEnrollment,
         isLoading,

@@ -60,7 +60,7 @@ const durationOptions = [
 const STAGE = "student-registration:subjects-schedule" as const;
 
 export default function SubjectsSchedule({ onNext, errors }: StepProps) {
-  const { enrollmentData, updateServiceDetails, updateSchedule, calculateCost, getUnpricedSubjects, setTotalCost, updateCustomFieldResponse, setEnrollmentData } = useEnrollment();
+  const { enrollmentData, updateServiceDetails, updateSchedule, calculateCost, getUnpricedSubjects, getHourlyPricedSubjects, setTotalCost, updateCustomFieldResponse, setEnrollmentData } = useEnrollment();
   const [totalCost, setLocalTotalCost] = useState(enrollmentData.totalCost || 0);
 
   const selectedService = enrollmentData.selectedService;
@@ -329,15 +329,16 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
   // enrolled in directly: it becomes the enrollment's subject and is scheduled,
   // priced and provisioned exactly like one. A special Course attached to it is
   // an optional extra; when the pick has one, THAT is what's used (above), and
-  // only a pick with none falls back to being a plain subject. Cohort services
-  // are the exception - their class groups belong to a Course - and a tree
-  // that is only the age range has no pick level (that stage is a filter).
+  // only a pick with none falls back to being a plain subject. That includes a
+  // cohort service: its class group is then found by the item's name instead of
+  // by a Course. A tree that is only the age range has no pick level (that
+  // stage is a filter), so it still needs a Course.
   const treeHasPickLevel = hasTree && !(stages.length === 1 && flowReq.requires_age_range);
   const deepestIndex = stageSelections.length - 1;
   const deepestNode =
     deepestIndex >= 0 ? (stageOptions[deepestIndex] ?? []).find((n) => n.id === stageSelections[deepestIndex]) : undefined;
   const nodePicks: CurriculumNode[] =
-    !isPathCService || isCohortBased || !treeHasPickLevel
+    !isPathCService || !treeHasPickLevel
       ? []
       : lastStageIsPick
         ? (stageOptions[stages.length - 1] ?? []).filter((n) => nodePickIds.includes(n.id))
@@ -359,11 +360,15 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
   // set against one specific item is found - see EnrollmentContext.priceRowFor.
   const pricingDetails = { ...serviceData, selectedSubjectNodeIds: subjectNodeIds };
   const pricingKey = subjectNodeIds.join(",");
+  // Any hourly-only price among the picked subjects (see getHourlyPricedSubjects)
+  // - only those make "weeks to pay for" and a weekly hours breakdown mean
+  // anything; a flat price is one fixed charge.
+  const hasHourlySubject = getHourlyPricedSubjects(serviceData.selectedSubjects, pricingDetails).length > 0;
 
   // While plain-picking, the picked items ARE the enrollment's subjects.
   const nodePickKey = nodePicks.map((n) => n.id).join(",");
   useEffect(() => {
-    if (!isPathCService || isCohortBased || !treeHasPickLevel) return;
+    if (!isPathCService || !treeHasPickLevel) return;
     if (serviceData.courseIds.length > 0) return;
     const names = nodePicks.map((n) => n.name);
     setServiceData((prev) =>
@@ -373,7 +378,7 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
     );
     // nodePicks is captured through nodePickKey; the rest are stable inputs.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [nodePickKey, serviceData.courseIds.length, isPathCService, isCohortBased, treeHasPickLevel]);
+  }, [nodePickKey, serviceData.courseIds.length, isPathCService, treeHasPickLevel]);
 
   const toggleNodePick = (node: CurriculumNode) =>
     setNodePickIds((prev) => (prev.includes(node.id) ? prev.filter((id) => id !== node.id) : [...prev, node.id]));
@@ -448,17 +453,24 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
 
   // Task 3 - once a course + (optionally) age range are chosen for a cohort
   // service, fetch the open ClassGroups the student can join directly.
+  // A group is set up for a Course, or - when the pick has no Course behind it -
+  // for the tree item itself (matched by name).
+  const cohortSubject = nodeBacked ? nodePicks[0]?.name : undefined;
   useEffect(() => {
-    if (!isPathCService || !isCohortBased || !serviceData.courseId || !serviceType) {
+    if (!isPathCService || !isCohortBased || (!serviceData.courseId && !cohortSubject) || !serviceType) {
       setClassGroups([]);
       return;
     }
     setIsLoadingGroups(true);
-    GetClassGroupsAction({ serviceType, course: serviceData.courseId, ageRange: serviceData.ageLevel || undefined }).then(([res]) => {
+    GetClassGroupsAction({
+      serviceType,
+      ...(serviceData.courseId ? { course: serviceData.courseId } : { subject: cohortSubject }),
+      ageRange: serviceData.ageLevel || undefined,
+    }).then(([res]) => {
       setClassGroups(res?.data ?? []);
       setIsLoadingGroups(false);
     });
-  }, [isPathCService, isCohortBased, serviceData.courseId, serviceData.ageLevel, serviceType]);
+  }, [isPathCService, isCohortBased, serviceData.courseId, cohortSubject, serviceData.ageLevel, serviceType]);
 
   const isPathBExam = isPathB;
 
@@ -557,6 +569,7 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
       // entered) - see the Schedule section's classFormat === "group" branch.
       if (
         !isPathC &&
+        !isCohortBased &&
         !serviceData.flexibleSchedule &&
         serviceData.classFormat !== "group" &&
         !schedule.some((s) => s.days.length > 0)
@@ -581,6 +594,15 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
         const unpriced = getUnpricedSubjects(schedule, pricingDetails);
         if (unpriced.length > 0) {
           stepErrors.subjects = `No pricing has been set up yet for: ${unpriced.join(", ")} - please contact us or choose different subjects.`;
+        } else if (serviceData.classFormat === "group" || serviceData.flexibleSchedule || isCohortBased) {
+          // No days/times are submitted for these, so a price per hour has nothing
+          // to multiply - the total would be 0. Only a flat price works here.
+          const hourly = getHourlyPricedSubjects(serviceData.selectedSubjects, pricingDetails);
+          if (hourly.length > 0) {
+            stepErrors.subjects = `${hourly.join(", ")} ${hourly.length === 1 ? "is" : "are"} priced per hour, so ${
+              hourly.length === 1 ? "it needs" : "they need"
+            } specific days and times and can't be booked as a group class, in a cohort or with a flexible schedule. Please choose days and times instead, or contact us.`;
+          }
         }
       }
 
@@ -631,7 +653,7 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
         // validateScheduleDaysRequired on the backend, which would otherwise
         // reject each row's empty `days`).
         const submittedSchedule =
-          !isPathC && (serviceData.flexibleSchedule || serviceData.classFormat === "group") ? [] : schedule;
+          !isPathC && (serviceData.flexibleSchedule || serviceData.classFormat === "group" || isCohortBased) ? [] : schedule;
         updateSchedule(submittedSchedule);
         setTotalCost(isPathC ? chosenCoursesTotal : calculateCost(schedule, pricingDetails));
       }
@@ -703,16 +725,7 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
                         const nodeCourses = courses.filter((c) => c.taxonomyNodeId === node.id);
                         if (nodeCourses.length === 0) {
                           // No special Course behind it: a plain pick, enrolled
-                          // like a subject. (Cohort services need a Course - their
-                          // class groups belong to one - so there it's unavailable.)
-                          if (isCohortBased) {
-                            return (
-                              <div key={node.id} className="flex items-center justify-between border rounded-lg p-3 text-gray-400">
-                                <p>{node.name}</p>
-                                <p className="text-xs">Not available yet</p>
-                              </div>
-                            );
-                          }
+                          // like a subject.
                           return (
                             <label
                               key={node.id}
@@ -801,13 +814,13 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
               {/* Nothing under the pick. With a tree that has a pick level the
                   student simply carries on with the item they chose (a plain
                   pick, below) - "not open" only applies where that isn't possible
-                  (cohort services need a Course; an age-range-only tree has no
-                  item to enrol in) or when there's no tree at all. */}
+                  (an age-range-only tree has no item to enrol in) or when there's
+                  no tree at all. */}
               {treeExhausted &&
                 coursesResolved &&
                 !isLoadingCourses &&
                 filteredCourses.length === 0 &&
-                !(isPathCService && !isCohortBased && treeHasPickLevel) && (
+                !(isPathCService && treeHasPickLevel) && (
                   <p className="text-sm text-gray-500">
                     {hasTree
                       ? "This isn't open for enrollment yet - please check back soon."
@@ -1302,13 +1315,13 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
       {/* Task 3/5 - cohort-based Path C services skip the one-on-one/group
           question entirely: the student picks a specific open ClassGroup
           instead. */}
-      {isPathCService && isCohortBased && serviceData.courseId && (
+      {isPathCService && isCohortBased && (serviceData.courseId || nodeBacked) && (
         <Card>
           <CardHeader><CardTitle>Choose a Class Group</CardTitle></CardHeader>
           <CardContent className="space-y-3">
             {isLoadingGroups && <p className="text-sm text-gray-500">Loading available class groups...</p>}
             {!isLoadingGroups && classGroups.length === 0 && (
-              <p className="text-sm text-gray-500">No open class groups yet for this course - check back soon.</p>
+              <p className="text-sm text-gray-500">No open class groups yet for this - check back soon.</p>
             )}
             {classGroups.map((group) => {
               const seatsLeft = Math.max(group.capacity - group.confirmedCount, 0);
@@ -1519,7 +1532,7 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
                 fixed 4-week month; only moves the needle for hourly-rate
                 subjects (a flat-rate subject's price is fixed regardless -
                 see EnrollmentContext.calculateCost). */}
-            {!isPathC && serviceData.selectedSubjects.length > 0 && (
+            {!isPathC && hasHourlySubject && (
               <div className="space-y-2 mb-4">
                 <Label htmlFor="billingWeeks">Number of weeks to pay for</Label>
                 <Input
@@ -1542,14 +1555,16 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
               <h4 className="font-semibold mb-2">Cost Summary</h4>
               <p className="text-2xl font-bold text-green-600">
                 ₦{totalCost.toLocaleString()}
-                {isPathC ? "" : ` / ${serviceData.billingWeeks} week${serviceData.billingWeeks === 1 ? "" : "s"}`}
+                {isPathC || !hasHourlySubject ? "" : ` / ${serviceData.billingWeeks} week${serviceData.billingWeeks === 1 ? "" : "s"}`}
               </p>
               <p className="text-sm text-gray-600">
                 {isPathC
                   ? hasTree
                     ? "Price for your selection"
                     : "Course price"
-                  : "Based on selected subjects, schedule, and weeks selected above"}
+                  : hasHourlySubject
+                    ? "Based on selected subjects, schedule, and weeks selected above"
+                    : "Fixed price for your selection"}
               </p>
             </div>
           </CardContent>
