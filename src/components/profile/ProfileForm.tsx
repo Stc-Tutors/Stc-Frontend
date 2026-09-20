@@ -11,8 +11,9 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ToastError, ToastSuccess } from "@/components/ui/custom/toast";
 import { GetUserAction, UpdateUserAction } from "@/server/user";
-import { User } from "@/types/user";
+import { User, UserRole } from "@/types/user";
 import ChangePasswordForm from "./ChangePasswordForm";
+import StudentPersonalDetailsForm from "./StudentPersonalDetailsForm";
 import NotificationPreferencesForm from "./NotificationPreferencesForm";
 
 const formSchema = z.object({
@@ -153,6 +154,7 @@ export default function ProfileForm() {
       </Form>
     </section>
 
+    {user?.role === UserRole.STUDENT && <StudentPersonalDetailsForm />}
     <ChangePasswordForm />
     <NotificationPreferencesForm />
     </div>

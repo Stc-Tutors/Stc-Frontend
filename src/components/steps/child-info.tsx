@@ -13,6 +13,8 @@ import { useCustomFormFields } from "@/hooks/use-custom-form-fields"
 import DynamicQuestionField from "@/components/forms/dynamic-question-field"
 import { useUser } from "@/contexts/user-context"
 import { GetLinkedStudentsAction } from "@/server/enrollment"
+import { GetMyChildProfileAction } from "@/server/child"
+import type { Child } from "@/types/child"
 import { groupStudentsByChild, defaultEnrollmentForChild, type ChildGroup } from "@/contexts/selected-student-context"
 
 
@@ -43,6 +45,35 @@ function calculateAge(dateOfBirth: string): number | null {
     age--;
   }
   return age;
+}
+
+// Everything this step would otherwise ask a self-registering student for -
+// once a profile has all of it, there's nothing left to type. A student under
+// PARENT_INFO_REQUIRED_UNDER_AGE also needs their parent/guardian contact on
+// file, same rule as the form below.
+function isProfileComplete(profile: Child): boolean {
+  if (!profile.fullName || !profile.gender || !profile.dateOfBirth || !profile.countryOfResidence || !profile.primaryLanguage) {
+    return false
+  }
+  const age = calculateAge(profile.dateOfBirth)
+  if (age === null || age < PARENT_INFO_REQUIRED_UNDER_AGE) {
+    return !!(profile.parentName && profile.parentPhone && profile.parentEmail)
+  }
+  return true
+}
+
+function profileToFormFields(profile: Child) {
+  return {
+    fullName: profile.fullName,
+    gender: profile.gender || "",
+    dateOfBirth: profile.dateOfBirth ? new Date(profile.dateOfBirth).toISOString().slice(0, 10) : "",
+    phone: profile.phone || "",
+    countryOfResidence: profile.countryOfResidence || "",
+    primaryLanguage: profile.primaryLanguage || "",
+    parentName: profile.parentName || "",
+    parentPhone: profile.parentPhone || "",
+    parentEmail: profile.parentEmail || "",
+  }
 }
 
 export default function ChildInfoStep({ onNext, errors, forcedUserType }: StepProps) {
@@ -122,6 +153,40 @@ export default function ChildInfoStep({ onNext, errors, forcedUserType }: StepPr
       }))
     }
   }
+
+  // A self-registering student is their own Child record - whatever they
+  // entered here on their first enrollment lives on their profile, so a
+  // second enrollment shouldn't ask again (same idea as the parent's
+  // "Existing Child" picker above, minus the picker since there's only ever
+  // one of them). A complete profile collapses this step to a read-only
+  // summary and links the enrollment to it via childId; an incomplete one
+  // (older/partial record) just prefills whatever it has, and the backend
+  // (StudentService.resolveChildForEnrollment) backfills the rest from
+  // what they type.
+  const [savedProfile, setSavedProfile] = useState<Child | null>(null)
+  const usingSavedProfile = formData.userType === "student" && !!savedProfile && isProfileComplete(savedProfile)
+
+  useEffect(() => {
+    if (formData.userType !== "student") return
+    GetMyChildProfileAction().then(([res]) => {
+      const profile = res?.data
+      if (!profile) return
+      setSavedProfile(profile)
+      const fields = profileToFormFields(profile)
+      if (isProfileComplete(profile)) {
+        setFormData((prev) => ({ ...prev, ...fields }))
+        setEnrollmentData((prev) => ({ ...prev, childId: profile.id }))
+      } else {
+        setFormData((prev) => {
+          const next = { ...prev }
+          for (const key of Object.keys(fields) as (keyof typeof fields)[]) {
+            if (!next[key]?.trim()) next[key] = fields[key]
+          }
+          return next
+        })
+      }
+    })
+  }, [formData.userType, setEnrollmentData])
 
   // Task 2 - Country of residence / Primary language now come from the
   // admin-managed taxonomy-options catalog (GET /public/taxonomy-options)
@@ -341,7 +406,55 @@ export default function ChildInfoStep({ onNext, errors, forcedUserType }: StepPr
       {/* Student/Child Information - collapsed to a summary once an existing
           child is selected, since re-entering their details would just be
           re-typing what's already on file for them. */}
-      {childMode === "existing" && selectedChildKey ? (
+      {usingSavedProfile ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Your Saved Details</CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm text-gray-600 space-y-3">
+            <p>You&apos;ve already given us these details, so there&apos;s nothing to fill in again.</p>
+            <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
+              <div>
+                <dt className="text-gray-500">Full name</dt>
+                <dd className="font-medium text-gray-900">{formData.fullName}</dd>
+              </div>
+              <div>
+                <dt className="text-gray-500">Gender</dt>
+                <dd className="font-medium text-gray-900">{formData.gender}</dd>
+              </div>
+              <div>
+                <dt className="text-gray-500">Date of birth</dt>
+                <dd className="font-medium text-gray-900">{formData.dateOfBirth}</dd>
+              </div>
+              <div>
+                <dt className="text-gray-500">Country of residence</dt>
+                <dd className="font-medium text-gray-900">
+                  {countries.find((c) => c.value === formData.countryOfResidence)?.label ?? formData.countryOfResidence}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-gray-500">Primary teaching language</dt>
+                <dd className="font-medium text-gray-900">
+                  {languages.find((l) => l.value === formData.primaryLanguage)?.label ?? formData.primaryLanguage}
+                </dd>
+              </div>
+              {formData.phone && (
+                <div>
+                  <dt className="text-gray-500">Phone</dt>
+                  <dd className="font-medium text-gray-900">{formData.phone}</dd>
+                </div>
+              )}
+            </dl>
+            <p>
+              Something changed?{" "}
+              <a href="/lms-home/student/profile" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
+                Update your profile
+              </a>{" "}
+              (opens in a new tab, so your enrollment here isn&apos;t lost), then reload this page.
+            </p>
+          </CardContent>
+        </Card>
+      ) : childMode === "existing" && selectedChildKey ? (
         <Card>
           <CardHeader>
             <CardTitle>Child Information</CardTitle>
@@ -440,7 +553,7 @@ export default function ChildInfoStep({ onNext, errors, forcedUserType }: StepPr
       )}
 
       {/* Parent/Guardian Information (for students under PARENT_INFO_REQUIRED_UNDER_AGE) */}
-      {isMinorStudent && childMode !== "existing" && (
+      {isMinorStudent && childMode !== "existing" && !usingSavedProfile && (
         <Card>
           <CardHeader>
             <CardTitle>Parent/Guardian Information</CardTitle>

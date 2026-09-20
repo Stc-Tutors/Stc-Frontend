@@ -3,6 +3,20 @@
 import fetchAPI, { type ApiResponse } from "@/lib/fetch";
 import { Child, UpdateChildProfileInput } from "@/types/child";
 
+// A self-registered student's own profile (the details they entered in the
+// enrollment wizard's Student Information step) - `data` is null until their
+// first enrollment. STUDENT-only on the backend; a parent uses
+// GetLinkedStudentsAction to see their children instead.
+export async function GetMyChildProfileAction(): Promise<[ApiResponse<Child | null> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: `/children/mine`,
+    request: { method: "GET", headers: { "Content-Type": "application/json" } },
+  });
+
+  const resData = res ? ((await res.json()) as ApiResponse<Child | null>) : null;
+  return [resData, error];
+}
+
 export async function GetChildAction(id: string): Promise<[ApiResponse<Child> | null, string | null]> {
   const [res, error] = await fetchAPI({
     url: `/children/${id}`,
