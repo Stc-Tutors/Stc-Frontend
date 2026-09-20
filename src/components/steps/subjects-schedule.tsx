@@ -358,7 +358,10 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
   );
   // What pricing needs to know about each subject (its tree item), so a price
   // set against one specific item is found - see EnrollmentContext.priceRowFor.
-  const pricingDetails = { ...serviceData, selectedSubjectNodeIds: subjectNodeIds };
+  // A cohort-only service has no format to choose - it is a group class, so its
+  // price is looked up (and submitted) as one.
+  const effectiveClassFormat: ClassFormat | undefined = isCohortBased ? "group" : serviceData.classFormat;
+  const pricingDetails = { ...serviceData, classFormat: effectiveClassFormat, selectedSubjectNodeIds: subjectNodeIds };
   const pricingKey = subjectNodeIds.join(",");
   // Any hourly-only price among the picked subjects (see getHourlyPricedSubjects)
   // - only those make "weeks to pay for" and a weekly hours breakdown mean
@@ -451,26 +454,45 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
     }));
   };
 
-  // Task 3 - once a course + (optionally) age range are chosen for a cohort
-  // service, fetch the open ClassGroups the student can join directly.
-  // A group is set up for a Course, or - when the pick has no Course behind it -
-  // for the tree item itself (matched by name).
-  const cohortSubject = nodeBacked ? nodePicks[0]?.name : undefined;
+  // A cohort is a group class: a service can have several (batches with their own
+  // capacity/start date) and a student joins any one, while one-on-one stays
+  // available alongside them. Once the student wants a group (they chose Group
+  // Class, or the service is group-only), fetch the open groups for the ONE thing
+  // they picked - its Course, or for a plain tree item / subject its name. With
+  // several subjects there's no single group to pick, so they're placed per
+  // subject after payment instead.
+  const groupLookupSubject = serviceData.selectedSubjects.length === 1 ? serviceData.selectedSubjects[0] : undefined;
+  const wantsClassGroup = isCohortBased || serviceData.classFormat === "group";
+  const classGroupLookupReady = !!(serviceData.courseId || groupLookupSubject);
   useEffect(() => {
-    if (!isPathCService || !isCohortBased || (!serviceData.courseId && !cohortSubject) || !serviceType) {
+    if (!wantsClassGroup || !serviceType || !classGroupLookupReady) {
       setClassGroups([]);
       return;
     }
+    let cancelled = false;
     setIsLoadingGroups(true);
     GetClassGroupsAction({
       serviceType,
-      ...(serviceData.courseId ? { course: serviceData.courseId } : { subject: cohortSubject }),
+      ...(serviceData.courseId ? { course: serviceData.courseId } : { subject: groupLookupSubject }),
       ageRange: serviceData.ageLevel || undefined,
     }).then(([res]) => {
+      if (cancelled) return;
       setClassGroups(res?.data ?? []);
       setIsLoadingGroups(false);
     });
-  }, [isPathCService, isCohortBased, serviceData.courseId, cohortSubject, serviceData.ageLevel, serviceType]);
+    return () => {
+      cancelled = true;
+    };
+  }, [wantsClassGroup, classGroupLookupReady, serviceData.courseId, groupLookupSubject, serviceData.ageLevel, serviceType]);
+
+  // A picked group that's no longer on offer (different subject/age range chosen)
+  // must not linger.
+  useEffect(() => {
+    if (isLoadingGroups || !serviceData.classGroupId) return;
+    if (!classGroups.some((g) => g.id === serviceData.classGroupId)) {
+      setServiceData((prev) => ({ ...prev, classGroupId: "" }));
+    }
+  }, [classGroups, isLoadingGroups, serviceData.classGroupId]);
 
   const isPathBExam = isPathB;
 
@@ -556,8 +578,16 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
       if (isPathCService && flowReq.requires_language_selection && !serviceData.language) {
         stepErrors.language = "Please select a language";
       }
-      if (isPathCService && isCohortBased && !serviceData.classGroupId) {
-        stepErrors.classGroupId = "Please select a class group to join";
+      // Any open group means the student picks one (they can pick any of a
+      // service's cohorts); a group-only service can't proceed without one.
+      if (wantsClassGroup && classGroupLookupReady && !isLoadingGroups) {
+        if (classGroups.length > 0 && !serviceData.classGroupId) {
+          stepErrors.classGroupId = isCohortBased ? "Please choose a cohort to join" : "Please choose a group to join";
+        } else if (classGroups.length === 0 && isCohortBased) {
+          stepErrors.classGroupId = "No open cohort is available for this yet - please check back soon";
+        }
+      } else if (isCohortBased && !serviceData.classGroupId) {
+        stepErrors.classGroupId = "Please choose a cohort to join";
       }
 
       // Group/cohort placement is confirmed after enrollment, not picked
@@ -644,7 +674,13 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
         // subjects for the taxonomy paths, from the picked tree items for a
         // Course Module enrolled by plain picks.)
         const selectedSubjectNodeIds = subjectNodeIds;
-        updateServiceDetails({ ...serviceData, selectedSubjectNodeIds });
+        updateServiceDetails({
+          ...serviceData,
+          classFormat: effectiveClassFormat,
+          // Only a group class carries a group; cleared otherwise so a stale pick is never sent.
+          classGroupId: wantsClassGroup && serviceData.classGroupId ? serviceData.classGroupId : undefined,
+          selectedSubjectNodeIds,
+        });
         // A flexible one-on-one schedule, or a group-format one (placement
         // confirmed after enrollment, not picked upfront - see the Schedule
         // section's classFormat === "group" branch), submits no days/times
@@ -1312,51 +1348,6 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
         </Card>
       )}
 
-      {/* Task 3/5 - cohort-based Path C services skip the one-on-one/group
-          question entirely: the student picks a specific open ClassGroup
-          instead. */}
-      {isPathCService && isCohortBased && (serviceData.courseId || nodeBacked) && (
-        <Card>
-          <CardHeader><CardTitle>Choose a Class Group</CardTitle></CardHeader>
-          <CardContent className="space-y-3">
-            {isLoadingGroups && <p className="text-sm text-gray-500">Loading available class groups...</p>}
-            {!isLoadingGroups && classGroups.length === 0 && (
-              <p className="text-sm text-gray-500">No open class groups yet for this - check back soon.</p>
-            )}
-            {classGroups.map((group) => {
-              const seatsLeft = Math.max(group.capacity - group.confirmedCount, 0);
-              return (
-                <label
-                  key={group.id}
-                  className={`flex items-center justify-between border rounded-lg p-3 cursor-pointer ${
-                    serviceData.classGroupId === group.id ? "border-blue-500 bg-blue-50" : ""
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="radio"
-                      name="classGroup"
-                      checked={serviceData.classGroupId === group.id}
-                      onChange={() => setServiceData((prev) => ({ ...prev, classGroupId: group.id }))}
-                    />
-                    <div>
-                      <p className="font-medium">{group.label}</p>
-                      <p className="text-xs text-gray-500">
-                        {group.startDate ? `Starts ${new Date(group.startDate).toLocaleDateString()}` : "Start date to be confirmed"}
-                        {" · "}
-                        {group.status === ClassGroupStatus.FULL ? "Full - you'll join the waitlist" : `${seatsLeft} seat(s) left`}
-                      </p>
-                    </div>
-                  </div>
-                  <Badge variant="secondary">{group.status}</Badge>
-                </label>
-              );
-            })}
-            {errors.classGroupId && <p className="text-red-600 text-sm">{errors.classGroupId}</p>}
-          </CardContent>
-        </Card>
-      )}
-
       {/* Task 5 - One-on-One vs Group Class, whenever this service isn't
           cohort-based. */}
       {!isCohortBased && serviceData.selectedSubjects.length > 0 && (
@@ -1371,6 +1362,7 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
                   setServiceData((prev) => ({
                     ...prev,
                     classFormat: value as ClassFormat,
+                    classGroupId: "",
                     startDate: value === "group" ? "" : prev.startDate,
                     flexibleSchedule: value === "group" ? false : prev.flexibleSchedule,
                   }))
@@ -1415,12 +1407,62 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
               </label>
             )}
 
-            {serviceData.classFormat === "group" && (
+            {serviceData.classFormat === "group" && classGroups.length === 0 && (
               <p className="text-sm text-gray-600">
                 You'll be placed in the next available group class for this subject - we'll confirm your schedule
                 after enrollment (you may be waitlisted if the group is full).
               </p>
             )}
+            {serviceData.classFormat === "group" && classGroups.length > 0 && (
+              <p className="text-sm text-gray-600">Choose one of the open groups below - each has its own start date.</p>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* A cohort is a group class. Once the student wants a group (they chose
+          Group Class, or the service is group-only) they pick any one of the open
+          cohorts for what they chose - each with its own start date and seats. With
+          none set up yet, a Group Class just places them in the next available
+          group after payment (the note in the Class Format card above). */}
+      {wantsClassGroup && classGroupLookupReady && (isLoadingGroups || classGroups.length > 0 || isCohortBased) && (
+        <Card>
+          <CardHeader><CardTitle>{isCohortBased ? "Choose a Cohort" : "Choose a Group"}</CardTitle></CardHeader>
+          <CardContent className="space-y-3">
+            {isLoadingGroups && <p className="text-sm text-gray-500">Loading available groups...</p>}
+            {!isLoadingGroups && classGroups.length === 0 && (
+              <p className="text-sm text-gray-500">No open cohort yet for this - check back soon.</p>
+            )}
+            {classGroups.map((group) => {
+              const seatsLeft = Math.max(group.capacity - group.confirmedCount, 0);
+              return (
+                <label
+                  key={group.id}
+                  className={`flex items-center justify-between border rounded-lg p-3 cursor-pointer ${
+                    serviceData.classGroupId === group.id ? "border-blue-500 bg-blue-50" : ""
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="radio"
+                      name="classGroup"
+                      checked={serviceData.classGroupId === group.id}
+                      onChange={() => setServiceData((prev) => ({ ...prev, classGroupId: group.id }))}
+                    />
+                    <div>
+                      <p className="font-medium">{group.label}</p>
+                      <p className="text-xs text-gray-500">
+                        {group.startDate ? `Starts ${new Date(group.startDate).toLocaleDateString()}` : "Start date to be confirmed"}
+                        {" · "}
+                        {group.status === ClassGroupStatus.FULL ? "Full - you'll join the waitlist" : `${seatsLeft} seat(s) left`}
+                      </p>
+                    </div>
+                  </div>
+                  <Badge variant="secondary">{group.status}</Badge>
+                </label>
+              );
+            })}
+            {errors.classGroupId && <p className="text-red-600 text-sm">{errors.classGroupId}</p>}
           </CardContent>
         </Card>
       )}

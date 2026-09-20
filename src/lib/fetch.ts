@@ -12,6 +12,26 @@ export interface ApiResponse<T> {
   data?: T;
 }
 
+
+// The API reports a failed field-level validation as { message: "Validation
+// failed", details: [...] } - the message alone tells a user nothing, so fold the
+// first few reasons in. Handles express-validator ({ msg }) and class-validator
+// ({ property, constraints }) shapes.
+function describeErrorDetails(details: unknown): string {
+  if (!Array.isArray(details)) return "";
+  const reasons = details
+    .map((d: any) => {
+      if (typeof d === "string") return d;
+      if (d?.msg) return String(d.msg);
+      if (d?.constraints) return Object.values(d.constraints as Record<string, string>).join(", ");
+      return "";
+    })
+    .filter(Boolean);
+  if (reasons.length === 0) return "";
+  const shown = Array.from(new Set(reasons)).slice(0, 4).join("; ");
+  return reasons.length > 4 ? shown + "; ..." : shown;
+}
+
 export default async function fetchAPI<T>({
   baseUrl = process.env.NEXT_PUBLIC_API_URL,
   url,
@@ -72,6 +92,8 @@ export default async function fetchAPI<T>({
         const data = await res.json();
         console.log("The response error is ", data)
         errorMessage = data.message || errorMessage;
+        const reasons = describeErrorDetails(data.details);
+        if (reasons) errorMessage = `${errorMessage}: ${reasons}`;
       } catch {
         errorMessage = res.statusText || errorMessage;
       }

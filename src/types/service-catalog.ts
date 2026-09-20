@@ -199,7 +199,7 @@ export const FLOW_REQUIREMENT_LABELS: Record<keyof IServiceFlowRequirements, str
   requires_exam: "Exam",
   requires_category: "Category",
   requires_age_range: "Age Range",
-  requires_cohort: "Cohort",
+  requires_cohort: "Group only (cohort)",
   requires_course_selection: "Course Selection",
   requires_language_selection: "Language Selection",
 };
