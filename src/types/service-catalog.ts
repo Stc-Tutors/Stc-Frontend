@@ -14,6 +14,15 @@ export enum ArchitecturalPath {
   // into its own module, see types/white-label.ts and server/white-label.ts.
 }
 
+// How many courses/subjects one enrollment may hold - mirrors stcbe's
+// SelectionMode. Set per service in the admin Service Catalog; the API always
+// returns the effective value (Course Module = SINGLE, taxonomy paths =
+// MULTIPLE unless an admin changed it).
+export enum SelectionMode {
+  SINGLE = "SINGLE",
+  MULTIPLE = "MULTIPLE",
+}
+
 export enum ServiceCatalogStatus {
   ACTIVE = "Active",
   PLANNED = "Planned",
@@ -58,6 +67,7 @@ export interface IService {
   targetAudience?: string;
   architecturalPath: ArchitecturalPath;
   flowRequirements: IServiceFlowRequirements;
+  selectionMode?: SelectionMode;
   // [] for most services - only academic-tutoring, exam-preparation, and
   // tech-bootcamp are seeded with a non-empty sequence today, but any Active
   // service can be given one via the admin Service workspace.
@@ -206,6 +216,7 @@ export interface CreateServiceDto {
   targetAudience?: string;
   architecturalPath: ArchitecturalPath;
   flowRequirements: IServiceFlowRequirements;
+  selectionMode?: SelectionMode;
   // Omit/[] to leave this service without a curriculum tree - courses then
   // attach directly to the service with no taxonomyNodeId.
   taxonomyStages?: ITaxonomyStage[];

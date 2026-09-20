@@ -339,7 +339,16 @@ export default function EnrollmentFlow({ forcedUserType, dashboardPath, paymentH
               <p className="text-sm text-gray-500 py-8 text-center">Loading your enrollment...</p>
             ) : (
               CurrentStepComponent && (
-                <CurrentStepComponent onNext={handleStepValidation} errors={errors} forcedUserType={forcedUserType} />
+                // Keyed by service so a step remounts (re-seeding its local state
+                // from the wizard's data) when the service changes - Subjects &
+                // Schedule lets the family switch service in place, and its
+                // per-service picks must not carry over to the new one.
+                <CurrentStepComponent
+                  key={enrollmentData.serviceDetails?.serviceType ?? "no-service"}
+                  onNext={handleStepValidation}
+                  errors={errors}
+                  forcedUserType={forcedUserType}
+                />
               )
             )}
           </CardContent>
