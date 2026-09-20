@@ -260,7 +260,11 @@ export default function EnrollmentReview({ onNext, errors }: StepProps) {
 
             <div>
               <p className="text-sm text-gray-600">
-                {isCourseModule ? "Selected Course" : "Selected Subjects"}
+                {isCourseModule
+                  ? (selectedService?.taxonomyStages?.length ?? 0) > 0
+                    ? "Your Selection"
+                    : "Selected Course"
+                  : "Selected Subjects"}
               </p>
               <div className="flex flex-wrap gap-2 mt-1">
                 {serviceDetails?.selectedSubjects?.map(subject => (

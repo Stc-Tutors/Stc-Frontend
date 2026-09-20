@@ -6,7 +6,17 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { GetServiceByIdAction, UpdateServiceAction } from "@/server/service-catalog";
 import { GetCoursesAction } from "@/server/course";
-import { ArchitecturalPath, IService, IServiceFlowRequirements, ServiceCatalogStatus, UpdateServiceDto } from "@/types/service-catalog";
+import {
+  ArchitecturalPath,
+  IService,
+  IServiceFlowRequirements,
+  ITaxonomyStage,
+  SelectionMode,
+  ServiceCatalogStatus,
+  UpdateServiceDto,
+} from "@/types/service-catalog";
+import { syncFlowRequirementsFromStages, toggleFlowRequirement } from "@/lib/flow-sync";
+import { RegistrationFlowPreview } from "@/components/registration-flow-preview";
 import { Course } from "@/types/course";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -58,7 +68,9 @@ function ServiceWorkspacePageInner() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [tab, setTab] = useState(searchParams.get("tab") || "overview");
+  // Flow Tree is the default landing tab - defining the tree shape (and the
+  // requirements that go with it) is the first thing to do for any service.
+  const [tab, setTab] = useState(searchParams.get("tab") || "flow-tree");
   const initialCourseId = searchParams.get("course") || undefined;
 
   const [form, setForm] = useState<UpdateServiceDto>({});
@@ -80,6 +92,7 @@ function ServiceWorkspacePageInner() {
       targetAudience: res.data.targetAudience ?? "",
       architecturalPath: res.data.architecturalPath,
       flowRequirements: { ...res.data.flowRequirements },
+      selectionMode: res.data.selectionMode,
       taxonomyStages: res.data.taxonomyStages ? [...res.data.taxonomyStages] : [],
       description: res.data.description ?? "",
       status: res.data.status,
@@ -96,12 +109,27 @@ function ServiceWorkspacePageInner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
+  // A Flow Requirement and a Flow Tree stage are the same fact seen two ways
+  // (see lib/flow-sync.ts), so flipping one updates the other in the same
+  // step instead of leaving the admin to keep two places in agreement.
   const toggleFlow = (key: keyof IServiceFlowRequirements) => {
+    setForm((prev) => {
+      const { flow, stages } = toggleFlowRequirement(prev.flowRequirements ?? {}, prev.taxonomyStages ?? [], key);
+      return { ...prev, flowRequirements: flow, taxonomyStages: stages };
+    });
+  };
+
+  const changeStages = (stages: ITaxonomyStage[]) => {
     setForm((prev) => ({
       ...prev,
-      flowRequirements: { ...prev.flowRequirements, [key]: !prev.flowRequirements?.[key] },
+      taxonomyStages: stages,
+      flowRequirements: syncFlowRequirementsFromStages(prev.flowRequirements ?? {}, prev.taxonomyStages ?? [], stages),
     }));
   };
+
+  // The one combination that can't be "multiple": a cohort-based service joins
+  // a single class group, which belongs to one course (the API rejects it too).
+  const isCohort = !!form.flowRequirements?.requires_cohort;
 
   const handleSave = async () => {
     if (!service) return;
@@ -161,12 +189,67 @@ function ServiceWorkspacePageInner() {
 
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList>
+          <TabsTrigger value="flow-tree">Flow Tree</TabsTrigger>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="subjects">Curriculum & Courses</TabsTrigger>
           <TabsTrigger value="courses">Video Lessons</TabsTrigger>
           <TabsTrigger value="class-groups">Class Groups</TabsTrigger>
           <TabsTrigger value="custom-questions">Custom Questions</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="flow-tree" className="pt-4" forceMount>
+          <div className="max-w-3xl space-y-6">
+            {message && <p className="text-sm text-blue-600">{message}</p>}
+
+            <p className="text-sm text-gray-500">
+              Define the ordered hierarchy of dropdowns this service&apos;s registration flow drills through - e.g.
+              Country → Curriculum → Grade Level → Class/Year → Subject. This shape drives both the data population
+              screen in the Curriculum &amp; Courses tab and the student registration form&apos;s cascade, so get it
+              right before populating data.
+            </p>
+
+            <div className="space-y-2">
+              <ServiceFlowRequirementsFieldset value={form.flowRequirements} onToggle={toggleFlow} />
+              <p className="text-xs text-gray-500">
+                Requirements and the tree below stay in step: switching a level on adds its stage, and adding or
+                removing a stage switches its requirement.
+              </p>
+            </div>
+
+            <TaxonomyStageEditor value={form.taxonomyStages ?? []} onChange={changeStages} />
+
+            <div className="space-y-1 max-w-sm">
+              <Label className="text-xs text-gray-500">How many can a student pick?</Label>
+              <select
+                className={selectClass}
+                value={isCohort ? SelectionMode.SINGLE : form.selectionMode}
+                disabled={isCohort}
+                onChange={(e) => setForm((p) => ({ ...p, selectionMode: e.target.value as SelectionMode }))}
+              >
+                <option value={SelectionMode.SINGLE}>One only</option>
+                <option value={SelectionMode.MULTIPLE}>One or more</option>
+              </select>
+              <p className="text-xs text-gray-400">
+                {isCohort
+                  ? "Cohort-based services join a single class group, so a student can only pick one."
+                  : "Applies to the last stage of the tree - e.g. Exam Preparation lets a student tick several subjects, Tech for Kids just one course. Enforced on the registration form and by the server."}
+              </p>
+            </div>
+
+            <RegistrationFlowPreview
+              stages={form.taxonomyStages ?? []}
+              flow={form.flowRequirements ?? {}}
+              selectionMode={form.selectionMode ?? SelectionMode.SINGLE}
+              architecturalPath={form.architecturalPath}
+            />
+
+            <div>
+              <Button onClick={handleSave} disabled={isSaving}>
+                {isSaving ? "Saving..." : "Save Flow Tree"}
+              </Button>
+            </div>
+          </div>
+        </TabsContent>
 
         <TabsContent value="overview" className="pt-4" forceMount>
           <div className="max-w-3xl space-y-6">
@@ -215,6 +298,13 @@ function ServiceWorkspacePageInner() {
                     </option>
                   ))}
                 </select>
+                {/* The path is easy to misread as a service "type". It isn't - it only picks
+                    how the registration form finds subjects and how the price is worked out. */}
+                <p className="text-xs text-gray-400">
+                  Only sets how the form finds subjects and how price is worked out: the two taxonomy paths use the
+                  fixed Country → Curriculum/Exam drill-down with per-subject pricing; Course Module follows this
+                  service&apos;s own Flow Tree and prices per course. Use Course Module for any new service.
+                </p>
               </div>
               <div className="space-y-1">
                 <Label className="text-xs text-gray-500">Status</Label>
@@ -240,12 +330,14 @@ function ServiceWorkspacePageInner() {
               </div>
             </div>
 
-            <ServiceFlowRequirementsFieldset value={form.flowRequirements} onToggle={toggleFlow} />
-
-            <TaxonomyStageEditor
-              value={form.taxonomyStages ?? []}
-              onChange={(stages) => setForm((p) => ({ ...p, taxonomyStages: stages }))}
-            />
+            <p className="text-sm text-gray-500 border border-dashed border-gray-200 rounded-md px-3 py-3">
+              Flow requirements, the flow tree and how many courses/subjects a student can pick now live together on
+              the{" "}
+              <button type="button" className="text-blue-600 underline" onClick={() => setTab("flow-tree")}>
+                Flow Tree
+              </button>{" "}
+              tab, so changing one shows its effect on the others.
+            </p>
 
             <div>
               <Button onClick={handleSave} disabled={isSaving}>

@@ -7,7 +7,7 @@ import { Student } from "@/types/student";
 import { MyStudentsProgress } from "@/types/student-progress";
 
 export async function GetCoursesAction(
-  params?: { tutor?: string; category?: string; status?: string; serviceType?: string }
+  params?: { tutor?: string; category?: string; status?: string; serviceType?: string; taxonomyNodeId?: string }
 ): Promise<[ApiResponse<Course[]> | null, string | null]> {
   const query = new URLSearchParams(
     Object.entries(params ?? {}).filter(([, v]) => !!v) as [string, string][]

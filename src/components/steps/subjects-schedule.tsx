@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useEnrollment, type Schedule, type ExamPreparationDetails, type SubjectPerformance, type ClassFormat } from "@/contexts/enrollment-context";
+import { useEnrollment, type Schedule, type ExamPreparationDetails, type SubjectPerformance, type ClassFormat, type ServiceDetails } from "@/contexts/enrollment-context";
 import {
   Card,
   CardContent,
@@ -21,7 +21,8 @@ import { Badge } from "@/components/ui/badge";
 import CurriculumDrilldown, { CurriculumPath } from "@/components/curriculum-drilldown";
 import RecommendedVideoCourses from "@/components/recommended-video-courses";
 import { CurriculumNode, CurriculumServiceType } from "@/types/curriculum";
-import { ArchitecturalPath, ClassGroupStatus, IClassGroup, ITaxonomyOption, TaxonomyOptionKind } from "@/types/service-catalog";
+import { ArchitecturalPath, ClassGroupStatus, IClassGroup, IService, ITaxonomyOption, SelectionMode, TaxonomyOptionKind } from "@/types/service-catalog";
+import { GetServicesAction } from "@/server/service-catalog";
 import { GetTaxonomyOptionsAction } from "@/server/taxonomy-option";
 import { GetCurriculumChildrenAction } from "@/server/curriculum";
 import { GetClassGroupsAction } from "@/server/class-group";
@@ -59,7 +60,7 @@ const durationOptions = [
 const STAGE = "student-registration:subjects-schedule" as const;
 
 export default function SubjectsSchedule({ onNext, errors }: StepProps) {
-  const { enrollmentData, updateServiceDetails, updateSchedule, calculateCost, getUnpricedSubjects, setTotalCost, updateCustomFieldResponse } = useEnrollment();
+  const { enrollmentData, updateServiceDetails, updateSchedule, calculateCost, getUnpricedSubjects, setTotalCost, updateCustomFieldResponse, setEnrollmentData } = useEnrollment();
   const [totalCost, setLocalTotalCost] = useState(enrollmentData.totalCost || 0);
 
   const selectedService = enrollmentData.selectedService;
@@ -73,6 +74,24 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
   const isPathB = architecturalPath === ArchitecturalPath.EXAM_PREP_TAXONOMY;
   const isPathC = architecturalPath === ArchitecturalPath.COURSE_MODULE;
   const isCohortBased = !!flowReq.requires_cohort;
+  // Set per service in the admin Service Catalog ("How many can a student
+  // pick?") - Exam Preparation lets a student take several subjects, Tech for
+  // Kids exactly one course. The API always sends the effective value; the
+  // fallback only covers a response from before this field existed. The one
+  // forced case is a cohort service: it joins a single class group (which
+  // belongs to one course), so it's single whatever the setting says.
+  const isSingleSelection =
+    (isPathC && isCohortBased) ||
+    (selectedService?.selectionMode ?? (isPathC ? SelectionMode.SINGLE : SelectionMode.MULTIPLE)) === SelectionMode.SINGLE;
+  // Course-based service where the family may take several courses.
+  const isMultiCourse = isPathC && !isSingleSelection;
+
+  // Lets the family switch service without going back to step 1 - see
+  // handleChangeService below.
+  const [availableServices, setAvailableServices] = useState<IService[]>([]);
+  useEffect(() => {
+    GetServicesAction().then(([res]) => setAvailableServices(res?.data ?? []));
+  }, []);
 
   const [serviceData, setServiceData] = useState({
     ageLevel: enrollmentData.serviceDetails?.ageLevel || "",
@@ -86,6 +105,10 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
     classYear: enrollmentData.serviceDetails?.classYear || "",
     examCategory: enrollmentData.serviceDetails?.examCategory || "",
     courseId: enrollmentData.serviceDetails?.courseId || "",
+    // Enrollments saved before multi-course existed only have courseId.
+    courseIds:
+      enrollmentData.serviceDetails?.courseIds ??
+      (enrollmentData.serviceDetails?.courseId ? [enrollmentData.serviceDetails.courseId] : ([] as string[])),
     language: enrollmentData.serviceDetails?.language || "",
     classFormat: enrollmentData.serviceDetails?.classFormat,
     startDate: enrollmentData.serviceDetails?.startDate || "",
@@ -162,56 +185,185 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
   // --- Path C (Course Module) ---
   const [courses, setCourses] = useState<Course[]>([]);
   const [isLoadingCourses, setIsLoadingCourses] = useState(false);
-  // Age Range is now a real (if shallow) branch of the curriculum tree - a
-  // service with requires_age_range has taxonomyStages = [{type: AGE_RANGE}],
-  // so its root nodes (parent=null) ARE the age brackets. A Course attaches
-  // to one specific node via taxonomyNodeId - the id (not the display name)
-  // is what filters courses below; selectedAgeRangeNodeId is purely local UI
-  // state for that filter, never submitted itself (the chosen Course.id is
-  // what actually gets submitted).
-  const [ageRangeNodes, setAgeRangeNodes] = useState<CurriculumNode[]>([]);
-  const [selectedAgeRangeNodeId, setSelectedAgeRangeNodeId] = useState("");
+  // A Course-Module service's own taxonomyStages (Service Catalog > Flow Tree)
+  // drive a cascade of dropdowns here, one per stage - e.g. Tech for Kids'
+  // [Age Range] or a deeper [Age Range, Track]. Each stage's options are the
+  // children (GET /public/curriculum-nodes?parent=<previous pick>) of the
+  // node picked one stage up; the first stage's options are the tree's roots.
+  // A Course attaches to one node via taxonomyNodeId - the ids picked here
+  // filter the course list server-side (which also matches courses filed
+  // under any deeper node beneath the pick), and are purely local UI state,
+  // never submitted themselves (the chosen Course.id is what gets submitted).
+  const stages = [...(selectedService?.taxonomyStages ?? [])].sort((a, b) => a.order - b.order);
+  // When several courses may be taken, the tree's last stage is the tick-list
+  // the student picks from (each item resolving to its course). The exception
+  // is a tree that is only the age range: that stage is a filter which sets the
+  // student's age level, so it stays a dropdown and the courses under it are
+  // listed as ticks beneath.
+  const lastStageIsPick = isMultiCourse && stages.length > 0 && !(stages.length === 1 && flowReq.requires_age_range);
+  const [stageOptions, setStageOptions] = useState<CurriculumNode[][]>([]);
+  const [stageSelections, setStageSelections] = useState<string[]>([]);
+  const deepestSelectedNodeId = [...stageSelections].reverse().find(Boolean) ?? "";
   const [languageOptions, setLanguageOptions] = useState<ITaxonomyOption[]>([]);
   const [classGroups, setClassGroups] = useState<IClassGroup[]>([]);
   const [isLoadingGroups, setIsLoadingGroups] = useState(false);
 
+  // First stage's options (the tree's roots) - and, when this step remounts
+  // with an age range already chosen (Edit from Review, resumed draft),
+  // restore that pick by name so the course list doesn't silently un-filter.
+  useEffect(() => {
+    if (!isPathC || !serviceType || stages.length === 0) return;
+    let cancelled = false;
+    GetCurriculumChildrenAction(null, serviceType).then(([res]) => {
+      if (cancelled) return;
+      const roots = res?.data ?? [];
+      setStageOptions([roots]);
+      const restored = flowReq.requires_age_range ? roots.find((n) => n.name === serviceData.ageLevel) : undefined;
+      if (restored) handleStageSelect(0, restored.id, roots, false);
+    });
+    return () => {
+      cancelled = true;
+    };
+    // Only when the service changes - handleStageSelect/serviceData are
+    // read once for the restore, not reactive inputs.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPathC, serviceType, stages.length]);
+
+  const handleStageSelect = async (stageIndex: number, nodeId: string, options?: CurriculumNode[], reset = true) => {
+    const node = (options ?? stageOptions[stageIndex] ?? []).find((n) => n.id === nodeId);
+    setStageSelections((prev) => [...prev.slice(0, stageIndex), nodeId]);
+    setStageOptions((prev) => prev.slice(0, stageIndex + 1));
+    setServiceData((prev) => ({
+      ...prev,
+      // The first stage of a requires_age_range service IS the age range -
+      // ageLevel is what pricing, class-group matching and validation key off.
+      ...(stageIndex === 0 && flowReq.requires_age_range ? { ageLevel: node?.name ?? "" } : {}),
+      // A different pick upstream invalidates any course already chosen.
+      ...(reset ? { courseId: "", courseIds: [], selectedSubjects: [], classGroupId: "" } : {}),
+    }));
+    if (stageIndex < stages.length - 1 && serviceType) {
+      const [res] = await GetCurriculumChildrenAction(nodeId, serviceType);
+      setStageOptions((prev) => [...prev.slice(0, stageIndex + 1), res?.data ?? []]);
+    }
+  };
+
+  // Which node the course list is filtered by. Normally the deepest pick. When
+  // several courses can be taken (isMultiCourse) the LAST stage becomes the
+  // tick-list itself (see the render below), so its own options are what's
+  // being chosen from - the courses to load are everything under the stage
+  // BEFORE it. With a one-stage (or no) tree there's no earlier pick to wait
+  // for: every course of the service is loaded.
+  const coursesQueryNodeId = lastStageIsPick
+    ? stages.length >= 2
+      ? stageSelections[stages.length - 2] ?? ""
+      : ""
+    : deepestSelectedNodeId;
+  const mustPickBeforeCourses = lastStageIsPick ? stages.length >= 2 : stages.length > 0;
+
+  // Refetches whenever that node changes. A service with a tree lists
+  // nothing until its stages are chosen - except on a remount that
+  // already carries a chosen course, which loads the unfiltered list so that
+  // course still resolves (see the restore effect above).
   useEffect(() => {
     if (!isPathC || !serviceType) return;
+    if (mustPickBeforeCourses && !coursesQueryNodeId && !serviceData.courseId) {
+      setCourses([]);
+      return;
+    }
+    let cancelled = false;
     setIsLoadingCourses(true);
-    GetCoursesAction({ serviceType }).then(([res]) => {
-      setCourses(res?.data ?? []);
+    GetCoursesAction({ serviceType, ...(coursesQueryNodeId ? { taxonomyNodeId: coursesQueryNodeId } : {}) }).then(([res]) => {
+      if (cancelled) return;
+      const list = res?.data ?? [];
+      setCourses(list);
       setIsLoadingCourses(false);
+      // With exactly one option there's nothing to choose, so asking the
+      // family to pick it again just reads as an extra step - take it. Never
+      // overrides a course already picked (a resumed draft).
+      if (list.length === 1 && !serviceData.courseId) handleSelectCourse(list[0]);
     });
-  }, [isPathC, serviceType]);
-
-  useEffect(() => {
-    if (!isPathC || !flowReq.requires_age_range || !serviceType) return;
-    GetCurriculumChildrenAction(null, serviceType).then(([res]) => setAgeRangeNodes(res?.data ?? []));
-  }, [isPathC, flowReq.requires_age_range, serviceType]);
+    return () => {
+      cancelled = true;
+    };
+    // serviceData.courseId is deliberately not a dependency - picking a
+    // course must not refetch the list it was picked from.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPathC, serviceType, stages.length, coursesQueryNodeId, lastStageIsPick]);
 
   useEffect(() => {
     if (!isPathC || !flowReq.requires_language_selection) return;
     GetTaxonomyOptionsAction(TaxonomyOptionKind.LANGUAGE).then(([res]) => setLanguageOptions(res?.data ?? []));
   }, [isPathC, flowReq.requires_language_selection]);
 
-  const filteredCourses = isPathC
-    ? courses.filter((c) => {
-        if (flowReq.requires_age_range && selectedAgeRangeNodeId && c.taxonomyNodeId !== selectedAgeRangeNodeId) return false;
-        return true;
-      })
-    : [];
+  // Already narrowed by the server (see the courses effect above).
+  const filteredCourses = isPathC ? courses : [];
 
   const selectedCourse = courses.find((c) => c.id === serviceData.courseId);
+  const chosenCourses = courses.filter((c) => serviceData.courseIds.includes(c.id));
+  // A number (not the array) so the cost effects below can depend on it without
+  // re-firing on every render.
+  const chosenCoursesTotal = chosenCourses.reduce((sum, c) => sum + (c.price ?? 0), 0);
 
-  const handleSelectCourse = (course: Course) => {
-    const courseSchedule: Schedule[] = (course.schedule ?? []).map((slot) => ({
-      subject: course.title,
-      days: slot.days,
-      time: slot.time,
-      duration: slot.duration,
+  // Sets the whole course selection at once: the enrollment's subjects are the
+  // course titles, and its schedule is each course's own timetable back to
+  // back (a course with none configured gets an empty row to fill in).
+  const applyCourseSelection = (next: Course[]) => {
+    setServiceData((prev) => ({
+      ...prev,
+      courseId: next[0]?.id ?? "",
+      courseIds: next.map((c) => c.id),
+      selectedSubjects: next.map((c) => c.title),
+      classGroupId: "",
     }));
-    setServiceData((prev) => ({ ...prev, courseId: course.id, selectedSubjects: [course.title], classGroupId: "" }));
-    setSchedule(courseSchedule.length > 0 ? courseSchedule : [{ subject: course.title, days: [], time: "8:00am", duration: 60 }]);
+    setSchedule(
+      next.flatMap((course) => {
+        const slots: Schedule[] = (course.schedule ?? []).map((slot) => ({
+          subject: course.title,
+          days: slot.days,
+          time: slot.time,
+          duration: slot.duration,
+        }));
+        return slots.length > 0 ? slots : [{ subject: course.title, days: [], time: "8:00am", duration: 60 }];
+      })
+    );
+  };
+
+  const handleSelectCourse = (course: Course) => applyCourseSelection([course]);
+
+  // Tick/untick one course when several may be taken.
+  const toggleCourse = (course: Course) =>
+    applyCourseSelection(
+      serviceData.courseIds.includes(course.id)
+        ? chosenCourses.filter((c) => c.id !== course.id)
+        : [...chosenCourses, course]
+    );
+
+  // Switch to a different service from inside this step. Everything specific
+  // to the old service (its subjects/course, curriculum path, schedule, price,
+  // and the custom answers scoped to it) is dropped - none of it is valid for
+  // the new one - while what isn't service-specific (tutor preference,
+  // learning goals, notes) is kept. The wizard remounts this step on a
+  // service change (see EnrollmentFlow), so its local state re-seeds from the
+  // reset values below rather than holding the old service's picks.
+  const handleChangeService = (slug: string) => {
+    const next = availableServices.find((s) => s.slug === slug);
+    if (!next || next.slug === serviceType) return;
+    setEnrollmentData((prev) => ({
+      ...prev,
+      selectedService: next,
+      serviceDetails: {
+        serviceType: next.slug,
+        learningFocus: next.serviceName,
+        selectedSubjects: [],
+        learningGoals: prev.serviceDetails?.learningGoals ?? "",
+        specialNeeds: prev.serviceDetails?.specialNeeds,
+        tutorGender: prev.serviceDetails?.tutorGender ?? "",
+        curriculum: "",
+      } as ServiceDetails,
+      schedule: [],
+      totalCost: 0,
+      customFieldResponses: {},
+    }));
   };
 
   // Task 3 - once a course + (optionally) age range are chosen for a cohort
@@ -261,7 +413,7 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
   // enrollmentData from context) since that context update above hasn't
   // committed by the time this effect runs in the same pass.
   useEffect(() => {
-    const computedCost = isPathC ? selectedCourse?.price ?? 0 : calculateCost(schedule, serviceData);
+    const computedCost = isPathC ? chosenCoursesTotal : calculateCost(schedule, serviceData);
 
     setLocalTotalCost(computedCost);
     setTotalCost(computedCost);
@@ -275,7 +427,7 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
     serviceData.classFormat,
     serviceData.billingWeeks,
     isPathC,
-    selectedCourse,
+    chosenCoursesTotal,
   ]);
 
   const { fields: customFields } = useCustomFormFields(STAGE, serviceType);
@@ -286,7 +438,15 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
       const stepErrors: Record<string, string> = {};
 
       if (serviceData.selectedSubjects.length === 0) {
-        stepErrors.subjects = isPathC ? "Please select a course" : "Please select at least one subject";
+        stepErrors.subjects = isPathC
+          ? stages.length > 0
+            ? "Please complete your selection above"
+            : "Please select a course"
+          : isSingleSelection
+            ? "Please select a subject"
+            : "Please select at least one subject";
+      } else if (isSingleSelection && serviceData.selectedSubjects.length > 1) {
+        stepErrors.subjects = "This service allows only one subject per enrollment";
       }
       if (!serviceData.tutorGender) stepErrors.tutorGender = "Please select preferred tutor gender";
 
@@ -316,13 +476,13 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
         stepErrors.schedule = "Please select at least one day for at least one subject";
       }
       if (isPathC && serviceData.selectedSubjects.length > 0 && schedule.length === 0) {
-        stepErrors.schedule = "The selected course has no schedule configured - please choose another course.";
+        stepErrors.schedule = "This selection has no schedule configured yet - please choose another.";
       }
 
       // Two subjects can't be scheduled at overlapping times - a student
       // can't attend both. Only checked once every subject has at least one
       // day picked (the check above already covers that case).
-      if (!isPathC && !stepErrors.schedule) {
+      if ((!isPathC || isMultiCourse) && !stepErrors.schedule) {
         const overlap = findScheduleOverlap(schedule);
         if (overlap) {
           stepErrors.schedule = `${overlap.subjectA} and ${overlap.subjectB} overlap on ${overlap.day} - please choose different times`;
@@ -384,7 +544,7 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
         const submittedSchedule =
           !isPathC && (serviceData.flexibleSchedule || serviceData.classFormat === "group") ? [] : schedule;
         updateSchedule(submittedSchedule);
-        setTotalCost(isPathC ? selectedCourse?.price ?? 0 : calculateCost(schedule, serviceData));
+        setTotalCost(isPathC ? chosenCoursesTotal : calculateCost(schedule, serviceData));
       }
 
       onNext(stepErrors);
@@ -393,7 +553,7 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
     window.addEventListener("validateStep", validate);
     return () => window.removeEventListener("validateStep", validate);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [serviceData, schedule, isPathC, isCohortBased, customFields, customFieldResponses, selectedCourse]);
+  }, [serviceData, schedule, isPathC, isCohortBased, isSingleSelection, customFields, customFieldResponses, chosenCoursesTotal]);
 
   const handleScheduleChange = (index: number, field: keyof Schedule, value: any) => {
     setSchedule((prev) => prev.map((item, i) => (i === index ? { ...item, [field]: value } : item)));
@@ -401,60 +561,183 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
 
   const availableSubjects = resolvedSubjects.map((s) => s.name);
 
+  // A Course-Module service's tree is "finished" once every stage is picked, or
+  // the pick has nothing deeper to choose (a shorter branch) - only then does
+  // the course, if any still needs deciding, come into play. Before that the
+  // next stage's dropdown IS the next question; listing courses alongside it
+  // was the extra "third flow" for a two-stage tree.
+  const hasTree = stages.length > 0;
+  const pickedStageCount = stageSelections.length;
+  const nextStageOptions = stageOptions[pickedStageCount];
+  const treeExhausted =
+    !hasTree ||
+    (deepestSelectedNodeId !== "" &&
+      (pickedStageCount >= stages.length || (Array.isArray(nextStageOptions) && nextStageOptions.length === 0)));
+  // One course under the finished tree: nothing to choose, so it's resolved
+  // for the student and never shown as a step of its own.
+  const courseDecidedByTree = isPathC && hasTree && filteredCourses.length === 1;
+
   return (
     <div className="space-y-6">
       {/* Subject / Course Selection */}
       <Card>
-        <CardHeader><CardTitle>{isPathC ? "Select a Course" : "Select Subjects"}</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle>
+            {isPathC ? (stages.length > 0 ? "Your Selection" : "Select a Course") : "Select Subjects"}
+          </CardTitle>
+        </CardHeader>
         <CardContent className="space-y-4">
-          {isPathC && flowReq.requires_age_range && (
+          {availableServices.length > 1 && (
             <div className="space-y-2">
-              <Label>Age Range *</Label>
-              <Select
-                value={selectedAgeRangeNodeId}
-                onValueChange={(nodeId) => {
-                  const node = ageRangeNodes.find((n) => n.id === nodeId);
-                  setSelectedAgeRangeNodeId(nodeId);
-                  setServiceData((prev) => ({ ...prev, ageLevel: node?.name ?? "", courseId: "", selectedSubjects: [], classGroupId: "" }));
-                }}
-              >
-                <SelectTrigger className={errors.ageLevel ? "border-red-500" : ""}>
-                  <SelectValue placeholder="Select age range" />
+              <Label>Service</Label>
+              <Select value={serviceType ?? ""} onValueChange={handleChangeService}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a service" />
                 </SelectTrigger>
                 <SelectContent>
-                  {ageRangeNodes.map((n) => (
-                    <SelectItem key={n.id} value={n.id}>{n.name}</SelectItem>
+                  {availableServices.map((s) => (
+                    <SelectItem key={s.id} value={s.slug}>{s.serviceName}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              {errors.ageLevel && <p className="text-red-600 text-sm">{errors.ageLevel}</p>}
+              <p className="text-xs text-gray-500">
+                Picked the wrong service? Switch it here - your subject/course and schedule choices below will be reset.
+              </p>
             </div>
           )}
 
-          {isPathC && (
+          {isPathC &&
+            stages.map((stage, i) => {
+              // Later stages only appear once the previous one is picked, and
+              // only if that pick actually has children - otherwise it is the
+              // leaf and its courses are listed below.
+              if (i > 0 && (!stageSelections[i - 1] || (stageOptions[i] ?? []).length === 0)) return null;
+              const isAgeRange = i === 0 && !!flowReq.requires_age_range;
+
+              // The last stage is what the student actually picks, so when
+              // several may be taken it's a tick-list rather than a dropdown.
+              // Each item resolves to the Course filed under it - there is no
+              // separate "Course" step after this.
+              if (lastStageIsPick && i === stages.length - 1) {
+                return (
+                  <div key={`${stage.order}-${stage.type}`} className="space-y-2">
+                    <Label>
+                      {stage.label || stage.type} * <span className="text-xs font-normal text-gray-500">(choose one or more)</span>
+                    </Label>
+                    {isLoadingCourses && <p className="text-sm text-gray-500">Loading...</p>}
+                    <div className="grid gap-3">
+                      {(stageOptions[i] ?? []).map((node) => {
+                        const nodeCourses = courses.filter((c) => c.taxonomyNodeId === node.id);
+                        if (nodeCourses.length === 0) {
+                          return (
+                            <div key={node.id} className="flex items-center justify-between border rounded-lg p-3 text-gray-400">
+                              <p>{node.name}</p>
+                              <p className="text-xs">Not available yet</p>
+                            </div>
+                          );
+                        }
+                        return (
+                          <div key={node.id} className="space-y-2">
+                            {nodeCourses.length > 1 && <p className="text-sm font-medium text-gray-700">{node.name}</p>}
+                            {nodeCourses.map((course) => (
+                              <label
+                                key={course.id}
+                                className={`flex items-start justify-between border rounded-lg p-3 cursor-pointer ${
+                                  serviceData.courseIds.includes(course.id) ? "border-blue-500 bg-blue-50" : ""
+                                }`}
+                              >
+                                <div className="flex items-start gap-3">
+                                  <Checkbox
+                                    className="mt-1 h-5 w-5"
+                                    checked={serviceData.courseIds.includes(course.id)}
+                                    onCheckedChange={() => toggleCourse(course)}
+                                  />
+                                  <div>
+                                    <p className="font-medium">{nodeCourses.length === 1 ? node.name : course.title}</p>
+                                    {course.subtitle && <p className="text-sm text-gray-600">{course.subtitle}</p>}
+                                  </div>
+                                </div>
+                                <p className="font-semibold text-green-700 whitespace-nowrap">
+                                  {course.currency ?? "NGN"} {course.price?.toLocaleString()}
+                                </p>
+                              </label>
+                            ))}
+                          </div>
+                        );
+                      })}
+                    </div>
+                    {errors.subjects && <p className="text-red-600 text-sm">{errors.subjects}</p>}
+                  </div>
+                );
+              }
+
+              return (
+                <div key={`${stage.order}-${stage.type}`} className="space-y-2">
+                  <Label>
+                    {stage.label || stage.type}
+                    {isAgeRange ? " *" : ""}
+                  </Label>
+                  <Select value={stageSelections[i] ?? ""} onValueChange={(nodeId) => handleStageSelect(i, nodeId)}>
+                    <SelectTrigger className={isAgeRange && errors.ageLevel ? "border-red-500" : ""}>
+                      <SelectValue placeholder={`Select ${(stage.label || stage.type).toLowerCase()}`} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(stageOptions[i] ?? []).map((n) => (
+                        <SelectItem key={n.id} value={n.id}>{n.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {isAgeRange && errors.ageLevel && <p className="text-red-600 text-sm">{errors.ageLevel}</p>}
+                </div>
+              );
+            })}
+
+          {/* With several courses allowed, the tree's last stage above already
+              lists them - this separate list is only for a service with no
+              tree at all (or the single-course flow). */}
+          {isPathC && !lastStageIsPick && (
             <div className="space-y-2">
-              <Label>Course *</Label>
-              {isLoadingCourses && <p className="text-sm text-gray-500">Loading courses...</p>}
-              {!isLoadingCourses && filteredCourses.length === 0 && (
+              {/* The flow is the Flow Tree - nothing extra after it. This block
+                  stays silent until the tree is finished, and then only speaks
+                  up when there's something to say: the price when the tree
+                  already pinned down one course (no choice, so no "Course"
+                  step), a list only when the last pick genuinely holds several,
+                  or that it isn't open yet. A service with no tree at all has
+                  nothing but courses to pick from, so it lists them. */}
+              {treeExhausted && isLoadingCourses && <p className="text-sm text-gray-500">Loading...</p>}
+              {treeExhausted && !isLoadingCourses && filteredCourses.length === 0 && (
                 <p className="text-sm text-gray-500">
-                  No courses available yet{serviceData.ageLevel ? " for this age range" : ""}.
+                  {hasTree
+                    ? "This isn't open for enrollment yet - please check back soon."
+                    : "No courses available yet."}
                 </p>
               )}
+              {treeExhausted && !isLoadingCourses && courseDecidedByTree && (
+                <p className="text-sm text-gray-600">
+                  Fee:{" "}
+                  <span className="font-semibold text-green-700">
+                    {filteredCourses[0].currency ?? "NGN"} {filteredCourses[0].price?.toLocaleString()}
+                  </span>
+                </p>
+              )}
+              {treeExhausted && !courseDecidedByTree && filteredCourses.length > 0 && (
+                <Label>{hasTree ? "Choose one *" : "Course *"}</Label>
+              )}
               <div className="grid gap-3">
-                {filteredCourses.map((course) => (
+                {treeExhausted && !courseDecidedByTree && filteredCourses.map((course) => (
                   <label
                     key={course.id}
                     className={`flex items-start justify-between border rounded-lg p-3 cursor-pointer ${
-                      serviceData.courseId === course.id ? "border-blue-500 bg-blue-50" : ""
+                      serviceData.courseIds.includes(course.id) ? "border-blue-500 bg-blue-50" : ""
                     }`}
                   >
                     <div className="flex items-start gap-3">
                       <input
-                        type="radio"
+                        type={isMultiCourse ? "checkbox" : "radio"}
                         name="course"
                         className="mt-1"
-                        checked={serviceData.courseId === course.id}
-                        onChange={() => handleSelectCourse(course)}
+                        checked={serviceData.courseIds.includes(course.id)}
+                        onChange={() => (isMultiCourse ? toggleCourse(course) : handleSelectCourse(course))}
                       />
                       <div>
                         <p className="font-medium">{course.title}</p>
@@ -525,7 +808,12 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
 
           {(isPathA || isPathB) && (
             <div className="space-y-2">
-              <Label>Available Subjects *</Label>
+              <Label>
+                Available Subjects *{" "}
+                <span className="text-xs font-normal text-gray-500">
+                  {isSingleSelection ? "(choose one)" : "(choose one or more)"}
+                </span>
+              </Label>
               {availableSubjects.length === 0 && (
                 <p className="text-xs text-gray-500">Complete the selections above to see available subjects.</p>
               )}
@@ -539,8 +827,11 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
                       onCheckedChange={(checked) =>
                         setServiceData((prev) => ({
                           ...prev,
+                          // A single-selection service swaps the pick instead of adding another.
                           selectedSubjects: checked
-                            ? [...prev.selectedSubjects, subject]
+                            ? isSingleSelection
+                              ? [subject]
+                              : [...prev.selectedSubjects, subject]
                             : prev.selectedSubjects.filter((s) => s !== subject),
                         }))
                       }
@@ -1152,7 +1443,11 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
                 {isPathC ? "" : ` / ${serviceData.billingWeeks} week${serviceData.billingWeeks === 1 ? "" : "s"}`}
               </p>
               <p className="text-sm text-gray-600">
-                {isPathC ? "Course price" : "Based on selected subjects, schedule, and weeks selected above"}
+                {isPathC
+                  ? hasTree
+                    ? "Price for your selection"
+                    : "Course price"
+                  : "Based on selected subjects, schedule, and weeks selected above"}
               </p>
             </div>
           </CardContent>
