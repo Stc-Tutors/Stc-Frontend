@@ -102,6 +102,10 @@ export type ServiceDetails = {
   examCategory?: string;
   // Path C only (flowRequirements.requires_course_selection/requires_language_selection).
   courseId?: string;
+  // Every chosen course when the service allows more than one (selection mode
+  // MULTIPLE) - `courseId` is always the first of these. See stcbe's
+  // IServiceDetails.courseIds.
+  courseIds?: string[];
   language?: string;
   // Task 5 - required whenever flowRequirements.requires_cohort is false.
   classFormat?: ClassFormat;

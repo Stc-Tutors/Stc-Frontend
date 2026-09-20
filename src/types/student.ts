@@ -78,6 +78,8 @@ export interface IServiceDetails {
   examCategory?: string;
   // Path C only (flowRequirements.requires_course_selection/requires_language_selection).
   courseId?: string;
+  // Every course on the enrollment (MULTIPLE-selection services); courseId is the first.
+  courseIds?: string[];
   language?: string;
   // Set whenever flowRequirements.requires_cohort is false.
   classFormat?: "one-on-one" | "group";
