@@ -17,6 +17,24 @@ export async function GetMyChildProfileAction(): Promise<[ApiResponse<Child | nu
   return [resData, error];
 }
 
+// Creates the student's own Child record on first save (so this works before
+// they've ever enrolled) and updates it after that. STUDENT-only.
+export async function UpdateMyChildProfileAction(
+  data: UpdateChildProfileInput
+): Promise<[ApiResponse<Child> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: `/children/mine`,
+    request: {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    },
+  });
+
+  const resData = res ? ((await res.json()) as ApiResponse<Child>) : null;
+  return [resData, error];
+}
+
 export async function GetChildAction(id: string): Promise<[ApiResponse<Child> | null, string | null]> {
   const [res, error] = await fetchAPI({
     url: `/children/${id}`,

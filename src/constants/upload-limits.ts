@@ -15,6 +15,16 @@ export const SUPPORTING_DOCUMENTS_UPLOAD_LIMITS: UploadLimits = {
 };
 export const CERTIFICATION_PROOF_UPLOAD_LIMITS: UploadLimits = GOV_ID_UPLOAD_LIMITS;
 
+// A profile picture (User.avatarUrl) - tighter than the 1MB default since it's
+// loaded on every page/message row. Keep in sync with stcbe's
+// MAX_AVATAR_SIZE_BYTES in core/utils/avatar-url-validation.ts, which
+// re-checks the uploaded file's actual size when the URL is saved.
+export const AVATAR_MAX_SIZE_KB = 500;
+export const AVATAR_UPLOAD_LIMITS: UploadLimits = {
+  allowedFormats: ["JPG", "JPEG", "PNG"],
+  maxSizeMB: AVATAR_MAX_SIZE_KB / 1024,
+};
+
 // A tutor's assignment attachment (document, picture, video or audio) -
 // deliberately above the 1MB default; capped at 5MB instead. Keep in sync
 // with stcbe's ASSIGNMENT_ATTACHMENT_UPLOAD_LIMITS.
