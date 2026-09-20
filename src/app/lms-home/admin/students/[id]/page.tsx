@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GetEnrollmentAction } from "@/server/enrollment";
 import { GetAcademicSummaryAction, ReactivateStudentAction, UpdateStudentAdminProfileAction } from "@/server/admin";
 import { GetNotificationsAction } from "@/server/notification";
-import { AcademicSummary, Student, studentAvatarUrl } from "@/types/student";
+import { AcademicSummary, Student, studentAvatarUrl, studentLoginId } from "@/types/student";
 import ScheduleReviewPanel from "@/components/schedule-review-panel";
 
 export default function AdminStudentDetailPage() {
@@ -91,7 +91,7 @@ export default function AdminStudentDetailPage() {
         </Avatar>
         <div>
           <h1 className="text-xl font-bold">{student.fullName}</h1>
-          <p className="text-sm text-gray-500">Student ID: {student.studentIdCode || "—"}</p>
+          <p className="text-sm text-gray-500">Student ID: {studentLoginId(student.studentUser) || student.studentIdCode || "—"}</p>
         </div>
         {student.suspensionReason && (
           <div className="ml-auto flex items-center gap-2">
@@ -148,7 +148,7 @@ export default function AdminStudentDetailPage() {
               })
             }
             fields={{
-              "Student ID": student.studentIdCode,
+              "Student ID": studentLoginId(student.studentUser) || student.studentIdCode,
               Nationality: student.nationality,
               NIN: student.nin,
               Grade: student.grade,

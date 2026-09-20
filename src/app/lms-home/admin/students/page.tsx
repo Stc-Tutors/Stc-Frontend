@@ -30,7 +30,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ListStudentsForAdminAction, SuspendStudentAction, RemoveStudentAction } from "@/server/admin";
-import { EnrollmentStatus, Student, studentAvatarUrl } from "@/types/student";
+import { EnrollmentStatus, Student, studentAvatarUrl, studentLoginId } from "@/types/student";
 import { useUser } from "@/contexts/user-context";
 import { AdminPermission } from "@/types/admin-permission";
 
@@ -152,7 +152,7 @@ function AdminStudentsPageInner() {
           <TableBody>
             {students.map((student) => (
               <TableRow key={student.id}>
-                <TableCell className="text-xs text-gray-500">{student.studentIdCode || "—"}</TableCell>
+                <TableCell className="text-xs text-gray-500">{studentLoginId(student.studentUser) || student.studentIdCode || "—"}</TableCell>
                 <TableCell className="flex items-center gap-2">
                   <Avatar className="h-8 w-8">
                     <AvatarImage src={studentAvatarUrl(student.user)} alt={student.fullName} />
