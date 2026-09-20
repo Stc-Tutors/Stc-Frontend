@@ -32,17 +32,28 @@ function emptyDraftPrice(): DraftPrice {
   return { currency: "NGN", rateField: "ratePerHour", rateValue: "" };
 }
 
-function draftPricesToPricePoints(rows: DraftPrice[]): PricePoint[] | null {
+// A course has one price however many hours it runs, so a course's price is always
+// a flat rate (the server rejects an hourly one) - flatOnly forces that here.
+function draftPricesToPricePoints(rows: DraftPrice[], flatOnly = false): PricePoint[] | null {
   const prices: PricePoint[] = [];
   for (const row of rows) {
     const value = Number(row.rateValue);
     if (!row.rateValue || Number.isNaN(value) || value < 0) return null;
-    prices.push({ currency: row.currency, [row.rateField]: value });
+    prices.push({ currency: row.currency, [flatOnly ? "flatRate" : row.rateField]: value });
   }
   return prices.length > 0 ? prices : null;
 }
 
-function PriceRowsEditor({ rows, onChange }: { rows: DraftPrice[]; onChange: (rows: DraftPrice[]) => void }) {
+function PriceRowsEditor({
+  rows,
+  onChange,
+  flatOnly = false,
+}: {
+  rows: DraftPrice[];
+  onChange: (rows: DraftPrice[]) => void;
+  // A course is priced as one flat amount - no "per hour" choice.
+  flatOnly?: boolean;
+}) {
   const update = (i: number, patch: Partial<DraftPrice>) =>
     onChange(rows.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
 
@@ -61,14 +72,20 @@ function PriceRowsEditor({ rows, onChange }: { rows: DraftPrice[]; onChange: (ro
               </option>
             ))}
           </select>
-          <select
-            value={row.rateField}
-            onChange={(e) => update(i, { rateField: e.target.value as DraftPrice["rateField"] })}
-            className="border border-gray-300 rounded-md px-2 py-1.5 text-sm"
-          >
-            <option value="ratePerHour">Rate per hour</option>
-            <option value="flatRate">Flat rate</option>
-          </select>
+          {flatOnly ? (
+            <span className="border border-gray-200 bg-gray-50 rounded-md px-2 py-1.5 text-sm text-gray-600" title="A course has one price, however many hours it runs">
+              Flat rate
+            </span>
+          ) : (
+            <select
+              value={row.rateField}
+              onChange={(e) => update(i, { rateField: e.target.value as DraftPrice["rateField"] })}
+              className="border border-gray-300 rounded-md px-2 py-1.5 text-sm"
+            >
+              <option value="ratePerHour">Rate per hour</option>
+              <option value="flatRate">Flat rate</option>
+            </select>
+          )}
           <input
             type="number"
             min={0}
@@ -163,7 +180,7 @@ export default function ServicePricingPage() {
   const nodePaths = useNodePaths(pricing.map((p) => p.taxonomyNodeId).filter((id): id is string => !!id));
 
   const handleCreate = async () => {
-    const prices = draftPricesToPricePoints(draftPrices);
+    const prices = draftPricesToPricePoints(draftPrices, !!courseId);
     if (!prices) {
       setMessage("Enter a valid non-negative amount for every currency row");
       return;
@@ -197,15 +214,15 @@ export default function ServicePricingPage() {
     setEditingPrices(
       row.prices.map((p) => ({
         currency: p.currency,
-        rateField: p.flatRate != null ? "flatRate" : "ratePerHour",
-        rateValue: String(p.flatRate ?? p.ratePerHour ?? ""),
+        rateField: row.courseId ? "flatRate" : p.flatRate != null ? "flatRate" : "ratePerHour",
+        rateValue: row.courseId && p.flatRate == null ? "" : String(p.flatRate ?? p.ratePerHour ?? ""),
       }))
     );
   };
 
   const saveEditingPrices = async () => {
     if (!editingRowId) return;
-    const prices = draftPricesToPricePoints(editingPrices);
+    const prices = draftPricesToPricePoints(editingPrices, !!pricing.find((p) => p.id === editingRowId)?.courseId);
     if (!prices) {
       setMessage("Enter a valid non-negative amount for every currency row");
       return;
@@ -263,7 +280,13 @@ export default function ServicePricingPage() {
               <input placeholder="Grade level (optional)" value={gradeLevel} onChange={(e) => setGradeLevel(e.target.value)} className="border border-gray-300 rounded-md px-3 py-2 text-sm" />
             </>
           )}
-          <select value={courseId} onChange={(e) => setCourseId(e.target.value)} className="border border-gray-300 rounded-md px-3 py-2 text-sm">
+          <select
+            value={courseId}
+            onChange={(e) => {
+              setCourseId(e.target.value);
+              if (e.target.value) setDraftPrices((rows) => rows.map((r) => ({ ...r, rateField: "flatRate" as const })));
+            }}
+            className="border border-gray-300 rounded-md px-3 py-2 text-sm">
             <option value="">No specific course</option>
             {courses.map((c) => (
               <option key={c.id} value={c.id}>
@@ -291,7 +314,7 @@ export default function ServicePricingPage() {
         )}
         <div>
           <p className="text-xs font-medium text-gray-700 mb-1.5">Prices</p>
-          <PriceRowsEditor rows={draftPrices} onChange={setDraftPrices} />
+          <PriceRowsEditor rows={draftPrices} onChange={setDraftPrices} flatOnly={!!courseId} />
         </div>
         <button
           onClick={handleCreate}
@@ -337,7 +360,7 @@ export default function ServicePricingPage() {
                   <td className="p-3">
                     {editingRowId === row.id ? (
                       <div className="space-y-2">
-                        <PriceRowsEditor rows={editingPrices} onChange={setEditingPrices} />
+                        <PriceRowsEditor rows={editingPrices} onChange={setEditingPrices} flatOnly={!!row.courseId} />
                         <div className="flex gap-2">
                           <button onClick={saveEditingPrices} className="text-xs font-medium text-blue-600 hover:underline">
                             Save
@@ -351,7 +374,7 @@ export default function ServicePricingPage() {
                       <div className="space-y-1">
                         {row.prices.map((p, i) => (
                           <div key={i} className="text-gray-700">
-                            {p.currency} {p.flatRate ?? p.ratePerHour} {p.flatRate != null ? "(flat)" : "(/hr)"}
+                            {p.currency} {p.flatRate ?? p.ratePerHour} {p.flatRate != null ? "(flat)" : row.courseId ? "(/hr - a course needs a flat price, please edit)" : "(/hr)"}
                           </div>
                         ))}
                         <button onClick={() => startEditingPrices(row)} className="text-xs font-medium text-blue-600 hover:underline">
