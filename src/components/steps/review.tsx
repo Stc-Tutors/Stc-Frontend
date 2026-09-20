@@ -46,7 +46,11 @@ export default function EnrollmentReview({ onNext, errors }: StepProps) {
   const [couponMessage, setCouponMessage] = useState<string | null>(null);
 
   const { childInfo, serviceDetails, schedule, selectedService } = enrollmentData;
-  const isCourseModule = selectedService?.architecturalPath === ArchitecturalPath.COURSE_MODULE;
+  const isCourseService = selectedService?.architecturalPath === ArchitecturalPath.COURSE_MODULE;
+  // Backed by a Course (priced per course, no weekly-hours/billing-weeks). A
+  // Course Module enrolled by plain Flow Tree picks has no Course behind it and
+  // is scheduled/priced like a subject, so it shows the same breakdown.
+  const isCourseModule = isCourseService && !!(serviceDetails?.courseId || serviceDetails?.courseIds?.length);
   const isExamPrep = selectedService?.architecturalPath === ArchitecturalPath.EXAM_PREP_TAXONOMY;
   const isAcademicTutoring = selectedService?.architecturalPath === ArchitecturalPath.ACADEMIC_TUTORING_TAXONOMY;
 
@@ -260,7 +264,7 @@ export default function EnrollmentReview({ onNext, errors }: StepProps) {
 
             <div>
               <p className="text-sm text-gray-600">
-                {isCourseModule
+                {isCourseService
                   ? (selectedService?.taxonomyStages?.length ?? 0) > 0
                     ? "Your Selection"
                     : "Selected Course"

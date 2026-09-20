@@ -290,6 +290,31 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
     return undefined;
   };
 
+  // The pricing row for one subject: a row priced against that subject's exact
+  // Flow Tree item (taxonomyNodeId) wins - that's how a module of a Course
+  // Module service, or any single tree item, is priced on its own - otherwise
+  // the name/curriculum/grade/country dimensions above. Mirrors the server's
+  // findMatching. The name-based lookup skips rows pinned to a node or a
+  // course: they'd otherwise look like a generic "service-level" row (every
+  // other dimension absent) and be wrongly applied to every subject.
+  const priceRowFor = (
+    candidates: ServicePricing[],
+    subjectName: string,
+    serviceDetails: Partial<ServiceDetails>
+  ): ServicePricing | undefined => {
+    const { curriculum, country, gradeLevel, classFormat, selectedSubjects, selectedSubjectNodeIds } = serviceDetails;
+    const nodeId = selectedSubjectNodeIds?.[(selectedSubjects ?? []).indexOf(subjectName)];
+    if (nodeId) {
+      const nodeRows = candidates.filter((p) => p.taxonomyNodeId === nodeId);
+      const nodeRow = (classFormat && nodeRows.find((p) => p.classFormat === classFormat)) || nodeRows.find((p) => !p.classFormat);
+      if (nodeRow) return nodeRow;
+    }
+    return findRateRow(
+      candidates.filter((p) => !p.taxonomyNodeId && !p.courseId),
+      { subject: subjectName, curriculum, gradeLevel, country, classFormat }
+    );
+  };
+
   // Rates come from the admin-editable /public/service-pricing endpoint
   // (fetched into `pricing` on mount). This is only a display estimate - the
   // backend recomputes the actual authoritative charge server-side (see
@@ -327,7 +352,7 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
     const candidates = pricing.filter((p) => p.serviceType === serviceType);
 
     return schedule.reduce((total, subject) => {
-      const price = pickPrice(findRateRow(candidates, { subject: subject.subject, curriculum, gradeLevel, country, classFormat }));
+      const price = pickPrice(priceRowFor(candidates, subject.subject, serviceDetails));
       if (!price) return total;
       // A flat price already covers the whole billing period for this
       // subject - it isn't a rate to multiply by hours or weeks.
@@ -346,10 +371,9 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
     if (!schedule || serviceDetails.serviceType === "tech-bootcamp") return [];
 
     const candidates = pricing.filter((p) => p.serviceType === serviceDetails.serviceType);
-    const { curriculum, country, gradeLevel, classFormat } = serviceDetails;
 
     return schedule
-      .filter((subject) => !pickPrice(findRateRow(candidates, { subject: subject.subject, curriculum, gradeLevel, country, classFormat })))
+      .filter((subject) => !pickPrice(priceRowFor(candidates, subject.subject, serviceDetails)))
       .map((subject) => subject.subject);
   };
 
@@ -362,7 +386,11 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
       // Schedule - the generic schedule/curriculum pricing formula below
       // doesn't know about course prices, so recomputing here would silently
       // clobber it with a wrong (or zero) number.
-      const isCourseModule = enrollmentData.selectedService?.architecturalPath === ArchitecturalPath.COURSE_MODULE;
+      // Only when a Course is actually behind the enrollment - a Course Module
+      // enrolled by plain Flow Tree picks is priced like a subject instead.
+      const isCourseModule =
+        enrollmentData.selectedService?.architecturalPath === ArchitecturalPath.COURSE_MODULE &&
+        !!(enrollmentData.serviceDetails?.courseId || enrollmentData.serviceDetails?.courseIds?.length);
       const totalCost = isCourseModule ? enrollmentData.totalCost ?? 0 : calculateCost();
       setTotalCost(totalCost);
 

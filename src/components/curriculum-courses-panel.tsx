@@ -84,7 +84,11 @@ export default function CurriculumCoursesPanel({
               </Link>
             </div>
             {coursesUnderNode.length === 0 ? (
-              <p className="text-sm text-gray-500">No courses attached here yet.</p>
+              <p className="text-sm text-gray-500">
+                No special course attached. That&apos;s fine - students can enroll in{" "}
+                {currentNode?.name ?? "this item"} directly, like a subject. Attach a course only if it needs its own
+                price, schedule or class groups.
+              </p>
             ) : (
               <div className="divide-y divide-gray-100">
                 {coursesUnderNode.map((course) => (

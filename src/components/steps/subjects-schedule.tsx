@@ -72,7 +72,7 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
   // selected service's architecturalPath, not a hardcoded serviceType check.
   const isPathA = architecturalPath === ArchitecturalPath.ACADEMIC_TUTORING_TAXONOMY;
   const isPathB = architecturalPath === ArchitecturalPath.EXAM_PREP_TAXONOMY;
-  const isPathC = architecturalPath === ArchitecturalPath.COURSE_MODULE;
+  const isPathCService = architecturalPath === ArchitecturalPath.COURSE_MODULE;
   const isCohortBased = !!flowReq.requires_cohort;
   // Set per service in the admin Service Catalog ("How many can a student
   // pick?") - Exam Preparation lets a student take several subjects, Tech for
@@ -81,10 +81,10 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
   // forced case is a cohort service: it joins a single class group (which
   // belongs to one course), so it's single whatever the setting says.
   const isSingleSelection =
-    (isPathC && isCohortBased) ||
-    (selectedService?.selectionMode ?? (isPathC ? SelectionMode.SINGLE : SelectionMode.MULTIPLE)) === SelectionMode.SINGLE;
+    (isPathCService && isCohortBased) ||
+    (selectedService?.selectionMode ?? (isPathCService ? SelectionMode.SINGLE : SelectionMode.MULTIPLE)) === SelectionMode.SINGLE;
   // Course-based service where the family may take several courses.
-  const isMultiCourse = isPathC && !isSingleSelection;
+  const isMultiCourse = isPathCService && !isSingleSelection;
 
   // Lets the family switch service without going back to step 1 - see
   // handleChangeService below.
@@ -185,6 +185,13 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
   // --- Path C (Course Module) ---
   const [courses, setCourses] = useState<Course[]>([]);
   const [isLoadingCourses, setIsLoadingCourses] = useState(false);
+  // True only once the course list for the CURRENT pick has actually loaded -
+  // "no courses" is only a real answer after that, not while a fetch is still
+  // in flight for a pick the student has just made.
+  const [coursesResolved, setCoursesResolved] = useState(false);
+  // Tick-list items (last stage, when several may be taken) chosen as plain
+  // tree picks because no Course is attached to them - see nodePicks below.
+  const [nodePickIds, setNodePickIds] = useState<string[]>([]);
   // A Course-Module service's own taxonomyStages (Service Catalog > Flow Tree)
   // drive a cascade of dropdowns here, one per stage - e.g. Tech for Kids'
   // [Age Range] or a deeper [Age Range, Track]. Each stage's options are the
@@ -212,7 +219,7 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
   // with an age range already chosen (Edit from Review, resumed draft),
   // restore that pick by name so the course list doesn't silently un-filter.
   useEffect(() => {
-    if (!isPathC || !serviceType || stages.length === 0) return;
+    if (!isPathCService || !serviceType || stages.length === 0) return;
     let cancelled = false;
     GetCurriculumChildrenAction(null, serviceType).then(([res]) => {
       if (cancelled) return;
@@ -227,7 +234,7 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
     // Only when the service changes - handleStageSelect/serviceData are
     // read once for the restore, not reactive inputs.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isPathC, serviceType, stages.length]);
+  }, [isPathCService, serviceType, stages.length]);
 
   const handleStageSelect = async (stageIndex: number, nodeId: string, options?: CurriculumNode[], reset = true) => {
     const node = (options ?? stageOptions[stageIndex] ?? []).find((n) => n.id === nodeId);
@@ -241,6 +248,7 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
       // A different pick upstream invalidates any course already chosen.
       ...(reset ? { courseId: "", courseIds: [], selectedSubjects: [], classGroupId: "" } : {}),
     }));
+    if (reset) setNodePickIds([]);
     if (stageIndex < stages.length - 1 && serviceType) {
       const [res] = await GetCurriculumChildrenAction(nodeId, serviceType);
       setStageOptions((prev) => [...prev.slice(0, stageIndex + 1), res?.data ?? []]);
@@ -265,7 +273,8 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
   // already carries a chosen course, which loads the unfiltered list so that
   // course still resolves (see the restore effect above).
   useEffect(() => {
-    if (!isPathC || !serviceType) return;
+    if (!isPathCService || !serviceType) return;
+    setCoursesResolved(false);
     if (mustPickBeforeCourses && !coursesQueryNodeId && !serviceData.courseId) {
       setCourses([]);
       return;
@@ -277,6 +286,7 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
       const list = res?.data ?? [];
       setCourses(list);
       setIsLoadingCourses(false);
+      setCoursesResolved(true);
       // With exactly one option there's nothing to choose, so asking the
       // family to pick it again just reads as an extra step - take it. Never
       // overrides a course already picked (a resumed draft).
@@ -288,15 +298,85 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
     // serviceData.courseId is deliberately not a dependency - picking a
     // course must not refetch the list it was picked from.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isPathC, serviceType, stages.length, coursesQueryNodeId, lastStageIsPick]);
+  }, [isPathCService, serviceType, stages.length, coursesQueryNodeId, lastStageIsPick]);
 
   useEffect(() => {
-    if (!isPathC || !flowReq.requires_language_selection) return;
+    if (!isPathCService || !flowReq.requires_language_selection) return;
     GetTaxonomyOptionsAction(TaxonomyOptionKind.LANGUAGE).then(([res]) => setLanguageOptions(res?.data ?? []));
-  }, [isPathC, flowReq.requires_language_selection]);
+  }, [isPathCService, flowReq.requires_language_selection]);
 
   // Already narrowed by the server (see the courses effect above).
-  const filteredCourses = isPathC ? courses : [];
+  const filteredCourses = isPathCService ? courses : [];
+
+  // A Course-Module service's tree is "finished" once every stage is picked, or
+  // the pick has nothing deeper to choose (a shorter branch). Before that the
+  // next stage's dropdown IS the next question; listing anything alongside it
+  // was the extra "third flow" for a two-stage tree.
+  const hasTree = stages.length > 0;
+  const pickedStageCount = stageSelections.length;
+  const nextStageOptions = stageOptions[pickedStageCount];
+  const treeExhausted =
+    !hasTree ||
+    (deepestSelectedNodeId !== "" &&
+      (pickedStageCount >= stages.length || (Array.isArray(nextStageOptions) && nextStageOptions.length === 0)));
+  // One course under the finished tree: nothing to choose, so it's resolved
+  // for the student and never shown as a step of its own.
+  const courseDecidedByTree = isPathCService && hasTree && filteredCourses.length === 1;
+
+  // --- Plain picks from the tree (no Course behind them) ---
+  // A module of a Course Module service is just an item on the Flow Tree - the
+  // same thing a subject is for Academic Tutoring/Exam Prep - so it can be
+  // enrolled in directly: it becomes the enrollment's subject and is scheduled,
+  // priced and provisioned exactly like one. A special Course attached to it is
+  // an optional extra; when the pick has one, THAT is what's used (above), and
+  // only a pick with none falls back to being a plain subject. Cohort services
+  // are the exception - their class groups belong to a Course - and a tree
+  // that is only the age range has no pick level (that stage is a filter).
+  const treeHasPickLevel = hasTree && !(stages.length === 1 && flowReq.requires_age_range);
+  const deepestIndex = stageSelections.length - 1;
+  const deepestNode =
+    deepestIndex >= 0 ? (stageOptions[deepestIndex] ?? []).find((n) => n.id === stageSelections[deepestIndex]) : undefined;
+  const nodePicks: CurriculumNode[] =
+    !isPathCService || isCohortBased || !treeHasPickLevel
+      ? []
+      : lastStageIsPick
+        ? (stageOptions[stages.length - 1] ?? []).filter((n) => nodePickIds.includes(n.id))
+        : treeExhausted && coursesResolved && filteredCourses.length === 0 && deepestNode
+          ? [deepestNode]
+          : [];
+  const nodeBacked = nodePicks.length > 0 && serviceData.courseIds.length === 0;
+  // From here on, `isPathC` means "this enrollment is backed by a Course"
+  // (schedule and price come from the course). A plain-pick enrollment takes
+  // the same paths as the taxonomy services. Everything about the Course Module
+  // SERVICE itself (its tree, language, cohort) uses isPathCService.
+  const isPathC = isPathCService && !nodeBacked;
+
+  // Same order as selectedSubjects - see the long note in the validate step.
+  const subjectNodeIds = serviceData.selectedSubjects.map(
+    (name) => (nodeBacked ? nodePicks : resolvedSubjects).find((n) => n.name === name)?.id ?? ""
+  );
+  // What pricing needs to know about each subject (its tree item), so a price
+  // set against one specific item is found - see EnrollmentContext.priceRowFor.
+  const pricingDetails = { ...serviceData, selectedSubjectNodeIds: subjectNodeIds };
+  const pricingKey = subjectNodeIds.join(",");
+
+  // While plain-picking, the picked items ARE the enrollment's subjects.
+  const nodePickKey = nodePicks.map((n) => n.id).join(",");
+  useEffect(() => {
+    if (!isPathCService || isCohortBased || !treeHasPickLevel) return;
+    if (serviceData.courseIds.length > 0) return;
+    const names = nodePicks.map((n) => n.name);
+    setServiceData((prev) =>
+      prev.selectedSubjects.length === names.length && prev.selectedSubjects.every((s, i) => s === names[i])
+        ? prev
+        : { ...prev, selectedSubjects: names, courseId: "", courseIds: [] }
+    );
+    // nodePicks is captured through nodePickKey; the rest are stable inputs.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nodePickKey, serviceData.courseIds.length, isPathCService, isCohortBased, treeHasPickLevel]);
+
+  const toggleNodePick = (node: CurriculumNode) =>
+    setNodePickIds((prev) => (prev.includes(node.id) ? prev.filter((id) => id !== node.id) : [...prev, node.id]));
 
   const selectedCourse = courses.find((c) => c.id === serviceData.courseId);
   const chosenCourses = courses.filter((c) => serviceData.courseIds.includes(c.id));
@@ -369,7 +449,7 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
   // Task 3 - once a course + (optionally) age range are chosen for a cohort
   // service, fetch the open ClassGroups the student can join directly.
   useEffect(() => {
-    if (!isPathC || !isCohortBased || !serviceData.courseId || !serviceType) {
+    if (!isPathCService || !isCohortBased || !serviceData.courseId || !serviceType) {
       setClassGroups([]);
       return;
     }
@@ -378,7 +458,7 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
       setClassGroups(res?.data ?? []);
       setIsLoadingGroups(false);
     });
-  }, [isPathC, isCohortBased, serviceData.courseId, serviceData.ageLevel, serviceType]);
+  }, [isPathCService, isCohortBased, serviceData.courseId, serviceData.ageLevel, serviceType]);
 
   const isPathBExam = isPathB;
 
@@ -413,7 +493,7 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
   // enrollmentData from context) since that context update above hasn't
   // committed by the time this effect runs in the same pass.
   useEffect(() => {
-    const computedCost = isPathC ? chosenCoursesTotal : calculateCost(schedule, serviceData);
+    const computedCost = isPathC ? chosenCoursesTotal : calculateCost(schedule, pricingDetails);
 
     setLocalTotalCost(computedCost);
     setTotalCost(computedCost);
@@ -428,6 +508,7 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
     serviceData.billingWeeks,
     isPathC,
     chosenCoursesTotal,
+    pricingKey,
   ]);
 
   const { fields: customFields } = useCustomFormFields(STAGE, serviceType);
@@ -438,7 +519,7 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
       const stepErrors: Record<string, string> = {};
 
       if (serviceData.selectedSubjects.length === 0) {
-        stepErrors.subjects = isPathC
+        stepErrors.subjects = isPathCService
           ? stages.length > 0
             ? "Please complete your selection above"
             : "Please select a course"
@@ -448,15 +529,22 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
       } else if (isSingleSelection && serviceData.selectedSubjects.length > 1) {
         stepErrors.subjects = "This service allows only one subject per enrollment";
       }
+      // An item with a special Course is booked through that Course; one without is
+      // a plain pick. Their prices/schedules come from different places, so they
+      // can't share one enrollment.
+      if (isPathCService && serviceData.courseIds.length > 0 && nodePickIds.length > 0) {
+        stepErrors.subjects =
+          "Some of your choices are booked as special courses and others as standard ones - please enroll in them separately";
+      }
       if (!serviceData.tutorGender) stepErrors.tutorGender = "Please select preferred tutor gender";
 
-      if (isPathC && flowReq.requires_age_range && !serviceData.ageLevel) {
+      if (isPathCService && flowReq.requires_age_range && !serviceData.ageLevel) {
         stepErrors.ageLevel = "Please select an age range";
       }
-      if (isPathC && flowReq.requires_language_selection && !serviceData.language) {
+      if (isPathCService && flowReq.requires_language_selection && !serviceData.language) {
         stepErrors.language = "Please select a language";
       }
-      if (isPathC && isCohortBased && !serviceData.classGroupId) {
+      if (isPathCService && isCohortBased && !serviceData.classGroupId) {
         stepErrors.classGroupId = "Please select a class group to join";
       }
 
@@ -490,7 +578,7 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
       }
 
       if (!isPathC && serviceData.selectedSubjects.length > 0) {
-        const unpriced = getUnpricedSubjects(schedule, serviceData);
+        const unpriced = getUnpricedSubjects(schedule, pricingDetails);
         if (unpriced.length > 0) {
           stepErrors.subjects = `No pricing has been set up yet for: ${unpriced.join(", ")} - please contact us or choose different subjects.`;
         }
@@ -530,9 +618,10 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
         // Biology, Physics, English Language" selected, but nodeIds coming
         // back alphabetical - "Biology, Chemistry, English Language,
         // Physics" - cross-wiring every subject to the wrong node).
-        const selectedSubjectNodeIds = serviceData.selectedSubjects.map(
-          (name) => resolvedSubjects.find((n) => n.name === name)?.id ?? ""
-        );
+        // (Computed once above as subjectNodeIds - from the drill-down's
+        // subjects for the taxonomy paths, from the picked tree items for a
+        // Course Module enrolled by plain picks.)
+        const selectedSubjectNodeIds = subjectNodeIds;
         updateServiceDetails({ ...serviceData, selectedSubjectNodeIds });
         // A flexible one-on-one schedule, or a group-format one (placement
         // confirmed after enrollment, not picked upfront - see the Schedule
@@ -544,7 +633,7 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
         const submittedSchedule =
           !isPathC && (serviceData.flexibleSchedule || serviceData.classFormat === "group") ? [] : schedule;
         updateSchedule(submittedSchedule);
-        setTotalCost(isPathC ? chosenCoursesTotal : calculateCost(schedule, serviceData));
+        setTotalCost(isPathC ? chosenCoursesTotal : calculateCost(schedule, pricingDetails));
       }
 
       onNext(stepErrors);
@@ -553,7 +642,7 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
     window.addEventListener("validateStep", validate);
     return () => window.removeEventListener("validateStep", validate);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [serviceData, schedule, isPathC, isCohortBased, isSingleSelection, customFields, customFieldResponses, chosenCoursesTotal]);
+  }, [serviceData, schedule, isPathC, isCohortBased, isSingleSelection, customFields, customFieldResponses, chosenCoursesTotal, pricingKey, nodePickIds]);
 
   const handleScheduleChange = (index: number, field: keyof Schedule, value: any) => {
     setSchedule((prev) => prev.map((item, i) => (i === index ? { ...item, [field]: value } : item)));
@@ -561,29 +650,13 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
 
   const availableSubjects = resolvedSubjects.map((s) => s.name);
 
-  // A Course-Module service's tree is "finished" once every stage is picked, or
-  // the pick has nothing deeper to choose (a shorter branch) - only then does
-  // the course, if any still needs deciding, come into play. Before that the
-  // next stage's dropdown IS the next question; listing courses alongside it
-  // was the extra "third flow" for a two-stage tree.
-  const hasTree = stages.length > 0;
-  const pickedStageCount = stageSelections.length;
-  const nextStageOptions = stageOptions[pickedStageCount];
-  const treeExhausted =
-    !hasTree ||
-    (deepestSelectedNodeId !== "" &&
-      (pickedStageCount >= stages.length || (Array.isArray(nextStageOptions) && nextStageOptions.length === 0)));
-  // One course under the finished tree: nothing to choose, so it's resolved
-  // for the student and never shown as a step of its own.
-  const courseDecidedByTree = isPathC && hasTree && filteredCourses.length === 1;
-
   return (
     <div className="space-y-6">
       {/* Subject / Course Selection */}
       <Card>
         <CardHeader>
           <CardTitle>
-            {isPathC ? (stages.length > 0 ? "Your Selection" : "Select a Course") : "Select Subjects"}
+            {isPathCService ? (stages.length > 0 ? "Your Selection" : "Select a Course") : "Select Subjects"}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -606,7 +679,7 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
             </div>
           )}
 
-          {isPathC &&
+          {isPathCService &&
             stages.map((stage, i) => {
               // Later stages only appear once the previous one is picked, and
               // only if that pick actually has children - otherwise it is the
@@ -629,11 +702,31 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
                       {(stageOptions[i] ?? []).map((node) => {
                         const nodeCourses = courses.filter((c) => c.taxonomyNodeId === node.id);
                         if (nodeCourses.length === 0) {
+                          // No special Course behind it: a plain pick, enrolled
+                          // like a subject. (Cohort services need a Course - their
+                          // class groups belong to one - so there it's unavailable.)
+                          if (isCohortBased) {
+                            return (
+                              <div key={node.id} className="flex items-center justify-between border rounded-lg p-3 text-gray-400">
+                                <p>{node.name}</p>
+                                <p className="text-xs">Not available yet</p>
+                              </div>
+                            );
+                          }
                           return (
-                            <div key={node.id} className="flex items-center justify-between border rounded-lg p-3 text-gray-400">
-                              <p>{node.name}</p>
-                              <p className="text-xs">Not available yet</p>
-                            </div>
+                            <label
+                              key={node.id}
+                              className={`flex items-start gap-3 border rounded-lg p-3 cursor-pointer ${
+                                nodePickIds.includes(node.id) ? "border-blue-500 bg-blue-50" : ""
+                              }`}
+                            >
+                              <Checkbox
+                                className="mt-1 h-5 w-5"
+                                checked={nodePickIds.includes(node.id)}
+                                onCheckedChange={() => toggleNodePick(node)}
+                              />
+                              <p className="font-medium">{node.name}</p>
+                            </label>
                           );
                         }
                         return (
@@ -695,7 +788,7 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
           {/* With several courses allowed, the tree's last stage above already
               lists them - this separate list is only for a service with no
               tree at all (or the single-course flow). */}
-          {isPathC && !lastStageIsPick && (
+          {isPathCService && !lastStageIsPick && (
             <div className="space-y-2">
               {/* The flow is the Flow Tree - nothing extra after it. This block
                   stays silent until the tree is finished, and then only speaks
@@ -705,13 +798,22 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
                   or that it isn't open yet. A service with no tree at all has
                   nothing but courses to pick from, so it lists them. */}
               {treeExhausted && isLoadingCourses && <p className="text-sm text-gray-500">Loading...</p>}
-              {treeExhausted && !isLoadingCourses && filteredCourses.length === 0 && (
-                <p className="text-sm text-gray-500">
-                  {hasTree
-                    ? "This isn't open for enrollment yet - please check back soon."
-                    : "No courses available yet."}
-                </p>
-              )}
+              {/* Nothing under the pick. With a tree that has a pick level the
+                  student simply carries on with the item they chose (a plain
+                  pick, below) - "not open" only applies where that isn't possible
+                  (cohort services need a Course; an age-range-only tree has no
+                  item to enrol in) or when there's no tree at all. */}
+              {treeExhausted &&
+                coursesResolved &&
+                !isLoadingCourses &&
+                filteredCourses.length === 0 &&
+                !(isPathCService && !isCohortBased && treeHasPickLevel) && (
+                  <p className="text-sm text-gray-500">
+                    {hasTree
+                      ? "This isn't open for enrollment yet - please check back soon."
+                      : "No courses available yet."}
+                  </p>
+                )}
               {treeExhausted && !isLoadingCourses && courseDecidedByTree && (
                 <p className="text-sm text-gray-600">
                   Fee:{" "}
@@ -754,7 +856,7 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
             </div>
           )}
 
-          {isPathC && flowReq.requires_language_selection && (
+          {isPathCService && flowReq.requires_language_selection && (
             <div className="space-y-2">
               <Label>Language *</Label>
               <Select value={serviceData.language} onValueChange={(value) => setServiceData((prev) => ({ ...prev, language: value }))}>
@@ -1200,7 +1302,7 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
       {/* Task 3/5 - cohort-based Path C services skip the one-on-one/group
           question entirely: the student picks a specific open ClassGroup
           instead. */}
-      {isPathC && isCohortBased && serviceData.courseId && (
+      {isPathCService && isCohortBased && serviceData.courseId && (
         <Card>
           <CardHeader><CardTitle>Choose a Class Group</CardTitle></CardHeader>
           <CardContent className="space-y-3">

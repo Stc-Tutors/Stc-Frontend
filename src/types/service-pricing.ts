@@ -26,6 +26,11 @@ export interface ServicePricing {
   curriculum?: string;
   subject?: string;
   courseId?: string;
+  // Priced against one specific Flow Tree item (e.g. a single module of a
+  // Course Module service) - takes precedence over the name/curriculum
+  // dimensions when a subject's node id is known. See stcbe's
+  // ServicePricingRepository.findMatching.
+  taxonomyNodeId?: string;
   country?: string;
   gradeLevel?: string;
   // One-on-one vs group - a row with this unset matches either format (see
