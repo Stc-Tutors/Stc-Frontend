@@ -6,6 +6,7 @@ import { FaWhatsapp, FaInstagram, FaFacebook, FaLinkedin, FaTiktok, FaGlobe } fr
 import { usePageSection } from "@/hooks/use-page-section";
 import { PageSectionKey } from "@/types/content";
 import { DEFAULT_CONTACT } from "@/constants/default-contact";
+import { SendContactMessageAction } from "@/server/contact";
 
 
 const SOCIAL_ICON: Record<string, typeof FaGlobe> = {
@@ -26,6 +27,8 @@ const Contact = () => {
   });
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [submitted, setSubmitted] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -40,7 +43,9 @@ const Contact = () => {
     return newErrors;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Actually sends the message (it used to just show a thank-you and discard it).
+  // The form is only cleared - and "sent" only shown - once the server accepted it.
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
@@ -48,10 +53,23 @@ const Contact = () => {
       return;
     }
 
+    setIsSending(true);
+    setSendError(null);
+    setSubmitted(false);
+    const [, error] = await SendContactMessageAction({
+      name: formData.name,
+      email: formData.email,
+      subject: formData.subject || undefined,
+      message: formData.message,
+    });
+    setIsSending(false);
+
+    if (error) {
+      setSendError(error);
+      return;
+    }
     setSubmitted(true);
     setFormData({ name: "", email: "", subject: "", message: "" });
-
-    // Optional: send to backend/API
   };
 
   return (
@@ -186,10 +204,12 @@ const Contact = () => {
             </div>
             <button
               type="submit"
-              className="bg-[#38b6ff] text-white px-6 py-3 rounded-md hover:bg-indigo-700 transition"
+              disabled={isSending}
+              className="bg-[#38b6ff] text-white px-6 py-3 rounded-md hover:bg-indigo-700 transition disabled:opacity-60"
             >
-              Send Message
+              {isSending ? "Sending..." : "Send Message"}
             </button>
+            {sendError && <p className="text-red-600 mt-3 text-sm">{sendError}</p>}
             {submitted && (
               <p className="text-green-600 mt-3 text-sm">
                 Message sent! We'll get back to you soon.

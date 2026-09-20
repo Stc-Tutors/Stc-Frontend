@@ -367,8 +367,20 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
   // A cohort-only service has no format to choose - it is a group class, so its
   // price is looked up (and submitted) as one.
   const effectiveClassFormat: ClassFormat | undefined = isCohortBased ? "group" : serviceData.classFormat;
-  const pricingDetails = { ...serviceData, classFormat: effectiveClassFormat, selectedSubjectNodeIds: subjectNodeIds };
-  const pricingKey = subjectNodeIds.join(",");
+  // For a plain tree pick: the ids of the items ABOVE it, nearest first - so a
+  // price set on a higher item (e.g. a whole "Bundle Courses" group) covers
+  // everything beneath it until a lower item has its own price.
+  const pickAncestorIds = nodeBacked
+    ? (lastStageIsPick ? [...stageSelections] : stageSelections.slice(0, Math.max(deepestIndex, 0))).reverse()
+    : [];
+  const subjectAncestorNodeIds = serviceData.selectedSubjects.map(() => pickAncestorIds);
+  const pricingDetails = {
+    ...serviceData,
+    classFormat: effectiveClassFormat,
+    selectedSubjectNodeIds: subjectNodeIds,
+    subjectAncestorNodeIds,
+  };
+  const pricingKey = subjectNodeIds.join(",") + "|" + pickAncestorIds.join(",");
   // Any hourly-only price among the picked subjects (see getHourlyPricedSubjects)
   // - only those make "weeks to pay for" and a weekly hours breakdown mean
   // anything; a flat price is one fixed charge.
@@ -607,7 +619,9 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
         !isPathC &&
         !isCohortBased &&
         !serviceData.flexibleSchedule &&
-        serviceData.classFormat !== "group" &&
+        // A group class normally submits no days/times (placement is confirmed later) -
+        // unless something is priced per hour, where they give the hours.
+        (serviceData.classFormat !== "group" || hasHourlySubject) &&
         !schedule.some((s) => s.days.length > 0)
       ) {
         stepErrors.schedule = "Please select at least one day for at least one subject";
@@ -631,14 +645,14 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
         if (unpriced.length > 0) {
           const formatNote = effectiveClassFormat ? ` (${effectiveClassFormat === "group" ? "group class" : "one-on-one"})` : "";
           stepErrors.subjects = `${NO_PRICING_PREFIX} ${unpriced.join(", ")}${formatNote} - please contact us below, or choose a different option.`;
-        } else if (serviceData.classFormat === "group" || serviceData.flexibleSchedule || isCohortBased) {
+        } else if (serviceData.flexibleSchedule || isCohortBased) {
           // No days/times are submitted for these, so a price per hour has nothing
           // to multiply - the total would be 0. Only a flat price works here.
           const hourly = getHourlyPricedSubjects(serviceData.selectedSubjects, pricingDetails);
           if (hourly.length > 0) {
             stepErrors.subjects = `${hourly.join(", ")} ${hourly.length === 1 ? "is" : "are"} priced per hour, so ${
               hourly.length === 1 ? "it needs" : "they need"
-            } specific days and times and can't be booked as a group class, in a cohort or with a flexible schedule. Please choose days and times instead, or contact us.`;
+            } specific days and times - it can't be booked in a cohort or with a flexible schedule. Please choose days and times instead, or contact us.`;
           }
         }
       }
@@ -696,7 +710,9 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
         // validateScheduleDaysRequired on the backend, which would otherwise
         // reject each row's empty `days`).
         const submittedSchedule =
-          !isPathC && (serviceData.flexibleSchedule || serviceData.classFormat === "group" || isCohortBased) ? [] : schedule;
+          !isPathC && (serviceData.flexibleSchedule || (serviceData.classFormat === "group" && !hasHourlySubject) || isCohortBased)
+            ? []
+            : schedule;
         updateSchedule(submittedSchedule);
         setTotalCost(isPathC ? chosenCoursesTotal : calculateCost(schedule, pricingDetails));
       }
@@ -1437,7 +1453,13 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
               </label>
             )}
 
-            {serviceData.classFormat === "group" && classGroups.length === 0 && (
+            {serviceData.classFormat === "group" && hasHourlySubject && (
+              <p className="text-sm text-gray-600">
+                This is priced per hour, so choose the days and times you'd like to attend below - that's how the price
+                is worked out. We'll still confirm the group's exact schedule after enrollment.
+              </p>
+            )}
+            {serviceData.classFormat === "group" && !hasHourlySubject && classGroups.length === 0 && (
               <p className="text-sm text-gray-600">
                 You'll be placed in the next available group class for this subject - we'll confirm your schedule
                 after enrollment (you may be waitlisted if the group is full).
@@ -1524,7 +1546,7 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
                   for {serviceData.selectedSubjects.join(", ")}.
                 </p>
               </div>
-            ) : serviceData.classFormat === "group" ? (
+            ) : serviceData.classFormat === "group" && !hasHourlySubject ? (
               // Group/cohort placement is confirmed after enrollment (see the
               // Class Format card's own "next available group class" note
               // above) - this section used to fall through to the

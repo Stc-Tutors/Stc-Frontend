@@ -124,6 +124,11 @@ export type ServiceDetails = {
   billingWeeks?: number;
 };
 
+// What pricing needs to know beyond the enrollment itself: for each selected
+// subject, the ids of the tree items ABOVE it, nearest first. A price set on a
+// higher item covers everything beneath it until a lower item has its own.
+export type PricingDetails = Partial<ServiceDetails> & { subjectAncestorNodeIds?: string[][] };
+
 export type Schedule = {
   subject: string;
   days: string[];
@@ -172,9 +177,9 @@ type EnrollmentContextType = {
   updateSchedule: (schedule: Schedule[]) => void;
   updateSelectedService: (service: IService | undefined) => void;
   updateCustomFieldResponse: (fieldId: string, value: CustomFieldResponses[string] | undefined) => void;
-  calculateCost: (schedule?: Schedule[], serviceDetails?: Partial<ServiceDetails>) => number;
-  getUnpricedSubjects: (schedule?: Schedule[], serviceDetails?: Partial<ServiceDetails>) => string[];
-  getHourlyPricedSubjects: (subjects: string[], serviceDetails?: Partial<ServiceDetails>) => string[];
+  calculateCost: (schedule?: Schedule[], serviceDetails?: PricingDetails) => number;
+  getUnpricedSubjects: (schedule?: Schedule[], serviceDetails?: PricingDetails) => string[];
+  getHourlyPricedSubjects: (subjects: string[], serviceDetails?: PricingDetails) => string[];
   saveEnrollment: () => Promise<{ success: boolean; data?: EnrollmentResponse; error?: string }>;
   loadEnrollment: (id: string) => Promise<void>;
   isLoading: boolean;
@@ -301,18 +306,25 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
   const priceRowFor = (
     candidates: ServicePricing[],
     subjectName: string,
-    serviceDetails: Partial<ServiceDetails>
+    serviceDetails: PricingDetails
   ): ServicePricing | undefined => {
-    const { curriculum, country, gradeLevel, classFormat, selectedSubjects, selectedSubjectNodeIds } = serviceDetails;
-    const nodeId = selectedSubjectNodeIds?.[(selectedSubjects ?? []).indexOf(subjectName)];
+    const { curriculum, country, gradeLevel, classFormat, selectedSubjects, selectedSubjectNodeIds, subjectAncestorNodeIds } =
+      serviceDetails;
+    const index = (selectedSubjects ?? []).indexOf(subjectName);
+    const nodeId = selectedSubjectNodeIds?.[index];
     if (nodeId) {
-      // A row priced against the item itself beats one that only reaches it
-      // through a Course attached to the item (the API tags those with the item's id).
-      const nodeRows = candidates
-        .filter((p) => p.taxonomyNodeId === nodeId)
-        .sort((a, b) => Number(!!a.courseId) - Number(!!b.courseId));
-      const nodeRow = (classFormat && nodeRows.find((p) => p.classFormat === classFormat)) || nodeRows.find((p) => !p.classFormat);
-      if (nodeRow) return nodeRow;
+      // The item itself first, then each ancestor going up - the nearest price
+      // wins, so a price on a higher item covers everything beneath it until a
+      // lower item (or the item itself) has its own. Mirrors the server's lookup.
+      for (const id of [nodeId, ...(subjectAncestorNodeIds?.[index] ?? [])]) {
+        // A row priced against the item itself beats one that only reaches it
+        // through a Course attached to the item (the API tags those with the item's id).
+        const rows = candidates
+          .filter((p) => p.taxonomyNodeId === id)
+          .sort((x, y) => Number(!!x.courseId) - Number(!!y.courseId));
+        const row = (classFormat && rows.find((p) => p.classFormat === classFormat)) || rows.find((p) => !p.classFormat);
+        if (row) return row;
+      }
     }
     return findRateRow(
       candidates.filter((p) => !p.taxonomyNodeId && !p.courseId),
@@ -334,7 +346,7 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
   // schedule/serviceDetails updates (e.g. mid-render state in the
   // Subjects & Schedule step) can compute against the current values instead
   // of the stale `enrollmentData` snapshot from context.
-  const calculateCost = (scheduleOverride?: Schedule[], serviceDetailsOverride?: Partial<ServiceDetails>) => {
+  const calculateCost = (scheduleOverride?: Schedule[], serviceDetailsOverride?: PricingDetails) => {
     const serviceDetails = { ...enrollmentData.serviceDetails, ...serviceDetailsOverride };
     const schedule = scheduleOverride ?? enrollmentData.schedule;
     const serviceType = serviceDetails.serviceType;
@@ -382,7 +394,7 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
   // rate x weekly hours x weeks, so it needs a real schedule - a Group Class, a
   // cohort placement or a flexible schedule submits none, and would total 0. The
   // Subjects & Schedule step uses this to say so up front rather than at checkout.
-  const getHourlyPricedSubjects = (subjects: string[], serviceDetailsOverride?: Partial<ServiceDetails>): string[] => {
+  const getHourlyPricedSubjects = (subjects: string[], serviceDetailsOverride?: PricingDetails): string[] => {
     const serviceDetails = { ...enrollmentData.serviceDetails, ...serviceDetailsOverride };
     const candidates = pricing.filter((p) => p.serviceType === serviceDetails.serviceType);
     return subjects.filter((name) => {
@@ -391,7 +403,7 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const getUnpricedSubjects = (scheduleOverride?: Schedule[], serviceDetailsOverride?: Partial<ServiceDetails>): string[] => {
+  const getUnpricedSubjects = (scheduleOverride?: Schedule[], serviceDetailsOverride?: PricingDetails): string[] => {
     const serviceDetails = { ...enrollmentData.serviceDetails, ...serviceDetailsOverride };
     const schedule = scheduleOverride ?? enrollmentData.schedule;
     if (!schedule || serviceDetails.serviceType === "tech-bootcamp") return [];
@@ -561,6 +573,10 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
       draftSaveInFlight.current = true;
       const payload = {
         ...enrollmentData.childInfo,
+        // Which person this draft is for, when the wizard already knows (an
+        // existing child, or one the server resolved on an earlier autosave) - so
+        // the server resumes their draft instead of starting another.
+        childId: enrollmentData.childId || undefined,
         serviceDetails: enrollmentData.serviceDetails,
         schedule: enrollmentData.schedule,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -572,7 +588,13 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
         } else {
           const [res, error] = await SaveDraftEnrollmentAction(payload);
           if (res?.data && !error) {
-            setEnrollmentData((prev) => ({ ...prev, id: res.data!.id }));
+            // The server resolves (or creates) the person from the first autosave -
+            // remember them so every later save, and the final submit, are for the same one.
+            setEnrollmentData((prev) => ({
+              ...prev,
+              id: res.data!.id,
+              childId: prev.childId || (res.data as { childId?: string }).childId || undefined,
+            }));
           }
         }
       } catch (error) {
