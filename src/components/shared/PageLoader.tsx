@@ -13,7 +13,7 @@ export default function PageLoader() {
   const pageName = humanizePath(pathname);
 
   return (
-    <div className="flex h-screen w-full flex-col items-center justify-center gap-4 bg-white">
+    <div className="flex min-h-dvh w-full flex-col items-center justify-center gap-4 bg-white">
       <div className="animate-heartbeat">
         <BrandLogo width={140} height={46} className="object-contain" />
       </div>

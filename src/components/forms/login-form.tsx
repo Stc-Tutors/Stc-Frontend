@@ -14,6 +14,7 @@ import { ROUTES } from "@/config/routes";
 import { UserRole } from "@/types/user";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
+import { clearClientCache } from "@/lib/client-cache";
 import { useRouter, useSearchParams } from "next/navigation";
 
 
@@ -69,6 +70,9 @@ export default function LoginForm() {
     );
 
     if (res?.data) {
+      // Whatever an earlier person in this tab left cached (persisted session,
+      // children, wallet...) must not be painted for the person who just signed in.
+      clearClientCache();
       const { tutorApplicationStatus, tutorApplicationId, draftToken, statusToken } = res.data;
 
       if (tutorApplicationStatus === "DRAFT" && draftToken && tutorApplicationId) {
@@ -120,7 +124,7 @@ export default function LoginForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form method="post" onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <div className="flex gap-4 text-sm">
           <label className="flex items-center gap-1.5 cursor-pointer">
             <input

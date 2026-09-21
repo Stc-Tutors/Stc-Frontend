@@ -167,7 +167,7 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex h-screen bg-gray-100 relative">
+    <div className="flex h-dvh bg-gray-100 relative">
       {/* Sidebar */}
       <aside
         className={`fixed md:static top-0 left-0 h-full w-64 bg-white border-r shadow-md z-40 transform transition-transform duration-300 ease-in-out
@@ -238,19 +238,19 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
                     </aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0">
         {/* Topbar */}
-        <header className="h-16 bg-white shadow-sm px-6 flex items-center justify-between">
+        <header className="h-16 bg-white shadow-sm px-3 sm:px-6 flex items-center justify-between gap-2">
           {/* Hamburger (mobile only) */}
           <button
-            className="md:hidden mr-4 p-2 rounded-md hover:bg-blue-100 transition"
+            className="md:hidden mr-2 sm:mr-4 p-2 rounded-md hover:bg-blue-100 transition shrink-0"
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
           >
             <Menu className="w-6 h-6 text-gray-700" />
           </button>
 
           {/* SearchBar */}
-          <form onSubmit={handleSearchSubmit} className="relative w-full max-w-xs">
+          <form onSubmit={handleSearchSubmit} className="relative w-full max-w-xs min-w-0">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
               type="text"
@@ -264,7 +264,7 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
           </form>
 
           {/* Icons */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
             <Link
               href="/lms-home/tutor/messages"
               title="Messages"
@@ -282,7 +282,7 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+        <main className="flex-1 overflow-y-auto p-3 sm:p-6">{children}</main>
       </div>
     </div>
   );

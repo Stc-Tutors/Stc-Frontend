@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/config/routes";
+import { clearClientCache } from "@/lib/client-cache";
 
 // Logout must be a deliberate POST, not a plain navigable link - a GET route
 // is reachable by Next.js's automatic <Link> prefetching (a background GET
@@ -12,6 +13,7 @@ export default function LogoutButton({ className, children }: { className?: stri
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
+    clearClientCache();
     router.push(ROUTES.AUTH.LOGIN);
   };
 

@@ -23,6 +23,24 @@ export async function InitiatePaymentAction(
 }
 
 
+export interface PaymentsOverview {
+  payments: Payment[];
+  summary: SpendingSummary | null;
+}
+
+// Payment list + spending summary in one Server Action (fetched in parallel
+// here) - the page used to fire the two separately and the client dispatches
+// Server Actions one at a time. Either half failing hard-fails the read, so a
+// hiccup never replaces good cached data with an empty list.
+export async function GetPaymentsOverviewAction(): Promise<[ApiResponse<PaymentsOverview> | null, string | null]> {
+  const [[paymentsRes, paymentsError], [summaryRes]] = await Promise.all([GetPaymentsAction(), GetMySpendingSummaryAction()]);
+  if (paymentsError) return [null, paymentsError];
+  return [
+    { success: true, message: "Payments fetched successfully", data: { payments: paymentsRes?.data ?? [], summary: summaryRes?.data ?? null } },
+    null,
+  ];
+}
+
 export async function GetPaymentsAction(): Promise<[ApiResponse<Payment[]> | null, string | null]> {
   const [res, error] = await fetchAPI({
     url: "/payments",
@@ -70,4 +88,3 @@ export async function VerifyPaymentAction(
   const resData = res ? ((await res.json()) as ApiResponse<{ status: string }>) : null;
   return [resData, error];
 }
-

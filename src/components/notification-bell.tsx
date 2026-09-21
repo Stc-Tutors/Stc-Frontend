@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { unwrap, useCachedQuery } from "@/lib/client-cache";
 import { useRouter } from "next/navigation";
 import { Bell } from "lucide-react";
 import { GetNotificationsAction, MarkAllNotificationsReadAction, MarkNotificationReadAction } from "@/server/notification";
@@ -17,46 +18,59 @@ import { ensureNotificationPermission, playNotificationSound, showBrowserNotific
 // notification-alert.ts for why this is poll-driven, not push-driven.
 export default function NotificationBell({ viewAllHref }: { viewAllHref: string }) {
   const router = useRouter();
-  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   // null until the first load resolves, so that load doesn't fire a sound/
   // popup for every notification already sitting there on mount - only for
-  // ones that show up in a later poll.
+  // ones that show up in a later refresh.
   const seenIdsRef = useRef<Set<string> | null>(null);
 
-  const load = () => {
-    GetNotificationsAction().then(([res]) => {
-      const list = res?.data ?? [];
-      const seen = seenIdsRef.current;
-      if (seen) {
-        const fresh = list.filter((n) => !n.read && !seen.has(n.id));
-        if (fresh.length > 0) {
-          playNotificationSound();
-          fresh.slice(0, 3).forEach((n) =>
-            showBrowserNotification(n.title, n.body, () => {
-              if (n.link) navigateToNotificationLink(router, n.link);
-              else router.push(viewAllHref);
-            })
-          );
-        }
-      }
-      seenIdsRef.current = new Set(list.map((n) => n.id));
-      setNotifications(list);
-    });
-  };
+  // Cached and shared, and refetched the moment the server says a notification
+  // arrived (the `notifications` invalidation from RealtimeSync) - previously a
+  // 30s poll that ran even in a background tab and, since Server Actions run one
+  // at a time, sat in the queue in front of whatever the person actually clicked.
+  const { data, refresh } = useCachedQuery<Notification[]>(
+    "notifications",
+    async () => (await unwrap(GetNotificationsAction())) ?? [],
+    { ttl: 15_000, tags: ["notifications"] }
+  );
+  const notifications = data ?? [];
 
   useEffect(() => {
     ensureNotificationPermission();
-    load();
-    const interval = setInterval(load, 30000);
-    return () => clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (!data) return;
+    const seen = seenIdsRef.current;
+    if (seen) {
+      const fresh = data.filter((n) => !n.read && !seen.has(n.id));
+      if (fresh.length > 0) {
+        playNotificationSound();
+        fresh.slice(0, 3).forEach((n) =>
+          showBrowserNotification(n.title, n.body, () => {
+            if (n.link) navigateToNotificationLink(router, n.link);
+            else router.push(viewAllHref);
+          })
+        );
+      }
+    }
+    seenIdsRef.current = new Set(data.map((n) => n.id));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data]);
+
+  // Safety net for when the realtime socket isn't connected: a slow poll, and
+  // only while the tab is actually visible.
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible") void refresh();
+    }, 60_000);
+    return () => clearInterval(interval);
+  }, [refresh]);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   const handleOpen = (n: Notification) => {
-    if (!n.read) MarkNotificationReadAction(n.id).then(load);
+    if (!n.read) MarkNotificationReadAction(n.id).then(() => refresh());
     setIsOpen(false);
     if (n.link) navigateToNotificationLink(router, n.link);
   };
@@ -81,7 +95,7 @@ export default function NotificationBell({ viewAllHref }: { viewAllHref: string 
           <div className="flex items-center justify-between p-3 border-b border-gray-100">
             <span className="text-sm font-semibold text-gray-900">Notifications</span>
             <button
-              onClick={() => MarkAllNotificationsReadAction().then(load)}
+              onClick={() => MarkAllNotificationsReadAction().then(() => refresh())}
               className="text-xs text-blue-600 hover:underline"
             >
               Mark all read

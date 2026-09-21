@@ -5,6 +5,7 @@ import { UserProvider } from "@/contexts/user-context";
 import { TenantBrandingProvider } from "@/contexts/tenant-branding-context";
 import TermsGateModal from "@/components/terms-gate-modal";
 import PushNotificationRegistrar from "@/components/push-notification-registrar";
+import RealtimeSync from "@/components/realtime-sync";
 
 
 export const metadata = {
@@ -22,6 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             {/* Mandatory for every role, on top of any page - see TermsGateModal. */}
             <TermsGateModal />
             <PushNotificationRegistrar />
+            <RealtimeSync />
             <Toaster position="top-right" />
           </body>
         </UserProvider>

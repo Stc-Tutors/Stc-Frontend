@@ -1,8 +1,10 @@
 "use client"
 
-import { GetEnrollmentsAction, GetLinkedStudentsAction } from "@/server/enrollment"
+import { GetMyStudentsAction } from "@/server/bootstrap"
+import { STUDENTS_CACHE_KEY, useUser } from "@/contexts/user-context"
+import { useCachedQuery } from "@/lib/client-cache"
 import { EnrollmentStatus, Student } from "@/types/student"
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react"
 
 // Sentinel selectedId meaning "show every linked child combined" rather than
 // one specific student - see ChildSwitcherDropdown/ParentHeader for the "All
@@ -83,47 +85,52 @@ const SelectedStudentContext = createContext<SelectedStudentContextType | undefi
 // parent LMS area - previously every dashboard component fetched
 // GetLinkedStudentsAction and tracked its own selectedId independently, so
 // switching in one place (e.g. the header) had no effect anywhere else.
-export function SelectedStudentProvider({ children: reactChildren }: { children: ReactNode }) {
-  const [students, setStudents] = useState<Student[]>([])
-  const [selectedId, setSelectedId] = useState<string>(ALL_CHILDREN_ID)
-  const [isLoading, setIsLoading] = useState(true)
+async function fetchStudents(): Promise<Student[]> {
+  const [list, error] = await GetMyStudentsAction()
+  if (error || !list) throw new Error(error ?? "Couldn't load your students")
+  return list
+}
 
-  const load = async () => {
-    setIsLoading(true)
-    // GetLinkedStudentsAction only returns children linked via parentUser -
-    // empty for a self-registered adult student, who has no parent and
-    // whose own enrollment(s) instead come back from GetEnrollmentsAction
-    // (their own `user`-owned Student rows). Merging both here, rather than
-    // just the first, is what lets a self-registered student use the same
-    // child-switcher/Marketplace/dashboard-filtering machinery a parent
-    // does - for them it ends up holding exactly one "child": themselves.
-    // Harmless to merge for an actual parent too, since GetEnrollmentsAction
-    // is empty for an account that never went through the STUDENT-role
-    // enrollment path itself.
-    const [[linkedRes], [ownRes]] = await Promise.all([GetLinkedStudentsAction(), GetEnrollmentsAction()])
-    const byId = new Map<string, Student>()
-    ;[...(linkedRes?.data ?? []), ...(ownRes?.data ?? [])].forEach((s) => byId.set(s.id, s))
-    // A DRAFT is autosaved wizard progress that was never actually
-    // submitted - often several of them, one per abandoned/retried
-    // attempt at the same child (see enrollment-flow.tsx's dedup fix for
-    // Marketplace retries, which reduces but doesn't eliminate these).
-    // Showing each as its own switchable "child" here, identically named,
-    // is confusing and error-prone (which one is real?) - they belong in
-    // the enrollment list's "Continue Registration" flow, not this
-    // quick-switcher, so they're excluded here specifically.
-    const list = Array.from(byId.values()).filter((s) => s.enrollmentStatus !== EnrollmentStatus.DRAFT)
-    setStudents(list)
+export function SelectedStudentProvider({ children: reactChildren }: { children: ReactNode }) {
+  const { isLoading: isSessionLoading } = useUser()
+  const [selectedId, setSelectedId] = useState<string>(ALL_CHILDREN_ID)
+
+  // GetMyStudentsAction merges the children linked via parentUser with the
+  // caller's own enrollments: a self-registered adult student has no parent, so
+  // their own enrollment(s) only come back from the second source. Merging both
+  // is what lets that student use the same child-switcher/Marketplace/dashboard
+  // filtering machinery a parent does - for them it ends up holding exactly one
+  // "child": themselves. (Both used to be fetched here, one after the other; the
+  // session request now seeds this list in the same round trip, so this only
+  // fetches on its own once that has settled and the data is stale - see
+  // UserProvider - and revisiting any page under this layout reads the cache
+  // instantly instead of starting from an empty list.) Waits for the session
+  // rather than racing it: Server Actions run one at a time, so asking in
+  // parallel just queued a duplicate behind it.
+  const { data, isLoading: isStudentsLoading, refresh } = useCachedQuery<Student[]>(STUDENTS_CACHE_KEY, fetchStudents, {
+    ttl: 30_000,
+    tags: ["enrollments"],
+    enabled: !isSessionLoading,
+  })
+
+  // A DRAFT is autosaved wizard progress that was never actually
+  // submitted - often several of them, one per abandoned/retried
+  // attempt at the same child (see enrollment-flow.tsx's dedup fix for
+  // Marketplace retries, which reduces but doesn't eliminate these).
+  // Showing each as its own switchable "child" here, identically named,
+  // is confusing and error-prone (which one is real?) - they belong in
+  // the enrollment list's "Continue Registration" flow, not this
+  // quick-switcher, so they're excluded here specifically.
+  const students = useMemo(() => (data ?? []).filter((s) => s.enrollmentStatus !== EnrollmentStatus.DRAFT), [data])
+  const isLoading = isSessionLoading || isStudentsLoading
+
+  useEffect(() => {
     setSelectedId((current) =>
-      current === ALL_CHILDREN_ID || list.some((s) => s.id === current || s.childId === current)
+      current === ALL_CHILDREN_ID || students.some((s) => s.id === current || s.childId === current)
         ? current
         : ALL_CHILDREN_ID
     )
-    setIsLoading(false)
-  }
-
-  useEffect(() => {
-    load()
-  }, [])
+  }, [students])
 
   const childGroups = groupStudentsByChild(students)
   const isAllSelected = selectedId === ALL_CHILDREN_ID
@@ -149,7 +156,9 @@ export function SelectedStudentProvider({ children: reactChildren }: { children:
         selectedStudent,
         isAllSelected,
         isLoading,
-        refresh: load,
+        refresh: () => {
+          void refresh()
+        },
       }}
     >
       {reactChildren}

@@ -1,12 +1,14 @@
 "use client"
 import { ROUTES } from "@/config/routes"
-import { GetUserAction, GetMyPermissionsAction } from "@/server/user"
-import { GetMyHodAssignmentAction } from "@/server/hod"
+import { GetSessionBootstrapAction, type SessionBootstrap } from "@/server/bootstrap"
 import { User } from "@/types/user"
 import { AdminPermission, MyPermissions } from "@/types/admin-permission"
 import { HodAssignment, HodPermission, hodHasPermission } from "@/types/hod"
+import { SubscriptionRestrictions } from "@/types/subscription"
+import { Student } from "@/types/student"
+import { bindCacheToUser, clearClientCache, NoRetryError, setCached, useCachedQuery } from "@/lib/client-cache"
 import { usePathname, useRouter } from "next/navigation"
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
+import { createContext, useContext, useEffect, useRef, type ReactNode } from "react"
 
 // The only two trees that require a session - see config/routes.ts. Every
 // other route (the public marketing site, /auth/*) is meant to be browsed
@@ -15,11 +17,20 @@ function isProtectedPath(pathname: string | null): boolean {
   return Boolean(pathname && (pathname.startsWith("/dashboard") || pathname.startsWith("/lms-home")))
 }
 
+export const SESSION_CACHE_KEY = "session"
+export const STUDENTS_CACHE_KEY = "my-students"
+
 type UserContextType = {
   user: User | null
+  // Keeps the shared session cache (and so every consumer) in step with a
+  // change made in the UI - see updateUser.
   setUser: (user: User | null) => void
   updateUser: (updates: Partial<User>) => void
   logout: () => void
+  // True from the moment a protected page starts loading until the session,
+  // permissions and HOD assignment have ALL arrived (or failed). It used to flip
+  // to false as soon as the user alone loaded, so a page could briefly see a real
+  // user but no permissions yet and flash a "no access" state.
   isLoading: boolean
   permissions: MyPermissions | null
   hasPermission: (permission: AdminPermission) => boolean
@@ -29,77 +40,77 @@ type UserContextType = {
   // assignment", not "still loading" - check isLoading for that.
   hodAssignment: HodAssignment | null
   hasHodPermission: (permission: HodPermission) => boolean
+  // Fetched together with the session for STUDENT/PARENT (null for other
+  // roles, or while loading) so the access gate and the child switcher don't
+  // each make their own request - see SessionBootstrap.
+  restrictions: SubscriptionRestrictions | null
+  bootstrapStudents: Student[] | null
+  // Set when the session could not be loaded and there is nothing cached to show
+  // (offline, API waking up). The layouts show a retry screen for it instead of
+  // a blank page.
+  sessionError: string | null
+  retrySession: () => void
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined)
 
+async function loadSession(): Promise<SessionBootstrap> {
+  const result = await GetSessionBootstrapAction()
+  // A 401 is the only reason to treat the session as dead. Anything else (a
+  // timeout, the API cold-starting, no signal on a train) must not log the
+  // person out - it is retried, and cached data keeps the page usable meanwhile.
+  if (result.unauthorized) throw new NoRetryError("Unauthorized")
+  if (!result.data) throw new Error(result.error ?? "Couldn't load your session")
+  return result.data
+}
+
 export function UserProvider({ children }: { children: ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
-  const [user, setUser] = useState<User | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const [permissions, setPermissions] = useState<MyPermissions | null>(null)
-  const [hodAssignment, setHodAssignment] = useState<HodAssignment | null>(null)
 
-  // Runs once per transition into a protected route (not on every nested
-  // navigation within one - isProtectedRoute only flips false->true then
-  // stays true) rather than on every pathname change under /dashboard or
-  // /lms-home, and never at all on public pages. Previously this fired
-  // unconditionally in this app-wide provider, so an anonymous visitor
-  // idling on the public homepage still hit GetUserAction, got the entirely
-  // expected 401 for "no session cookie exists", and the branch below
-  // treated that the same as a real dead session - logging out and
-  // redirecting them to /login mid-browse.
+  // Only runs for a protected route, and only once per transition into one (the
+  // key is constant, so navigating between protected pages reuses the cached
+  // session instead of re-fetching it) - never on public pages: an anonymous
+  // visitor idling on the homepage must not hit the API and get bounced to /login.
   const isProtectedRoute = isProtectedPath(pathname)
+  const { data, error, isLoading: isSessionLoading, refresh } = useCachedQuery<SessionBootstrap>(SESSION_CACHE_KEY, loadSession, {
+    ttl: 60_000,
+    tags: ["session"],
+    // Paints the shell from the last session on a full reload/reopen (mobile
+    // browsers discard background tabs constantly) while the fresh one loads.
+    // sessionStorage: per-tab, and wiped by clearClientCache on logout.
+    persist: true,
+    enabled: isProtectedRoute,
+  })
 
+  const user = data?.user ?? null
+  const permissions = data?.permissions ?? null
+  const hodAssignment = data?.hodAssignment ?? null
+  const restrictions = data?.restrictions ?? null
+  const bootstrapStudents = data?.students ?? null
+
+  // Whatever is cached belongs to whoever is signed in - drop it when that changes.
   useEffect(() => {
-    if (!isProtectedRoute) return
+    if (user) bindCacheToUser(user.id)
+  }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
-    const fetchUser = async () => {
-      setIsLoading(true)
-      try {
-      const [res, error] = await GetUserAction()
+  // Seed the children list from the same round trip so SelectedStudentProvider
+  // finds it fresh instead of asking again.
+  useEffect(() => {
+    if (bootstrapStudents) setCached(STUDENTS_CACHE_KEY, bootstrapStudents, { tags: ["enrollments"] })
+  }, [bootstrapStudents])
 
-        if (!res || error) {
-          console.error("Failed to fetch user:", error)
-          setUser(null)
-          // A 401 here means the session cookie no longer maps to a real
-          // user (e.g. the account was deleted from the database) - clear
-          // the stale cookie and send them to login instead of leaving them
-          // stranded on a page that has no user to render.
-          if (error === "Unauthorized") {
-            await logout()
-          }
-          return;
-        }
-        if (res.data) {
-          setUser(res.data)
-        }
-
-      } catch  {
-        setUser(null)
-      } finally {
-        setIsLoading(false)
-      }
+  const loggedOutRef = useRef(false)
+  useEffect(() => {
+    // A 401 means the session cookie no longer maps to a real user (e.g. the
+    // account was deleted) - clear the stale cookie and send them to login
+    // instead of leaving them on a page that has no user to render.
+    if (error?.name === "NoRetryError" && !loggedOutRef.current) {
+      loggedOutRef.current = true
+      void logout()
     }
-
-    const fetchPermissions = async () => {
-      const [res] = await GetMyPermissionsAction()
-      setPermissions(res?.data ?? [])
-    }
-
-    // HOD status is additive, so this is fetched for every logged-in user
-    // regardless of role - a 404 (the common case: no assignment) is an
-    // expected outcome here, not an error to surface.
-    const fetchHodAssignment = async () => {
-      const [res] = await GetMyHodAssignmentAction()
-      setHodAssignment(res?.data ?? null)
-    }
-
-    fetchUser()
-    fetchPermissions()
-    fetchHodAssignment()
-  }, [isProtectedRoute])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [error])
 
   const hasPermission = (permission: AdminPermission): boolean => {
     if (permissions === "*") return true
@@ -109,13 +120,15 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const hasHodPermission = (permission: HodPermission): boolean => hodHasPermission(hodAssignment, permission)
 
   const updateUser = (updates: Partial<User>) => {
-    if (user) {
-      setUser({ ...user, ...updates })
-    }
+    if (data) setCached(SESSION_CACHE_KEY, { ...data, user: { ...data.user, ...updates } }, { tags: ["session"], persist: true })
+  }
+
+  const setUser = (next: User | null) => {
+    if (next === null) clearClientCache()
+    else if (data) setCached(SESSION_CACHE_KEY, { ...data, user: next }, { tags: ["session"], persist: true })
   }
 
   const logout = async () => {
-    setIsLoading(true)
     try {
       // ROUTES.AUTH.LOGOUT ("/api/auth/logout") is a POST-only route handler
       // that clears the httpOnly session cookie server-side - it must be hit
@@ -123,25 +136,29 @@ export function UserProvider({ children }: { children: ReactNode }) {
       // which was a dead-page GET that never cleared the cookie (the user
       // stayed logged in on refresh). See LogoutButton.tsx for the same pattern.
       await fetch(ROUTES.AUTH.LOGOUT, { method: "POST" })
-      setUser(null)
+      clearClientCache()
       router.push(ROUTES.AUTH.LOGIN)
     } catch (error) {
       console.error("Logout failed:", error)
-    } finally {
-      setIsLoading(false)
     }
   }
 
-  const value = {
+  const value: UserContextType = {
     user,
     setUser,
     updateUser,
     logout,
-    isLoading,
+    isLoading: isProtectedRoute && isSessionLoading,
     permissions,
     hasPermission,
     hodAssignment,
     hasHodPermission,
+    restrictions,
+    bootstrapStudents,
+    sessionError: !user && error && error.name !== "NoRetryError" ? error.message : null,
+    retrySession: () => {
+      void refresh()
+    },
   }
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>

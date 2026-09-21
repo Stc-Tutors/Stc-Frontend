@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,14 +17,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Wallet as WalletIcon, PlusCircle, History } from "lucide-react";
 import { ToastError, ToastSuccess } from "@/components/ui/custom/toast";
-import { GetMyWalletBalancesAction, GetMyWalletTransactionsAction, TopUpWalletAction } from "@/server/wallet";
+import { GetMyWalletOverviewAction, TopUpWalletAction, type WalletOverview } from "@/server/wallet";
+import { unwrap, useCachedQuery } from "@/lib/client-cache";
 import { VerifyPaymentAction } from "@/server/payment";
-import {
-  WALLET_TRANSACTION_REASON_LABELS,
-  WalletBalance,
-  WalletTransaction,
-  WalletTransactionType,
-} from "@/types/wallet";
+import { WALLET_TRANSACTION_REASON_LABELS, WalletTransactionType } from "@/types/wallet";
 
 const CURRENCY_SYMBOLS: Record<string, string> = { NGN: "₦", USD: "$", GBP: "£", EUR: "€" };
 
@@ -33,29 +29,69 @@ function formatMoney(amount: number, currency: string) {
   return `${symbol}${amount.toLocaleString()}`;
 }
 
+// How long to keep asking Paystack whether a payment that hasn't settled yet
+// (bank transfer / USSD confirm after the popup closes) has gone through.
+const CONFIRM_ATTEMPTS = 8;
+const CONFIRM_INTERVAL_MS = 3000;
+
 export default function WalletPage() {
-  const [balances, setBalances] = useState<WalletBalance[]>([]);
-  const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // Cached: reopening the page shows the last known balance instantly and
+  // refreshes behind it, and it refetches by itself the moment the server
+  // reports a wallet change (the `wallet` invalidation from RealtimeSync -
+  // sent when Paystack's webhook lands) instead of waiting for a manual reload.
+  const { data, error, isLoading, refresh } = useCachedQuery<WalletOverview>(
+    "wallet",
+    async () => (await unwrap(GetMyWalletOverviewAction())) ?? { balances: [], transactions: [] },
+    { ttl: 20_000, tags: ["wallet"] }
+  );
+  const balances = data?.balances ?? [];
+  const transactions = data?.transactions ?? [];
   const [topUpAmount, setTopUpAmount] = useState("");
   const [isToppingUp, setIsToppingUp] = useState(false);
-
-  const load = async () => {
-    const [balancesRes, balancesError] = await GetMyWalletBalancesAction();
-    const [transactionsRes] = await GetMyWalletTransactionsAction();
-    if (balancesError) {
-      ToastError(`Couldn't load your wallet: ${balancesError}`);
-    }
-    setBalances(balancesRes?.data ?? []);
-    setTransactions(transactionsRes?.data ?? []);
-    setIsLoading(false);
-  };
+  const [confirming, setConfirming] = useState(false);
+  const mounted = useRef(true);
 
   useEffect(() => {
-    load();
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
   }, []);
 
+  useEffect(() => {
+    if (error) ToastError(`Couldn't load your wallet: ${error.message}`);
+  }, [error]);
+
   const primaryBalance = balances[0];
+
+  // Paystack's own popup reporting success isn't the same as the wallet having
+  // been credited: the server confirms with Paystack and only then credits. That
+  // answer is what decides what the person is told (previously "topped up
+  // successfully" was announced unconditionally and whatever verify returned was
+  // ignored, so a payment still settling looked like a top-up that never arrived).
+  const confirmTopUp = async (reference: string) => {
+    setConfirming(true);
+    try {
+      for (let attempt = 0; attempt < CONFIRM_ATTEMPTS && mounted.current; attempt++) {
+        const [res] = await VerifyPaymentAction(reference);
+        if (res?.data?.status === "COMPLETED") {
+          await refresh();
+          ToastSuccess("Wallet topped up successfully");
+          return;
+        }
+        if (res?.data?.status === "FAILED") {
+          ToastError("That payment didn't go through, so nothing was added to your wallet.");
+          return;
+        }
+        await new Promise((resolve) => setTimeout(resolve, CONFIRM_INTERVAL_MS));
+      }
+      // Still unconfirmed - it may yet settle. The server pushes an update to
+      // this page when it does, so say that instead of implying a failure.
+      ToastSuccess("Payment received - your balance will update here as soon as it's confirmed.");
+    } finally {
+      if (mounted.current) setConfirming(false);
+    }
+  };
 
   const handleTopUp = async () => {
     const amount = Number(topUpAmount);
@@ -73,11 +109,9 @@ export default function WalletPage() {
       const { default: PaystackPop } = await import("@paystack/inline-js");
       const popup = new PaystackPop();
       popup.resumeTransaction(res.data.access_code, {
-        onSuccess: async () => {
-          await VerifyPaymentAction(res.data!.reference);
-          ToastSuccess("Wallet topped up successfully");
+        onSuccess: () => {
           setTopUpAmount("");
-          load();
+          void confirmTopUp(res.data!.reference);
         },
         onCancel: () => {
           ToastError("Top-up was not completed.");
@@ -98,6 +132,11 @@ export default function WalletPage() {
         <p className="text-sm text-gray-500">
           Credit from missed-class refunds and top-ups, spendable toward any future payment.
         </p>
+        {confirming && (
+          <p role="status" className="mt-2 text-sm text-blue-600">
+            Confirming your payment...
+          </p>
+        )}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

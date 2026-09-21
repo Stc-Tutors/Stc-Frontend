@@ -1,6 +1,7 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, type ReactNode } from "react";
+import { unwrap, useCachedQuery } from "@/lib/client-cache";
 import { GetTenantAction, type TenantInfo } from "@/server/tenant";
 
 type TenantBrandingContextType = {
@@ -27,30 +28,31 @@ function applyFavicon(url: string) {
 // deployment gets its own name/logo/colors automatically once their Tenant
 // record has branding set.
 export function TenantBrandingProvider({ children }: { children: ReactNode }) {
-  const [tenant, setTenant] = useState<TenantInfo | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  // Every page load used to start with this request - queued FIRST, so on a
+  // phone it held up the session and everything else behind it (Server Actions
+  // run one at a time). Branding almost never changes, so it is cached (kept for
+  // the tab, revalidated in the background) and a return visit paints the
+  // right logo/colours immediately instead of flashing the default ones.
+  const { data: tenant = null, isLoading } = useCachedQuery("tenant", () => unwrap(GetTenantAction()), {
+    ttl: 10 * 60_000,
+    persist: true,
+  });
 
   useEffect(() => {
-    GetTenantAction().then(([res]) => {
-      const info = res?.data ?? null;
-      setTenant(info);
-      setIsLoading(false);
+    const branding = tenant?.branding;
+    if (!branding) return;
 
-      const branding = info?.branding;
-      if (!branding) return;
-
-      if (branding.primaryColor) {
-        document.documentElement.style.setProperty("--color-primary", branding.primaryColor);
-        document.documentElement.style.setProperty("--primary", branding.primaryColor);
-      }
-      if (branding.faviconUrl) {
-        applyFavicon(branding.faviconUrl);
-      }
-      if (branding.displayName) {
-        document.title = document.title.replace(/STC Tutors/i, branding.displayName);
-      }
-    });
-  }, []);
+    if (branding.primaryColor) {
+      document.documentElement.style.setProperty("--color-primary", branding.primaryColor);
+      document.documentElement.style.setProperty("--primary", branding.primaryColor);
+    }
+    if (branding.faviconUrl) {
+      applyFavicon(branding.faviconUrl);
+    }
+    if (branding.displayName) {
+      document.title = document.title.replace(/STC Tutors/i, branding.displayName);
+    }
+  }, [tenant]);
 
   return <TenantBrandingContext.Provider value={{ tenant, isLoading }}>{children}</TenantBrandingContext.Provider>;
 }

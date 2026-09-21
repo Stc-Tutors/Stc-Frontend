@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { CreditCard } from "lucide-react";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 
@@ -9,8 +9,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
-import { GetMySpendingSummaryAction, GetPaymentsAction, VerifyPaymentAction } from "@/server/payment";
-import { Payment, PaymentStatus, SpendingSummary } from "@/types/payment";
+import { GetPaymentsOverviewAction, VerifyPaymentAction, type PaymentsOverview } from "@/server/payment";
+import { Payment, PaymentStatus } from "@/types/payment";
+import { unwrap, useCachedQuery } from "@/lib/client-cache";
 import { ToastError, ToastSuccess } from "@/components/ui/custom/toast";
 
 const MONTH_LABELS = [
@@ -41,22 +42,18 @@ interface PaymentsListProps {
 // Shared by the parent and self-paying-student Payments pages - identical
 // list/resume/verify behavior, only the copy differs (see `variant`).
 export default function PaymentsList({ variant }: PaymentsListProps) {
-  const [payments, setPayments] = useState<Payment[]>([]);
-  const [summary, setSummary] = useState<SpendingSummary | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // Cached and realtime-refreshed (the server's `payments` invalidation fires
+  // when a charge completes), so returning to this page is instant and a payment
+  // that just settled shows up without a manual reload.
+  const { data, error: loadError, isLoading, refresh } = useCachedQuery<PaymentsOverview>(
+    "payments",
+    async () => (await unwrap(GetPaymentsOverviewAction())) ?? { payments: [], summary: null },
+    { ttl: 20_000, tags: ["payments"] }
+  );
+  const payments = data?.payments ?? [];
+  const summary = data?.summary ?? null;
+  const error = loadError?.message ?? null;
   const [payingId, setPayingId] = useState<string | null>(null);
-
-  const refresh = () => {
-    GetPaymentsAction().then(([res, err]) => {
-      setPayments(res?.data ?? []);
-      setError(err);
-      setIsLoading(false);
-    });
-    GetMySpendingSummaryAction().then(([res]) => setSummary(res?.data ?? null));
-  };
-
-  useEffect(refresh, []);
 
   // In-app Paystack popup (not a new-tab hosted-checkout redirect) so we get
   // an onSuccess callback to verify against - a new-tab redirect leaves this
@@ -68,10 +65,11 @@ export default function PaymentsList({ variant }: PaymentsListProps) {
     const popup = new PaystackPop();
     popup.resumeTransaction(payment.accessCode, {
       onSuccess: async () => {
-        await VerifyPaymentAction(payment.reference);
-        ToastSuccess("Payment successful");
+        const [res] = await VerifyPaymentAction(payment.reference);
+        if (res?.data?.status === PaymentStatus.COMPLETED) ToastSuccess("Payment successful");
+        else ToastSuccess("Payment received - it will show as paid here as soon as it's confirmed.");
         setPayingId(null);
-        refresh();
+        void refresh();
       },
       onCancel: () => {
         setPayingId(null);
@@ -95,7 +93,7 @@ export default function PaymentsList({ variant }: PaymentsListProps) {
       ToastError("Still not confirmed as paid - if you already paid, please contact support.");
     }
     setPayingId(null);
-    refresh();
+    void refresh();
   };
 
   return (
