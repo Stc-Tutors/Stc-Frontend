@@ -48,7 +48,7 @@ import AnnouncementsOverlay from "@/components/announcements-overlay";
 import { useUser } from "@/contexts/user-context";
 import { AdminPermission } from "@/types/admin-permission";
 import { HodPermission } from "@/types/hod";
-import { isSuperOrAlmighty } from "@/lib/roles";
+import { isAdminOrAbove, isSuperOrAlmighty } from "@/lib/roles";
 import AccessNotice from "@/components/admin/AccessNotice";
 
 // permission: undefined means always visible (no matching AdminPermission
@@ -74,6 +74,9 @@ const sidebarLinks: {
   hodPermission?: HodPermission | HodPermission[];
   hodOnly?: boolean;
   superOrAlmightyOnly?: boolean;
+  // Backed by admin-role-only APIs with no per-permission grant (reports, subscriptions, an admin's own tutor list) -
+  // a pure HOD would open them and only get errors or an empty page.
+  adminOnly?: boolean;
 }[] = [
   { label: "Dashboard", icon: Home, href: "/lms-home/admin/dashboard" },
   { label: "Students", icon: Users, href: "/lms-home/admin/students", permission: AdminPermission.MANAGE_STUDENTS },
@@ -183,12 +186,12 @@ const sidebarLinks: {
   // inside the page itself via MANAGE_REFERRAL_SETTINGS - left ungated here
   // for the same reason as Reports above.
   { label: "Refer & Earn", icon: Gift, href: "/lms-home/admin/refer-earn" },
-  { label: "Subscriptions", icon: CreditCard, href: "/lms-home/admin/subscriptions" },
+  { label: "Subscriptions", icon: CreditCard, href: "/lms-home/admin/subscriptions", adminOnly: true },
   { label: "Messages", icon: MessageSquare, href: "/lms-home/admin/messages" },
   // Mixed-purpose page (financial revenue chart + operational courses-by-status
   // report) - left ungated at the nav level since the operational half is open
   // to any admin; the revenue section gates itself inside the page.
-  { label: "Reports", icon: BarChart2, href: "/lms-home/admin/reports" },
+  { label: "Reports", icon: BarChart2, href: "/lms-home/admin/reports", adminOnly: true },
   {
     label: "Complaints",
     icon: AlertCircle,
@@ -215,7 +218,7 @@ const sidebarLinks: {
   },
   // No permission - GET /users?role=TUTOR is already scoped server-side to
   // the calling admin's assigned cluster, so this is visible to any assigned admin.
-  { label: "My Tutors", icon: UserCog, href: "/lms-home/admin/my-tutors" },
+  { label: "My Tutors", icon: UserCog, href: "/lms-home/admin/my-tutors", adminOnly: true },
   {
     label: "Allocation Hub",
     icon: ArrowLeftRight,
@@ -248,6 +251,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const isLinkVisible = (link: (typeof sidebarLinks)[number]): boolean => {
     if (link.hodOnly) return !!hodAssignment;
+    if (link.adminOnly && !(user && isAdminOrAbove(user.role))) return false;
     const grants: boolean[] = [];
     if (link.permission) grants.push(hasPermission(link.permission));
     if (link.hodPermission) {
