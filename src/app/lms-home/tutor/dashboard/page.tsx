@@ -1,5 +1,6 @@
 "use client";
 
+import WidgetBoundary from "@/components/shared/WidgetBoundary";
 import TutorsCard from "@/components/tutorDashboard/TutorsCard";
 import PerformanceChart from "@/components/tutorDashboard/PerformanceChart";
 import CalendarPreview from "@/components/tutorDashboard/CalendarPreview";
@@ -34,18 +35,32 @@ export default function TutorDashboardPage() {
     </section>
 
     {/* Cards Section */}
-    <TutorsCard />
+    <WidgetBoundary name="the summary cards">
+      <TutorsCard  />
+    </WidgetBoundary>
 
     <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-      <PerformanceChart />
-      <CalendarPreview />
-      <TodaysSessions />
-      <LessonProgress />
-      <UpcomingEventsWidget />
+      <WidgetBoundary name="the performance chart">
+        <PerformanceChart  />
+      </WidgetBoundary>
+      <WidgetBoundary name="the calendar">
+        <CalendarPreview  />
+      </WidgetBoundary>
+      <WidgetBoundary name="today's sessions">
+        <TodaysSessions  />
+      </WidgetBoundary>
+      <WidgetBoundary name="lesson progress">
+        <LessonProgress  />
+      </WidgetBoundary>
+      <WidgetBoundary name="upcoming events">
+        <UpcomingEventsWidget  />
+      </WidgetBoundary>
         </section>
 
         <section className="grid grid-cols-1 lg:grid-cols-1 gap-4">
-          <YourStudent />
+          <WidgetBoundary name="your students">
+            <YourStudent  />
+          </WidgetBoundary>
           </section>
   </div>
 )};

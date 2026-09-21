@@ -1,5 +1,6 @@
 "use client";
 
+import WidgetBoundary from "@/components/shared/WidgetBoundary";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Users, GraduationCap, Star, Activity } from "lucide-react";
@@ -115,13 +116,23 @@ export default function AdminDashboardPage() {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <SchoolPerformanceChart />
-        <AdminCalendar />
-        <AdminFinanceChart />
-        <AnnouncementFeed />
+        <WidgetBoundary name="the performance chart">
+          <SchoolPerformanceChart  />
+        </WidgetBoundary>
+        <WidgetBoundary name="the calendar">
+          <AdminCalendar  />
+        </WidgetBoundary>
+        <WidgetBoundary name="the finance chart">
+          <AdminFinanceChart  />
+        </WidgetBoundary>
+        <WidgetBoundary name="announcements">
+          <AnnouncementFeed  />
+        </WidgetBoundary>
       </div>
 
-      <UserManagementTable />
+      <WidgetBoundary name="the user table">
+        <UserManagementTable  />
+      </WidgetBoundary>
     </div>
   );
 }

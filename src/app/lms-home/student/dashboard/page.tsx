@@ -1,5 +1,6 @@
 "use client";
 
+import WidgetBoundary from "@/components/shared/WidgetBoundary";
 import {motion} from "framer-motion";
 import CardsSection from "@/components/studentDashboard/CardsSection";
 import PerformanceChart from "@/components/studentDashboard/PerformanceChart";
@@ -42,20 +43,32 @@ export default function StudentOverviewPage() {
     </section>
 
     {/* Cards Section */}
-    <CardsSection />
+    <WidgetBoundary name="the summary cards">
+      <CardsSection  />
+    </WidgetBoundary>
 
     <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-      <PerformanceChart />
-      <CalendarPreview />
-      <UpcomingEventsWidget />
+      <WidgetBoundary name="the performance chart">
+        <PerformanceChart  />
+      </WidgetBoundary>
+      <WidgetBoundary name="the calendar">
+        <CalendarPreview  />
+      </WidgetBoundary>
+      <WidgetBoundary name="upcoming events">
+        <UpcomingEventsWidget  />
+      </WidgetBoundary>
         </section>
 
         <section className="grid grid-cols-1 gap-4">
-          <TodayLectureCard />
+          <WidgetBoundary name="today's lectures">
+            <TodayLectureCard  />
+          </WidgetBoundary>
         </section>
 
         <section className="grid grid-cols-1 lg:grid-cols-1 gap-4">
-          <Timetable />
+          <WidgetBoundary name="the timetable">
+            <Timetable  />
+          </WidgetBoundary>
           </section>
   </div>
 )};

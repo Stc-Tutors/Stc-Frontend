@@ -207,7 +207,7 @@ export default function SchedulingPage() {
           // 🧠 Academic/Exam Tutoring UI
           <div className="flex flex-col lg:flex-row gap-6">
             {/* <div className="overflow-x-auto"> */}
-            <div className="md:col-span-2 bg-white rounded-lg shadow overflow-hidden">
+            <div className="md:col-span-2 bg-white rounded-lg shadow overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 {/* <table className="min-w-full divide-y divide-gray-200 text-sm"> */}
                 <thead className="bg-gray-50">

@@ -101,7 +101,10 @@ export interface StudentUserRef {
 }
 
 export function studentAvatarUrl(user: Student["user"]): string | undefined {
-  return typeof user === "object" ? user.avatarUrl : undefined;
+  // typeof null === "object": a student whose linked account no longer exists comes
+  // back with user: null, and reading .avatarUrl off it threw and took the whole
+  // admin students page down with it.
+  return user && typeof user === "object" ? user.avatarUrl : undefined;
 }
 
 // Populated (as an object, despite the plain-string field type below) on

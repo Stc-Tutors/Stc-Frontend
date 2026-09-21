@@ -33,12 +33,12 @@ export default function TenantSettingsPage() {
     }
     const t = res.data;
     setTenant(t);
-    setOriginsText(t.allowedOrigins.join("\n"));
-    setDisplayName(t.branding.displayName ?? "");
-    setLogoUrl(t.branding.logoUrl ?? "");
-    setFaviconUrl(t.branding.faviconUrl ?? "");
-    setPrimaryColor(t.branding.primaryColor ?? "");
-    setSupportEmail(t.branding.supportEmail ?? "");
+    setOriginsText((t.allowedOrigins ?? []).join("\n"));
+    setDisplayName(t.branding?.displayName ?? "");
+    setLogoUrl(t.branding?.logoUrl ?? "");
+    setFaviconUrl(t.branding?.faviconUrl ?? "");
+    setPrimaryColor(t.branding?.primaryColor ?? "");
+    setSupportEmail(t.branding?.supportEmail ?? "");
     setIsLoading(false);
   };
 

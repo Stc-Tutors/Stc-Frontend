@@ -1,5 +1,6 @@
 "use client";
 
+import WidgetBoundary from "@/components/shared/WidgetBoundary";
 import ParentHeader from "@/components/parentDashboard/ParentHeader";
 import ParentMiddleSection from "@/components/parentDashboard/ParentMiddleSection";
 import CardsSection from "@/components/studentDashboard/CardsSection";
@@ -16,20 +17,30 @@ export default function ParentDashboardPage() {
       <IncompleteEnrollmentBanner basePath="/lms-home/parent/enrollment" source="linked" />
 
       {/* Header */}
-      <ParentHeader />
+      <WidgetBoundary name="the child summary">
+        <ParentHeader  />
+      </WidgetBoundary>
 
       {/* Cards Section */}
-        <CardsSection showChildrenCount />
+        <WidgetBoundary name="the summary cards">
+          <CardsSection showChildrenCount  />
+        </WidgetBoundary>
         
         {/* Performance Overview + Calendar + Notifications + Help */}
-        <ParentMiddleSection/>
+        <WidgetBoundary name="the performance overview">
+          <ParentMiddleSection />
+        </WidgetBoundary>
 
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <UpcomingEventsWidget />
+            <WidgetBoundary name="upcoming events">
+              <UpcomingEventsWidget  />
+            </WidgetBoundary>
             </section>
 
         <section className="grid grid-cols-1 lg:grid-cols-1 gap-4">
-            <Timetable />
+            <WidgetBoundary name="the timetable">
+              <Timetable  />
+            </WidgetBoundary>
             </section>
     </div>
   );
