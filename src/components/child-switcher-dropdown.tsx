@@ -41,7 +41,7 @@ export function ChildSwitcherDropdown() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="flex items-center space-x-2 h-auto p-2">
           <Avatar className="w-7 h-7">
-            <AvatarImage src={selectedStudent?.photoUrl || "/placeholder.svg"} alt={selectedStudent?.fullName} />
+            <AvatarImage src={selectedStudent?.photoUrl || undefined} alt={selectedStudent?.fullName} />
             <AvatarFallback className="bg-blue-100 text-blue-600 text-xs">
               {selectedStudent ? getInitials(selectedStudent.fullName) : <Users className="w-4 h-4" />}
             </AvatarFallback>
@@ -73,7 +73,7 @@ export function ChildSwitcherDropdown() {
             <div key={child.key}>
               <DropdownMenuItem className="cursor-pointer" onClick={() => setSelectedId(child.key)} data-active={isChildActive}>
                 <Avatar className="w-5 h-5 mr-2">
-                  <AvatarImage src={child.photoUrl || "/placeholder.svg"} alt={child.fullName} />
+                  <AvatarImage src={child.photoUrl || undefined} alt={child.fullName} />
                   <AvatarFallback className="bg-blue-100 text-blue-600 text-[10px]">
                     {getInitials(child.fullName)}
                   </AvatarFallback>

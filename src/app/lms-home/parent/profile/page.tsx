@@ -57,7 +57,7 @@ function ChildrenTab() {
             <CardContent className="p-4 flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <Avatar className="w-10 h-10">
-                  <AvatarImage src={child.photoUrl || "/placeholder.svg"} alt={child.fullName} />
+                  <AvatarImage src={child.photoUrl || undefined} alt={child.fullName} />
                   <AvatarFallback className="bg-blue-100 text-blue-600">{getInitials(child.fullName)}</AvatarFallback>
                 </Avatar>
                 <div>
