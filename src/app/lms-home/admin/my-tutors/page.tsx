@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import InlineLoader from "@/components/shared/InlineLoader";
 import Link from "next/link";
 import {
   Table,
@@ -34,7 +35,7 @@ export default function AdminMyTutorsPage() {
     load();
   }, []);
 
-  if (isLoading) return <p className="p-6 text-sm text-gray-500">Loading...</p>;
+  if (isLoading) return <InlineLoader />;
 
   return (
     <div className="space-y-6">

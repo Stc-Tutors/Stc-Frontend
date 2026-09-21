@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import InlineLoader from "@/components/shared/InlineLoader";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, ChevronRight } from "lucide-react";
 import ProfileForm from "@/components/profile/ProfileForm";
@@ -35,7 +36,7 @@ function ChildrenTab() {
     });
   }, []);
 
-  if (isLoading) return <p className="text-sm text-gray-500 mt-4">Loading...</p>;
+  if (isLoading) return <InlineLoader />;
 
   if (children.length === 0) {
     return <p className="text-sm text-gray-500 mt-4">No children linked to your account yet.</p>;

@@ -1,6 +1,7 @@
 "use client";
 
 import { ReactNode, useEffect, useRef, useState } from "react";
+import InlineLoader from "@/components/shared/InlineLoader";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -247,7 +248,7 @@ export function CourseForm({
   };
 
   if (isLoadingCourse) {
-    return <p className="text-sm text-gray-500">Loading course...</p>;
+    return <InlineLoader label="Loading course" />;
   }
 
   return (

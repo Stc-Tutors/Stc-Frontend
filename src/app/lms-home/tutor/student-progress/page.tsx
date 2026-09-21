@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import InlineLoader from "@/components/shared/InlineLoader";
 import { useRouter } from "next/navigation";
 import { Circle } from "rc-progress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -84,7 +85,7 @@ export default function StudentProgressPage() {
     setPage(p);
   };
 
-  if (isLoading) return <p className="p-6 text-sm text-gray-500">Loading student progress...</p>;
+  if (isLoading) return <InlineLoader label="Loading student progress" />;
 
   return (
     <div className="space-y-6">

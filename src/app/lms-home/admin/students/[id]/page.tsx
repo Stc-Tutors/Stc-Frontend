@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import InlineLoader from "@/components/shared/InlineLoader";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Circle as CircleIcon } from "lucide-react";
 import { Circle } from "rc-progress";
@@ -69,7 +70,7 @@ export default function AdminStudentDetailPage() {
     load();
   };
 
-  if (isLoading) return <p className="p-6">Loading...</p>;
+  if (isLoading) return <InlineLoader />;
   if (!student) return <p className="p-6">Student not found</p>;
 
   return (

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import InlineLoader from "@/components/shared/InlineLoader";
 import { formatMoney, formatMoneyCompact } from "@/lib/money";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { GetRevenueReportAction, ListStudentsForAdminAction } from "@/server/admin";
@@ -81,7 +82,7 @@ export default function AdminFinancePage() {
     );
   }
 
-  if (isLoading) return <p className="p-6 text-sm text-gray-500">Loading finance data...</p>;
+  if (isLoading) return <InlineLoader label="Loading finance data" />;
 
   return (
     <div className="space-y-6">

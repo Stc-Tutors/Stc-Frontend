@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import InlineLoader from "@/components/shared/InlineLoader";
 import { GraduationCap } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -148,7 +149,7 @@ export default function ParentTutorsPage() {
     load();
   };
 
-  if (isLoading) return <p className="p-6 text-sm text-gray-500">Loading...</p>;
+  if (isLoading) return <InlineLoader />;
 
   return (
     <div className="space-y-6">

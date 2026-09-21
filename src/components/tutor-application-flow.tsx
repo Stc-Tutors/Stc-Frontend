@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import InlineLoader from "@/components/shared/InlineLoader";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -153,7 +154,7 @@ export default function TutorApplicationFlow() {
   };
 
   if (isLoading) {
-    return <p className="text-center py-12 text-gray-500">Loading...</p>;
+    return <InlineLoader />;
   }
 
   if (draft.submitted) {

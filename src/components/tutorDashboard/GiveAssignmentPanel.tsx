@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import InlineLoader from "@/components/shared/InlineLoader";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -76,7 +77,7 @@ export default function GiveAssignmentPanel({ studentId, onCreated }: { studentI
     }
   };
 
-  if (isLoading) return <p className="text-sm text-gray-500 py-2">Loading...</p>;
+  if (isLoading) return <InlineLoader />;
 
   if (courses.length === 0) {
     return (

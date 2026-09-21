@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import InlineLoader from "@/components/shared/InlineLoader";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Copy, KeyRound } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -124,7 +125,7 @@ export default function ChildProfilePage() {
     }
   };
 
-  if (isLoading) return <p className="text-sm text-gray-500 p-6">Loading...</p>;
+  if (isLoading) return <InlineLoader />;
 
   if (loadError || !child) {
     return (

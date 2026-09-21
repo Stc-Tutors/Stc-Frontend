@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import InlineLoader from "@/components/shared/InlineLoader";
 import { useParams, useRouter } from "next/navigation";
 import { ConfirmScheduleProposalAction, GetScheduleProposalAction, RejectScheduleProposalAction } from "@/server/schedule-proposal";
 import { ScheduleProposal, ScheduleProposalStatus } from "@/types/schedule-proposal";
@@ -44,7 +45,7 @@ export default function ScheduleProposalReviewPage() {
     router.push("/lms-home/parent/dashboard");
   };
 
-  if (isLoading) return <p className="text-sm text-gray-500">Loading...</p>;
+  if (isLoading) return <InlineLoader />;
   if (error || !proposal) return <p className="text-sm text-red-600">{error || "Proposal not found"}</p>;
 
   return (

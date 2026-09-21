@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import InlineLoader from "@/components/shared/InlineLoader";
 
 import ActionRequiredWidget from "@/components/allocations/action-required-widget";
 import TeachingRosterTab from "@/components/allocations/teaching-roster-tab";
@@ -52,7 +53,7 @@ export default function AllocationsPage() {
     setJumpToken((t) => t + 1);
   };
 
-  if (isLoadingUser) return <p className="text-sm text-gray-500">Loading...</p>;
+  if (isLoadingUser) return <InlineLoader />;
 
   if (!user || !isSuperOrAlmighty(user.role)) {
     return (

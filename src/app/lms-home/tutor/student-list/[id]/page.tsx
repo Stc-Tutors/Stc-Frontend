@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import InlineLoader from "@/components/shared/InlineLoader";
 import { useParams, useRouter } from "next/navigation";
 import { Circle } from "rc-progress";
 import { FcGlobe, FcBarChart } from "react-icons/fc";
@@ -69,7 +70,7 @@ export default function StudentProfilePage() {
     load();
   }, [id]);
 
-  if (isLoading) return <p className="p-6">Loading...</p>;
+  if (isLoading) return <InlineLoader />;
   if (error || !student) return <p className="p-6">{error || "Student not found"}</p>;
 
   return (

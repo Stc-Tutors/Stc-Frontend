@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import InlineLoader from "@/components/shared/InlineLoader";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -96,7 +97,7 @@ export default function TutorVettingPage() {
   };
 
   if (isLoading) {
-    return <p className="text-sm text-gray-500 p-6">Loading...</p>;
+    return <InlineLoader />;
   }
 
   if (!application || application.status === TutorApplicationStatus.APPROVED) {

@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
+import InlineLoader from "@/components/shared/InlineLoader";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -76,7 +77,7 @@ function ClockInPageInner() {
 
   const courseTitle = lesson && typeof lesson.course !== "string" ? (lesson.course as Course).title : undefined;
 
-  if (isLoading) return <p className="p-6 text-sm text-gray-500">Loading...</p>;
+  if (isLoading) return <InlineLoader />;
 
   return (
     <div className="max-w-md mx-auto space-y-6">

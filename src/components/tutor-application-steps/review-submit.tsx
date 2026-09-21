@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import InlineLoader from "@/components/shared/InlineLoader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/tutor-applications/field-display";
@@ -41,7 +42,7 @@ export default function ReviewSubmitStep() {
     }
   };
 
-  if (isLoading) return <p className="text-sm text-gray-500">Loading your application...</p>;
+  if (isLoading) return <InlineLoader label="Loading your application" />;
   if (!application) return <p className="text-sm text-red-600">Could not load your application - please try again.</p>;
 
   return (

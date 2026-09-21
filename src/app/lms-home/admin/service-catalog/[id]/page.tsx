@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
+import InlineLoader from "@/components/shared/InlineLoader";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -156,7 +157,7 @@ function ServiceWorkspacePageInner() {
     load();
   };
 
-  if (isLoading) return <p className="text-sm text-gray-500">Loading...</p>;
+  if (isLoading) return <InlineLoader />;
 
   if (!service) {
     return (

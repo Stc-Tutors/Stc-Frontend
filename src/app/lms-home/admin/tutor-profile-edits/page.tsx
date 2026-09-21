@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import InlineLoader from "@/components/shared/InlineLoader";
 import { useUser } from "@/contexts/user-context";
 import { AdminPermission } from "@/types/admin-permission";
 import {
@@ -56,7 +57,7 @@ export default function TutorProfileEditsPage() {
     load();
   };
 
-  if (isLoadingUser) return <p className="text-sm text-gray-500">Loading...</p>;
+  if (isLoadingUser) return <InlineLoader />;
 
   if (!canReview) {
     return (

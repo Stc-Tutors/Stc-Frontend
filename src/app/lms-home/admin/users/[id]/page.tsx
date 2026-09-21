@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import InlineLoader from "@/components/shared/InlineLoader";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Star } from "lucide-react";
 import { GetUserByIdAction, UpdateUserRoleAction, UpdateUserStatusAction } from "@/server/admin";
@@ -53,7 +54,7 @@ export default function AdminUserDetailPage() {
     load();
   };
 
-  if (isLoading) return <p className="p-6">Loading...</p>;
+  if (isLoading) return <InlineLoader />;
   if (!user) return <p className="p-6">User not found</p>;
 
   return (

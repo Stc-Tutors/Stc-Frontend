@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import InlineLoader from "@/components/shared/InlineLoader";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { GetRevenueReportAction, GetAdminOverviewAction, GetCourseCompletionReportAction, GetTutorPerformanceReportAction, ListStudentsForAdminAction } from "@/server/admin";
 import {
@@ -70,7 +71,7 @@ export default function AdminReportsPage() {
 
   const missedClasses = tutorPerformance.reduce((sum, t) => sum + t.cancelledSessions, 0);
 
-  if (isLoading) return <p className="text-sm text-gray-500">Loading...</p>;
+  if (isLoading) return <InlineLoader />;
 
   return (
     <div className="space-y-6">

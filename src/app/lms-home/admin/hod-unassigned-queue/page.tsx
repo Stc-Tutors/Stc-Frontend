@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import InlineLoader from "@/components/shared/InlineLoader";
 import { toast } from "sonner";
 import { useUser } from "@/contexts/user-context";
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
@@ -49,7 +50,7 @@ export default function HodUnassignedQueuePage() {
     { header: "Registered", cell: (row) => new Date(row.createdAt).toLocaleDateString() },
   ];
 
-  if (isLoadingUser) return <p className="text-sm text-gray-500">Loading...</p>;
+  if (isLoadingUser) return <InlineLoader />;
 
   if (!canView) {
     return (

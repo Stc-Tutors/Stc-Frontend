@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import InlineLoader from "@/components/shared/InlineLoader";
 import { formatMoney } from "@/lib/money";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -417,7 +418,7 @@ function TransactionHistory({
   isLoading: boolean;
   lastPaid?: PayoutRequest;
 }) {
-  if (isLoading) return <p className="text-sm text-gray-500 py-4">Loading payout history...</p>;
+  if (isLoading) return <InlineLoader label="Loading payout history" />;
   if (requests.length === 0) return <p className="text-sm text-gray-500 py-4">No payout requests yet.</p>;
 
   return (

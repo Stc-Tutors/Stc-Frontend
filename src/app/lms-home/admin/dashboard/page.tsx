@@ -1,6 +1,7 @@
 "use client";
 
 import WidgetBoundary from "@/components/shared/WidgetBoundary";
+import InlineLoader from "@/components/shared/InlineLoader";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Users, GraduationCap, Star, Activity } from "lucide-react";
@@ -48,7 +49,7 @@ export default function AdminDashboardPage() {
     load();
   }, [isAdminViewer]);
 
-  if (isLoadingUser) return <p className="text-sm text-gray-500">Loading...</p>;
+  if (isLoadingUser) return <InlineLoader />;
 
   if (!isAdminViewer) {
     return (

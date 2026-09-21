@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import InlineLoader from "@/components/shared/InlineLoader";
 import { GetMyTutorApplicationAction } from "@/server/tutor-application";
 import { TutorApplication } from "@/types/tutor-application";
 import FullApplicationDetails from "./full-application-details";
@@ -27,7 +28,7 @@ export default function MyApplicationRecord() {
     })();
   }, []);
 
-  if (isLoading) return <p className="text-sm text-gray-500">Loading your registration record...</p>;
+  if (isLoading) return <InlineLoader label="Loading your registration record" />;
   if (!application) return null;
 
   return (

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import InlineLoader from "@/components/shared/InlineLoader";
 import { toast } from "sonner";
 import { useUser } from "@/contexts/user-context";
 import { GetHodOverviewAction, HodScopeOverview } from "@/server/hod";
@@ -29,7 +30,7 @@ export default function HodReportsPage() {
     else setIsLoading(false);
   }, [canView, load]);
 
-  if (isLoadingUser) return <p className="text-sm text-gray-500">Loading...</p>;
+  if (isLoadingUser) return <InlineLoader />;
 
   if (!canView) {
     return (

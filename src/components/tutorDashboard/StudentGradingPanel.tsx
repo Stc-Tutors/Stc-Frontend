@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import InlineLoader from "@/components/shared/InlineLoader";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { GetStudentCoursesAction } from "@/server/course-enrollment";
@@ -64,7 +65,7 @@ export default function StudentGradingPanel({ studentId }: { studentId: string }
     load();
   };
 
-  if (isLoading) return <p className="text-sm text-gray-500 py-4">Loading assignments...</p>;
+  if (isLoading) return <InlineLoader label="Loading assignments" />;
   if (rows.length === 0) return <p className="text-sm text-gray-500 py-4">No assignments for this student yet.</p>;
 
   return (

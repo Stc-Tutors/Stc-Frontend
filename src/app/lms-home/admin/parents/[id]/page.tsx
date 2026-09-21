@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import InlineLoader from "@/components/shared/InlineLoader";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -32,7 +33,7 @@ export default function AdminParentDetailPage() {
     load();
   }, [id]);
 
-  if (isLoading) return <p className="p-6">Loading...</p>;
+  if (isLoading) return <InlineLoader />;
   if (!parent) return <p className="p-6">Parent not found</p>;
 
   const first = parent.firstName?.split(" ")[0] ?? parent.firstName;

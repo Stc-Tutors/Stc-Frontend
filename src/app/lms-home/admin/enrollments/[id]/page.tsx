@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import InlineLoader from "@/components/shared/InlineLoader";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -71,7 +72,7 @@ export default function AdminEnrollmentDetailPage() {
     load();
   };
 
-  if (isLoading) return <p className="p-6">Loading...</p>;
+  if (isLoading) return <InlineLoader />;
   if (!student) return <p className="p-6">Enrollment not found</p>;
 
   return (

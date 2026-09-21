@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import InlineLoader from "@/components/shared/InlineLoader";
 import { GetMyTenantAction, MyTenant, UpdateMyTenantAction } from "@/server/tenant";
 import { useUser } from "@/contexts/user-context";
 import { isSuperOrAlmighty } from "@/lib/roles";
@@ -65,7 +66,7 @@ export default function TenantSettingsPage() {
     load();
   };
 
-  if (isLoadingUser) return <p className="text-sm text-gray-500">Loading...</p>;
+  if (isLoadingUser) return <InlineLoader />;
 
   if (!user || !isSuperOrAlmighty(user.role)) {
     return (

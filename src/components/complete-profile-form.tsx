@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import InlineLoader from "@/components/shared/InlineLoader";
 import { formatMoney } from "@/lib/money";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -139,7 +140,7 @@ export default function CompleteProfileForm({ studentId, dashboardPath }: { stud
     router.push(dashboardPath);
   };
 
-  if (isLoading) return <p className="text-sm text-gray-500">Loading...</p>;
+  if (isLoading) return <InlineLoader />;
 
   return (
     <div className="space-y-6 max-w-3xl">

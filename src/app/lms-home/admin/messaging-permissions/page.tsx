@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import InlineLoader from "@/components/shared/InlineLoader";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -103,7 +104,7 @@ export default function MessagingPermissionsPage() {
     load();
   };
 
-  if (isLoadingUser) return <p className="text-sm text-gray-500">Loading...</p>;
+  if (isLoadingUser) return <InlineLoader />;
 
   if (!canManage) {
     return (

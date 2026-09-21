@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import InlineLoader from "@/components/shared/InlineLoader";
 import { Star } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { GetUserProfileAction } from "@/server/user";
@@ -58,7 +59,7 @@ export default function ViewProfile({ userId }: { userId: string }) {
     load();
   }, [userId]);
 
-  if (isLoading) return <p className="p-6">Loading profile...</p>;
+  if (isLoading) return <InlineLoader label="Loading profile" />;
 
   if (isForbidden || !user) {
     return (

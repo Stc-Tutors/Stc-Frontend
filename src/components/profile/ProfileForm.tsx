@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import InlineLoader from "@/components/shared/InlineLoader";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -77,7 +78,7 @@ export default function ProfileForm() {
     ToastSuccess(avatarUrl ? "Profile picture updated" : "Profile picture removed");
   };
 
-  if (isLoading) return <p className="p-6">Loading profile...</p>;
+  if (isLoading) return <InlineLoader label="Loading profile" />;
 
   const joinedDate = user?.joinedDate ? new Date(user.joinedDate) : null;
   const joinedOn = joinedDate && !Number.isNaN(joinedDate.getTime()) ? joinedDate.toLocaleDateString() : null;

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import InlineLoader from "@/components/shared/InlineLoader";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -57,7 +58,7 @@ export default function AssignmentSubmissionsPage() {
     load();
   };
 
-  if (isLoading) return <p className="p-6">Loading...</p>;
+  if (isLoading) return <InlineLoader />;
   if (!assignment) return <p className="p-6">Assignment not found</p>;
 
   return (

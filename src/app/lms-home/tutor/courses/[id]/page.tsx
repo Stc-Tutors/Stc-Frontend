@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import InlineLoader from "@/components/shared/InlineLoader";
 import { useParams, useRouter } from "next/navigation";
 import JoinClassLink from "@/components/classroom/JoinClassLink";
 import { ArrowLeft, Star, Upload } from "lucide-react";
@@ -134,7 +135,7 @@ export default function TutorCourseDetailPage() {
     load();
   };
 
-  if (isLoading) return <p className="p-6">Loading...</p>;
+  if (isLoading) return <InlineLoader />;
   if (!course) return <p className="p-6">Course not found</p>;
 
   const completionRate =
