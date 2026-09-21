@@ -6,8 +6,7 @@ import { AcceptTermsAction } from "@/server/auth";
 import { GetSiteContentAction } from "@/server/site-content";
 import { ToastError, ToastSuccess } from "@/components/ui/custom/toast";
 import { Loader2 } from "lucide-react";
-
-const TERMS_CONTENT_KEY = "terms-and-conditions";
+import { TERMS_CONTENT_KEY, TERMS_INTRO, TERMS_SECTIONS, legalSectionsToText } from "@/constants/legal-content";
 // Small epsilon so the button unlocks even if rounding/subpixel scroll never
 // quite reaches an exact 0 gap at the bottom of the content.
 const SCROLL_EPSILON_PX = 8;
@@ -32,7 +31,9 @@ export default function TermsGateModal() {
     (async () => {
       const [res] = await GetSiteContentAction();
       const terms = res?.data?.find((c) => c.key === TERMS_CONTENT_KEY);
-      setContent(terms?.value ?? "Our Terms & Conditions are being updated. Please check back shortly.");
+      // Terms saved in Site Content win; otherwise the built-in Terms (the same text the public /terms page shows) -
+      // it used to say "being updated", so a new user was asked to agree to nothing.
+      setContent(terms?.value?.trim() || legalSectionsToText(TERMS_INTRO, TERMS_SECTIONS));
     })();
   }, [shouldShow]);
 

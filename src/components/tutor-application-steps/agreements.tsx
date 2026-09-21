@@ -102,7 +102,11 @@ export default function AgreementsStep({ onNext, errors }: StepProps) {
           <label className="flex items-start space-x-2">
             <Checkbox checked={dataPrivacyAgreed} onCheckedChange={(c) => setDataPrivacyAgreed(c as boolean)} />
             <span className="text-sm">
-              I consent to STC Tutors processing my personal data as described in the Privacy Policy *
+              I consent to STC Tutors processing my personal data as described in the{" "}
+              <a href="/privacy" target="_blank" rel="noreferrer" className="text-blue-600 underline">
+                Privacy Policy
+              </a>{" "}
+              *
             </span>
           </label>
           {errors.dataPrivacyAgreed && <p className="text-red-600 text-sm">{errors.dataPrivacyAgreed}</p>}

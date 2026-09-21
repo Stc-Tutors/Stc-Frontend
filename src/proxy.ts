@@ -66,6 +66,9 @@ const publicPaths = [
   "/about",
   "/contact",
   "/privacy-policy",
+  // The legal pages must open for logged-out visitors (they are linked from the registration and application forms).
+  "/terms",
+  "/privacy",
   "/services",
   "/program",
   "/blog",
@@ -91,6 +94,11 @@ async function getRoleFromToken(token: string): Promise<UserRole | null> {
 
 export async function proxy(request: Request) {
   const pathname = new URL(request.url).pathname;
+
+  // The policy page lives at /privacy; /privacy-policy is the name people (and older links) guess. A real 308, not a page.
+  if (pathname === "/privacy-policy") {
+    return NextResponse.redirect(new URL("/privacy", request.url), 308);
+  }
 
   const isAuthPage = pathname.startsWith("/auth");
   const isPublicPage =

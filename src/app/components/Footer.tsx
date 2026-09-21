@@ -129,7 +129,17 @@ export default function Footer() {
 
       {/* Copyright Section */}
       <div className="mt-8 pt-4 border-t border-gray-800 text-center text-blue-900">
-        © {new Date().getFullYear()} {content.copyrightName}. All rights reserved.
+        <p>
+          © {new Date().getFullYear()} {content.copyrightName}. All rights reserved.
+        </p>
+        <p className="mt-2 flex items-center justify-center gap-4 text-sm">
+          <Link href="/terms" className="underline-offset-2 hover:underline">
+            Terms &amp; Conditions
+          </Link>
+          <Link href="/privacy" className="underline-offset-2 hover:underline">
+            Privacy Policy
+          </Link>
+        </p>
       </div>
     </footer>
   );
