@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import InlineLoader from "@/components/shared/InlineLoader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,7 +13,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SearchableCombobox } from "@/components/ui/searchable-combobox";
 import { X } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import AvatarUpload from "@/components/profile/AvatarUpload";
+import { useUser } from "@/contexts/user-context";
 import {
   GetMyTutorProfileAction,
   GetMyPendingTutorProfileEditAction,
@@ -61,6 +63,7 @@ const SPEED_LABELS: Record<InternetSpeedTier, string> = {
 };
 
 export default function TutorProfileDetailsPage() {
+  const { updateUser } = useUser();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -267,9 +270,18 @@ export default function TutorProfileDetailsPage() {
   const updateExperienceEntry = (index: number, patch: Partial<TeachingExperienceEntry>) =>
     setTeachingExperienceHistory((prev) => prev.map((entry, i) => (i === index ? { ...entry, ...patch } : entry)));
 
+  // Saved as soon as a picture is chosen or removed (throwing shows the reason under the picture).
+  const handleAvatarChange = async (url: string) => {
+    const [res, error] = await UpdateUserAction({ avatarUrl: url });
+    if (!res?.data) throw new Error(error || "Could not save your photo");
+    setAvatarUrl(res.data.avatarUrl || "");
+    setAccountUser(res.data);
+    updateUser({ avatarUrl: res.data.avatarUrl });
+  };
+
   const handleSaveAccount = async () => {
     setIsSavingAccount(true);
-    const [res, error] = await UpdateUserAction({ firstName, lastName, phone: accountPhone, avatarUrl });
+    const [res, error] = await UpdateUserAction({ firstName, lastName, phone: accountPhone });
     setIsSavingAccount(false);
     if (res?.data) setAccountUser(res.data);
     setAccountMessage(error || "Account details saved.");
@@ -322,7 +334,7 @@ export default function TutorProfileDetailsPage() {
     );
   };
 
-  if (isLoading) return <p className="text-sm text-gray-500">Loading...</p>;
+  if (isLoading) return <InlineLoader />;
 
   return (
     <div className="space-y-6 max-w-3xl">
@@ -355,16 +367,10 @@ export default function TutorProfileDetailsPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           {accountMessage && <p className="text-sm text-blue-600">{accountMessage}</p>}
+          {/* Pick a file like parents and students do - it used to ask tutors to host a picture and paste its link. */}
           <div className="flex items-center gap-4">
-            <Avatar className="h-16 w-16">
-              <AvatarImage src={avatarUrl || accountUser?.avatarUrl} alt={accountUser?.firstName} />
-              <AvatarFallback>{accountUser?.firstName?.[0]}</AvatarFallback>
-            </Avatar>
+            <AvatarUpload url={avatarUrl || accountUser?.avatarUrl} name={accountUser?.firstName} onChange={handleAvatarChange} />
             <p className="text-sm text-gray-500">{accountUser?.email}</p>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="avatarUrl">Photo URL</Label>
-            <Input id="avatarUrl" placeholder="https://..." value={avatarUrl} onChange={(e) => setAvatarUrl(e.target.value)} />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
