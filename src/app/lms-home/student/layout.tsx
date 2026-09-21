@@ -77,6 +77,14 @@ const ENROLLMENT_PATH = "/lms-home/student/enrollment";
 const COMPLETE_PROFILE_PATH = "/lms-home/student/complete-profile";
 const NEW_ENROLLMENT_PATH = "/lms-home/student/enrollment/new";
 
+// A login a parent created for their child (Student ID, no email) doesn't handle money: no wallet top-ups, no
+// referral withdrawals, no plan changes - the parent does that from their own account.
+const PARENT_MANAGED_HIDDEN_PATHS = [
+  "/lms-home/student/wallet",
+  "/lms-home/student/refer-earn",
+  "/lms-home/student/subscription",
+];
+
 export default function LMSLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -105,6 +113,12 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
     })();
   }, [pathname, router, user, isLoading]);
 
+  const isParentManagedChild = user?.role === UserRole.STUDENT && !!user.studentId;
+  useEffect(() => {
+    if (isLoading || !isParentManagedChild) return;
+    if (PARENT_MANAGED_HIDDEN_PATHS.some((p) => pathname.startsWith(p))) router.replace("/lms-home/student/dashboard");
+  }, [pathname, router, isLoading, isParentManagedChild]);
+
   const isSelfRegisteredStudent = user?.role === UserRole.STUDENT && !!user.email && !user.studentId;
   const links = isSelfRegisteredStudent
     ? [
@@ -112,7 +126,9 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
         { label: "Marketplace", icon: ShoppingBag, href: "/lms-home/student/marketplace" },
         ...sidebarLinks.slice(2),
       ]
-    : sidebarLinks;
+    : isParentManagedChild
+      ? sidebarLinks.filter((link) => !PARENT_MANAGED_HIDDEN_PATHS.includes(link.href))
+      : sidebarLinks;
 
   // The registration wizard is a bare full-screen step - no sidebar/topbar
   // chrome, so a student with nothing registered yet can't wander off via
