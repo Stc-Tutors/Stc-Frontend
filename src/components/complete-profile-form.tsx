@@ -231,7 +231,7 @@ export default function CompleteProfileForm({ studentId, dashboardPath }: { stud
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="primaryLanguage">Primary Teaching Language *</Label>
+              <Label htmlFor="primaryLanguage">Primary Language *</Label>
               <Select value={primaryLanguage} onValueChange={setPrimaryLanguage}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select language" />

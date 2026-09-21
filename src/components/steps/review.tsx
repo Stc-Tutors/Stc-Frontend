@@ -566,7 +566,7 @@ export default function EnrollmentReview({ onNext, errors }: StepProps) {
               <a href="/privacy" className="text-blue-600 hover:underline" target="_blank">
                 Privacy Policy
               </a>{" "}
-              and consent to the collection and use of my child's information for educational purposes.
+              and consent to the collection and use of {childInfo?.userType === "student" ? "my" : "my child's"} information for educational purposes.
             </Label>
           </div>
           {errors.privacy && <p className="text-red-600 text-sm">{errors.privacy}</p>}

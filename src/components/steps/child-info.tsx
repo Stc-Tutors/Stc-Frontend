@@ -272,7 +272,7 @@ export default function ChildInfoStep({ onNext, errors, forcedUserType }: StepPr
       }
 
       if (!formData.primaryLanguage) {
-        stepErrors.primaryLanguage = "Please select primary teaching language"
+        stepErrors.primaryLanguage = "Please select primary language"
       }
 
       // Additional validation for students under PARENT_INFO_REQUIRED_UNDER_AGE
@@ -433,7 +433,7 @@ export default function ChildInfoStep({ onNext, errors, forcedUserType }: StepPr
                 </dd>
               </div>
               <div>
-                <dt className="text-gray-500">Primary teaching language</dt>
+                <dt className="text-gray-500">Primary language</dt>
                 <dd className="font-medium text-gray-900">
                   {languages.find((l) => l.value === formData.primaryLanguage)?.label ?? formData.primaryLanguage}
                 </dd>
@@ -538,7 +538,7 @@ export default function ChildInfoStep({ onNext, errors, forcedUserType }: StepPr
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="primaryLanguage">Primary Teaching Language *</Label>
+              <Label htmlFor="primaryLanguage">Primary Language *</Label>
               <SearchableCombobox
                 options={languageOptions}
                 value={formData.primaryLanguage}

@@ -73,7 +73,12 @@ export default function RegisterChildForm() {
   });
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
-    const { confirmPassword: _confirmPassword, ...payload } = data;
+    const { confirmPassword: _confirmPassword, ...rest } = data;
+    // Optional fields left blank are "" in the form; sending them makes the
+    // backend reject e.g. a blank date of birth, so leave them out entirely.
+    const payload = Object.fromEntries(
+      Object.entries(rest).filter(([, value]) => value !== ""),
+    ) as typeof rest;
     const [res, error] = await RegisterChildAction(payload);
 
     if (res?.data) {

@@ -41,6 +41,7 @@ import { type Student, EnrollmentStatus, studentLoginId } from "@/types/student"
 import { SUBJECT_ENROLLMENT_STATUS_LABELS, SubjectEnrollment, SubjectEnrollmentStatus } from "@/types/subject-enrollment"
 import { ToastError, ToastSuccess } from "@/components/ui/custom/toast"
 import { groupStudentsByChild, type ChildGroup } from "@/contexts/selected-student-context"
+import { hasServiceToPay } from "@/lib/enrollment-payable"
 
 interface EnrollmentListProps {
   // "mine" = the logged-in user's own enrollments (student self-registered);
@@ -456,7 +457,7 @@ export default function EnrollmentList({ source, basePath }: EnrollmentListProps
                               <div className="flex items-center space-x-4 mt-2 text-sm text-gray-600">
                                 <div className="flex items-center">
                                   <User className="w-3 h-3 mr-1" />
-                                  {student.parentName}
+                                  {student.parentName ? `Parent: ${student.parentName}` : null}
                                 </div>
                                 <div className="flex items-center">
                                   <Globe className="w-3 h-3 mr-1" />
@@ -467,10 +468,16 @@ export default function EnrollmentList({ source, basePath }: EnrollmentListProps
 
                             <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
                               <div className="text-right">
-                                <div className="flex items-center text-lg font-bold text-gray-900">
-                                  ₦{(student.serviceDetails?.totalCost ?? 0).toLocaleString()}
-                                </div>
-                                <p className="text-sm text-gray-500">total cost</p>
+                                {hasServiceToPay(student) ? (
+                                  <>
+                                    <div className="flex items-center text-lg font-bold text-gray-900">
+                                      ₦{(student.serviceDetails?.totalCost ?? 0).toLocaleString()}
+                                    </div>
+                                    <p className="text-sm text-gray-500">total cost</p>
+                                  </>
+                                ) : (
+                                  <p className="text-sm text-gray-500">No service chosen yet</p>
+                                )}
                               </div>
 
                               <div className="flex items-center space-x-2">
@@ -483,7 +490,16 @@ export default function EnrollmentList({ source, basePath }: EnrollmentListProps
                                     Continue Registration
                                   </Button>
                                 )}
-                                {student.enrollmentStatus === EnrollmentStatus.PENDING && (
+                                {student.enrollmentStatus === EnrollmentStatus.PENDING && !hasServiceToPay(student) && source === "linked" && (
+                                  <Button
+                                    size="sm"
+                                    className="bg-blue-600 hover:bg-blue-700"
+                                    onClick={() => router.push("/lms-home/parent/marketplace")}
+                                  >
+                                    Choose a service
+                                  </Button>
+                                )}
+                                {student.enrollmentStatus === EnrollmentStatus.PENDING && hasServiceToPay(student) && (
                                   <Button
                                     size="sm"
                                     className="bg-amber-600 hover:bg-amber-700"
@@ -592,8 +608,9 @@ export default function EnrollmentList({ source, basePath }: EnrollmentListProps
             <CardContent className="p-4">
               <div className="flex justify-between items-center text-sm text-gray-600">
                 <span>
-                  Showing {childGroups.length} child{childGroups.length === 1 ? "" : "ren"} ({filteredStudents.length} of{" "}
-                  {students.length} enrollments)
+                  {source === "linked"
+                    ? `Showing ${childGroups.length} child${childGroups.length === 1 ? "" : "ren"} (${filteredStudents.length} of ${students.length} enrollments)`
+                    : `Showing ${filteredStudents.length} of ${students.length} enrollment${students.length === 1 ? "" : "s"}`}
                 </span>
                 <span>
                   Total weekly hours:{" "}

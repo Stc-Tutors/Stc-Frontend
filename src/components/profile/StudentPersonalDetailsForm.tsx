@@ -154,7 +154,7 @@ export default function StudentPersonalDetailsForm() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="profile-language">Primary teaching language</Label>
+          <Label htmlFor="profile-language">Primary language</Label>
           <SearchableCombobox
             options={languageOptions}
             value={form.primaryLanguage}

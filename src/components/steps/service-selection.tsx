@@ -46,8 +46,11 @@ const DEFAULT_PRESENTATION = { icon: Sparkles, color: "bg-gray-50 border-gray-20
 
 const STAGE = "student-registration:service-selection" as const;
 
-export default function ServiceSelection({ onNext, errors }: StepProps) {
+export default function ServiceSelection({ onNext, errors, forcedUserType }: StepProps) {
   const { enrollmentData, updateServiceDetails, updateSelectedService, updateCustomFieldResponse } = useEnrollment()
+  // Same fallback EnrollmentFlow uses for its heading - an adult enrolling
+  // themselves shouldn't be asked about "your child".
+  const isSelfRegisteringStudent = (forcedUserType || enrollmentData.childInfo?.userType || "parent") === "student"
   const searchParams = useSearchParams()
   const [services, setServices] = useState<IService[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -117,21 +120,43 @@ export default function ServiceSelection({ onNext, errors }: StepProps) {
 
   return (
     <div className="space-y-6">
-      <p className="text-gray-600">Choose the type of tutoring service you'd like to enroll your child in:</p>
+      <p id="service-selection-prompt" className="text-gray-600">
+        {isSelfRegisteringStudent
+          ? "Choose the type of service you'd like to enroll in:"
+          : "Choose the type of tutoring service you'd like to enroll your child in:"}
+      </p>
 
       {isLoading && <p className="text-sm text-gray-500">Loading services...</p>}
       {loadError && !isLoading && <p className="text-sm text-red-600">Failed to load services: {loadError}</p>}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div
+        role="radiogroup"
+        aria-labelledby="service-selection-prompt"
+        aria-required="true"
+        className="grid grid-cols-1 md:grid-cols-3 gap-6"
+      >
         {services.map((service) => {
           const { icon: Icon, color } = SERVICE_PRESENTATION[service.slug] ?? DEFAULT_PRESENTATION
+          const isSelected = selectedSlug === service.slug
           return (
+            // A plain clickable div is invisible to keyboards and screen
+            // readers - role/tabIndex/key handling make each card a real
+            // radio option (Enter or Space selects, Tab reaches it).
             <Card
               key={service.id}
-              className={`cursor-pointer border-2 transition-all ${
-                selectedSlug === service.slug ? "border-blue-500 bg-blue-50" : color
+              role="radio"
+              aria-checked={isSelected}
+              tabIndex={0}
+              className={`cursor-pointer border-2 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 ${
+                isSelected ? "border-blue-500 bg-blue-50" : color
               }`}
               onClick={() => setSelectedSlug(service.slug)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault()
+                  setSelectedSlug(service.slug)
+                }
+              }}
             >
               <CardContent className="p-6 text-center">
                 <Icon className="w-12 h-12 mx-auto mb-4 text-gray-700" />

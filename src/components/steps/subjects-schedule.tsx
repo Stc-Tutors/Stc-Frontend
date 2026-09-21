@@ -64,7 +64,7 @@ const durationOptions = [
 
 const STAGE = "student-registration:subjects-schedule" as const;
 
-export default function SubjectsSchedule({ onNext, errors }: StepProps) {
+export default function SubjectsSchedule({ onNext, errors, forcedUserType }: StepProps) {
   const { enrollmentData, updateServiceDetails, updateSchedule, calculateCost, getUnpricedSubjects, getHourlyPricedSubjects, setTotalCost, updateCustomFieldResponse, setEnrollmentData } = useEnrollment();
   const [totalCost, setLocalTotalCost] = useState(enrollmentData.totalCost || 0);
 
@@ -1047,7 +1047,11 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
               id="learningGoals"
               value={serviceData.learningGoals}
               onChange={(e) => setServiceData((prev) => ({ ...prev, learningGoals: e.target.value }))}
-              placeholder="Describe what you hope your child will achieve..."
+              placeholder={
+                (forcedUserType || enrollmentData.childInfo?.userType || "parent") === "student"
+                  ? "Describe what you hope to achieve..."
+                  : "Describe what you hope your child will achieve..."
+              }
               rows={3}
             />
           </div>
@@ -1647,19 +1651,30 @@ export default function SubjectsSchedule({ onNext, errors }: StepProps) {
             {/* Cost Summary */}
             <div className="mt-6 p-4 bg-gray-50 rounded-lg">
               <h4 className="font-semibold mb-2">Cost Summary</h4>
-              <p className="text-2xl font-bold text-green-600">
-                ₦{totalCost.toLocaleString()}
-                {isPathC || !hasHourlySubject ? "" : ` / ${serviceData.billingWeeks} week${serviceData.billingWeeks === 1 ? "" : "s"}`}
-              </p>
-              <p className="text-sm text-gray-600">
-                {isPathC
-                  ? hasTree
-                    ? "Price for your selection"
-                    : "Course price"
-                  : hasHourlySubject
-                    ? "Based on selected subjects, schedule, and weeks selected above"
-                    : "Fixed price for your selection"}
-              </p>
+              {totalCost > 0 ? (
+                <>
+                  <p className="text-2xl font-bold text-green-600">
+                    ₦{totalCost.toLocaleString()}
+                    {isPathC || !hasHourlySubject ? "" : ` / ${serviceData.billingWeeks} week${serviceData.billingWeeks === 1 ? "" : "s"}`}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    {isPathC
+                      ? hasTree
+                        ? "Price for your selection"
+                        : "Course price"
+                      : hasHourlySubject
+                        ? "Based on selected subjects, schedule, and weeks selected above"
+                        : "Fixed price for your selection"}
+                  </p>
+                </>
+              ) : (
+                // A bare "₦0 - Fixed price" reads as "this is free" and
+                // contradicts the "no pricing set up yet" warning that can
+                // sit right above it.
+                <p className="text-sm text-gray-600">
+                  Your price will appear here once your subjects and class format are selected and priced.
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>
