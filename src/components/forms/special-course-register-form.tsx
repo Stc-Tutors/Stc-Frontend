@@ -64,7 +64,7 @@ export default function SpecialCourseRegisterForm({ token }: { token: string }) 
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form method="post" onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <div className="flex flex-col gap-2">
           <FormField
             control={form.control}

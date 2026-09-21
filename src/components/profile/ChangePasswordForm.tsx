@@ -53,7 +53,7 @@ export default function ChangePasswordForm() {
     <section className="bg-white rounded-2xl shadow p-6 max-w-2xl">
       <h2 className="font-bold text-lg mb-4">Change Password</h2>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form method="post" onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <FormField
             control={form.control}
             name="currentPassword"
