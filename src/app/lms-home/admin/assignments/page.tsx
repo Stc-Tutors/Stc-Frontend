@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatDate } from "@/lib/datetime";
 import { Check, Paperclip, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -89,7 +90,7 @@ export default function AdminAssignmentsPage() {
                 <TableCell>{row.title}</TableCell>
                 <TableCell>{courseTitle(row.course)}</TableCell>
                 <TableCell>{creatorName(row.createdBy)}</TableCell>
-                <TableCell className="text-xs text-gray-500">{new Date(row.dueDate).toLocaleDateString()}</TableCell>
+                <TableCell className="text-xs text-gray-500">{formatDate(row.dueDate)}</TableCell>
                 <TableCell>
                   {(row.attachmentUrl || row.attachment) && (
                     <button

@@ -64,3 +64,20 @@ export function scheduleTimeFrom24Hour(time24: string): string {
   if (hours === 0) hours = 12;
   return `${hours}:${minutes}${meridiem}`;
 }
+
+// One way to show a date/time everywhere. Screens used to call toLocaleString()/toLocaleDateString() directly, so the
+// same timestamp read "9/21/2026, 10:24:11 PM" on one page and something else in another browser locale. Both render
+// in the viewer's own timezone; an empty or unparseable value shows "—" instead of the text "Invalid Date".
+export function formatDateTime(value: string | number | Date | null | undefined): string {
+  if (value === null || value === undefined || value === "") return "—";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  return new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(date);
+}
+
+export function formatDate(value: string | number | Date | null | undefined): string {
+  if (value === null || value === undefined || value === "") return "—";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
+  return new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(date);
+}

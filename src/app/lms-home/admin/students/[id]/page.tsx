@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatDate } from "@/lib/datetime";
 import InlineLoader from "@/components/shared/InlineLoader";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Circle as CircleIcon } from "lucide-react";
@@ -132,7 +133,7 @@ export default function AdminStudentDetailPage() {
             }
             fields={{
               Gender: student.gender,
-              "Date of Birth": student.dateOfBirth ? new Date(student.dateOfBirth).toLocaleDateString() : undefined,
+              "Date of Birth": student.dateOfBirth ? formatDate(student.dateOfBirth) : undefined,
               "Country of Residence": student.countryOfResidence,
               "Primary Language": student.primaryLanguage,
             }}
@@ -153,7 +154,7 @@ export default function AdminStudentDetailPage() {
               Nationality: student.nationality,
               NIN: student.nin,
               Grade: student.grade,
-              "Admission Date": student.admissionDate ? new Date(student.admissionDate).toLocaleDateString() : undefined,
+              "Admission Date": student.admissionDate ? formatDate(student.admissionDate) : undefined,
             }}
           />
           <InfoCard

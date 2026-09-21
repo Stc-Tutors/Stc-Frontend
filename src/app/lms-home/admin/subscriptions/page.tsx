@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatDate } from "@/lib/datetime";
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -105,8 +106,8 @@ export default function AdminSubscriptionsPage() {
                       {s.status}
                     </span>
                   </TableCell>
-                  <TableCell>{s.currentPeriodEnd ? new Date(s.currentPeriodEnd).toLocaleDateString() : "-"}</TableCell>
-                  <TableCell>{new Date(s.createdAt).toLocaleDateString()}</TableCell>
+                  <TableCell>{s.currentPeriodEnd ? formatDate(s.currentPeriodEnd) : "-"}</TableCell>
+                  <TableCell>{formatDate(s.createdAt)}</TableCell>
                   <TableCell className="text-right">
                     <Button size="sm" variant="outline" onClick={() => setTarget(s)}>
                       {s.status === SubscriptionStatus.PAUSED ? "Reactivate" : "Manage"}

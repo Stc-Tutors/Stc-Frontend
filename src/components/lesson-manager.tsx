@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatDateTime } from "@/lib/datetime";
 import { CreateLessonAction, GetCourseLessonsAction, UpdateLessonAction } from "@/server/lesson";
 import { Lesson } from "@/types/lesson";
 import GoogleDriveEmbed from "./google-drive-embed";
@@ -105,7 +106,7 @@ export default function LessonManager({ courseId }: { courseId: string }) {
                   <p className="text-sm font-medium text-gray-900">{l.title}</p>
                   <div className="flex items-center gap-2 whitespace-nowrap">
                     <span className="text-xs text-gray-500">
-                      {new Date(l.scheduledDate).toLocaleString()} · {l.durationMinutes}m
+                      {formatDateTime(l.scheduledDate)} · {l.durationMinutes}m
                     </span>
                     <span
                       className={`text-xs px-2 py-0.5 rounded-full ${

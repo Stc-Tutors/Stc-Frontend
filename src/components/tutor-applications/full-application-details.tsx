@@ -1,6 +1,7 @@
 "use client";
 
 import { useCustomFormFields } from "@/hooks/use-custom-form-fields";
+import { formatDateTime, formatDate } from "@/lib/datetime";
 import { Field, Section } from "./field-display";
 import { renderTutorField, TUTOR_FIELD_REGISTRY, TUTOR_FIELD_STEPS } from "@/lib/tutor-field-registry";
 import { TutorApplication } from "@/types/tutor-application";
@@ -89,8 +90,8 @@ export default function FullApplicationDetails({ app }: { app: TutorApplication 
           <Field label="Confidentiality accepted" value={yesNo(app.vettingQuestionnaire.confidentialityAccepted)} />
           <Field label="Binding agreement accepted" value={yesNo(app.vettingQuestionnaire.bindingAgreementAccepted)} />
           <Field label="Signature" value={app.vettingQuestionnaire.signature} />
-          <Field label="Signature date" value={new Date(app.vettingQuestionnaire.signatureDate).toLocaleDateString()} />
-          <Field label="Submitted" value={new Date(app.vettingQuestionnaire.submittedAt).toLocaleString()} />
+          <Field label="Signature date" value={formatDate(app.vettingQuestionnaire.signatureDate)} />
+          <Field label="Submitted" value={formatDateTime(app.vettingQuestionnaire.submittedAt)} />
         </Section>
       )}
 

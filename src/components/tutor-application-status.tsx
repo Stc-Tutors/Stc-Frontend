@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatDateTime } from "@/lib/datetime";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -202,7 +203,7 @@ export default function TutorApplicationStatusView() {
             {messages.map((m) => (
               <div key={m.id} className="text-sm border rounded-md p-2">
                 <p>{m.body}</p>
-                <p className="text-xs text-gray-400 mt-1">{new Date(m.createdAt).toLocaleString()}</p>
+                <p className="text-xs text-gray-400 mt-1">{formatDateTime(m.createdAt)}</p>
               </div>
             ))}
           </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatDate } from "@/lib/datetime";
 import { useRouter } from "next/navigation";
 import {
   ApproveTutorApplicationAction,
@@ -149,7 +150,7 @@ export default function TutorApplicationsPage() {
                       </p>
                     </div>
                   </div>
-                  <span className="text-xs text-gray-400">{new Date(app.createdAt).toLocaleDateString()}</span>
+                  <span className="text-xs text-gray-400">{formatDate(app.createdAt)}</span>
                 </div>
 
                 <div className="text-sm text-gray-700 space-y-1">

@@ -1,4 +1,5 @@
 import FileAccessRow from "@/components/tutor-applications/file-access-row";
+import { formatDate } from "@/lib/datetime";
 import { formatMoney } from "@/lib/money";
 import { EmbeddedLinkPreview } from "@/components/tutor-applications/embedded-link-preview";
 import {
@@ -98,7 +99,7 @@ export const TUTOR_FIELD_REGISTRY: TutorFieldEntry[] = [
     stepId: 2,
     stepTitle: "Personal Information",
     getValue: (a) => a.dateOfBirth,
-    format: (v: string) => new Date(v).toLocaleDateString(),
+    format: (v: string) => formatDate(v),
   },
   {
     id: "headshotFile",

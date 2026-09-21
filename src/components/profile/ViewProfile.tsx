@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatDate } from "@/lib/datetime";
 import InlineLoader from "@/components/shared/InlineLoader";
 import { Star } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -206,7 +207,7 @@ export default function ViewProfile({ userId }: { userId: string }) {
                   {tutorProfile.dateOfBirth && (
                     <div>
                       <p className="text-sm font-medium text-gray-700 mb-1">Date of birth</p>
-                      <p className="text-sm text-gray-900">{new Date(tutorProfile.dateOfBirth).toLocaleDateString()}</p>
+                      <p className="text-sm text-gray-900">{formatDate(tutorProfile.dateOfBirth)}</p>
                     </div>
                   )}
                   {tutorProfile.countryOfResidence && (

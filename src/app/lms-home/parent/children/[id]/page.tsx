@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatDate } from "@/lib/datetime";
 import InlineLoader from "@/components/shared/InlineLoader";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Copy, KeyRound } from "lucide-react";
@@ -319,7 +320,7 @@ export default function ChildProfilePage() {
             {child.admissionDate && (
               <div>
                 <p className="text-gray-500">Admission Date</p>
-                <p className="font-medium">{new Date(child.admissionDate).toLocaleDateString()}</p>
+                <p className="font-medium">{formatDate(child.admissionDate)}</p>
               </div>
             )}
             <p className="text-xs text-gray-400 md:col-span-2">Set by an administrator - contact support to change these.</p>

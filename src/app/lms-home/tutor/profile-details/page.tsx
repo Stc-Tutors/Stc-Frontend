@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatDate } from "@/lib/datetime";
 import InlineLoader from "@/components/shared/InlineLoader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -353,7 +354,7 @@ export default function TutorProfileDetailsPage() {
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-800">
           <p className="font-semibold">Changes awaiting admin approval</p>
           <p className="mt-1">
-            You submitted changes on {new Date(pendingEdit.submittedAt).toLocaleDateString()} that haven't been
+            You submitted changes on {formatDate(pendingEdit.submittedAt)} that haven't been
             approved yet - the form below shows your draft, but students, parents, and admins still see your
             last-approved profile until it's reviewed. You can keep editing and resubmit; it replaces the pending
             draft.

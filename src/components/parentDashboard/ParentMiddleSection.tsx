@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatDateTime } from "@/lib/datetime";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Bell, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -112,7 +113,7 @@ export default function ParentMiddleSection() {
                   <Bell className="w-5 h-5 text-blue-500 mt-0.5" />
                   <div>
                     <p className="text-sm text-gray-700">{n.body}</p>
-                    <p className="text-xs text-gray-400 mt-1">{new Date(n.createdAt).toLocaleString()}</p>
+                    <p className="text-xs text-gray-400 mt-1">{formatDateTime(n.createdAt)}</p>
                   </div>
                 </div>
               ))

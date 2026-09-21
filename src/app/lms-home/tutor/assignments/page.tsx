@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatDate } from "@/lib/datetime";
 import { useRouter } from "next/navigation";
 import { BookOpen } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -225,7 +226,7 @@ export default function TutorAssignmentsPage() {
                       Rejected
                     </span>
                   )}
-                  <span className="text-gray-500">Due {new Date(a.dueDate).toLocaleDateString()}</span>
+                  <span className="text-gray-500">Due {formatDate(a.dueDate)}</span>
                 </div>
               </div>
             ))}

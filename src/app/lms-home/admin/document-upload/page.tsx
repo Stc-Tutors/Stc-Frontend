@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatDate } from "@/lib/datetime";
 import { Eye, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -108,7 +109,7 @@ export default function AdminDocumentUploadPage() {
               <TableRow key={`${row.applicationId}-${i}`}>
                 <TableCell>{row.applicantName}</TableCell>
                 <TableCell className="text-sm text-blue-600">Document {i + 1}</TableCell>
-                <TableCell className="text-xs text-gray-500">{new Date(row.submittedAt).toLocaleDateString()}</TableCell>
+                <TableCell className="text-xs text-gray-500">{formatDate(row.submittedAt)}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     <Button size="icon" variant="ghost" onClick={() => setPreview({ title: `${row.applicantName} - Document ${i + 1}`, url: row.documentUrl })}>

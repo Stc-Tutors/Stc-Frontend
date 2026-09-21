@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatDate } from "@/lib/datetime";
 import InlineLoader from "@/components/shared/InlineLoader";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Star } from "lucide-react";
@@ -78,7 +79,7 @@ export default function AdminUserDetailPage() {
           </h1>
           <p className="text-gray-500">{user.email || "Hidden"}</p>
           {user.joinedDate && (
-            <p className="text-xs text-gray-400">Joined {new Date(user.joinedDate).toLocaleDateString()}</p>
+            <p className="text-xs text-gray-400">Joined {formatDate(user.joinedDate)}</p>
           )}
         </div>
       </div>

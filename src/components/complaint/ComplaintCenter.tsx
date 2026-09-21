@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatDate } from "@/lib/datetime";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -172,7 +173,7 @@ export default function ComplaintCenter() {
                   <div>
                     <p className="font-medium text-gray-800">{c.subject}</p>
                     <p className="text-xs text-gray-500 mt-0.5">
-                      {CATEGORY_LABELS[c.category]} &middot; {new Date(c.createdAt).toLocaleDateString()}
+                      {CATEGORY_LABELS[c.category]} &middot; {formatDate(c.createdAt)}
                     </p>
                   </div>
                   <span className={`text-xs px-2 py-1 rounded-full font-medium whitespace-nowrap ${STATUS_COLORS[c.status]}`}>

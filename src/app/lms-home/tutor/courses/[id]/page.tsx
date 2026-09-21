@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatDateTime, formatDate } from "@/lib/datetime";
 import InlineLoader from "@/components/shared/InlineLoader";
 import { useParams, useRouter } from "next/navigation";
 import JoinClassLink from "@/components/classroom/JoinClassLink";
@@ -279,7 +280,7 @@ export default function TutorCourseDetailPage() {
                 <div key={l.id} className="flex justify-between items-center text-sm border-b pb-2">
                   <span>{l.title}</span>
                   <div className="flex items-center gap-2">
-                    <span className="text-gray-500">{new Date(l.scheduledDate).toLocaleString()}</span>
+                    <span className="text-gray-500">{formatDateTime(l.scheduledDate)}</span>
                     {l.meetingUrl && l.status === LessonStatus.SCHEDULED && (
                       <JoinClassLink
                         lessonId={l.id}
@@ -328,7 +329,7 @@ export default function TutorCourseDetailPage() {
                       </span>
                     )}
                   </span>
-                  <span className="text-gray-500">Due {new Date(a.dueDate).toLocaleDateString()}</span>
+                  <span className="text-gray-500">Due {formatDate(a.dueDate)}</span>
                 </div>
               ))
             )}

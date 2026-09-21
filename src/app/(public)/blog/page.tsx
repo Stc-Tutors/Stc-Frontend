@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { formatDate } from "@/lib/datetime";
 import type { Metadata } from "next";
 import { GetBlogPostsAction } from "@/server/content";
 
@@ -31,7 +32,7 @@ export default async function BlogPage() {
               )}
               <div className="p-5">
                 {post.publishedAt && (
-                  <p className="text-xs text-gray-400 mb-1">{new Date(post.publishedAt).toLocaleDateString()}</p>
+                  <p className="text-xs text-gray-400 mb-1">{formatDate(post.publishedAt)}</p>
                 )}
                 <h2 className="text-lg font-semibold text-gray-900">{post.title}</h2>
                 <p className="text-sm text-gray-500 mt-1 line-clamp-3">{post.excerpt}</p>

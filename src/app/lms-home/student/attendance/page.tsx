@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatDate } from "@/lib/datetime";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, PlayCircle, CheckSquare, Trophy } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -241,7 +242,7 @@ export default function StudentAttendancePage() {
               <tbody>
                 {rows.map((r) => (
                   <tr key={r.lessonId} className="border-b text-sm">
-                    <td className="py-2 pr-4">{new Date(r.date).toLocaleDateString()}</td>
+                    <td className="py-2 pr-4">{formatDate(r.date)}</td>
                     <td className="py-2 pr-4">{r.courseTitle}</td>
                     <td className={`py-2 pr-4 font-medium ${r.status ? STATUS_COLORS[r.status] : "text-gray-400"}`}>
                       {r.status ?? "—"}

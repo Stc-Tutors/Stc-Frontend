@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { formatDate } from "@/lib/datetime";
 import { Eye, Download } from "lucide-react";
 import { UploadedFile } from "@/lib/cloudinary-upload";
 import ResourcePreviewDialog from "@/components/resources/ResourcePreviewDialog";
@@ -31,7 +32,7 @@ export default function FileAccessRow({ label, file }: { label: string; file: Up
         <p className="font-medium text-gray-900">{label}</p>
         <p className="text-gray-500 truncate">
           {file.fileName} · {file.fileType} · {formatFileSize(file.fileSizeBytes)} · uploaded{" "}
-          {new Date(file.uploadedAt).toLocaleDateString()}
+          {formatDate(file.uploadedAt)}
         </p>
       </div>
       <div className="flex items-center gap-2 shrink-0">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatDateTime } from "@/lib/datetime";
 import {
   Table,
   TableBody,
@@ -103,7 +104,7 @@ export default function AdminAuditLogPage() {
                     {log.entityId ? ` · ${log.entityId}` : ""}
                   </TableCell>
                   <TableCell className="max-w-xs truncate">{log.description || "—"}</TableCell>
-                  <TableCell>{new Date(log.createdAt).toLocaleString()}</TableCell>
+                  <TableCell>{formatDateTime(log.createdAt)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatDateTime } from "@/lib/datetime";
 import { useRouter } from "next/navigation";
 import { UserCircle } from "lucide-react";
 import { GetNotificationsAction, MarkAllNotificationsReadAction, MarkNotificationReadAction } from "@/server/notification";
@@ -111,7 +112,7 @@ export default function NotificationList() {
                 <UserCircle className="text-blue-500" />
                 <div>
                   <p className="font-semibold text-gray-800">
-                    {n.title} <span className="text-gray-400 text-sm">({new Date(n.createdAt).toLocaleString()})</span>
+                    {n.title} <span className="text-gray-400 text-sm">({formatDateTime(n.createdAt)})</span>
                   </p>
                   <p className="text-sm text-gray-600">{n.body}</p>
                 </div>

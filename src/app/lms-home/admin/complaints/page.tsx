@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatDateTime, formatDate } from "@/lib/datetime";
 import {
   Table,
   TableBody,
@@ -177,7 +178,7 @@ export default function AdminComplaintsPage() {
                     {c.status}
                   </span>
                 </TableCell>
-                <TableCell>{new Date(c.createdAt).toLocaleDateString()}</TableCell>
+                <TableCell>{formatDate(c.createdAt)}</TableCell>
                 <TableCell className="text-right">
                   <Button
                     variant="outline"
@@ -198,7 +199,7 @@ export default function AdminComplaintsPage() {
           <div>
             <h2 className="font-semibold text-gray-800">{selected.subject}</h2>
             <p className="text-xs text-gray-500 mt-0.5">
-              {CATEGORY_LABELS[selected.category]} &middot; Filed {new Date(selected.createdAt).toLocaleString()}
+              {CATEGORY_LABELS[selected.category]} &middot; Filed {formatDateTime(selected.createdAt)}
             </p>
             <p className="text-sm text-gray-600 mt-2">{selected.description}</p>
             {selected.assignedTo && (

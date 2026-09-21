@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatDate } from "@/lib/datetime";
 import { GetPublicPricingPlansAction, SubscribeAction, GetMySubscriptionsAction } from "@/server/subscription";
 import { PricingPlan } from "@/types/pricing-plan";
 import { Subscription, SubscriptionStatus } from "@/types/subscription";
@@ -51,7 +52,7 @@ export default function PlansPanel() {
             {typeof activeSubscription.plan === "string" ? "a plan" : activeSubscription.plan?.name ?? "a deleted plan"}
           </strong>.
           {activeSubscription.currentPeriodEnd && (
-            <> Renews {new Date(activeSubscription.currentPeriodEnd).toLocaleDateString()}.</>
+            <> Renews {formatDate(activeSubscription.currentPeriodEnd)}.</>
           )}
         </div>
       )}

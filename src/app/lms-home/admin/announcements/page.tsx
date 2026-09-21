@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatDateTime } from "@/lib/datetime";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -116,7 +117,7 @@ export default function AdminAnnouncementsPage() {
                     <p className="font-medium text-gray-800">{a.title}</p>
                     <p className="text-xs text-gray-500 mt-0.5">
                       {AUDIENCE_LABELS[a.audience]} &middot; {a.recipientCount} recipient
-                      {a.recipientCount === 1 ? "" : "s"} &middot; {new Date(a.createdAt).toLocaleString()}
+                      {a.recipientCount === 1 ? "" : "s"} &middot; {formatDateTime(a.createdAt)}
                     </p>
                   </div>
                 </div>

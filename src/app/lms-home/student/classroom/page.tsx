@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatDate } from "@/lib/datetime";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, LibraryBig } from "lucide-react";
 import { GetEnrollmentsAction, GetLinkedStudentsAction } from "@/server/enrollment";
@@ -174,7 +175,7 @@ export default function ClassroomPage() {
                 <div className="p-6">
                   <h3 className="text-xl font-semibold text-gray-800 mb-2">{selectedLesson.title}</h3>
                   <div className="flex items-center text-gray-600 mb-4 gap-4">
-                    <span>{new Date(selectedLesson.scheduledDate).toLocaleDateString()}</span>
+                    <span>{formatDate(selectedLesson.scheduledDate)}</span>
                     <span>{selectedLesson.durationMinutes} min</span>
                     <span
                       className={`text-xs font-medium px-2 py-0.5 rounded-full ${

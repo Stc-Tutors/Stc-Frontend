@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatDateTime } from "@/lib/datetime";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { GetStudentAttendanceAction } from "@/server/attendance";
@@ -60,7 +61,7 @@ export default function RecentAttendance({ studentId }: RecentAttendanceProps) {
             <tbody>
               {records.map((record) => (
                 <tr key={record.id} className="border-b hover:bg-gray-50 transition-colors duration-150">
-                  <td className="p-3 text-gray-700">{new Date(record.date).toLocaleString()}</td>
+                  <td className="p-3 text-gray-700">{formatDateTime(record.date)}</td>
                   <td className="p-3 font-medium text-gray-800">
                     {typeof record.course === "string" ? record.course : record.course.title}
                   </td>

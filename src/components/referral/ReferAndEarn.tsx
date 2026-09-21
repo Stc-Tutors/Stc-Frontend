@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatDate } from "@/lib/datetime";
 import { formatMoney } from "@/lib/money";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -301,7 +302,7 @@ export default function ReferAndEarn() {
                 <tbody>
                   {earnings.map((e) => (
                     <tr key={e.id} className="border-b text-sm">
-                      <td className="py-2 px-4">{new Date(e.createdAt).toLocaleDateString()}</td>
+                      <td className="py-2 px-4">{formatDate(e.createdAt)}</td>
                       <td className="py-2 px-4">{formatMoney(e.amount)}</td>
                       <td className="py-2 px-4">{e.percentage}%</td>
                       <td className="py-2 px-4">{e.status}</td>
@@ -338,9 +339,9 @@ export default function ReferAndEarn() {
                 <tbody>
                   {withdrawals.map((w) => (
                     <tr key={w.id} className="border-b text-sm">
-                      <td className="py-2 px-4">{new Date(w.createdAt).toLocaleDateString()}</td>
+                      <td className="py-2 px-4">{formatDate(w.createdAt)}</td>
                       <td className="py-2 px-4">{formatMoney(w.amount)}</td>
-                      <td className="py-2 px-4">{w.paidAt ? new Date(w.paidAt).toLocaleDateString() : "—"}</td>
+                      <td className="py-2 px-4">{w.paidAt ? formatDate(w.paidAt) : "—"}</td>
                       <td className={`py-2 px-4 font-medium ${STATUS_COLORS[w.status]}`}>{w.status}</td>
                     </tr>
                   ))}

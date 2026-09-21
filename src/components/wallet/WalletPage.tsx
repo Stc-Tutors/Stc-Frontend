@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { formatDate } from "@/lib/datetime";
 import { formatMoney } from "@/lib/money";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -210,7 +211,7 @@ export default function WalletPage() {
                 <tbody>
                   {transactions.map((t) => (
                     <tr key={t.id} className="border-b text-sm">
-                      <td className="py-2 px-4">{new Date(t.createdAt).toLocaleDateString()}</td>
+                      <td className="py-2 px-4">{formatDate(t.createdAt)}</td>
                       <td className="py-2 px-4">{t.description || WALLET_TRANSACTION_REASON_LABELS[t.reason]}</td>
                       <td
                         className={`py-2 px-4 font-medium ${

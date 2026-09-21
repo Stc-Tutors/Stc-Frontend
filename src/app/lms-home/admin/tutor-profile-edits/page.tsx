@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatDate } from "@/lib/datetime";
 import InlineLoader from "@/components/shared/InlineLoader";
 import { useUser } from "@/contexts/user-context";
 import { AdminPermission } from "@/types/admin-permission";
@@ -93,7 +94,7 @@ export default function TutorProfileEditsPage() {
                   <p className="font-semibold text-gray-900">
                     {typeof tutor === "string" ? tutor : `${tutor.firstName} ${tutor.lastName}`}
                   </p>
-                  <span className="text-xs text-gray-400">{new Date(req.submittedAt).toLocaleDateString()}</span>
+                  <span className="text-xs text-gray-400">{formatDate(req.submittedAt)}</span>
                 </div>
 
                 <div className="text-sm text-gray-700 space-y-1">

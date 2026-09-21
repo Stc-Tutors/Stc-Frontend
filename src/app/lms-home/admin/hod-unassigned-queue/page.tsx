@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { formatDate } from "@/lib/datetime";
 import InlineLoader from "@/components/shared/InlineLoader";
 import { toast } from "sonner";
 import { useUser } from "@/contexts/user-context";
@@ -47,7 +48,7 @@ export default function HodUnassignedQueuePage() {
     { header: "Subject/Course", cell: (row) => row.subject },
     { header: "Service", cell: (row) => row.serviceType ?? "-" },
     { header: "Status", cell: (row) => <Badge variant="outline">{SUBJECT_ENROLLMENT_STATUS_LABELS[row.status]}</Badge> },
-    { header: "Registered", cell: (row) => new Date(row.createdAt).toLocaleDateString() },
+    { header: "Registered", cell: (row) => formatDate(row.createdAt) },
   ];
 
   if (isLoadingUser) return <InlineLoader />;

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatDateTime } from "@/lib/datetime";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Video, Clock } from "lucide-react";
 import { GetLessonAction } from "@/server/lesson";
@@ -87,7 +88,7 @@ export default function LiveClassroomPage() {
                       This room opens 10 minutes before class starts.
                     </p>
                     <p className="text-sm text-gray-500">
-                      Class begins {new Date(lesson.scheduledDate).toLocaleString()}
+                      Class begins {formatDateTime(lesson.scheduledDate)}
                     </p>
                   </>
                 )}

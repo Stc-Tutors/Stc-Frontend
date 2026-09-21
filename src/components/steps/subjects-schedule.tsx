@@ -33,7 +33,7 @@ import { useCustomFormFields } from "@/hooks/use-custom-form-fields";
 import DynamicQuestionField from "@/components/forms/dynamic-question-field";
 import { Input } from "@/components/ui/input";
 import { findScheduleOverlap } from "@/lib/schedule-overlap";
-import { scheduleTimeFrom24Hour, scheduleTimeTo24Hour } from "@/lib/datetime";
+import { scheduleTimeFrom24Hour, scheduleTimeTo24Hour, formatDate } from "@/lib/datetime";
 import ContactSupportActions from "@/components/contact-support-actions";
 
 // The start of the message shown when a picked item has no price - matched to
@@ -1508,7 +1508,7 @@ export default function SubjectsSchedule({ onNext, errors, forcedUserType }: Ste
                     <div>
                       <p className="font-medium">{group.label}</p>
                       <p className="text-xs text-gray-500">
-                        {group.startDate ? `Starts ${new Date(group.startDate).toLocaleDateString()}` : "Start date to be confirmed"}
+                        {group.startDate ? `Starts ${formatDate(group.startDate)}` : "Start date to be confirmed"}
                         {" · "}
                         {group.status === ClassGroupStatus.FULL ? "Full - you'll join the waitlist" : `${seatsLeft} seat(s) left`}
                       </p>

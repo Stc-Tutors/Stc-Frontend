@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatDate } from "@/lib/datetime";
 import InlineLoader from "@/components/shared/InlineLoader";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
@@ -74,7 +75,7 @@ export default function AssignmentSubmissionsPage() {
       <div className="bg-white rounded-2xl shadow p-6">
         <h1 className="text-xl font-bold">{assignment.title}</h1>
         <p className="text-sm text-gray-500">
-          Due {new Date(assignment.dueDate).toLocaleDateString()} · Max score: {assignment.maxScore}
+          Due {formatDate(assignment.dueDate)} · Max score: {assignment.maxScore}
         </p>
         {(assignment.attachmentUrl || assignment.attachment) && (
           <button

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { formatDate } from "@/lib/datetime";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { GetBlogPostBySlugAction } from "@/server/content";
@@ -43,7 +44,7 @@ export default async function BlogPostPage({ params }: { params: Params }) {
       <h1 className="text-3xl font-bold text-gray-900 mt-6">{post.title}</h1>
       <p className="text-sm text-gray-400 mt-2">
         {post.author && <>{post.author} · </>}
-        {post.publishedAt && new Date(post.publishedAt).toLocaleDateString()}
+        {post.publishedAt && formatDate(post.publishedAt)}
       </p>
 
       <div className="prose max-w-none mt-8 whitespace-pre-wrap text-gray-700 leading-relaxed">{post.body}</div>

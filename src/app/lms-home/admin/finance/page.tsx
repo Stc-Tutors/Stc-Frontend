@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatDate } from "@/lib/datetime";
 import InlineLoader from "@/components/shared/InlineLoader";
 import { formatMoney, formatMoneyCompact } from "@/lib/money";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
@@ -146,7 +147,7 @@ export default function AdminFinancePage() {
               <tbody>
                 {payouts.slice(0, 8).map((p) => (
                   <tr key={p.id} className="border-b last:border-none">
-                    <td className="py-2">{p.paidAt ? new Date(p.paidAt).toLocaleDateString() : "—"}</td>
+                    <td className="py-2">{p.paidAt ? formatDate(p.paidAt) : "—"}</td>
                     <td>{formatMoney(p.amount)}</td>
                   </tr>
                 ))}

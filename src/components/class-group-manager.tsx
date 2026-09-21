@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatDate } from "@/lib/datetime";
 import { CreateClassGroupAction, DeleteClassGroupAction, GetAdminClassGroupsAction, UpdateClassGroupAction } from "@/server/class-group";
 import { GetAdminServicesAction } from "@/server/service-catalog";
 import { GetCoursesAction } from "@/server/course";
@@ -328,7 +329,7 @@ export function ClassGroupManager({ serviceType, hideHeading }: { serviceType?: 
                     <CapacityBar confirmed={g.confirmedCount} capacity={g.capacity} />
                   </td>
                   <td className="p-3">{g.waitlistCount}</td>
-                  <td className="p-3">{g.startDate ? new Date(g.startDate).toLocaleDateString() : "—"}</td>
+                  <td className="p-3">{g.startDate ? formatDate(g.startDate) : "—"}</td>
                   <td className="p-3">
                     <span className={`text-xs rounded-full px-2 py-0.5 ${statusBadgeClass(g.status)}`}>{CLASS_GROUP_STATUS_LABELS[g.status]}</span>
                   </td>

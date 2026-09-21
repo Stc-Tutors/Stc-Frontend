@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { formatDate } from "@/lib/datetime";
 import { formatMoney } from "@/lib/money";
 import { Eye, FileText, Lock, Music, PlayCircle, User, Video } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -159,7 +160,7 @@ export default function ResourcesTabs({
               )}
             </div>
             <p className="text-sm text-gray-500 truncate">
-              {targetLabelOf(r)} • {new Date(r.createdAt).toLocaleDateString()}
+              {targetLabelOf(r)} • {formatDate(r.createdAt)}
             </p>
             {renderExtraActions?.(r)}
           </div>
@@ -196,7 +197,7 @@ export default function ResourcesTabs({
         <div className="min-w-0">
           <h4 className="font-medium text-gray-800 truncate">{item.title}</h4>
           <p className="text-sm text-gray-500 truncate">
-            {new Date(item.date).toLocaleDateString()}
+            {formatDate(item.date)}
             {item.meta ? ` • ${item.meta}` : ""}
           </p>
         </div>

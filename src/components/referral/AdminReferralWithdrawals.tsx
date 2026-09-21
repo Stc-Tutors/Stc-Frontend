@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatDateTime, formatDate } from "@/lib/datetime";
 import { formatMoney } from "@/lib/money";
 import {
   Table,
@@ -118,7 +119,7 @@ export default function AdminReferralWithdrawals() {
           </Button>
           {settings?.updatedAt && (
             <p className="text-xs text-gray-400 mb-2">
-              Last updated {new Date(settings.updatedAt).toLocaleString()}
+              Last updated {formatDateTime(settings.updatedAt)}
             </p>
           )}
         </CardContent>
@@ -149,7 +150,7 @@ export default function AdminReferralWithdrawals() {
                   <TableRow key={w.id}>
                     <TableCell>{userLabel(w.user)}</TableCell>
                     <TableCell>{formatMoney(w.amount)}</TableCell>
-                    <TableCell>{new Date(w.createdAt).toLocaleDateString()}</TableCell>
+                    <TableCell>{formatDate(w.createdAt)}</TableCell>
                     <TableCell className={`font-medium ${STATUS_COLORS[w.status]}`}>{w.status}</TableCell>
                     <TableCell className="text-right">
                       {w.status === ReferralPayoutRequestStatus.PENDING ? (

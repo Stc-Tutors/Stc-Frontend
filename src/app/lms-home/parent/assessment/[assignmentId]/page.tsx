@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatDate } from "@/lib/datetime";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { GetAssignmentAction } from "@/server/assignment";
@@ -54,7 +55,7 @@ export default function ParentAssignmentDetailPage() {
 
       <h1 className="text-xl font-semibold mb-2">{assignment.title}</h1>
       <p className="text-sm text-gray-500 mb-4">
-        Due {new Date(assignment.dueDate).toLocaleDateString()} · Max score: {assignment.maxScore}
+        Due {formatDate(assignment.dueDate)} · Max score: {assignment.maxScore}
       </p>
       <p className="text-gray-700 mb-6">{assignment.description}</p>
 

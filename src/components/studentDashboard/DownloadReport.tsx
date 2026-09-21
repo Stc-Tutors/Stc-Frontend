@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { formatDate } from "@/lib/datetime";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Download } from "lucide-react";
@@ -36,7 +37,7 @@ export default function DownloadReport() {
       const rows = [
         ["Date", "Course", "Status", "Notes"],
         ...records.map((r) => [
-          new Date(r.date).toLocaleDateString(),
+          formatDate(r.date),
           typeof r.course === "string" ? r.course : r.course.title,
           r.status,
           r.notes ?? "",
@@ -55,7 +56,7 @@ export default function DownloadReport() {
               ${records
                 .map(
                   (r) =>
-                    `<tr><td>${new Date(r.date).toLocaleDateString()}</td><td>${
+                    `<tr><td>${formatDate(r.date)}</td><td>${
                       typeof r.course === "string" ? r.course : r.course.title
                     }</td><td>${r.status}</td><td>${r.notes ?? ""}</td></tr>`
                 )

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatDate } from "@/lib/datetime";
 import InlineLoader from "@/components/shared/InlineLoader";
 import { formatMoney } from "@/lib/money";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -314,7 +315,7 @@ export default function DashboardPage() {
                 {balance && balance.nextWithdrawalAvailableAt ? (
                   <p className="text-xs text-amber-600">
                     You can request another withdrawal on{" "}
-                    {new Date(balance.nextWithdrawalAvailableAt).toLocaleDateString()} - one withdrawal is allowed
+                    {formatDate(balance.nextWithdrawalAvailableAt)} - one withdrawal is allowed
                     every 14 days.
                   </p>
                 ) : (
@@ -437,11 +438,11 @@ function TransactionHistory({
           {requests.map((r) => (
             <tr key={r.id} className="border-b text-sm">
               <td className="py-2 px-4">
-                {new Date(r.periodStart).toLocaleDateString()} - {new Date(r.periodEnd).toLocaleDateString()}
+                {formatDate(r.periodStart)} - {formatDate(r.periodEnd)}
               </td>
               <td className="py-2 px-4">{r.hoursWorked.toFixed(1)}</td>
               <td className="py-2 px-4">{formatMoney(r.amount)}</td>
-              <td className="py-2 px-4">{r.paidAt ? new Date(r.paidAt).toLocaleDateString() : "—"}</td>
+              <td className="py-2 px-4">{r.paidAt ? formatDate(r.paidAt) : "—"}</td>
               <td className={`py-2 px-4 font-medium ${STATUS_COLORS[r.status]}`}>{r.status}</td>
             </tr>
           ))}
@@ -449,7 +450,7 @@ function TransactionHistory({
       </table>
       {lastPaid && (
         <p className="text-xs text-gray-400 px-4 py-2">
-          Last paid {formatMoney(lastPaid.amount)} on {lastPaid.paidAt ? new Date(lastPaid.paidAt).toLocaleDateString() : "—"}
+          Last paid {formatMoney(lastPaid.amount)} on {lastPaid.paidAt ? formatDate(lastPaid.paidAt) : "—"}
         </p>
       )}
     </div>

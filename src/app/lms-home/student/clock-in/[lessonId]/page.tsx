@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
+import { formatDateTime } from "@/lib/datetime";
 import InlineLoader from "@/components/shared/InlineLoader";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
@@ -96,7 +97,7 @@ function ClockInPageInner() {
             {lesson ? `${lesson.title}${courseTitle ? ` — ${courseTitle}` : ""}` : "Confirm your presence for this lesson"}
           </p>
           {lesson && (
-            <p className="text-xs text-gray-400 mt-1">{new Date(lesson.scheduledDate).toLocaleString()}</p>
+            <p className="text-xs text-gray-400 mt-1">{formatDateTime(lesson.scheduledDate)}</p>
           )}
         </div>
 

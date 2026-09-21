@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatDate } from "@/lib/datetime";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, CalendarDays } from "lucide-react";
 import { GetLinkedStudentsAction } from "@/server/enrollment";
@@ -106,7 +107,7 @@ export default function ParentAssessmentPage() {
               <div>{row.childName}</div>
               <div>{row.course.title}</div>
               <div>{row.assignment.title}</div>
-              <div className="text-center">{new Date(row.assignment.dueDate).toLocaleDateString()}</div>
+              <div className="text-center">{formatDate(row.assignment.dueDate)}</div>
               <div className="text-center">
                 <span
                   className={`px-2 py-1 rounded-full text-xs font-medium ${

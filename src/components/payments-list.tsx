@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { formatDate } from "@/lib/datetime";
 import { formatMoney } from "@/lib/money";
 import { CreditCard } from "lucide-react";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
@@ -194,7 +195,7 @@ export default function PaymentsList({ variant }: PaymentsListProps) {
                       </Badge>
                     </TableCell>
                     <TableCell className="whitespace-nowrap">
-                      {payment.paymentDate ? new Date(payment.paymentDate).toLocaleDateString() : "-"}
+                      {payment.paymentDate ? formatDate(payment.paymentDate) : "-"}
                     </TableCell>
                     <TableCell className="text-right">
                       {payment.status === PaymentStatus.PENDING && payment.accessCode && (

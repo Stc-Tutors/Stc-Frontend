@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { formatDate } from "@/lib/datetime";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
@@ -45,7 +46,7 @@ export default function UnassignedQueueTab({ jumpToken = 0 }: { jumpToken?: numb
     { header: "Subject/Course", cell: (row) => row.subject },
     { header: "Service", cell: (row) => row.serviceType ?? "-" },
     { header: "Status", cell: (row) => <Badge variant="outline">{SUBJECT_ENROLLMENT_STATUS_LABELS[row.status]}</Badge> },
-    { header: "Registered", cell: (row) => new Date(row.createdAt).toLocaleDateString() },
+    { header: "Registered", cell: (row) => formatDate(row.createdAt) },
   ];
 
   return (
