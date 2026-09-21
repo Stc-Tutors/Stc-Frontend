@@ -35,10 +35,10 @@ export default function AdminDashboardPage() {
       return;
     }
     const load = async () => {
-      const [res] = await GetAdminOverviewAction();
+      // Independent requests - fetched together instead of one after the other (the second used to wait for the first).
+      const [[res], [tutorsRes]] = await Promise.all([GetAdminOverviewAction(), GetTutorPerformanceReportAction()]);
       setOverview(res?.data ?? null);
 
-      const [tutorsRes] = await GetTutorPerformanceReportAction();
       const rated = (tutorsRes?.data ?? []).filter((t) => t.totalRatings > 0);
       setPlatformRating(
         rated.length > 0 ? rated.reduce((sum, t) => sum + (t.averageRating ?? 0), 0) / rated.length : null

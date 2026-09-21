@@ -123,7 +123,7 @@ export default function TutorOnboardingPage() {
         )}
 
         <Button className="w-full" onClick={handleExplore} disabled={isSaving || isLoading}>
-          {isSaving ? "Saving..." : "Explore"}
+          {isSaving ? "Saving..." : "Save and go to my dashboard"}
         </Button>
 
         <p className="text-xs text-gray-400 text-center">

@@ -64,7 +64,8 @@ export function MultiSelect({ options, value, onChange, placeholder }: Props) {
           <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0">
+      {/* Sized to the field it opens from: "w-full" here meant "as wide as the widest option", which clipped long names. */}
+      <PopoverContent className="w-[var(--radix-popover-trigger-width)] min-w-48 p-0">
         <Command>
           <CommandInput placeholder="Search..." className="h-9" />
           <CommandEmpty>No option found.</CommandEmpty>

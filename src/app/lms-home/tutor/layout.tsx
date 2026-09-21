@@ -25,7 +25,6 @@ import {
   Target,
   FolderUp,
   Gift,
-  AlertCircle,
   UserCheck
 } from "lucide-react";
 import BrandLogo from "@/components/shared/BrandLogo";
@@ -55,8 +54,9 @@ const sidebarLinks = [
   { label: "Analytics", icon: BarChart2, href: "/lms-home/tutor/analytics" },
   { label: "Resources", icon: FolderUp, href: "/lms-home/tutor/resources" },
   { label: "Profile", icon: FileUser, href: "/lms-home/tutor/profile-details" },
-  { label: "Complaints", icon: AlertCircle, href: "/lms-home/tutor/complaints" },
-  { label: "Support", icon: Headphones, href: "/lms-home/tutor/messages" },
+  // Support is the complaints/help centre, as it is for parents and students. It used to open Messages (already
+  // listed above) with a separate "Complaints" entry beside it.
+  { label: "Support", icon: Headphones, href: "/lms-home/tutor/complaints" },
   { label: "Notifications", icon: Bell, href: "/lms-home/tutor/notification", badge: true },
 ];
 
@@ -214,7 +214,7 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
                         <div className="p-4 border-t space-y-6">
                             {/* Support */}
                             <Link
-                            href="/lms-home/tutor/messages"
+                            href="/lms-home/tutor/complaints"
                             className="flex items-center gap-3 text-gray-600 hover:text-[#38b6ff] hover:translate-x-3">
                                 <Headphones className="w-5 h-5" />
                                 Support
