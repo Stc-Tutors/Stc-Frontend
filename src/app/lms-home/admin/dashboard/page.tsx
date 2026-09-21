@@ -12,10 +12,11 @@ import AnnouncementFeed from "@/components/adminDashboard/AnnouncementFeed";
 import UserManagementTable from "@/components/adminDashboard/UserManagementTable";
 import AdminFinanceChart from "@/components/adminDashboard/AdminFinanceChart";
 import { useUser } from "@/contexts/user-context";
-import { isAdminOrAbove } from "@/lib/roles";
+import { isAdminOrAbove, isSuperOrAlmighty } from "@/lib/roles";
+import { HodPermission } from "@/types/hod";
 
 export default function AdminDashboardPage() {
-  const { user, isLoading: isLoadingUser } = useUser();
+  const { user, isLoading: isLoadingUser, permissions, hodAssignment, hasHodPermission } = useUser();
   const [overview, setOverview] = useState<AdminOverview | null>(null);
   const [platformRating, setPlatformRating] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -57,14 +58,26 @@ export default function AdminDashboardPage() {
           <p className="text-white mt-1">Where to act on your Head of Department responsibilities.</p>
         </section>
 
-        <div className="flex flex-wrap gap-3">
-          <Link href="/lms-home/admin/hod-reports" className="text-sm text-blue-600 hover:underline">
-            HOD Reports →
-          </Link>
-          <Link href="/lms-home/admin/hod-unassigned-queue" className="text-sm text-blue-600 hover:underline">
-            Unassigned Queue →
-          </Link>
-        </div>
+        {/* Only offer what this HOD's scope actually lets them open - the rest would land on an access notice. */}
+        {!hodAssignment || hodAssignment.hodScopes.length === 0 ? (
+          <p className="text-sm text-gray-600">
+            You haven&apos;t been given a Head of Department scope yet. A Super Admin needs to assign one before anything
+            appears here.
+          </p>
+        ) : (
+          <div className="flex flex-wrap gap-3">
+            {hasHodPermission(HodPermission.VIEW_REPORTS) && (
+              <Link href="/lms-home/admin/hod-reports" className="text-sm text-blue-600 hover:underline">
+                HOD Reports →
+              </Link>
+            )}
+            {hasHodPermission(HodPermission.MANAGE_UNASSIGNED_QUEUE) && (
+              <Link href="/lms-home/admin/hod-unassigned-queue" className="text-sm text-blue-600 hover:underline">
+                Unassigned Queue →
+              </Link>
+            )}
+          </div>
+        )}
       </div>
     );
   }
@@ -96,6 +109,15 @@ export default function AdminDashboardPage() {
         <h2 className="text-xl font-bold text-white">Admin Overview</h2>
         <p className="text-white mt-1">Platform-wide users, courses, enrollments and revenue at a glance.</p>
       </section>
+
+      {/* A new STC/Tutor Admin has no permissions until a Super Admin assigns some (secure by default) - say so
+          instead of showing a wall of zeros as if the platform were empty. */}
+      {user && !isSuperOrAlmighty(user.role) && Array.isArray(permissions) && permissions.length === 0 && (
+        <div role="status" className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          Your account doesn&apos;t have any access yet, so the numbers below will show zero. Ask a Super Admin to
+          grant your permissions.
+        </div>
+      )}
 
       {isLoading ? (
         <p className="text-sm text-gray-500">Loading overview...</p>

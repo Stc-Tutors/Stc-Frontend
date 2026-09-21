@@ -2,6 +2,8 @@
 import { useRouter } from "next/navigation"
 import { useUser } from "@/contexts/user-context"
 import { lmsDashboardPath } from "@/config/routes"
+import { ROLE_LABELS } from "@/lib/roles"
+import { UserRole } from "@/types/user"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -35,7 +37,7 @@ export function UserProfileDropdown() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="flex items-center space-x-3 h-auto p-2">
           <Avatar className="w-8 h-8">
-            <AvatarImage src={user?.profilePicture || "/placeholder.svg"} alt={`${user.firstName} ${user.lastName}`} />
+            <AvatarImage src={user?.profilePicture || undefined} alt={`${user.firstName} ${user.lastName}`} />
             <AvatarFallback className="bg-blue-100 text-blue-600">
               {getInitials(user.firstName, user.lastName)}
             </AvatarFallback>
@@ -45,8 +47,8 @@ export function UserProfileDropdown() {
               {user.firstName} {user.lastName}
             </p>
             <div className="flex items-center gap-1.5">
-              <p className="text-xs text-gray-500 capitalize">{user.role}</p>
-              {isAlsoHod && (
+              <p className="text-xs text-gray-500">{ROLE_LABELS[user.role] ?? user.role}</p>
+              {isAlsoHod && user.role !== UserRole.HOD && (
                 <Badge variant="outline" className="text-[10px] px-1.5 py-0 leading-tight">
                   Also HOD
                 </Badge>

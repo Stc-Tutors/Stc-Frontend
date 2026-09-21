@@ -49,6 +49,7 @@ import { useUser } from "@/contexts/user-context";
 import { AdminPermission } from "@/types/admin-permission";
 import { HodPermission } from "@/types/hod";
 import { isSuperOrAlmighty } from "@/lib/roles";
+import AccessNotice from "@/components/admin/AccessNotice";
 
 // permission: undefined means always visible (no matching AdminPermission
 // exists yet, or the page is universally accessible). superOrAlmightyOnly is
@@ -243,7 +244,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const { user, hasPermission, hodAssignment, hasHodPermission } = useUser();
+  const { user, hasPermission, hodAssignment, hasHodPermission, isLoading } = useUser();
 
   const isLinkVisible = (link: (typeof sidebarLinks)[number]): boolean => {
     if (link.hodOnly) return !!hodAssignment;
@@ -255,6 +256,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
     return grants.length === 0 || grants.some(Boolean);
   };
+
+  // The sidebar hides pages this person hasn't been granted, but the URL still works - so gate the page itself.
+  // Wait for the session/permissions to finish loading first, or everyone would see this for a moment.
+  const activeLink = sidebarLinks
+    .filter(({ href }) => pathname === href || pathname.startsWith(`${href}/`))
+    .sort((a, b) => b.href.length - a.href.length)[0];
+  const isSuperOrAlmightyViewer = !!user && isSuperOrAlmighty(user.role);
+  const blockedLink =
+    !isLoading && user && activeLink && !(isLinkVisible(activeLink) && (!activeLink.superOrAlmightyOnly || isSuperOrAlmightyViewer))
+      ? activeLink
+      : null;
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -355,7 +367,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-3 sm:p-6">{children}</main>
+        <main className="flex-1 overflow-y-auto p-3 sm:p-6">
+          {blockedLink ? (
+            <AccessNotice pageLabel={blockedLink.label} superAdminOnly={!!blockedLink.superOrAlmightyOnly && !isSuperOrAlmightyViewer} />
+          ) : (
+            children
+          )}
+        </main>
       </div>
     </div>
   );
