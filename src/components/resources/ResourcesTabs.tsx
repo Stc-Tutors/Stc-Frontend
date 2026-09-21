@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { formatMoney } from "@/lib/money";
 import { Eye, FileText, Lock, Music, PlayCircle, User, Video } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -169,7 +170,7 @@ export default function ResourcesTabs({
               onClick={() => onUnlock?.(r)}
               className="text-sm font-medium text-amber-600 hover:text-amber-700 whitespace-nowrap"
             >
-              Unlock for {r.currency ?? "NGN"} {r.price ?? 0}
+              Unlock for {formatMoney(r.price ?? 0, r.currency)}
             </button>
           ) : (
             <button

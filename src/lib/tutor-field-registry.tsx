@@ -1,4 +1,5 @@
 import FileAccessRow from "@/components/tutor-applications/file-access-row";
+import { formatMoney } from "@/lib/money";
 import { EmbeddedLinkPreview } from "@/components/tutor-applications/embedded-link-preview";
 import {
   AnalyticalOrCreative,
@@ -517,7 +518,7 @@ export const TUTOR_FIELD_REGISTRY: TutorFieldEntry[] = [
       a.internalExpectedPayMin != null && a.internalExpectedPayMax != null
         ? { min: a.internalExpectedPayMin, max: a.internalExpectedPayMax }
         : undefined,
-    format: (v: { min: number; max: number }) => `₦${v.min.toLocaleString()} - ₦${v.max.toLocaleString()} / hr`,
+    format: (v: { min: number; max: number }) => `${formatMoney(v.min)} - ${formatMoney(v.max)} / hr`,
   },
 
   // Step 10: Payment & Referral

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatMoney, formatMoneyCompact } from "@/lib/money";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { GetRevenueReportAction, ListStudentsForAdminAction } from "@/server/admin";
 import { ListAllPayoutRequestsAction } from "@/server/payout";
@@ -91,8 +92,8 @@ export default function AdminFinancePage() {
           <AreaChart data={revenue}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} />
             <XAxis dataKey="date" tick={{ fontSize: 10 }} />
-            <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `₦${(v / 1000).toFixed(0)}k`} />
-            <Tooltip formatter={(v: number) => [`₦${v.toLocaleString()}`, "Revenue"]} />
+            <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => formatMoneyCompact(v)} />
+            <Tooltip formatter={(v: number) => [formatMoney(v), "Revenue"]} />
             <Area type="monotone" dataKey="total" stroke="#3b82f6" fill="#bfdbfe" strokeWidth={2} />
           </AreaChart>
         </ResponsiveContainer>
@@ -129,7 +130,7 @@ export default function AdminFinancePage() {
 
         <div className="bg-white rounded-2xl shadow p-6">
           <h2 className="font-semibold mb-4">School Expenses (Tutor Payouts)</h2>
-          <p className="text-2xl font-bold mb-3">₦{totalExpenses.toLocaleString()}</p>
+          <p className="text-2xl font-bold mb-3">{formatMoney(totalExpenses)}</p>
           {payouts.length === 0 ? (
             <p className="text-sm text-gray-500">No payouts made yet.</p>
           ) : (
@@ -145,7 +146,7 @@ export default function AdminFinancePage() {
                 {payouts.slice(0, 8).map((p) => (
                   <tr key={p.id} className="border-b last:border-none">
                     <td className="py-2">{p.paidAt ? new Date(p.paidAt).toLocaleDateString() : "—"}</td>
-                    <td>₦{p.amount.toLocaleString()}</td>
+                    <td>{formatMoney(p.amount)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -163,7 +164,7 @@ export default function AdminFinancePage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {quarterlyProfit.map((q) => (
               <div key={q.label} className="border rounded-lg p-4 text-center">
-                <p className="text-xl font-bold text-gray-900">₦{q.profit.toLocaleString()}</p>
+                <p className="text-xl font-bold text-gray-900">{formatMoney(q.profit)}</p>
                 <p className="text-xs text-gray-500">{q.label} Net Profit</p>
               </div>
             ))}

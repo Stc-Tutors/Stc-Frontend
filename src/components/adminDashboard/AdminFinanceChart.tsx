@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatMoney, formatMoneyCompact } from "@/lib/money";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { GetRevenueReportAction } from "@/server/admin";
 import { RevenuePoint } from "@/types/admin";
@@ -30,8 +31,8 @@ export default function AdminFinanceChart() {
           <AreaChart data={data}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} />
             <XAxis dataKey="date" tick={{ fontSize: 10 }} />
-            <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `₦${(v / 1000).toFixed(0)}k`} />
-            <Tooltip formatter={(v: number) => [`₦${v.toLocaleString()}`, "Revenue"]} />
+            <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => formatMoneyCompact(v)} />
+            <Tooltip formatter={(v: number) => [formatMoney(v), "Revenue"]} />
             <Area type="monotone" dataKey="total" stroke="#22c55e" fill="#bbf7d0" strokeWidth={2} />
           </AreaChart>
         </ResponsiveContainer>

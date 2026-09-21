@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { formatMoney } from "@/lib/money";
 import { useSearchParams } from "next/navigation";
 import { useEnrollment } from "@/contexts/enrollment-context";
 import { useUser } from "@/contexts/user-context";
@@ -155,7 +156,7 @@ export default function EnrollmentReview({ onNext, errors }: StepProps) {
     const [res, error] = await ValidateCouponAction(code, totalCost);
     setIsCheckingCoupon(false);
     setCouponMessage(
-      error || `Coupon valid - ${res?.data?.discountAmount.toLocaleString()} off, new total ₦${res?.data?.discountedAmount.toLocaleString()}`
+      error || `Coupon valid - ${formatMoney(res?.data?.discountAmount)} off, new total ${formatMoney(res?.data?.discountedAmount)}`
     );
   };
 
@@ -423,14 +424,14 @@ export default function EnrollmentReview({ onNext, errors }: StepProps) {
                     </div>
                     <div className="flex justify-between text-sm">
                       <span>Weekly cost:</span>
-                      <span>₦{(totalCost / billingWeeks).toLocaleString()}</span>
+                      <span>{formatMoney(totalCost / billingWeeks)}</span>
                     </div>
                   </>
                 )}
                 <Separator />
                 <div className="flex justify-between font-semibold text-lg">
                   <span>{!showWeeklyBreakdown ? "Total:" : `Total (${billingWeeks} week${billingWeeks === 1 ? "" : "s"}):`}</span>
-                  <span className="text-green-600">₦{totalCost.toLocaleString()}</span>
+                  <span className="text-green-600">{formatMoney(totalCost)}</span>
                 </div>
               </div>
             </div>
@@ -601,7 +602,7 @@ export default function EnrollmentReview({ onNext, errors }: StepProps) {
               <p className="text-sm text-green-600">Click "Save & Continue" to proceed to secure payment</p>
             </div>
             <div className="text-right">
-              <p className="text-2xl font-bold text-green-800">₦{totalCost.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-green-800">{formatMoney(totalCost)}</p>
               {showWeeklyBreakdown && (
                 <p className="text-sm text-green-600">
                   for {billingWeeks} week{billingWeeks === 1 ? "" : "s"}

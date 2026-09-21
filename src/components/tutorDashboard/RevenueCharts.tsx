@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatMoney } from "@/lib/money";
 import { Card } from "@/components/ui/card";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 import { GetMyEarningsTimeSeriesAction } from "@/server/payout";
@@ -43,7 +44,7 @@ export default function RevenueChart() {
             <CartesianGrid strokeDasharray="3 3" vertical={false} />
             <XAxis dataKey="name" tick={{ fontSize: 12 }} />
             <YAxis tick={{ fontSize: 12 }} />
-            <Tooltip formatter={(value: number) => [`₦${value.toLocaleString()}`, "Paid"]} />
+            <Tooltip formatter={(value: number) => [formatMoney(value), "Paid"]} />
             <Bar dataKey="value" fill="#22c55e" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>

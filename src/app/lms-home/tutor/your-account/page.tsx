@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatMoney } from "@/lib/money";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -170,19 +171,19 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
         <StatCard
           title="Current Balance"
-          value={`${balance?.currency ?? "NGN"} ${(balance?.currentBalance ?? 0).toLocaleString()}`}
+          value={formatMoney(balance?.currentBalance ?? 0, balance?.currency)}
           icon={PiggyBank}
           color="bg-emerald-100 text-emerald-600"
         />
-        <StatCard title="Total Paid Out" value={`₦${totalPaid.toLocaleString()}`} icon={DollarSign} color="bg-orange-100 text-orange-600" />
-        <StatCard title="Pending Amount" value={`₦${pendingAmount.toLocaleString()}`} icon={Wallet} color="bg-purple-100 text-purple-600" />
+        <StatCard title="Total Paid Out" value={formatMoney(totalPaid)} icon={DollarSign} color="bg-orange-100 text-orange-600" />
+        <StatCard title="Pending Amount" value={formatMoney(pendingAmount)} icon={Wallet} color="bg-purple-100 text-purple-600" />
         <StatCard
           title="Confirmed Rates"
           value={rates.filter((r) => r.ratePerHour != null || r.flatRate != null).length}
           icon={TrendingUp}
           color="bg-blue-100 text-blue-600"
         />
-        <StatCard title="This Month" value={`₦${thisMonthPaid.toLocaleString()}`} icon={CreditCard} color="bg-green-100 text-green-600" />
+        <StatCard title="This Month" value={formatMoney(thisMonthPaid)} icon={CreditCard} color="bg-green-100 text-green-600" />
       </div>
       {balance && balance.hoursSincePaid > 0 && (
         <p className="text-xs text-gray-500">
@@ -192,8 +193,8 @@ export default function DashboardPage() {
       )}
       {balance && balance.surchargeDeduction > 0 && (
         <p className="text-xs text-amber-600">
-          {balance.currency} {balance.surchargeDeduction.toLocaleString()} deducted from your {balance.currency}{" "}
-          {balance.grossBalance.toLocaleString()} gross balance for late-notice reschedule surcharge(s).
+          {formatMoney(balance.surchargeDeduction, balance.currency)} deducted from your{" "}
+          {formatMoney(balance.grossBalance, balance.currency)} gross balance for late-notice reschedule surcharge(s).
         </p>
       )}
       {balance && balance.unpriced.length > 0 && (
@@ -306,7 +307,7 @@ export default function DashboardPage() {
                   </div>
                 )}
 
-                <p className="text-lg font-bold">₦{pendingAmount.toLocaleString()}</p>
+                <p className="text-lg font-bold">{formatMoney(pendingAmount)}</p>
                 <p className="text-sm font-light">Pending payout requests</p>
 
                 {balance && balance.nextWithdrawalAvailableAt ? (
@@ -319,7 +320,7 @@ export default function DashboardPage() {
                   <div className="space-y-2">
                     <label className="flex items-center gap-2 text-sm">
                       <input type="radio" checked={withdrawAll} onChange={() => setWithdrawAll(true)} />
-                      Withdraw all ({balance?.currency ?? "NGN"} {(balance?.currentBalance ?? 0).toLocaleString()})
+                      Withdraw all ({formatMoney(balance?.currentBalance ?? 0, balance?.currency)})
                     </label>
                     <label className="flex items-center gap-2 text-sm">
                       <input type="radio" checked={!withdrawAll} onChange={() => setWithdrawAll(false)} />
@@ -359,8 +360,8 @@ export default function DashboardPage() {
                       <AlertDialogDescription>
                         This will submit a payout request for{" "}
                         {withdrawAll
-                          ? `your full available balance (${balance?.currency ?? "NGN"} ${(balance?.currentBalance ?? 0).toLocaleString()})`
-                          : `${balance?.currency ?? "NGN"} ${withdrawAmount}`}
+                          ? `your full available balance (${formatMoney(balance?.currentBalance ?? 0, balance?.currency)})`
+                          : formatMoney(Number(withdrawAmount), balance?.currency)}
                         {profile?.bankName ? ` to ${profile.bankName} · ${profile.accountNumber}` : ""}. An admin will need
                         to review and approve it before funds are transferred. You won't be able to request again for
                         14 days after this.
@@ -438,7 +439,7 @@ function TransactionHistory({
                 {new Date(r.periodStart).toLocaleDateString()} - {new Date(r.periodEnd).toLocaleDateString()}
               </td>
               <td className="py-2 px-4">{r.hoursWorked.toFixed(1)}</td>
-              <td className="py-2 px-4">₦{r.amount.toLocaleString()}</td>
+              <td className="py-2 px-4">{formatMoney(r.amount)}</td>
               <td className="py-2 px-4">{r.paidAt ? new Date(r.paidAt).toLocaleDateString() : "—"}</td>
               <td className={`py-2 px-4 font-medium ${STATUS_COLORS[r.status]}`}>{r.status}</td>
             </tr>
@@ -447,7 +448,7 @@ function TransactionHistory({
       </table>
       {lastPaid && (
         <p className="text-xs text-gray-400 px-4 py-2">
-          Last paid ₦{lastPaid.amount.toLocaleString()} on {lastPaid.paidAt ? new Date(lastPaid.paidAt).toLocaleDateString() : "—"}
+          Last paid {formatMoney(lastPaid.amount)} on {lastPaid.paidAt ? new Date(lastPaid.paidAt).toLocaleDateString() : "—"}
         </p>
       )}
     </div>

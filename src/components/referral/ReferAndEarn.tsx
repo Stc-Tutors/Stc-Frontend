@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatMoney } from "@/lib/money";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -132,7 +133,8 @@ export default function ReferAndEarn() {
       <div>
         <h1 className="text-2xl font-bold">Refer & Earn</h1>
         <p className="text-sm text-gray-500">
-          Share your link - earn {settings?.percentage ?? "—"}% of every referral&apos;s first payment.
+          Share your link - earn{" "}
+          {settings?.percentage != null ? `${settings.percentage}%` : "a commission"} of every referral&apos;s first payment.
         </p>
       </div>
 
@@ -140,19 +142,19 @@ export default function ReferAndEarn() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <StatCard
           title="Available Balance"
-          value={`₦${(balance?.pendingBalance ?? 0).toLocaleString()}`}
+          value={formatMoney(balance?.pendingBalance ?? 0)}
           icon={PiggyBank}
           color="bg-emerald-100 text-emerald-600"
         />
         <StatCard
           title="Awaiting Withdrawal Review"
-          value={`₦${(balance?.lockedBalance ?? 0).toLocaleString()}`}
+          value={formatMoney(balance?.lockedBalance ?? 0)}
           icon={Clock}
           color="bg-purple-100 text-purple-600"
         />
         <StatCard
           title="Total Withdrawn"
-          value={`₦${(balance?.withdrawnTotal ?? 0).toLocaleString()}`}
+          value={formatMoney(balance?.withdrawnTotal ?? 0)}
           icon={Wallet}
           color="bg-blue-100 text-blue-600"
         />
@@ -238,7 +240,7 @@ export default function ReferAndEarn() {
                   </div>
                 )}
 
-                <p className="text-lg font-bold">₦{(balance?.pendingBalance ?? 0).toLocaleString()}</p>
+                <p className="text-lg font-bold">{formatMoney(balance?.pendingBalance ?? 0)}</p>
                 <p className="text-sm font-light">Available to withdraw</p>
 
                 <AlertDialog>
@@ -300,7 +302,7 @@ export default function ReferAndEarn() {
                   {earnings.map((e) => (
                     <tr key={e.id} className="border-b text-sm">
                       <td className="py-2 px-4">{new Date(e.createdAt).toLocaleDateString()}</td>
-                      <td className="py-2 px-4">₦{e.amount.toLocaleString()}</td>
+                      <td className="py-2 px-4">{formatMoney(e.amount)}</td>
                       <td className="py-2 px-4">{e.percentage}%</td>
                       <td className="py-2 px-4">{e.status}</td>
                     </tr>
@@ -337,7 +339,7 @@ export default function ReferAndEarn() {
                   {withdrawals.map((w) => (
                     <tr key={w.id} className="border-b text-sm">
                       <td className="py-2 px-4">{new Date(w.createdAt).toLocaleDateString()}</td>
-                      <td className="py-2 px-4">₦{w.amount.toLocaleString()}</td>
+                      <td className="py-2 px-4">{formatMoney(w.amount)}</td>
                       <td className="py-2 px-4">{w.paidAt ? new Date(w.paidAt).toLocaleDateString() : "—"}</td>
                       <td className={`py-2 px-4 font-medium ${STATUS_COLORS[w.status]}`}>{w.status}</td>
                     </tr>

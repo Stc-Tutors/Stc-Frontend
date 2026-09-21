@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { formatMoney } from "@/lib/money";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,13 +22,6 @@ import { GetMyWalletOverviewAction, TopUpWalletAction, type WalletOverview } fro
 import { unwrap, useCachedQuery } from "@/lib/client-cache";
 import { VerifyPaymentAction } from "@/server/payment";
 import { WALLET_TRANSACTION_REASON_LABELS, WalletTransactionType } from "@/types/wallet";
-
-const CURRENCY_SYMBOLS: Record<string, string> = { NGN: "₦", USD: "$", GBP: "£", EUR: "€" };
-
-function formatMoney(amount: number, currency: string) {
-  const symbol = CURRENCY_SYMBOLS[currency] ?? `${currency} `;
-  return `${symbol}${amount.toLocaleString()}`;
-}
 
 // How long to keep asking Paystack whether a payment that hasn't settled yet
 // (bank transfer / USSD confirm after the popup closes) has gone through.

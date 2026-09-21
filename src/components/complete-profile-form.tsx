@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatMoney } from "@/lib/money";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -162,7 +163,7 @@ export default function CompleteProfileForm({ studentId, dashboardPath }: { stud
               <p><span className="font-medium">Subjects:</span> {serviceDetails.selectedSubjects.join(", ")}</p>
             )}
             {requiresPayment && !!serviceDetails.totalCost && (
-              <p><span className="font-medium">Cost:</span> {serviceDetails.totalCost.toLocaleString()}</p>
+              <p><span className="font-medium">Cost:</span> {formatMoney(serviceDetails.totalCost)}</p>
             )}
             {schedule && schedule.length > 0 && (
               <div>

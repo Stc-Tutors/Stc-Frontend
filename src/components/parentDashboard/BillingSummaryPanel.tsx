@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatMoney } from "@/lib/money";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { GetMySpendingSummaryAction } from "@/server/payment";
@@ -62,7 +63,7 @@ export default function BillingSummaryPanel({ studentId }: BillingSummaryPanelPr
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="month" tick={{ fontSize: 12 }} />
                   <YAxis tick={{ fontSize: 12 }} />
-                  <Tooltip formatter={(value: number) => [`${summary.currency} ${value.toLocaleString()}`, "Spent"]} />
+                  <Tooltip formatter={(value: number) => [formatMoney(value, summary.currency), "Spent"]} />
                   <Bar dataKey="total" fill="#2563eb" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>

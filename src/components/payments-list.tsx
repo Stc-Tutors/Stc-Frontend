@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { formatMoney } from "@/lib/money";
 import { CreditCard } from "lucide-react";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 
@@ -142,7 +143,7 @@ export default function PaymentsList({ variant }: PaymentsListProps) {
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                     <XAxis dataKey="name" tick={{ fontSize: 12 }} />
                     <YAxis tick={{ fontSize: 12 }} />
-                    <Tooltip formatter={(value: number) => [`${summary.currency} ${value.toLocaleString()}`, "Spent"]} />
+                    <Tooltip formatter={(value: number) => [formatMoney(value, summary.currency), "Spent"]} />
                     <Bar dataKey="value" fill="#2563eb" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
