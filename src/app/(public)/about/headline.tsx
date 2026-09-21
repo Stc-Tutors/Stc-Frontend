@@ -20,7 +20,7 @@ const Headline = () => {
     <section className="py-16 bg-white">
       <div className="max-w-4xl mx-auto px-4">
         <div>
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">{content.title}</h2>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">{content.title}</h1>
           {content.paragraphs.map((p, i) => (
             <p key={i} className="mt-6 text-gray-700 leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeRichText(p) }} />
           ))}

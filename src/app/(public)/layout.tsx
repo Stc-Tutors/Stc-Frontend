@@ -18,7 +18,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const data = { ...DEFAULT_HEAD_SEO, ...(match?.data ?? {}) } as HeadSeoContent;
 
   return {
-    title: data.siteTitle,
+    title: { default: data.siteTitle, template: `%s | ${data.siteTitle}` },
     description: data.description,
     openGraph: {
       title: data.siteTitle,

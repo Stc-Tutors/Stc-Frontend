@@ -75,14 +75,14 @@ const Contact = () => {
   return (
     <section className="bg-white py-20 px-6 md:px-12 lg:px-20">
       <div className="max-w-7xl mx-auto">
-        <motion.h2
+        <motion.h1
           className="text-4xl font-bold text-center text-gray-900 mb-4"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
           Contact Us
-        </motion.h2>
+        </motion.h1>
 
         <motion.p
           className="text-center text-gray-600 max-w-xl mx-auto mb-12"

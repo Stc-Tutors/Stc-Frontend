@@ -7,6 +7,21 @@ import { Loader2, CheckCircle2, XCircle } from "lucide-react";
 import { VerifyEmailAction } from "@/server/auth";
 import { ROUTES } from "@/config/routes";
 
+// A verification token is single-use, so running the request twice makes the
+// second call fail with "invalid or expired" even though the first one worked
+// (React strict mode double-runs effects in dev, and some mail clients/scanners
+// open the link before the person does). Sharing one in-flight request per
+// token keeps a successful verification from being overwritten by that error.
+const inFlight = new Map<string, ReturnType<typeof VerifyEmailAction>>();
+function verifyOnce(token: string) {
+  let request = inFlight.get(token);
+  if (!request) {
+    request = VerifyEmailAction(token);
+    inFlight.set(token, request);
+  }
+  return request;
+}
+
 export default function VerifyEmailStatus() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
@@ -20,13 +35,17 @@ export default function VerifyEmailStatus() {
         setMessage("Missing verification token.");
         return;
       }
-      const [res, error] = await VerifyEmailAction(token);
+      const [res, error] = await verifyOnce(token);
       if (res) {
         setStatus("success");
         setMessage(res.message);
       } else {
         setStatus("error");
-        setMessage(error || "Verification failed.");
+        setMessage(
+          error
+            ? `${error.replace(/\.$/, "")}. If you have already verified your email, you can log in.`
+            : "Verification failed. If you have already verified your email, you can log in."
+        );
       }
     };
     run();

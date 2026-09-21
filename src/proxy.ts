@@ -69,6 +69,12 @@ const publicPaths = [
   "/services",
   "/program",
   "/blog",
+  // Token-link pages for people who never have an account: an external
+  // referee opening the reference-check email (/reference/<application>/<slot>
+  // ?token=...) and anyone opening a Special Course's shared registration
+  // link. Without these the proxy bounced them to the login page.
+  "/reference",
+  "/courses/register",
 ];
 
 async function getRoleFromToken(token: string): Promise<UserRole | null> {
