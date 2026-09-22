@@ -6,6 +6,7 @@ export interface UploadSignature {
   signature: string;
   timestamp: number;
   folder: string;
+  allowedFormats: string;
   apiKey: string;
   cloudName: string;
 }
