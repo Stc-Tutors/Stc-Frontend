@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Paperclip } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -94,6 +94,30 @@ export default function AssignmentDetailPage() {
         Due {new Date(assignment.dueDate).toLocaleDateString()} · Max score: {assignment.maxScore}
       </p>
       <p className="text-gray-700 mb-6">{assignment.description}</p>
+
+      {/* The tutor's own material for this assignment - opens in the in-app
+          viewer, never a new tab. */}
+      {(assignment.attachment || assignment.attachmentUrl) && (
+        <div className="border rounded-lg p-4 mb-6 space-y-2 bg-gray-50">
+          <p className="text-sm font-medium">Assignment material</p>
+          {assignment.attachment && (
+            <button
+              onClick={() => setPreview({ title: assignment.attachment!.fileName, url: assignment.attachment!.url })}
+              className="flex items-center gap-2 text-sm text-blue-600 hover:underline"
+            >
+              <Paperclip className="w-4 h-4" /> {assignment.attachment.fileName}
+            </button>
+          )}
+          {assignment.attachmentUrl && (
+            <button
+              onClick={() => setPreview({ title: assignment.title, url: assignment.attachmentUrl! })}
+              className="flex items-center gap-2 text-sm text-blue-600 hover:underline"
+            >
+              <Paperclip className="w-4 h-4" /> View linked document
+            </button>
+          )}
+        </div>
+      )}
 
       {message && <p className="text-sm text-blue-600 mb-4">{message}</p>}
 

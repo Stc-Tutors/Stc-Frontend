@@ -51,6 +51,35 @@ export interface GroupScheduleMatrix {
   timezone?: string;
 }
 
+// What the tutor's "Pending Assignments" queue returns - a purpose-built view
+// (see stcbe's TutorPendingAssignmentView), not a raw SubjectEnrollment: it has
+// the student's age/grade and proposed schedule the tutor needs to decide, and
+// none of the parent's contact details.
+export interface TutorPendingAssignment {
+  id: string;
+  subject: string;
+  serviceType?: string;
+  classGroup?: string;
+  classFormat?: string;
+  student: {
+    id: string;
+    fullName: string;
+    age?: number;
+    gradeLabel?: string;
+    specialNeeds?: string;
+  };
+  // Group Class only.
+  proposedSchedule?: GroupScheduleMatrix;
+  // One-on-one only - `flexible` means the family will agree times with an admin.
+  requestedSchedule?: {
+    slots: { days: string[]; time: string; durationMinutes: number }[];
+    startDate?: string;
+    timezone?: string;
+    flexible: boolean;
+  };
+  createdAt: string;
+}
+
 export interface SubjectEnrollment {
   id: string;
   student: SubjectEnrollmentStudent;

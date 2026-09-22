@@ -25,16 +25,23 @@ export default function AssessmentPage() {
   useEffect(() => {
     const load = async () => {
       const [enrollmentsRes] = await GetEnrollmentsAction();
-      const studentId = enrollmentsRes?.data?.[0]?.id;
-      if (!studentId) {
+      const enrollments = enrollmentsRes?.data ?? [];
+      if (enrollments.length === 0) {
         setIsLoading(false);
         return;
       }
 
-      const [courseEnrollmentsRes] = await GetStudentCoursesAction(studentId);
-      const courses = (courseEnrollmentsRes?.data ?? [])
-        .map((e) => (typeof e.course === "string" ? null : e.course))
-        .filter((c): c is Course => !!c);
+      // Every enrollment, not just the first - a student taking more than one
+      // service (or re-enrolled) has courses under each record. Deduped by
+      // course id since two records can share one course.
+      const courseEnrollmentLists = await Promise.all(enrollments.map((s) => GetStudentCoursesAction(s.id)));
+      const coursesById = new Map<string, Course>();
+      for (const [res] of courseEnrollmentLists) {
+        for (const e of res?.data ?? []) {
+          if (typeof e.course !== "string") coursesById.set(e.course.id, e.course);
+        }
+      }
+      const courses = Array.from(coursesById.values());
 
       const [submissionsRes] = await GetMySubmissionsAction();
       const submissions = submissionsRes?.data ?? [];
@@ -69,7 +76,7 @@ export default function AssessmentPage() {
 
       <div className="flex items-center gap-3 mb-6">
         <CalendarDays className="text-blue-500" />
-        <h2 className="text-lg font-semibold text-gray-800">Assessment</h2>
+        <h2 className="text-lg font-semibold text-gray-800">Assignments</h2>
       </div>
 
       <div className="grid grid-cols-5 font-semibold text-sm text-gray-600 py-2 border-b">

@@ -17,7 +17,19 @@ function yesNo(value: boolean): string {
 // reviewers; MyApplicationRecord (the tutor's own profile) is the other,
 // built from the exact same registry. Read-only - editing flagged fields
 // happens via the existing "Request More Info" flow, not inline here.
-export default function FullApplicationDetails({ app }: { app: TutorApplication }) {
+export default function FullApplicationDetails({
+  app,
+  isReviewer,
+}: {
+  app: TutorApplication;
+  // Only true from the admin/HOD review page - governs whether the gov-id/
+  // cert-proof rows get a real forced-download (reviewer-only backend
+  // endpoint) or just the plain, already-safe preview/inline-open (see
+  // tutor-field-registry.tsx's TutorFieldRenderContext). Omit/false from
+  // any self-view context (MyApplicationRecord, the wizard's own
+  // review-submit step) - that endpoint would just 403 for them.
+  isReviewer?: boolean;
+}) {
   // Same stages TutorApplicationService.assertCustomFieldResponsesValid
   // checks server-side - fetched here purely to resolve customFieldResponses'
   // field ids to human labels for display. Called individually (not via
@@ -42,7 +54,7 @@ export default function FullApplicationDetails({ app }: { app: TutorApplication 
     <div className="space-y-3">
       {TUTOR_FIELD_STEPS.map(({ stepId, stepTitle }) => {
         const fields = TUTOR_FIELD_REGISTRY.filter((f) => f.stepId === stepId);
-        const rendered = fields.map((entry) => ({ entry, value: renderTutorField(entry, app) }));
+        const rendered = fields.map((entry) => ({ entry, value: renderTutorField(entry, app, { isReviewer }) }));
         if (rendered.every((r) => r.value === null)) return null;
         return (
           <Section key={stepId} title={stepTitle}>

@@ -6,6 +6,7 @@ import {
   AllocationHubSummary,
   BulkActionResult,
   SubjectEnrollment,
+  TutorPendingAssignment,
   SubjectEnrollmentStatus,
   SuggestedTutor,
   TutorTeachingSummary,
@@ -182,13 +183,13 @@ export async function AssignOversightToEnrollmentsAction(
 // (PENDING_TUTOR_ACCEPTANCE) - see AllocationHubService.
 // listPendingAcceptanceForTutor.
 export async function GetMyPendingAssignmentsAction(): Promise<
-  [ApiResponse<SubjectEnrollment[]> | null, string | null]
+  [ApiResponse<TutorPendingAssignment[]> | null, string | null]
 > {
   const [res, error] = await fetchAPI({
     url: "/allocation-hub/my-pending-assignments",
     request: { method: "GET", headers: { "Content-Type": "application/json" } },
   });
-  const resData = res ? ((await res.json()) as ApiResponse<SubjectEnrollment[]>) : null;
+  const resData = res ? ((await res.json()) as ApiResponse<TutorPendingAssignment[]>) : null;
   return [resData, error];
 }
 

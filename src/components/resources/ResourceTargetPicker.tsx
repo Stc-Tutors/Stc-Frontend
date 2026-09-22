@@ -76,9 +76,9 @@ export default function ResourceTargetPicker({ courses, fetchStudents, fetchServ
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="course">A course</SelectItem>
-          <SelectItem value="subject">A subject (every paying student)</SelectItem>
-          <SelectItem value="students">Specific students</SelectItem>
+          <SelectItem value="students">Specific student(s)</SelectItem>
+          <SelectItem value="course">Entire cohort (a course)</SelectItem>
+          <SelectItem value="subject">Global subject (every paying student)</SelectItem>
         </SelectContent>
       </Select>
 

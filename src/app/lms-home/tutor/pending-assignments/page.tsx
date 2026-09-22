@@ -11,20 +11,72 @@ import {
   RejectAssignmentAction,
   RejectGroupAssignmentAction,
 } from "@/server/allocation-hub";
-import { SubjectEnrollment } from "@/types/allocation-hub";
+import { TutorPendingAssignment } from "@/types/allocation-hub";
 
 interface OneOnOneEntry {
   kind: "one-on-one";
-  row: SubjectEnrollment;
+  row: TutorPendingAssignment;
 }
 
 interface GroupEntry {
   kind: "group";
   classGroupId: string;
-  rows: SubjectEnrollment[];
+  rows: TutorPendingAssignment[];
 }
 
 type Entry = OneOnOneEntry | GroupEntry;
+
+// "Grade 5 · Age 10" - whichever of the two the student's record has.
+function studentSummary(student: TutorPendingAssignment["student"]): string {
+  return [student.gradeLabel, student.age !== undefined ? `Age ${student.age}` : undefined].filter(Boolean).join(" · ");
+}
+
+function formatDate(iso?: string): string | undefined {
+  if (!iso) return undefined;
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? undefined : d.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
+}
+
+// The proposed class times this tutor would be committing to - a group's
+// confirmed matrix, or a one-on-one's family-requested slots. Renders an
+// explicit "not set" line rather than nothing, so an empty schedule is never
+// mistaken for a card that failed to load.
+function ScheduleBlock({ entry }: { entry: Entry }) {
+  const first = entry.kind === "one-on-one" ? entry.row : entry.rows[0];
+  const group = first?.proposedSchedule;
+  const requested = first?.requestedSchedule;
+  const tz = group?.timezone ?? requested?.timezone;
+  const start = formatDate(group?.startDate ?? requested?.startDate);
+
+  let lines: string[] = [];
+  if (group) {
+    lines = [`${group.days.join(", ")} at ${group.time} · ${group.durationMinutes} min · ${group.weeks} week(s)`];
+  } else if (requested && requested.slots.length > 0) {
+    lines = requested.slots.map((s) => `${s.days.join(", ")} at ${s.time} · ${s.durationMinutes} min`);
+  }
+
+  return (
+    <div className="rounded-md bg-gray-50 px-3 py-2 text-sm">
+      <p className="text-xs font-medium text-gray-500 mb-1">Proposed class schedule</p>
+      {lines.length > 0 ? (
+        lines.map((line) => <p key={line}>{line}</p>)
+      ) : (
+        <p className="text-gray-500">
+          {requested?.flexible
+            ? "Flexible - the family will agree exact days and times with an admin."
+            : "No schedule set yet."}
+        </p>
+      )}
+      {(start || tz) && (
+        <p className="text-xs text-gray-500 mt-1">
+          {start && <>Starts {start}</>}
+          {start && tz && " · "}
+          {tz && <>Times in {tz}</>}
+        </p>
+      )}
+    </div>
+  );
+}
 
 // A student's paid subject, proposed to this tutor by an admin/HOD, waiting
 // on exactly one decision: accept or decline. Nothing is scheduled and no
@@ -36,7 +88,7 @@ type Entry = OneOnOneEntry | GroupEntry;
 // accept/decline decision (AllocationHubService.acceptGroupAssignment/
 // rejectGroupAssignment) rather than one per student.
 export default function PendingAssignmentsPage() {
-  const [rows, setRows] = useState<SubjectEnrollment[]>([]);
+  const [rows, setRows] = useState<TutorPendingAssignment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [decliningId, setDecliningId] = useState<string | null>(null);
@@ -112,8 +164,8 @@ export default function PendingAssignmentsPage() {
   };
 
   const entries: Entry[] = (() => {
-    const groupIds = new Map<string, SubjectEnrollment[]>();
-    const oneOnOne: SubjectEnrollment[] = [];
+    const groupIds = new Map<string, TutorPendingAssignment[]>();
+    const oneOnOne: TutorPendingAssignment[] = [];
     for (const row of rows) {
       if (row.classGroup) {
         (groupIds.get(row.classGroup) ?? groupIds.set(row.classGroup, []).get(row.classGroup)!).push(row);
@@ -148,33 +200,37 @@ export default function PendingAssignmentsPage() {
             const isDeclining = decliningId === key;
             const isBusy = busyId === key;
             const subject = entry.kind === "one-on-one" ? entry.row.subject : entry.rows[0]?.subject;
-            const schedule = entry.kind === "group" ? entry.rows[0]?.proposedSchedule : undefined;
 
             return (
               <Card key={key}>
                 <CardHeader>
-                  <CardTitle className="text-base">
-                    {subject}
-                    {entry.kind === "one-on-one" &&
-                      entry.row.student &&
-                      typeof entry.row.student === "object" && (
-                        <span className="font-normal text-gray-500"> — {entry.row.student.fullName}</span>
-                      )}
-                    {entry.kind === "group" && (
-                      <span className="font-normal text-gray-500">
-                        {" "}
-                        — Group class · {entry.rows.map((r) => r.student?.fullName).filter(Boolean).join(", ")}
-                      </span>
-                    )}
+                  <CardTitle className="text-base flex flex-wrap items-center gap-2">
+                    <span className="rounded-full bg-blue-50 text-blue-700 text-xs font-medium px-2.5 py-0.5">{subject}</span>
+                    {entry.kind === "group" && <span className="text-xs font-normal text-gray-500">Group class</span>}
                   </CardTitle>
-                  {schedule && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      Confirmed schedule: {schedule.days.join(", ")} at {schedule.time} · {schedule.durationMinutes} min ·{" "}
-                      {schedule.weeks} week(s)
-                    </p>
+                  {entry.kind === "one-on-one" ? (
+                    <div className="mt-1">
+                      <p className="text-sm font-medium">{entry.row.student.fullName}</p>
+                      {studentSummary(entry.row.student) && (
+                        <p className="text-xs text-gray-500">{studentSummary(entry.row.student)}</p>
+                      )}
+                      {entry.row.student.specialNeeds && (
+                        <p className="text-xs text-amber-700 mt-1">Learning needs: {entry.row.student.specialNeeds}</p>
+                      )}
+                    </div>
+                  ) : (
+                    <ul className="mt-1 space-y-1">
+                      {entry.rows.map((r) => (
+                        <li key={r.id}>
+                          <p className="text-sm font-medium">{r.student.fullName}</p>
+                          {studentSummary(r.student) && <p className="text-xs text-gray-500">{studentSummary(r.student)}</p>}
+                        </li>
+                      ))}
+                    </ul>
                   )}
                 </CardHeader>
                 <CardContent className="space-y-3">
+                  <ScheduleBlock entry={entry} />
                   {isDeclining ? (
                     <div className="space-y-2">
                       <textarea

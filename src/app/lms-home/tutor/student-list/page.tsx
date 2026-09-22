@@ -114,9 +114,16 @@ function StudentsPageInner() {
                   <AvatarFallback>{student.fullName?.[0]}</AvatarFallback>
                 </Avatar>
                 <p className="font-medium truncate w-full">{student.fullName}</p>
-                <p className="text-xs text-gray-500 truncate w-full">
-                  {student.serviceDetails?.selectedSubjects?.join(", ") || "No subjects yet"}
-                </p>
+                {/* The subject THIS tutor teaches them - not the student's whole
+                    subject list, which includes other tutors' subjects. */}
+                <div className="flex flex-wrap justify-center gap-1 w-full">
+                  {(student.taughtSubjects?.length ? student.taughtSubjects : []).map((subject) => (
+                    <span key={subject} className="text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700">
+                      {subject}
+                    </span>
+                  ))}
+                  {!student.taughtSubjects?.length && <span className="text-xs text-gray-400">No subject on record</span>}
+                </div>
                 <p className="text-xs text-gray-400">{student.serviceDetails?.ageLevel}</p>
                 <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-50 text-blue-600">
                   {student.enrollmentStatus}

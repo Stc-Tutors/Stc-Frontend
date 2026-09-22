@@ -71,7 +71,20 @@ export default function YourStudents() {
                   </Avatar>
                   {student.fullName}
                 </TableCell>
-                <TableCell>{student.serviceDetails?.selectedSubjects?.join(", ")}</TableCell>
+                <TableCell>
+                  {/* The subject THIS tutor teaches them, not the student's whole list. */}
+                  {student.taughtSubjects?.length ? (
+                    <div className="flex flex-wrap gap-1">
+                      {student.taughtSubjects.map((subject) => (
+                        <span key={subject} className="text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700">
+                          {subject}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="text-xs text-gray-400">No subject on record</span>
+                  )}
+                </TableCell>
                 <TableCell>{student.enrollmentStatus}</TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>

@@ -104,6 +104,10 @@ export default function LoginForm() {
         ToastError("Your tutor application is still under review. We'll email you once it's decided.");
       } else if (error === "ACCOUNT_SUSPENDED") {
         ToastError("This account has been suspended. Contact support if you think this is a mistake.");
+      } else if (error === "ACCOUNT_DEACTIVATED") {
+        ToastError("This account has been deactivated. Contact support if you think this is a mistake.");
+      } else if (error === "TENANT_INACTIVE") {
+        ToastError("This organisation's account is no longer active. Contact support for help.");
       } else {
         ToastError(error);
       }

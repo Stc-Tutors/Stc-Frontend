@@ -207,7 +207,7 @@ export default function TutorApplicationsPage() {
                   </button>
                   {expandedFor === app.id && (
                     <div className="mt-2">
-                      <FullApplicationDetails app={app} />
+                      <FullApplicationDetails app={app} isReviewer />
                     </div>
                   )}
                 </div>

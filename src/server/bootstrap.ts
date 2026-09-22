@@ -30,10 +30,19 @@ export interface SessionBootstrap {
 export interface SessionBootstrapResult {
   data: SessionBootstrap | null;
   error: string | null;
-  // True only for a definite "this session is not valid" (401), as opposed to a
-  // network hiccup or a slow API - the former must log out, the latter must not.
+  // True only for a definite "this session is not valid" (401, or the account/
+  // tenant itself no longer being usable), as opposed to a network hiccup or a
+  // slow API - the former must log out, the latter must not.
   unauthorized: boolean;
 }
+
+// A live session's own next request can now come back 403 with one of these
+// (authMiddleware checks the account's/tenant's current status on every
+// request, not just at login) - without this, a user suspended/deactivated/
+// whose tenant went inactive while still signed in was stuck on the
+// generic "couldn't load your session, retry" screen forever instead of
+// being sent back to login.
+const TERMINAL_SESSION_ERRORS = new Set(['Unauthorized', 'ACCOUNT_SUSPENDED', 'ACCOUNT_DEACTIVATED', 'TENANT_INACTIVE']);
 
 // A parent sees the children linked to them; a self-registered adult student
 // has no parent, so their own enrollments come back from the other endpoint.
@@ -51,7 +60,7 @@ export async function GetMyStudentsAction(): Promise<[Student[] | null, string |
 export async function GetSessionBootstrapAction(): Promise<SessionBootstrapResult> {
   const [userRes, userError] = await GetUserAction();
   if (userError || !userRes?.data) {
-    return { data: null, error: userError ?? "Couldn't load your session", unauthorized: userError === "Unauthorized" };
+    return { data: null, error: userError ?? "Couldn't load your session", unauthorized: TERMINAL_SESSION_ERRORS.has(userError ?? "") };
   }
   const user = userRes.data;
   const isLmsRole = user.role === UserRole.STUDENT || user.role === UserRole.PARENT;

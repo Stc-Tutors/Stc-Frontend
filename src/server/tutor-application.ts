@@ -37,6 +37,37 @@ export async function GetTutorApplicationsAction(
   return [resData, error];
 }
 
+// Gov ID / cert-proof upload as Cloudinary's `authenticated` delivery type
+// (see stcbe's uploads.controller.ts) - the stored URL can't be turned into
+// a forced download client-side (splicing fl_attachment into it invalidates
+// its signature), so a fresh one has to be minted server-side per request.
+// Reviewer-only (same authorization as viewing the application itself) -
+// don't call this from the applicant's own MyApplicationRecord view.
+export async function GetGovIdDownloadUrlAction(
+  applicationId: string
+): Promise<[ApiResponse<{ url: string }> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: `/tutor-applications/${applicationId}/gov-id-download-url`,
+    request: { method: "GET", headers: { "Content-Type": "application/json" } },
+  });
+
+  const resData = res ? ((await res.json()) as ApiResponse<{ url: string }>) : null;
+  return [resData, error];
+}
+
+export async function GetCertProofDownloadUrlAction(
+  applicationId: string,
+  index: number
+): Promise<[ApiResponse<{ url: string }> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: `/tutor-applications/${applicationId}/cert-proof-download-url/${index}`,
+    request: { method: "GET", headers: { "Content-Type": "application/json" } },
+  });
+
+  const resData = res ? ((await res.json()) as ApiResponse<{ url: string }>) : null;
+  return [resData, error];
+}
+
 export async function ApproveTutorApplicationAction(
   id: string
 ): Promise<[ApiResponse<TutorApplication> | null, string | null]> {

@@ -2,6 +2,7 @@ import FileAccessRow from "@/components/tutor-applications/file-access-row";
 import { formatDate } from "@/lib/datetime";
 import { formatMoney } from "@/lib/money";
 import { EmbeddedLinkPreview } from "@/components/tutor-applications/embedded-link-preview";
+import { GetCertProofDownloadUrlAction, GetGovIdDownloadUrlAction } from "@/server/tutor-application";
 import {
   AnalyticalOrCreative,
   CLASS_FORMAT_LABELS,
@@ -41,6 +42,19 @@ function yesNo(value: boolean | undefined): string | undefined {
   return value ? "Yes" : "No";
 }
 
+// Passed through to a field's format() by renderTutorField - only the gov
+// ID / cert-proof entries use it (see their format functions below).
+// `isReviewer` is true only from FullApplicationDetails' admin-facing call
+// site, never from the tutor's own MyApplicationRecord view or the
+// wizard's own review-submit step - those aren't authorized to call the
+// reviewer-only download-url endpoint.
+export interface TutorFieldRenderContext {
+  isReviewer?: boolean;
+  // Always populated by renderTutorField itself (from the `app` it's given) -
+  // callers only need to set isReviewer.
+  applicationId?: string;
+}
+
 export interface TutorFieldEntry {
   id: string;
   label: string;
@@ -51,7 +65,7 @@ export interface TutorFieldEntry {
   stepId: number;
   stepTitle: string;
   getValue: (app: TutorApplication) => unknown;
-  format: (value: any) => React.ReactNode;
+  format: (value: any, context?: TutorFieldRenderContext) => React.ReactNode;
 }
 
 // Single canonical list of every field captured by the tutor-registration
@@ -261,7 +275,21 @@ export const TUTOR_FIELD_REGISTRY: TutorFieldEntry[] = [
     stepId: 5,
     stepTitle: "Supporting Documents",
     getValue: (a) => a.govIdFile,
-    format: (v) => <FileAccessRow label="Government-issued ID" file={v} />,
+    format: (v, context) => (
+      <FileAccessRow
+        label="Government-issued ID"
+        file={v}
+        mintDownloadUrl={
+          context?.isReviewer && context.applicationId
+            ? async () => {
+                const [res, error] = await GetGovIdDownloadUrlAction(context.applicationId!);
+                if (error || !res?.data) throw new Error(error || "Could not prepare download");
+                return res.data.url;
+              }
+            : undefined
+        }
+      />
+    ),
   },
   {
     id: "cvFile",
@@ -285,10 +313,23 @@ export const TUTOR_FIELD_REGISTRY: TutorFieldEntry[] = [
     stepId: 5,
     stepTitle: "Supporting Documents",
     getValue: (a) => a.certificationProofs,
-    format: (v: TutorApplication["certificationProofs"]) => (
+    format: (v: TutorApplication["certificationProofs"], context) => (
       <div className="space-y-1.5">
         {v!.map((proof, i) => (
-          <FileAccessRow key={i} label={`${proof.certification} proof`} file={proof.file} />
+          <FileAccessRow
+            key={i}
+            label={`${proof.certification} proof`}
+            file={proof.file}
+            mintDownloadUrl={
+              context?.isReviewer && context.applicationId
+                ? async () => {
+                    const [res, error] = await GetCertProofDownloadUrlAction(context.applicationId!, i);
+                    if (error || !res?.data) throw new Error(error || "Could not prepare download");
+                    return res.data.url;
+                  }
+                : undefined
+            }
+          />
         ))}
       </div>
     ),
@@ -629,8 +670,12 @@ function isEmpty(value: unknown): boolean {
 // field wasn't answered - shared by FullApplicationDetails (admin) and
 // MyApplicationRecord (tutor's own profile) so both stay pixel-identical to
 // what the registry declares.
-export function renderTutorField(entry: TutorFieldEntry, app: TutorApplication): React.ReactNode {
+export function renderTutorField(
+  entry: TutorFieldEntry,
+  app: TutorApplication,
+  context?: TutorFieldRenderContext
+): React.ReactNode {
   const value = entry.getValue(app);
   if (isEmpty(value)) return null;
-  return entry.format(value);
+  return entry.format(value, { ...context, applicationId: app.id });
 }

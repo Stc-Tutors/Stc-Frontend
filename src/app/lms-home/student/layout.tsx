@@ -57,7 +57,7 @@ const sidebarLinks = [
   { label: "Classroom", icon: Users, href: "/lms-home/student/classroom" },
   { label: "Resources", icon: FolderOpen, href: "/lms-home/student/resources" },
   { label: "Messages", icon: MessageSquare, href: "/lms-home/student/messages" },
-  { label: "Assessment", icon: BookOpen, href: "/lms-home/student/assessment" },
+  { label: "Assignments", icon: BookOpen, href: "/lms-home/student/assessment" },
   { label: "Analytics", icon: BarChart2, href: "/lms-home/student/analytics" },
   { label: "Attendance", icon: ClipboardCheck, href: "/lms-home/student/attendance" },
   { label: "Courses", icon: NotebookPen, href: "/lms-home/student/courses" },
