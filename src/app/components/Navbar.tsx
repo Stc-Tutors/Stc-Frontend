@@ -4,10 +4,26 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import "./Navbar.css"
-import { ROUTES, lmsDashboardPath } from "@/config/routes";
+import { lmsDashboardPath } from "@/config/routes";
 import { useTenantBranding } from "@/contexts/tenant-branding-context";
 import { useUser } from "@/contexts/user-context";
 import { UserProfileDropdown } from "@/components/user-profile-dropdown";
+import { usePageSection } from "@/hooks/use-page-section";
+import { HeaderContent, PageSectionKey } from "@/types/content";
+
+// Mirrors Stc-SuperAdmin's DEFAULT_HEADER (page-sections-tab.tsx) - keep in sync.
+const DEFAULT_HEADER: HeaderContent = {
+  navLinks: [
+    { label: "About", href: "/about" },
+    { label: "Services", href: "/services" },
+    { label: "Blog", href: "/blog" },
+    { label: "Contact", href: "/contact" },
+  ],
+  ctaText: "Get Started",
+  ctaLink: "/services",
+  careersCtaText: "Careers",
+  careersCtaLink: "/careers",
+};
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -15,13 +31,9 @@ const Navbar = () => {
   const { tenant } = useTenantBranding();
   const { user, logout } = useUser();
   const logoUrl = tenant?.branding?.logoUrl;
+  const header = usePageSection(PageSectionKey.HEADER, DEFAULT_HEADER);
 
-  const links = [
-    { path: "/about", label: "About" },
-    { path: "/services", label: "Services" },
-    { path: "/blog", label: "Blog" },
-    { path: "/contact", label: "Contact" },
-  ];
+  const links = header.navLinks.map((link) => ({ path: link.href, label: link.label }));
 
   // Disable scrolling when mobile menu is open
   useEffect(() => {
@@ -59,11 +71,14 @@ const Navbar = () => {
               </li>
             ))}
           </ul>
+          <Link href={header.careersCtaLink} className="navbarSecondaryCta">
+            {header.careersCtaText}
+          </Link>
           {user ? (
             <UserProfileDropdown />
           ) : (
-            <Link href="/services" className="navbarCta">
-              Get Started
+            <Link href={header.ctaLink} className="navbarCta">
+              {header.ctaText}
             </Link>
           )}
         </nav>
@@ -94,6 +109,15 @@ const Navbar = () => {
                   </Link>
                 </li>
               ))}
+              <li>
+                <Link
+                  href={header.careersCtaLink}
+                  className="mobileLink"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  {header.careersCtaText}
+                </Link>
+              </li>
               {user ? (
                 <>
                   <li>
@@ -121,11 +145,11 @@ const Navbar = () => {
               ) : (
                 <li>
                   <Link
-                    href={ROUTES.AUTH.REGISTER}
+                    href={header.ctaLink}
                     className="mobileCta"
                     onClick={() => setMobileOpen(false)}
                   >
-                    Get Started
+                    {header.ctaText}
                   </Link>
                 </li>
               )}

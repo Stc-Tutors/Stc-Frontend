@@ -9,6 +9,7 @@ export type UploadFolder =
   | "tutor-applications/supporting-documents"
   | "assignments/attachments"
   | "submissions/attachments"
+  | "careers/resumes"
   | "avatars";
 
 // Metadata captured at upload time - see stcbe's IUploadedFile. Cloudinary's

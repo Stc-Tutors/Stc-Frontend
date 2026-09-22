@@ -1,7 +1,7 @@
 "use server";
 
 import fetchAPI, { type ApiResponse } from "@/lib/fetch";
-import { BlogPost, FeaturedTutor, PageSection, ServicePage, TeamMember, Testimonial } from "@/types/content";
+import { BlogPost, FeaturedTutor, JobOpening, PageSection, ServicePage, TeamMember, Testimonial } from "@/types/content";
 
 // All public, unauthenticated - safe to call before the T&C gate, same as
 // GetSiteContentAction/GetHomepageSlidesAction.
@@ -66,6 +66,16 @@ export async function GetServicePageBySlugAction(
   });
 
   const resData = res ? ((await res.json()) as ApiResponse<ServicePage>) : null;
+  return [resData, error];
+}
+
+export async function GetJobOpeningsAction(): Promise<[ApiResponse<JobOpening[]> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: "/public/job-openings",
+    request: { method: "GET", headers: { "Content-Type": "application/json" } },
+  });
+
+  const resData = res ? ((await res.json()) as ApiResponse<JobOpening[]>) : null;
   return [resData, error];
 }
 

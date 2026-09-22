@@ -2,6 +2,7 @@
 // when adding a section. See stcbe's PageSectionKey enum for the source of truth.
 export enum PageSectionKey {
   HERO = "HERO",
+  HEADER = "HEADER",
   FOOTER = "FOOTER",
   HEAD_SEO = "HEAD_SEO",
   FEATURES = "FEATURES",
@@ -13,6 +14,7 @@ export enum PageSectionKey {
   ABOUT_APPROACH = "ABOUT_APPROACH",
   SERVICES_INTRO = "SERVICES_INTRO",
   CONTACT_INFO = "CONTACT_INFO",
+  CAREERS_INTRO = "CAREERS_INTRO",
 }
 
 export interface PageSection {
@@ -47,10 +49,26 @@ export interface FooterSocialLink {
   url: string;
 }
 
+// The logo isn't part of this: it comes from the tenant's own branding
+// (Navbar.tsx), not from platform-owned marketing content.
+export interface HeaderContent {
+  navLinks: FooterLink[];
+  ctaText: string;
+  ctaLink: string;
+  // A second, always-visible CTA distinct from ctaText/ctaLink (which hides
+  // once a visitor is signed in) - the careers page (tutor recruitment and
+  // other openings) matters regardless of whether the visitor already has an
+  // account. Defaults to "Careers" -> /careers.
+  careersCtaText: string;
+  careersCtaLink: string;
+}
+
 export interface FooterContent {
   copyrightName: string;
   socialLinks: FooterSocialLink[];
   companyLinks: FooterLink[];
+  careersCtaText: string;
+  careersCtaLink: string;
 }
 
 export interface HeadSeoContent {
@@ -267,4 +285,63 @@ export interface BlogPost {
   publishedAt?: string;
   seoTitle?: string;
   seoDescription?: string;
+}
+
+export interface CareersIntroContent {
+  heading: string;
+  body: string;
+  // "Who we are" - framed for a candidate audience, distinct from
+  // ABOUT_HEADLINE's student-facing copy.
+  aboutHeading: string;
+  aboutBody: string;
+  // "The kind of tutors/staff we look for" - bullet list.
+  lookingForHeading: string;
+  lookingForItems: string[];
+  // "Why join us" - bullet list.
+  whyJoinHeading: string;
+  whyJoinItems: string[];
+}
+
+export enum JobEmploymentType {
+  FULL_TIME = "FULL_TIME",
+  PART_TIME = "PART_TIME",
+  CONTRACT = "CONTRACT",
+  INTERNSHIP = "INTERNSHIP",
+  VOLUNTEER = "VOLUNTEER",
+}
+
+export interface JobOpening {
+  id: string;
+  title: string;
+  slug: string;
+  department: string;
+  location: string;
+  employmentType: JobEmploymentType;
+  summary: string;
+  description: string;
+  requirements: string[];
+  // The standing "Become a Tutor" listing - its Apply button routes to
+  // /auth/apply-tutor instead of the generic application form below.
+  isTutorRole: boolean;
+}
+
+export enum CareerApplicationStatus {
+  NEW = "NEW",
+  REVIEWED = "REVIEWED",
+  SHORTLISTED = "SHORTLISTED",
+  REJECTED = "REJECTED",
+  HIRED = "HIRED",
+}
+
+export interface CareerApplication {
+  id: string;
+  jobOpening: { id: string; title: string; slug: string } | string;
+  jobTitle: string;
+  fullName: string;
+  email: string;
+  phone?: string;
+  resumeUrl: string;
+  coverLetter?: string;
+  status: CareerApplicationStatus;
+  createdAt: string;
 }

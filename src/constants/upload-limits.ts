@@ -35,3 +35,9 @@ export const ASSIGNMENT_ATTACHMENT_UPLOAD_LIMITS: UploadLimits = {
 // A student's submitted work - same formats/size as an assignment's own
 // attachment. Keep in sync with stcbe's SUBMISSION_ATTACHMENT_UPLOAD_LIMITS.
 export const SUBMISSION_ATTACHMENT_UPLOAD_LIMITS: UploadLimits = ASSIGNMENT_ATTACHMENT_UPLOAD_LIMITS;
+
+// A Careers page applicant's resume - same formats as a tutor CV, but sized
+// like an assignment attachment rather than the tight 1MB default (a résumé
+// with any formatting easily exceeds 1MB). Keep in sync with stcbe's
+// FOLDER_FORMATS['careers/resumes'].
+export const CAREER_RESUME_UPLOAD_LIMITS: UploadLimits = { allowedFormats: ["PDF", "DOC", "DOCX"], maxSizeMB: 5 };

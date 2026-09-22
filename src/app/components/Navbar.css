@@ -106,6 +106,24 @@
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
 }
 
+/* Secondary CTA - "Become a Tutor". Outlined so it reads as a second, less
+   dominant action next to the filled navbarCta, and stays visible whether or
+   not the visitor is signed in (unlike navbarCta, which is auth-gated). */
+.navbarSecondaryCta {
+  color: white;
+  border: 1.5px solid white;
+  padding: 0.55rem 1.4rem;
+  border-radius: 50px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.navbarSecondaryCta:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+}
+
 /* Mobile menu button */
 .menuButton {
   display: none;
