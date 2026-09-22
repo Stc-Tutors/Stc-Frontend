@@ -13,8 +13,16 @@ function formatFileSize(bytes: number): string {
 
 // Cloudinary serves the plain URL inline (browsers render images/PDFs,
 // download everything else) - `fl_attachment` forces a real download
-// regardless of type, for the admin's explicit "Download" action.
+// regardless of type, for the admin's explicit "Download" action. Only
+// valid for a plain `type: upload` delivery URL - an `authenticated`-type
+// one (gov ID / cert proof - see stcbe's uploads.controller.ts
+// AUTHENTICATED_FOLDERS) has its signature computed over the exact
+// transformation string it was minted with, so splicing fl_attachment into
+// it afterward produces an invalid signature and a broken link. Left
+// unchanged for that case - opens/saves via the browser's own handling of
+// the plain (still correctly signed, still working) URL instead.
 function toDownloadUrl(url: string): string {
+  if (url.includes("/authenticated/")) return url;
   return url.replace("/upload/", "/upload/fl_attachment/");
 }
 

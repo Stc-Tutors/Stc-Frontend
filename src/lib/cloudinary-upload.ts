@@ -51,7 +51,7 @@ export async function uploadToCloudinary(file: File, folder: UploadFolder): Prom
   if (error || !res?.data) {
     throw new Error(error || "Could not prepare file upload");
   }
-  const { signature, timestamp, apiKey, cloudName, allowedFormats } = res.data;
+  const { signature, timestamp, apiKey, cloudName, allowedFormats, type } = res.data;
 
   const formData = new FormData();
   formData.append("file", file);
@@ -61,6 +61,10 @@ export async function uploadToCloudinary(file: File, folder: UploadFolder): Prom
   formData.append("folder", folder);
   // Part of what the backend signed - Cloudinary rejects a mismatch, and refuses files outside this list.
   formData.append("allowed_formats", allowedFormats);
+  // Also part of what was signed, only present for a folder the backend
+  // restricts delivery on (currently gov-id/cert-proof) - omitted entirely
+  // otherwise, matching what was actually signed.
+  if (type) formData.append("type", type);
 
   const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`, {
     method: "POST",

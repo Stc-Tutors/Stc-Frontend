@@ -7,6 +7,10 @@ export interface UploadSignature {
   timestamp: number;
   folder: string;
   allowedFormats: string;
+  // Present (== "authenticated") for a folder the backend uploads as a
+  // restricted Cloudinary delivery type instead of its default public one -
+  // see stcbe's uploads.controller.ts AUTHENTICATED_FOLDERS.
+  type?: string;
   apiKey: string;
   cloudName: string;
 }
