@@ -112,10 +112,32 @@ export async function ClockInLessonAction(id: string): Promise<[ApiResponse<Less
   return [resData, error];
 }
 
-export async function ClockOutLessonAction(id: string): Promise<[ApiResponse<Lesson> | null, string | null]> {
+// The end-of-session report fields an admin has configured (label, required, active) - see stcbe's clock-out form.
+export interface ClockOutField {
+  key: string;
+  label: string;
+  required: boolean;
+  isActive: boolean;
+}
+
+export async function GetClockOutFormFieldsAction(): Promise<[ApiResponse<ClockOutField[]> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: "/lessons/clock-out-form-fields",
+    request: { method: "GET", headers: { "Content-Type": "application/json" } },
+  });
+
+  const resData = res ? ((await res.json()) as ApiResponse<ClockOutField[]>) : null;
+  return [resData, error];
+}
+
+// `report` holds the answers keyed by field key; the backend rejects the clock-out if a required one is missing.
+export async function ClockOutLessonAction(
+  id: string,
+  report: Record<string, string> = {}
+): Promise<[ApiResponse<Lesson> | null, string | null]> {
   const [res, error] = await fetchAPI({
     url: `/lessons/${id}/clock-out`,
-    request: { method: "PATCH", headers: { "Content-Type": "application/json" } },
+    request: { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(report) },
   });
 
   const resData = res ? ((await res.json()) as ApiResponse<Lesson>) : null;

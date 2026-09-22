@@ -6,7 +6,8 @@ import { CalendarClock, Play, Square, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { GetMyCoursesAction, GetCourseStudentsAction } from "@/server/course";
-import { GetCourseLessonsAction, ClockInLessonAction, ClockOutLessonAction, AddLessonCommentAction } from "@/server/lesson";
+import { GetCourseLessonsAction, ClockInLessonAction, AddLessonCommentAction } from "@/server/lesson";
+import ClockOutDialog from "@/components/tutorDashboard/ClockOutDialog";
 import { MarkAttendanceAction } from "@/server/attendance";
 import { formatScheduleTime } from "@/lib/datetime";
 import { Course } from "@/types/course";
@@ -30,6 +31,8 @@ export default function TodaysSessions() {
   const [isLoading, setIsLoading] = useState(true);
   const [comments, setComments] = useState<Record<string, string>>({});
   const [message, setMessage] = useState<string | null>(null);
+  // The lesson whose end-of-session report form is open.
+  const [clockOutLessonId, setClockOutLessonId] = useState<string | null>(null);
   const [attendanceLessonId, setAttendanceLessonId] = useState<string | null>(null);
   const [courseStudents, setCourseStudents] = useState<Student[]>([]);
   const [markedStudentIds, setMarkedStudentIds] = useState<Set<string>>(new Set());
@@ -62,9 +65,9 @@ export default function TodaysSessions() {
     load();
   };
 
-  const handleClockOut = async (id: string) => {
-    const [, error] = await ClockOutLessonAction(id);
-    setMessage(error);
+  const handleClockedOut = () => {
+    setClockOutLessonId(null);
+    setMessage("Session clocked out - your report has been submitted for review.");
     load();
   };
 
@@ -122,6 +125,7 @@ export default function TodaysSessions() {
     <div className="bg-white rounded-lg shadow-sm p-4 space-y-3">
       <h3 className="font-semibold text-gray-800">Today's Sessions</h3>
       {message && <p className="text-sm text-blue-600">{message}</p>}
+      <ClockOutDialog lessonId={clockOutLessonId} onClose={() => setClockOutLessonId(null)} onClockedOut={handleClockedOut} />
 
       {isLoading ? (
         <p className="text-sm text-gray-500">Loading...</p>
@@ -148,7 +152,7 @@ export default function TodaysSessions() {
                       <Play className="w-3.5 h-3.5 mr-1" /> Clock In
                     </Button>
                   ) : !lesson.actualEndTime ? (
-                    <Button size="sm" variant="destructive" onClick={() => handleClockOut(lesson.id)}>
+                    <Button size="sm" variant="destructive" onClick={() => setClockOutLessonId(lesson.id)}>
                       <Square className="w-3.5 h-3.5 mr-1" /> Clock Out
                     </Button>
                   ) : (
