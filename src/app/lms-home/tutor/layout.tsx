@@ -105,13 +105,20 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
   // application is APPROVED_PENDING_VETTING can already log in (their
   // account is ACTIVE so they can reach this exact form), but must not be
   // able to browse the rest of the dashboard - allocation eligibility and
-  // everything else waits for the Vetting Questionnaire. Checked ahead of
-  // the onboarding check below since completing vetting comes first.
+  // everything else waits for the Vetting Questionnaire. Also gated while
+  // VETTING_SUBMITTED: a reviewer has to confirm the answers before the
+  // tutor is treated as vetted (see TutorApplicationService.confirmVetting) -
+  // this used to auto-approve on submission, so the tutor went straight
+  // through here. Checked ahead of the onboarding check below since
+  // completing vetting comes first.
   useEffect(() => {
     if (pathname === VETTING_PATH) return;
     (async () => {
       const [res] = await GetMyTutorApplicationAction();
-      if (res?.data?.status === TutorApplicationStatus.APPROVED_PENDING_VETTING) {
+      if (
+        res?.data?.status === TutorApplicationStatus.APPROVED_PENDING_VETTING ||
+        res?.data?.status === TutorApplicationStatus.VETTING_SUBMITTED
+      ) {
         router.replace(VETTING_PATH);
       }
     })();

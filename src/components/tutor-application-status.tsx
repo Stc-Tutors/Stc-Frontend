@@ -30,6 +30,7 @@ const STATUS_LABELS: Record<TutorApplicationStatus, string> = {
   [TutorApplicationStatus.RECOMMENDED]: "Under Final Review",
   [TutorApplicationStatus.NEEDS_MORE_INFO]: "Needs More Info",
   [TutorApplicationStatus.APPROVED_PENDING_VETTING]: "Approved - Confirmation Needed",
+  [TutorApplicationStatus.VETTING_SUBMITTED]: "Vetting Submitted - Awaiting Review",
   [TutorApplicationStatus.APPROVED]: "Approved",
   [TutorApplicationStatus.REJECTED]: "Not Approved",
 };
@@ -40,6 +41,7 @@ const STATUS_COLORS: Record<TutorApplicationStatus, string> = {
   [TutorApplicationStatus.RECOMMENDED]: "bg-blue-100 text-blue-800",
   [TutorApplicationStatus.NEEDS_MORE_INFO]: "bg-orange-100 text-orange-800",
   [TutorApplicationStatus.APPROVED_PENDING_VETTING]: "bg-amber-100 text-amber-800",
+  [TutorApplicationStatus.VETTING_SUBMITTED]: "bg-amber-100 text-amber-800",
   [TutorApplicationStatus.APPROVED]: "bg-green-100 text-green-800",
   [TutorApplicationStatus.REJECTED]: "bg-red-100 text-red-800",
 };

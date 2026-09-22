@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import InlineLoader from "@/components/shared/InlineLoader";
-import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
@@ -26,7 +25,6 @@ function CharCount({ value }: { value: string }) {
 // is what confirms the approval and unlocks student allocation eligibility
 // - see stcbe's TutorApplicationService.submitVettingQuestionnaire.
 export default function TutorVettingPage() {
-  const router = useRouter();
   const [application, setApplication] = useState<TutorApplication | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -93,7 +91,9 @@ export default function TutorVettingPage() {
       setError(err);
       return;
     }
-    router.push("/lms-home/tutor/dashboard");
+    // A reviewer has to confirm this before it counts - show the "awaiting confirmation" branch below instead of
+    // navigating away as if approval were already final.
+    setApplication({ ...application, status: TutorApplicationStatus.VETTING_SUBMITTED });
   };
 
   if (isLoading) {
@@ -108,6 +108,19 @@ export default function TutorVettingPage() {
             {application?.status === TutorApplicationStatus.APPROVED
               ? "You've already completed the Vetting Questionnaire - your approval is confirmed."
               : "There's nothing to complete here right now."}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (application.status === TutorApplicationStatus.VETTING_SUBMITTED) {
+    return (
+      <div className="max-w-2xl mx-auto p-6">
+        <Card>
+          <CardContent className="py-6 text-sm text-gray-600">
+            Thanks - your Vetting Questionnaire has been submitted. A reviewer will confirm it shortly; you&apos;ll be
+            notified once that&apos;s done and you&apos;re eligible to be matched with students.
           </CardContent>
         </Card>
       </div>

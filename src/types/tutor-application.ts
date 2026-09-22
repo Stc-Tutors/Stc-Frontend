@@ -18,6 +18,9 @@ export enum TutorApplicationStatus {
   // post-approval Vetting Questionnaire (see VettingQuestionnaire) before
   // being eligible for student allocation - submitting it flips this to APPROVED.
   APPROVED_PENDING_VETTING = "APPROVED_PENDING_VETTING",
+  // Vetting Questionnaire submitted; a reviewer has to confirm it before it counts (submitting it used to flip
+  // straight to APPROVED with nobody checking the answers).
+  VETTING_SUBMITTED = "VETTING_SUBMITTED",
   APPROVED = "APPROVED",
   REJECTED = "REJECTED",
 }
