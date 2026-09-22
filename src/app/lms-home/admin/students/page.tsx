@@ -2,25 +2,10 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { MoreHorizontal, Plus, Search } from "lucide-react";
+import { ChevronRight, Plus, Search } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -29,8 +14,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ListStudentsForAdminAction, SuspendStudentAction, RemoveStudentAction } from "@/server/admin";
-import { EnrollmentStatus, Student, studentAvatarUrl, studentLoginId } from "@/types/student";
+import { ListGroupedStudentsForAdminAction } from "@/server/admin";
+import { EnrollmentStatus, GroupedStudent, studentAvatarUrl, studentLoginId } from "@/types/student";
 import { useUser } from "@/contexts/user-context";
 import { AdminPermission } from "@/types/admin-permission";
 
@@ -39,8 +24,30 @@ const STATUS_COLORS: Record<string, string> = {
   [EnrollmentStatus.PENDING]: "bg-amber-100 text-amber-700",
   [EnrollmentStatus.PENDING_PARENT_CONFIRMATION]: "bg-amber-100 text-amber-700",
   [EnrollmentStatus.COMPLETED]: "bg-blue-100 text-blue-700",
+  [EnrollmentStatus.DRAFT]: "bg-gray-100 text-gray-500",
   [EnrollmentStatus.CANCELLED]: "bg-gray-100 text-gray-600",
 };
+
+// One badge per distinct status this child has an enrollment in, e.g. a
+// child with 2 ENROLLED and 1 DRAFT shows "2 Enrolled" + "1 Draft" - lets an
+// admin tell "3 active courses" apart from "1 real enrollment, 2 abandoned
+// wizard drafts" without opening the profile.
+function EnrollmentBadges({ statusCounts }: { statusCounts: GroupedStudent["statusCounts"] }) {
+  const entries = Object.entries(statusCounts).filter(([, count]) => (count ?? 0) > 0);
+  if (entries.length === 0) return <span className="text-gray-400">—</span>;
+  return (
+    <div className="flex flex-wrap gap-1 max-w-[220px]">
+      {entries.map(([status, count]) => (
+        <span
+          key={status}
+          className={`text-xs font-medium px-2 py-0.5 rounded-full ${STATUS_COLORS[status] ?? "bg-gray-100 text-gray-600"}`}
+        >
+          {count} {status.replace(/_/g, " ").toLowerCase()}
+        </span>
+      ))}
+    </div>
+  );
+}
 
 export default function AdminStudentsPage() {
   return (
@@ -55,21 +62,14 @@ function AdminStudentsPageInner() {
   const searchParams = useSearchParams();
   const { hasPermission } = useUser();
   const canManageStudents = hasPermission(AdminPermission.MANAGE_STUDENTS);
-  const [students, setStudents] = useState<Student[]>([]);
+  const [children, setChildren] = useState<GroupedStudent[]>([]);
   const [search, setSearch] = useState(searchParams.get("search") || "");
   const [isLoading, setIsLoading] = useState(true);
-  const [message, setMessage] = useState<string | null>(null);
-
-  const [suspendTarget, setSuspendTarget] = useState<Student | null>(null);
-  const [suspendReason, setSuspendReason] = useState("");
-  const [suspendDuration, setSuspendDuration] = useState("");
-  const [removeTarget, setRemoveTarget] = useState<Student | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
 
   const load = async (searchTerm?: string) => {
     setIsLoading(true);
-    const [res] = await ListStudentsForAdminAction({ search: searchTerm, limit: 100 });
-    setStudents(res?.data ?? []);
+    const [res] = await ListGroupedStudentsForAdminAction({ search: searchTerm, limit: 100 });
+    setChildren(res?.data ?? []);
     setIsLoading(false);
   };
 
@@ -80,32 +80,6 @@ function AdminStudentsPageInner() {
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    load(search);
-  };
-
-  const handleSuspend = async () => {
-    if (!suspendTarget || !suspendReason.trim()) return;
-    setIsSaving(true);
-    const [, error] = await SuspendStudentAction(
-      suspendTarget.id,
-      suspendReason.trim(),
-      suspendDuration ? Number(suspendDuration) : undefined
-    );
-    setIsSaving(false);
-    setMessage(error || `${suspendTarget.fullName} suspended`);
-    setSuspendTarget(null);
-    setSuspendReason("");
-    setSuspendDuration("");
-    load(search);
-  };
-
-  const handleRemove = async () => {
-    if (!removeTarget) return;
-    setIsSaving(true);
-    const [, error] = await RemoveStudentAction(removeTarget.id);
-    setIsSaving(false);
-    setMessage(error || `${removeTarget.fullName} removed`);
-    setRemoveTarget(null);
     load(search);
   };
 
@@ -130,11 +104,9 @@ function AdminStudentsPageInner() {
         />
       </form>
 
-      {message && <p className="text-sm text-blue-600 mb-4">{message}</p>}
-
       {isLoading ? (
         <p className="text-sm text-gray-500 py-4">Loading students...</p>
-      ) : students.length === 0 ? (
+      ) : children.length === 0 ? (
         <p className="text-sm text-gray-500 py-4">No students found.</p>
       ) : (
         <Table>
@@ -145,111 +117,47 @@ function AdminStudentsPageInner() {
               <TableHead>Grade</TableHead>
               <TableHead>Parent Name</TableHead>
               <TableHead>Contact</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Action</TableHead>
+              <TableHead>Enrollments</TableHead>
+              <TableHead className="text-right"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {students.map((student) => (
-              <TableRow key={student.id}>
-                <TableCell className="text-xs text-gray-500">{studentLoginId(student.studentUser) || student.studentIdCode || "—"}</TableCell>
+            {children.map((child) => (
+              <TableRow
+                key={child.childId}
+                className="cursor-pointer"
+                onClick={() => router.push(`/lms-home/admin/students/child/${child.childId}`)}
+              >
+                <TableCell className="text-xs text-gray-500">
+                  {studentLoginId(child.studentUser) || child.studentIdCode || "—"}
+                </TableCell>
                 <TableCell className="flex items-center gap-2">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={studentAvatarUrl(student.user)} alt={student.fullName} />
-                    <AvatarFallback>{student.fullName?.[0]}</AvatarFallback>
+                    <AvatarImage src={child.photoUrl || studentAvatarUrl(child.user)} alt={child.fullName} />
+                    <AvatarFallback>{child.fullName?.[0]}</AvatarFallback>
                   </Avatar>
-                  {student.fullName}
+                  {child.fullName}
+                  {child.suspended && (
+                    <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-700">Suspended</span>
+                  )}
                 </TableCell>
-                <TableCell>{student.grade || "—"}</TableCell>
-                <TableCell>{student.parentName || "—"}</TableCell>
-                <TableCell className="text-sm text-gray-500">{student.parentEmail || student.parentPhone || "—"}</TableCell>
+                <TableCell>{child.grade || "—"}</TableCell>
+                <TableCell>{child.parentName || "—"}</TableCell>
+                <TableCell className="text-sm text-gray-500">{child.parentEmail || child.parentPhone || "—"}</TableCell>
                 <TableCell>
-                  <span className={`text-xs font-medium px-2 py-1 rounded-full ${STATUS_COLORS[student.enrollmentStatus] ?? "bg-gray-100 text-gray-600"}`}>
-                    {student.suspensionReason ? "Suspended" : student.enrollmentStatus}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-gray-700">{child.enrollmentCount}</span>
+                    <EnrollmentBadges statusCounts={child.statusCounts} />
+                  </div>
                 </TableCell>
                 <TableCell className="text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger>
-                      <MoreHorizontal className="h-5 w-5 cursor-pointer" />
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => router.push(`/lms-home/admin/students/${student.id}`)}>
-                        Student Performance
-                      </DropdownMenuItem>
-                      {canManageStudents && (
-                        <>
-                          {student.suspensionReason ? (
-                            <DropdownMenuItem onClick={() => router.push(`/lms-home/admin/students/${student.id}`)}>
-                              Reactivate Student
-                            </DropdownMenuItem>
-                          ) : (
-                            <DropdownMenuItem onClick={() => setSuspendTarget(student)}>Suspend Student</DropdownMenuItem>
-                          )}
-                          <DropdownMenuItem className="text-red-600" onClick={() => setRemoveTarget(student)}>
-                            Remove Student
-                          </DropdownMenuItem>
-                        </>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <ChevronRight className="h-4 w-4 text-gray-400 inline-block" />
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       )}
-
-      {/* Suspend modal */}
-      <Dialog open={!!suspendTarget} onOpenChange={(open) => !open && setSuspendTarget(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Suspend Student</DialogTitle>
-            <DialogDescription>{suspendTarget?.fullName}</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3">
-            <div>
-              <label className="text-sm font-medium text-gray-700 mb-1 block">Duration (days, optional)</label>
-              <Input
-                type="number"
-                min="1"
-                placeholder="Leave blank for indefinite"
-                value={suspendDuration}
-                onChange={(e) => setSuspendDuration(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium text-gray-700 mb-1 block">Reason for Suspension</label>
-              <Textarea value={suspendReason} onChange={(e) => setSuspendReason(e.target.value)} rows={3} />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setSuspendTarget(null)}>Go Back</Button>
-            <Button variant="destructive" onClick={handleSuspend} disabled={isSaving || !suspendReason.trim()}>
-              {isSaving ? "Suspending..." : "Suspend student"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Remove confirm modal */}
-      <Dialog open={!!removeTarget} onOpenChange={(open) => !open && setRemoveTarget(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Are You Sure You Want to Remove {removeTarget?.fullName}?</DialogTitle>
-            <DialogDescription>
-              This will remove the student&apos;s enrollment and access to all lessons, resources, and assignments.
-              This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setRemoveTarget(null)}>Go Back</Button>
-            <Button variant="destructive" onClick={handleRemove} disabled={isSaving}>
-              {isSaving ? "Removing..." : "Remove student"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

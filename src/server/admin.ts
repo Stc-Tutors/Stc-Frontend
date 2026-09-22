@@ -3,7 +3,7 @@
 import fetchAPI, { type ApiResponse } from "@/lib/fetch";
 import { User, UserRole, UserStatus } from "@/types/user";
 import { AdminOverview, CourseCompletionStat, RevenuePoint, TutorPerformanceStat } from "@/types/admin";
-import { AcademicSummary, ParentEnrollmentSummary, Student } from "@/types/student";
+import { AcademicSummary, GroupedStudent, ParentEnrollmentSummary, Student } from "@/types/student";
 
 export async function CreateUserAction(data: {
   firstName: string;
@@ -206,6 +206,27 @@ export async function ListStudentsForAdminAction(
   });
 
   const resData = res ? ((await res.json()) as ApiResponse<Student[]>) : null;
+  return [resData, error];
+}
+
+// The Students table, one row per real Child - see stcbe's
+// StudentService.listGroupedForAdmin. Same filters as
+// ListStudentsForAdminAction, which stays untouched (still per-enrollment)
+// for the other callers that correctly need that granularity (resource
+// targeting, dashboard widgets, schedule approvals).
+export async function ListGroupedStudentsForAdminAction(
+  params?: { search?: string; page?: number; limit?: number }
+): Promise<[ApiResponse<GroupedStudent[]> | null, string | null]> {
+  const query = new URLSearchParams(
+    Object.entries(params ?? {}).filter(([, v]) => v !== undefined && v !== "").map(([k, v]) => [k, String(v)])
+  ).toString();
+
+  const [res, error] = await fetchAPI({
+    url: `/enrollments/admin/grouped${query ? `?${query}` : ""}`,
+    request: { method: "GET", headers: { "Content-Type": "application/json" } },
+  });
+
+  const resData = res ? ((await res.json()) as ApiResponse<GroupedStudent[]>) : null;
   return [resData, error];
 }
 

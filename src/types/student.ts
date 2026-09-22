@@ -100,11 +100,15 @@ export interface StudentUserRef {
   avatarUrl?: string;
 }
 
-export function studentAvatarUrl(user: Student["user"]): string | undefined {
+// Accepts `unknown` (not just Student["user"]) so it also covers
+// GroupedStudent["user"], which additionally allows undefined - the same
+// runtime shape, just from an endpoint whose type doesn't guarantee it's
+// always populated.
+export function studentAvatarUrl(user: unknown): string | undefined {
   // typeof null === "object": a student whose linked account no longer exists comes
   // back with user: null, and reading .avatarUrl off it threw and took the whole
   // admin students page down with it.
-  return user && typeof user === "object" ? user.avatarUrl : undefined;
+  return user && typeof user === "object" ? (user as StudentUserRef).avatarUrl : undefined;
 }
 
 // Populated (as an object, despite the plain-string field type below) on
@@ -121,12 +125,17 @@ export interface ChildLoginRef {
   lastName?: string;
 }
 
-export function studentLoginId(studentUser: Student["studentUser"]): string | undefined {
-  return studentUser && typeof studentUser === "object" ? (studentUser as unknown as ChildLoginRef).studentId : undefined;
+export function studentLoginId(studentUser: unknown): string | undefined {
+  return studentUser && typeof studentUser === "object" ? (studentUser as ChildLoginRef).studentId : undefined;
 }
 
 export interface Student {
   id: string;
+  // Tutor roster only (GET /courses/mine/students): the subject(s) the
+  // requesting tutor teaches this student - distinct from
+  // serviceDetails.selectedSubjects, which is everything the student takes
+  // across all their tutors.
+  taughtSubjects?: string[];
   // Links this enrollment to its real, durable Child identity - see the
   // backend's IChild. Absent on enrollments created before the Child/
   // Student split (pending stcbe's backfill-children script). Multiple
@@ -174,6 +183,52 @@ export interface Student {
   suspendedAt?: string;
   suspendedUntil?: string;
   createdAt?: string;
+}
+
+// Admin Students list row - one per real Child, not per enrollment. See
+// stcbe's StudentService.listGroupedForAdmin. Never treat
+// representativeStudentId as "the" student - it's only there so the row has
+// a stable React key; open the profile via childId (GetChildAction /
+// GetChildEnrollmentsAction), not this id.
+export interface GroupedStudent {
+  childId: string;
+  representativeStudentId: string;
+  fullName: string;
+  photoUrl?: string;
+  grade?: string;
+  parentName?: string;
+  parentEmail?: string;
+  parentPhone?: string;
+  studentIdCode?: string;
+  user?: string | StudentUserRef;
+  parentUser?: string | { id: string; firstName: string; lastName: string; email?: string; phone?: string };
+  studentUser?: string | ChildLoginRef;
+  enrollmentCount: number;
+  statusCounts: Partial<Record<EnrollmentStatus, number>>;
+  suspended: boolean;
+  mostRecentCreatedAt?: string;
+}
+
+// GET /children/:id/enrollments - every enrollment a child has, each with
+// its own status/schedule/serviceDetails, plus every payment made against
+// any of them. `student` on EnrollmentPayment is a bare id (unpopulated),
+// unlike types/payment.ts's Payment - match a payment to its enrollment by
+// comparing it against Student.id in the enrollments array.
+export interface EnrollmentPayment {
+  id: string;
+  student?: string;
+  amount: number;
+  currency: string;
+  status: string;
+  description?: string;
+  paymentDate: string;
+  reference: string;
+  createdAt?: string;
+}
+
+export interface ChildEnrollmentsResponse {
+  enrollments: Student[];
+  payments: EnrollmentPayment[];
 }
 
 export interface AcademicSummary {

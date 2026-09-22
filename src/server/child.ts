@@ -2,6 +2,7 @@
 
 import fetchAPI, { type ApiResponse } from "@/lib/fetch";
 import { Child, UpdateChildProfileInput } from "@/types/child";
+import { ChildEnrollmentsResponse } from "@/types/student";
 
 // A self-registered student's own profile (the details they entered in the
 // enrollment wizard's Student Information step) - `data` is null until their
@@ -42,6 +43,21 @@ export async function GetChildAction(id: string): Promise<[ApiResponse<Child> | 
   });
 
   const resData = res ? ((await res.json()) as ApiResponse<Child>) : null;
+  return [resData, error];
+}
+
+// Every enrollment this child has (each with its own status/schedule/
+// serviceDetails) plus every payment made against any of them - the
+// one-Child-many-enrollments admin profile view.
+export async function GetChildEnrollmentsAction(
+  id: string
+): Promise<[ApiResponse<ChildEnrollmentsResponse> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: `/children/${id}/enrollments`,
+    request: { method: "GET", headers: { "Content-Type": "application/json" } },
+  });
+
+  const resData = res ? ((await res.json()) as ApiResponse<ChildEnrollmentsResponse>) : null;
   return [resData, error];
 }
 
