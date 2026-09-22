@@ -2,7 +2,6 @@
 
 import fetchAPI, { type ApiResponse } from "@/lib/fetch";
 import {
-  ApplyTutorPayload,
   StartTutorApplicationPayload,
   StartTutorApplicationResponse,
   SubmitTutorApplicationStep10Response,
@@ -25,26 +24,6 @@ import {
   SubmitReferenceResponsePayload,
 } from "@/types/tutor-application";
 import { Message } from "@/types/message";
-
-// Legacy single-shot signup - kept only because nothing has confirmed the
-// backend route (stcbe's POST /tutor-applications) is safe to remove. The
-// frontend entry point that called this (apply-tutor-form.tsx) has been
-// retired in favor of the wizard below.
-export async function ApplyTutorAction(
-  data: ApplyTutorPayload
-): Promise<[ApiResponse<null> | null, string | null]> {
-  const [res, error] = await fetchAPI({
-    url: "/tutor-applications",
-    request: {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    },
-  });
-
-  const resData = res ? ((await res.json()) as ApiResponse<null>) : null;
-  return [resData, error];
-}
 
 export async function GetTutorApplicationsAction(
   status?: TutorApplicationStatus
