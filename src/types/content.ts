@@ -15,6 +15,7 @@ export enum PageSectionKey {
   SERVICES_INTRO = "SERVICES_INTRO",
   CONTACT_INFO = "CONTACT_INFO",
   CAREERS_INTRO = "CAREERS_INTRO",
+  CAREERS_TEASER = "CAREERS_TEASER",
 }
 
 export interface PageSection {
@@ -55,20 +56,12 @@ export interface HeaderContent {
   navLinks: FooterLink[];
   ctaText: string;
   ctaLink: string;
-  // A second, always-visible CTA distinct from ctaText/ctaLink (which hides
-  // once a visitor is signed in) - the careers page (tutor recruitment and
-  // other openings) matters regardless of whether the visitor already has an
-  // account. Defaults to "Careers" -> /careers.
-  careersCtaText: string;
-  careersCtaLink: string;
 }
 
 export interface FooterContent {
   copyrightName: string;
   socialLinks: FooterSocialLink[];
   companyLinks: FooterLink[];
-  careersCtaText: string;
-  careersCtaLink: string;
 }
 
 export interface HeadSeoContent {
@@ -302,12 +295,25 @@ export interface CareersIntroContent {
   whyJoinItems: string[];
 }
 
+// The homepage's "We're hiring" teaser - a short pointer at the full
+// /careers page, not a duplicate of CareersIntroContent's fuller copy.
+export interface CareersTeaserContent {
+  heading: string;
+  body: string;
+  buttonText: string;
+  buttonLink: string;
+  imageUrl?: string;
+}
+
 export enum JobEmploymentType {
   FULL_TIME = "FULL_TIME",
   PART_TIME = "PART_TIME",
   CONTRACT = "CONTRACT",
   INTERNSHIP = "INTERNSHIP",
   VOLUNTEER = "VOLUNTEER",
+  // Revenue-share/equity-style operating partnerships - not an employment
+  // relationship at all, so it doesn't fit any of the above.
+  PARTNERSHIP = "PARTNERSHIP",
 }
 
 export interface JobOpening {
@@ -323,6 +329,28 @@ export interface JobOpening {
   // The standing "Become a Tutor" listing - its Apply button routes to
   // /auth/apply-tutor instead of the generic application form below.
   isTutorRole: boolean;
+}
+
+export enum JobOpeningQuestionFieldType {
+  TEXT = "TEXT",
+  TEXTAREA = "TEXTAREA",
+  DROPDOWN = "DROPDOWN",
+  CHECKBOX = "CHECKBOX",
+  DATE = "DATE",
+  NUMBER = "NUMBER",
+}
+
+// Per-opening extra apply-form questions a Super Admin can attach to any
+// JobOpening - e.g. "Which vertical are you interested in?" on Operating
+// Partner. An opening with none just gets the plain apply form.
+export interface JobOpeningQuestion {
+  id: string;
+  jobOpening: string;
+  label: string;
+  fieldType: JobOpeningQuestionFieldType;
+  options?: string[];
+  required: boolean;
+  order: number;
 }
 
 export enum CareerApplicationStatus {

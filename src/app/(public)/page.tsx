@@ -5,6 +5,7 @@ import TutorsSection from '../components/TutorsSection';
 import Features from '../components/Features';
 import Testimonials from '../components/Testimonials';
 import CTA from '../components/CTA';
+import CareersTeaser from '../components/CareersTeaser';
 import Footer from '../components/Footer';
 
 export default function HomePage() {
@@ -17,6 +18,7 @@ export default function HomePage() {
         <TutorsSection />
         <Features />
         <Testimonials />
+        <CareersTeaser />
         <CTA />
       </main>
       <Footer />

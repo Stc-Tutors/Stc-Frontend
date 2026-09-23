@@ -20,10 +20,9 @@ const DEFAULT_FOOTER: FooterContent = {
     { label: "About", href: "/about" },
     { label: "Services", href: "/services" },
     { label: "Blog", href: "/blog" },
+    { label: "Careers", href: "/careers" },
     { label: "Contact", href: "/contact" },
   ],
-  careersCtaText: "Careers",
-  careersCtaLink: "/careers",
 };
 
 const SOCIAL_ICON: Record<string, { Icon: typeof FaGlobe; bg: string; hoverBg: string }> = {
@@ -72,11 +71,6 @@ export default function Footer() {
 
         {/* Account links */}
         <div className="flex space-x-4">
-          <Link href={content.careersCtaLink}>
-            <span className="border border-white text-white px-4 py-2 rounded-md hover:bg-white/10 transition">
-              {content.careersCtaText}
-            </span>
-          </Link>
           {user ? (
             <>
               <Link href={lmsDashboardPath(user.role)}>

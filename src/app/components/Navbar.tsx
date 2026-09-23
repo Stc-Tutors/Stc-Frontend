@@ -17,12 +17,11 @@ const DEFAULT_HEADER: HeaderContent = {
     { label: "About", href: "/about" },
     { label: "Services", href: "/services" },
     { label: "Blog", href: "/blog" },
+    { label: "Careers", href: "/careers" },
     { label: "Contact", href: "/contact" },
   ],
   ctaText: "Get Started",
   ctaLink: "/services",
-  careersCtaText: "Careers",
-  careersCtaLink: "/careers",
 };
 
 const Navbar = () => {
@@ -71,9 +70,6 @@ const Navbar = () => {
               </li>
             ))}
           </ul>
-          <Link href={header.careersCtaLink} className="navbarSecondaryCta">
-            {header.careersCtaText}
-          </Link>
           {user ? (
             <UserProfileDropdown />
           ) : (
@@ -109,15 +105,6 @@ const Navbar = () => {
                   </Link>
                 </li>
               ))}
-              <li>
-                <Link
-                  href={header.careersCtaLink}
-                  className="mobileLink"
-                  onClick={() => setMobileOpen(false)}
-                >
-                  {header.careersCtaText}
-                </Link>
-              </li>
               {user ? (
                 <>
                   <li>

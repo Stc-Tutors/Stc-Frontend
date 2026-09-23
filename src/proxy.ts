@@ -72,6 +72,7 @@ const publicPaths = [
   "/services",
   "/program",
   "/blog",
+  "/careers",
   // Token-link pages for people who never have an account: an external
   // referee opening the reference-check email (/reference/<application>/<slot>
   // ?token=...) and anyone opening a Special Course's shared registration
