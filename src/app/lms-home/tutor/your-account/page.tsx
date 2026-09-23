@@ -187,10 +187,10 @@ export default function DashboardPage() {
         />
         <StatCard title="This Month" value={formatMoney(thisMonthPaid)} icon={CreditCard} color="bg-green-100 text-green-600" />
       </div>
-      {balance && balance.hoursSincePaid > 0 && (
+      {balance && balance.totalHoursTaught > 0 && (
         <p className="text-xs text-gray-500">
-          Balance reflects {balance.hoursSincePaid.toFixed(1)} unpaid hour(s) since your last payout
-          {balance.hasPendingRequest ? " (a payout request is already pending review)." : "."}
+          You&apos;ve taught {balance.totalHoursTaught.toFixed(1)} hour(s) in total
+          {balance.hasPendingRequest ? " - a payout request is already pending review." : "."}
         </p>
       )}
       {balance && balance.surchargeDeduction > 0 && (

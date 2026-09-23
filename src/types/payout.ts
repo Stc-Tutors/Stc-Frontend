@@ -76,7 +76,10 @@ export interface Bank {
 
 export interface TutorBalance {
   currency: string;
-  hoursSincePaid: number;
+  // Every approved hour this tutor has ever taught - not the hours since
+  // their last payout (a payout nets out in money, not by excluding
+  // already-paid hours from this count). See stcbe's PayoutService.getBalance.
+  totalHoursTaught: number;
   // What you can actually withdraw right now: grossBalance minus
   // surchargeDeduction minus committed (already requested/paid, so it's not
   // double-countable).
