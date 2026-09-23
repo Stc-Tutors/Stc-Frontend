@@ -17,12 +17,19 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Wallet as WalletIcon, PlusCircle, History } from "lucide-react";
+import { Wallet as WalletIcon, PlusCircle, History, ShieldAlert } from "lucide-react";
 import { ToastError, ToastSuccess } from "@/components/ui/custom/toast";
 import { GetMyWalletOverviewAction, TopUpWalletAction, type WalletOverview } from "@/server/wallet";
 import { unwrap, useCachedQuery } from "@/lib/client-cache";
 import { VerifyPaymentAction } from "@/server/payment";
 import { WALLET_TRANSACTION_REASON_LABELS, WalletTransactionType } from "@/types/wallet";
+import { FilePenaltyAppealAction, GetMyPenaltyChargesAction } from "@/server/penalty";
+import {
+  STUDENT_PENALTY_TYPE_LABELS,
+  StudentPenaltyAppealStatus,
+  StudentPenaltyChargeStatus,
+  type StudentPenaltyCharge,
+} from "@/types/penalty";
 
 // How long to keep asking Paystack whether a payment that hasn't settled yet
 // (bank transfer / USSD confirm after the popup closes) has gone through.
@@ -230,7 +237,120 @@ export default function WalletPage() {
           )}
         </CardContent>
       </Card>
+
+      <PenaltyChargesSection />
     </div>
+  );
+}
+
+const APPEAL_STATUS_LABELS: Record<StudentPenaltyAppealStatus, string> = {
+  [StudentPenaltyAppealStatus.PENDING]: "Appeal pending review",
+  [StudentPenaltyAppealStatus.UPHELD]: "Appeal reviewed - charge upheld",
+  [StudentPenaltyAppealStatus.GRANTED]: "Appeal granted - refunded",
+};
+
+// A no-show/late-cancel/late-reschedule charge against this family - shown
+// here (not a separate page) since it's a wallet-affecting event, same
+// section a top-up or refund shows in. Only a still-APPLIED, never-appealed
+// charge gets the "Dispute this charge" button - see stcbe's
+// PenaltyService.fileAppeal for the same one-appeal-per-charge rule.
+function PenaltyChargesSection() {
+  const [charges, setCharges] = useState<StudentPenaltyCharge[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [appealing, setAppealing] = useState<StudentPenaltyCharge | null>(null);
+  const [reason, setReason] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const load = async () => {
+    setIsLoading(true);
+    const [res] = await GetMyPenaltyChargesAction();
+    setCharges(res?.data ?? []);
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  const handleFileAppeal = async () => {
+    if (!appealing || !reason.trim()) return;
+    setIsSubmitting(true);
+    const [, error] = await FilePenaltyAppealAction(appealing.id, reason.trim());
+    setIsSubmitting(false);
+    if (error) {
+      ToastError(error);
+      return;
+    }
+    ToastSuccess("Appeal filed - our team will review it and let you know the outcome.");
+    setAppealing(null);
+    setReason("");
+    load();
+  };
+
+  if (!isLoading && charges.length === 0) return null;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <ShieldAlert className="w-5 h-5" /> No-show &amp; Late-Change Charges
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <p className="text-sm text-gray-500 py-4">Loading...</p>
+        ) : (
+          <div className="space-y-3">
+            {charges.map((c) => (
+              <div key={c.id} className="border rounded-md p-3 text-sm flex items-start justify-between gap-3">
+                <div>
+                  <p className="font-medium">
+                    {STUDENT_PENALTY_TYPE_LABELS[c.type]} - {formatMoney(c.forfeitedAmount, c.currency)} forfeited
+                  </p>
+                  <p className="text-xs text-gray-500">{formatDate(c.createdAt)}</p>
+                  {c.appealStatus && (
+                    <p className="text-xs text-blue-600 mt-1">
+                      {APPEAL_STATUS_LABELS[c.appealStatus]}
+                      {c.appealResolutionNote ? ` - ${c.appealResolutionNote}` : ""}
+                    </p>
+                  )}
+                </div>
+                {c.status === StudentPenaltyChargeStatus.APPLIED && !c.appealStatus && (
+                  <Button variant="outline" size="sm" onClick={() => setAppealing(c)}>
+                    Dispute this charge
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+
+      <AlertDialog open={!!appealing} onOpenChange={(open) => !open && setAppealing(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Dispute this charge</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tell us why you think this{" "}
+              {appealing ? STUDENT_PENALTY_TYPE_LABELS[appealing.type].toLowerCase() : ""} charge shouldn&apos;t
+              apply. Our team will review it and, if you&apos;re right, refund the forfeited amount to your wallet.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <textarea
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder="What happened?"
+            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm min-h-[6rem]"
+          />
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setReason("")}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleFileAppeal} disabled={!reason.trim() || isSubmitting}>
+              {isSubmitting ? "Submitting..." : "Submit appeal"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </Card>
   );
 }
 

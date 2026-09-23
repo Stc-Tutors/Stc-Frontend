@@ -41,8 +41,17 @@ export interface SessionBootstrapResult {
 // request, not just at login) - without this, a user suspended/deactivated/
 // whose tenant went inactive while still signed in was stuck on the
 // generic "couldn't load your session, retry" screen forever instead of
-// being sent back to login.
-const TERMINAL_SESSION_ERRORS = new Set(['Unauthorized', 'ACCOUNT_SUSPENDED', 'ACCOUNT_DEACTIVATED', 'TENANT_INACTIVE']);
+// being sent back to login. SESSION_EXPIRED (401) is the same idea for a
+// password change/reset - see stcbe's ITokenPayload.tokenVersion/
+// authMiddleware, which invalidates every other outstanding token the
+// moment either happens.
+const TERMINAL_SESSION_ERRORS = new Set([
+  'Unauthorized',
+  'ACCOUNT_SUSPENDED',
+  'ACCOUNT_DEACTIVATED',
+  'TENANT_INACTIVE',
+  'SESSION_EXPIRED',
+]);
 
 // A parent sees the children linked to them; a self-registered adult student
 // has no parent, so their own enrollments come back from the other endpoint.

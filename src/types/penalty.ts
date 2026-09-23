@@ -20,6 +20,50 @@ export interface TutorNoShowReport {
   updatedAt: string;
 }
 
+export enum StudentPenaltyType {
+  NO_SHOW = "NO_SHOW",
+  LATE_CANCEL = "LATE_CANCEL",
+  LATE_RESCHEDULE = "LATE_RESCHEDULE",
+}
+
+export enum StudentPenaltyChargeStatus {
+  APPLIED = "APPLIED",
+  VOIDED = "VOIDED",
+}
+
+export enum StudentPenaltyAppealStatus {
+  PENDING = "PENDING",
+  UPHELD = "UPHELD",
+  GRANTED = "GRANTED",
+}
+
+export const STUDENT_PENALTY_TYPE_LABELS: Record<StudentPenaltyType, string> = {
+  [StudentPenaltyType.NO_SHOW]: "No-show",
+  [StudentPenaltyType.LATE_CANCEL]: "Late cancellation",
+  [StudentPenaltyType.LATE_RESCHEDULE]: "Late reschedule",
+};
+
+// A charge against this family - see stcbe's IStudentPenaltyCharge. `course`/
+// `student` are left as raw ids (not populated server-side for this route).
+export interface StudentPenaltyCharge {
+  id: string;
+  lesson: string;
+  course: string;
+  student: string;
+  type: StudentPenaltyType;
+  lessonValue: number;
+  currency: string;
+  forfeitedAmount: number;
+  walletCreditAmount: number;
+  status: StudentPenaltyChargeStatus;
+  appealStatus?: StudentPenaltyAppealStatus;
+  appealReason?: string;
+  appealedAt?: string;
+  appealResolvedAt?: string;
+  appealResolutionNote?: string;
+  createdAt: string;
+}
+
 // GET /penalty/admin/settings is admin-only, so the family-facing scheduling
 // UI can't read the real (super-admin-configurable) grace period to decide
 // when "Report tutor no-show" should appear. This mirrors the backend's own
