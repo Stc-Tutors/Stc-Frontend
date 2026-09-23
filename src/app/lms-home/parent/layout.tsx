@@ -26,6 +26,7 @@ import {
   CalendarDays,
   GraduationCap,
   FolderOpen,
+  PlayCircle,
   Wallet,
 } from "lucide-react";
 import BrandLogo from "@/components/shared/BrandLogo";
@@ -49,6 +50,7 @@ const sidebarLinks = [
   { label: "Schedule", icon: Calendar, href: "/lms-home/parent/scheduling" },
   { label: "Classroom", icon: Users, href: "/lms-home/parent/classroom" },
   { label: "Resources", icon: FolderOpen, href: "/lms-home/parent/resources" },
+  { label: "Video Courses", icon: PlayCircle, href: "/lms-home/parent/video-courses" },
   { label: "Assessment", icon: CalendarDays, href: "/lms-home/parent/assessment" },
   { label: "Messages", icon: MessageSquare, href: "/lms-home/parent/messages" },
   { label: "Analytics", icon: BarChart2, href: "/lms-home/parent/analytics" },
