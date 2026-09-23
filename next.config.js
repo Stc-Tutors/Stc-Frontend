@@ -1,5 +1,76 @@
 // next.config.js
 /** @type {import('next').NextConfig} */
+
+// Origin of the stcbe API (NEXT_PUBLIC_API_URL is ".../api") - the browser
+// talks to it directly for Socket.IO and the CSP report endpoint.
+function apiOrigins() {
+  try {
+    const u = new URL(process.env.NEXT_PUBLIC_API_URL || "");
+    const ws = `${u.protocol === "https:" ? "wss:" : "ws:"}//${u.host}`;
+    return { http: u.origin, ws, reportUri: `${u.origin}/api/csp-report` };
+  } catch {
+    return { http: "", ws: "", reportUri: "" };
+  }
+}
+
+// CANDIDATE Content-Security-Policy, shipped as Report-Only: the browser
+// logs what it WOULD block (to stcbe's /api/csp-report) but blocks nothing,
+// so nothing can break. Once the reports are clean for a while, switch the
+// header name below from Content-Security-Policy-Report-Only to
+// Content-Security-Policy to enforce it.
+//
+// It is a host allowlist, not a nonce policy: script-src still needs
+// 'unsafe-inline' for Next's own hydration scripts, because a nonce would
+// force every page (including the static marketing pages) to render
+// dynamically. What it does enforce once switched on: no scripts from any
+// unlisted host, no framing by other sites, no <object>/<base> tricks, forms
+// only post to this origin. Hosts below are the ones the app really uses:
+// Cloudinary (images, uploads), Paystack (checkout script + popup), Google
+// Drive/Docs/Meet and YouTube (embedded resources, recordings, live class).
+function contentSecurityPolicy() {
+  const api = apiOrigins();
+  const directives = {
+    "default-src": ["'self'"],
+    "script-src": ["'self'", "'unsafe-inline'", "https://js.paystack.co"],
+    "style-src": ["'self'", "'unsafe-inline'"],
+    "img-src": [
+      "'self'",
+      "data:",
+      "blob:",
+      "https://res.cloudinary.com",
+      "https://img.youtube.com",
+      "https://drive.google.com",
+      "https://*.googleusercontent.com",
+    ],
+    "font-src": ["'self'", "data:"],
+    "connect-src": [
+      "'self'",
+      api.http,
+      api.ws,
+      "https://api.paystack.co",
+      "https://checkout.paystack.com",
+      "https://api.cloudinary.com",
+    ].filter(Boolean),
+    "frame-src": [
+      "https://checkout.paystack.com",
+      "https://js.paystack.co",
+      "https://drive.google.com",
+      "https://docs.google.com",
+      "https://meet.google.com",
+      "https://www.youtube.com",
+    ],
+    "media-src": ["'self'", "https:"],
+    "object-src": ["'none'"],
+    "base-uri": ["'self'"],
+    "form-action": ["'self'"],
+    "frame-ancestors": ["'self'"],
+  };
+  const policy = Object.entries(directives)
+    .map(([name, values]) => `${name} ${values.join(" ")}`)
+    .join("; ");
+  return api.reportUri ? `${policy}; report-uri ${api.reportUri}` : policy;
+}
+
 const nextConfig = {
   images: {
     // Every uploaded image (tutor headshots, blog covers, service/testimonial
@@ -12,20 +83,11 @@ const nextConfig = {
     // never read; kept in sync here rather than deleted, out of caution.
     remotePatterns: [{ protocol: "https", hostname: "res.cloudinary.com" }],
   },
-  // A conservative, low-risk slice of security headers - the ones that
-  // cannot break an existing page since nothing here relies on being framed
-  // by someone else, sending a referrer's full query string cross-origin
-  // (verify-email/reset-password links carry a token in the query string),
-  // or using the camera/mic/geolocation APIs (grepped for
-  // getUserMedia/mediaDevices/geolocation - none exist; video is either an
-  // external Meet/YouTube redirect or Drive-hosted playback, never in-page
-  // capture). Deliberately does NOT include a Content-Security-Policy here -
-  // this app embeds Drive/Docs/Meet/YouTube iframes and loads Paystack's
-  // inline checkout script, and getting a strict CSP's script-src/frame-src
-  // right (especially around Next's own inline hydration scripts, which need
-  // a nonce wired through proxy.ts to allow safely) needs to be verified live
-  // against a real deploy before it's turned on, not shipped blind - a wrong
-  // CSP doesn't break one feature, it can break every page for every user.
+  // Baseline security headers that cannot break a page: nothing relies on
+  // being framed by someone else, sending a referrer's full query string
+  // cross-origin (verify-email/reset-password links carry a token), or the
+  // camera/mic/geolocation APIs (grepped - none used; video is an external
+  // Meet/YouTube redirect or Drive/YouTube playback, never in-page capture).
   async headers() {
     return [
       {
@@ -35,6 +97,7 @@ const nextConfig = {
           { key: "X-Frame-Options", value: "SAMEORIGIN" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+          { key: "Content-Security-Policy-Report-Only", value: contentSecurityPolicy() },
         ],
       },
     ];
