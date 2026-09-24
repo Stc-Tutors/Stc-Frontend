@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import "keen-slider/keen-slider.min.css";
@@ -67,18 +67,30 @@ const sidebarLinks = [
 export default function LMSLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  // Close the mobile drawer whenever the user navigates.
+  useEffect(() => {
+    setIsSidebarOpen(false);
+  }, [pathname]);
 
   return (
     <AccessRestrictionGate role="PARENT">
     <SelectedStudentProvider>
     <div className="flex h-dvh bg-gray-100 relative">
       {/* Sidebar */}
+      {/* Mobile backdrop: tap outside the drawer to close it */}
+      {isSidebarOpen && (
+        <div
+          className="md:hidden fixed inset-0 bg-black/40 z-30"
+          onClick={() => setIsSidebarOpen(false)}
+          aria-hidden="true"
+        />
+      )}
       <aside
         className={`fixed md:static top-0 left-0 h-full w-64 bg-white border-r shadow-md z-40 transform transition-transform duration-300 ease-in-out
         ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0 md:flex flex-col justify-between`}
       >
         
-          <div className="flex items-center justify-between p-4 border-b">
+          <div className={`flex items-center justify-between p-4 border-b ${isSidebarOpen ? "pl-[4.5rem]" : ""} md:pl-4`}>
             <Link href="/">
             <BrandLogo width={120} height={40} className="object-contain" />
             </Link>
@@ -145,7 +157,8 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
         <header className="h-16 bg-white shadow-sm px-3 sm:px-6 flex items-center justify-between gap-2">
           {/* Hamburger (mobile only) */}
           <button
-            className="md:hidden mr-2 sm:mr-4 p-2 rounded-md hover:bg-blue-100 transition shrink-0"
+            aria-label={isSidebarOpen ? "Close menu" : "Open menu"}
+            className="md:hidden relative z-50 mr-2 sm:mr-4 p-2 rounded-md hover:bg-blue-100 transition shrink-0"
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
           >
             <Menu className="w-6 h-6 text-gray-700" />
