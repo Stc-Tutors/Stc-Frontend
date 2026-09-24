@@ -118,7 +118,12 @@ export default function CompleteProfileForm({ studentId, dashboardPath }: { stud
     const popup = new PaystackPop();
     popup.resumeTransaction(payment.access_code, {
       onSuccess: async () => {
-        await VerifyPaymentAction(payment.reference);
+        const [, verifyError] = await VerifyPaymentAction(payment.reference);
+        if (verifyError) {
+          ToastError(verifyError);
+          router.push(dashboardPath);
+          return;
+        }
         ToastSuccess("Payment successful - enrollment complete");
         router.push(dashboardPath);
       },

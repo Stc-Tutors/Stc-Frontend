@@ -67,8 +67,9 @@ export default function PaymentsList({ variant }: PaymentsListProps) {
     const popup = new PaystackPop();
     popup.resumeTransaction(payment.accessCode, {
       onSuccess: async () => {
-        const [res] = await VerifyPaymentAction(payment.reference);
-        if (res?.data?.status === PaymentStatus.COMPLETED) ToastSuccess("Payment successful");
+        const [res, verifyError] = await VerifyPaymentAction(payment.reference);
+        if (verifyError) ToastError(verifyError);
+        else if (res?.data?.status === PaymentStatus.COMPLETED) ToastSuccess("Payment successful");
         else ToastSuccess("Payment received - it will show as paid here as soon as it's confirmed.");
         setPayingId(null);
         void refresh();
@@ -88,8 +89,10 @@ export default function PaymentsList({ variant }: PaymentsListProps) {
   // with Paystack without reopening a checkout for an already-paid charge.
   const checkStatus = async (payment: Payment) => {
     setPayingId(payment.id);
-    const [res] = await VerifyPaymentAction(payment.reference);
-    if (res?.data?.status === PaymentStatus.COMPLETED) {
+    const [res, verifyError] = await VerifyPaymentAction(payment.reference);
+    if (verifyError) {
+      ToastError(verifyError);
+    } else if (res?.data?.status === PaymentStatus.COMPLETED) {
       ToastSuccess("Payment confirmed");
     } else {
       ToastError("Still not confirmed as paid - if you already paid, please contact support.");

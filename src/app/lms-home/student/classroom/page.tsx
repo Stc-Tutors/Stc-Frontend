@@ -86,7 +86,11 @@ export default function ClassroomPage() {
     const popup = new PaystackPop();
     popup.resumeTransaction(res.data.access_code, {
       onSuccess: async () => {
-        await VerifyPaymentAction(res.data!.reference);
+        const [, verifyError] = await VerifyPaymentAction(res.data!.reference);
+        if (verifyError) {
+          ToastError(verifyError);
+          return;
+        }
         ToastSuccess("Unlocked - reloading...");
         await reloadResources();
       },

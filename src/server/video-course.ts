@@ -2,7 +2,7 @@
 
 import fetchAPI, { type ApiResponse } from "@/lib/fetch";
 import { PaymentRequest } from "@/types/payment";
-import { IVideoCourse, WatchableVideoCourse } from "@/types/video-course";
+import { CatalogVideoCourse, IVideoCourse, WatchableVideoCourse } from "@/types/video-course";
 
 // Public/unauthenticated on the backend - requires at least one attachment
 // filter (this is never "list every video course", just what an admin
@@ -69,5 +69,16 @@ export async function InitiateVideoCourseUnlockAction(
     request: { method: "POST", headers: { "Content-Type": "application/json" } },
   });
   const resData = res ? ((await res.json()) as ApiResponse<PaymentRequest>) : null;
+  return [resData, error];
+}
+
+// Signed-in student/parent: every published video course, with whether their
+// family can already watch it. Never includes the video link.
+export async function GetVideoCourseCatalogAction(): Promise<[ApiResponse<CatalogVideoCourse[]> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: "/video-courses/catalog",
+    request: { method: "GET", headers: { "Content-Type": "application/json" } },
+  });
+  const resData = res ? ((await res.json()) as ApiResponse<CatalogVideoCourse[]>) : null;
   return [resData, error];
 }

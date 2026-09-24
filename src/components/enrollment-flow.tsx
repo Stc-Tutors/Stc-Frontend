@@ -254,7 +254,12 @@ export default function EnrollmentFlow({ forcedUserType, dashboardPath, paymentH
             // Paystack's webhook, which may be slow, misconfigured, or
             // (in local dev) unreachable entirely. Verify directly so the
             // enrollment doesn't sit at "Pending" despite being paid.
-            await VerifyPaymentAction(payment.reference);
+            const [, verifyError] = await VerifyPaymentAction(payment.reference);
+            if (verifyError) {
+              ToastError(verifyError);
+              router.push(paymentHistoryPath || ROUTES.DASHBOARD.PAYMENT_HISTORY);
+              return;
+            }
             ToastSuccess("Enrollment successful");
             router.push(paymentHistoryPath || ROUTES.DASHBOARD.PAYMENT_HISTORY);
           },

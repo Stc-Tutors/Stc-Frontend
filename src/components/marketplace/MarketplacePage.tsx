@@ -185,7 +185,12 @@ export default function MarketplacePage() {
           onSuccess: async () => {
             // Don't rely solely on Paystack's webhook reaching the backend -
             // see enrollment-flow.tsx's onSuccess for the same reasoning.
-            await VerifyPaymentAction(payRes.data!.reference);
+            const [, verifyError] = await VerifyPaymentAction(payRes.data!.reference);
+            if (verifyError) {
+              ToastError(verifyError);
+              router.push(paymentsPath);
+              return;
+            }
             ToastSuccess("Payment successful - course added");
             router.push(paymentsPath);
           },

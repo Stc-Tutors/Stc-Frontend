@@ -42,3 +42,10 @@ export interface VideoCourseLesson {
 export interface WatchableVideoCourse extends IVideoCourse {
   lessons: VideoCourseLesson[];
 }
+
+// One row of the signed-in learner's browse list (GET /video-courses/catalog):
+// never carries the video link; `unlocked` = their family has already paid.
+export interface CatalogVideoCourse extends IVideoCourse {
+  isFree: boolean;
+  unlocked: boolean;
+}
