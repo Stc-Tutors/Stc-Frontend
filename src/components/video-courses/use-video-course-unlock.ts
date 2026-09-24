@@ -40,7 +40,13 @@ export function useVideoCourseUnlock() {
       const popup = new PaystackPop();
       popup.resumeTransaction(res.data.access_code, {
         onSuccess: async () => {
-          await VerifyPaymentAction(res.data!.reference);
+          const [, verifyError] = await VerifyPaymentAction(res.data!.reference);
+          if (verifyError) {
+            // e.g. the amount paid didn't match the price - not unlocked.
+            ToastError(verifyError);
+            setBusyId(null);
+            return;
+          }
           ToastSuccess("Unlocked - you can watch it now.");
           await refresh();
           setBusyId(null);
