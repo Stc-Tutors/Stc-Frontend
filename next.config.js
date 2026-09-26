@@ -27,6 +27,18 @@ function apiOrigins() {
 // only post to this origin. Hosts below are the ones the app really uses:
 // Cloudinary (images, uploads), Paystack (checkout script + popup), Google
 // Drive/Docs/Meet and YouTube (embedded resources, recordings, live class).
+// Optional: set NEXT_PUBLIC_LIVEKIT_URL (e.g. wss://live.example.com) when
+// LiveKit is self-hosted so its host is allowed; returns "" otherwise.
+function livekitHost(scheme) {
+  const raw = process.env.NEXT_PUBLIC_LIVEKIT_URL;
+  if (!raw) return "";
+  try {
+    return `${scheme}://${new URL(raw).host}`;
+  } catch {
+    return "";
+  }
+}
+
 function contentSecurityPolicy() {
   const api = apiOrigins();
   const directives = {
@@ -50,6 +62,13 @@ function contentSecurityPolicy() {
       "https://api.paystack.co",
       "https://checkout.paystack.com",
       "https://api.cloudinary.com",
+      // The in-app classroom connects straight to LiveKit (signalling over wss,
+      // some fallbacks over https). LiveKit Cloud projects live under
+      // livekit.cloud; a self-hosted server's host comes from the env var.
+      "wss://*.livekit.cloud",
+      "https://*.livekit.cloud",
+      livekitHost("wss"),
+      livekitHost("https"),
     ].filter(Boolean),
     "frame-src": [
       "https://checkout.paystack.com",
@@ -59,7 +78,8 @@ function contentSecurityPolicy() {
       "https://meet.google.com",
       "https://www.youtube.com",
     ],
-    "media-src": ["'self'", "https:"],
+    "media-src": ["'self'", "https:", "blob:"],
+    "worker-src": ["'self'", "blob:"],
     "object-src": ["'none'"],
     "base-uri": ["'self'"],
     "form-action": ["'self'"],
@@ -84,10 +104,11 @@ const nextConfig = {
     remotePatterns: [{ protocol: "https", hostname: "res.cloudinary.com" }],
   },
   // Baseline security headers that cannot break a page: nothing relies on
-  // being framed by someone else, sending a referrer's full query string
-  // cross-origin (verify-email/reset-password links carry a token), or the
-  // camera/mic/geolocation APIs (grepped - none used; video is an external
-  // Meet/YouTube redirect or Drive/YouTube playback, never in-page capture).
+  // being framed by someone else or sending a referrer's full query string
+  // cross-origin (verify-email/reset-password links carry a token).
+  // camera/microphone are allowed for this origin ONLY - the in-app live
+  // classroom (LiveKit) captures them; disabling them here would make every
+  // in-app class fail before the browser even asks. geolocation stays off.
   async headers() {
     return [
       {
@@ -96,7 +117,7 @@ const nextConfig = {
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "X-Frame-Options", value: "SAMEORIGIN" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+          { key: "Permissions-Policy", value: "camera=(self), microphone=(self), geolocation=()" },
           { key: "Content-Security-Policy-Report-Only", value: contentSecurityPolicy() },
         ],
       },
