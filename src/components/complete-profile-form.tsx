@@ -147,6 +147,16 @@ export default function CompleteProfileForm({ studentId, dashboardPath }: { stud
 
   if (isLoading) return <InlineLoader />;
 
+  const needsScheduleReview = serviceDetails?.classFormat === "one-on-one" && !!schedule && schedule.length > 0;
+  const steps = serviceDetails?.serviceType
+    ? [
+        "Confirm details",
+        ...(requiresPayment ? ["Payment"] : []),
+        ...(needsScheduleReview ? ["Schedule approval"] : []),
+        "Tutor assigned",
+      ]
+    : [];
+
   return (
     <div className="space-y-6 max-w-3xl">
       <div>
@@ -155,6 +165,26 @@ export default function CompleteProfileForm({ studentId, dashboardPath }: { stud
           An admin started this enrollment for you. Please review and complete the remaining details.
         </p>
       </div>
+
+      {steps.length > 0 && (
+        <div className="flex items-center flex-wrap gap-x-1.5 gap-y-2">
+          {steps.map((label, i) => (
+            <div key={label} className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 text-xs font-medium">
+                <span
+                  className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] ${
+                    i === 0 ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-500"
+                  }`}
+                >
+                  {i + 1}
+                </span>
+                <span className={i === 0 ? "text-blue-700" : "text-gray-500"}>{label}</span>
+              </div>
+              {i < steps.length - 1 && <div className="h-px w-5 bg-gray-300" />}
+            </div>
+          ))}
+        </div>
+      )}
 
       {error && <p className="text-red-600 text-sm">{error}</p>}
 
@@ -181,13 +211,19 @@ export default function CompleteProfileForm({ studentId, dashboardPath }: { stud
                 </ul>
               </div>
             )}
-            <p className="pt-2 border-t">
+            <div className="pt-2 border-t flex items-center gap-2">
               {requiresPayment ? (
-                <>Confirming will take you to payment to complete this registration.</>
+                <>
+                  <span className="inline-block px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 text-xs font-medium">Payment required</span>
+                  <span>Confirming will take you to payment to complete this registration.</span>
+                </>
               ) : (
-                <>This registration has been waived - confirming activates it immediately, no payment needed.</>
+                <>
+                  <span className="inline-block px-1.5 py-0.5 rounded bg-green-100 text-green-800 text-xs font-medium">Payment waived</span>
+                  <span>Confirming activates it immediately, no payment needed.</span>
+                </>
               )}
-            </p>
+            </div>
           </CardContent>
         </Card>
       )}
