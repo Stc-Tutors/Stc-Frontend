@@ -26,6 +26,9 @@ export enum AdminPermission {
   // Set/edit a Lesson's meetingUrl - TUTOR can never do this regardless of
   // this toggle; only controls whether a plain STC_ADMIN/TUTOR_ADMIN can.
   MANAGE_MEETING_LINKS = "MANAGE_MEETING_LINKS",
+  // Switch a class's recording on/off and delete recordings - only for classes
+  // in the admin's scope, and only once every enrolled child has parental consent.
+  MANAGE_CLASS_RECORDING = "MANAGE_CLASS_RECORDING",
   // Grant/revoke a direct-messaging override between two specific non-admin
   // users - see TutorMessagingPermissionService.
   MANAGE_MESSAGING_PERMISSIONS = "MANAGE_MESSAGING_PERMISSIONS",

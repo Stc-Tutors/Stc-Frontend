@@ -1,3 +1,5 @@
+import type { LessonDeliveryMode, LessonRecording, SessionVerification } from "@/types/live-class";
+
 export enum LessonStatus {
   SCHEDULED = "SCHEDULED",
   COMPLETED = "COMPLETED",
@@ -25,6 +27,13 @@ export interface Lesson {
   resourceUrls: string[];
   recordingUrl?: string;
   meetingUrl?: string;
+  // EXTERNAL (default) = pasted link; LIVEKIT = the in-app classroom.
+  deliveryMode?: LessonDeliveryMode;
+  recording?: LessonRecording;
+  // Set at clock-out. A family only ever receives billableMinutes/source.
+  verification?: SessionVerification;
+  reviewStatus?: "PENDING_REVIEW" | "APPROVED" | "FLAGGED";
+  flagReason?: string;
   status: LessonStatus;
   actualStartTime?: string;
   actualEndTime?: string;

@@ -39,6 +39,7 @@ import {
   FileCheck2,
   Settings,
   ArrowLeftRight,
+  Star,
 } from "lucide-react";
 import BrandLogo from "@/components/shared/BrandLogo";
 import LogoutButton from "@/components/shared/LogoutButton";
@@ -156,6 +157,13 @@ const sidebarLinks: {
   },
   { label: "Enrollments", icon: ClipboardList, href: "/lms-home/admin/enrollments", permission: AdminPermission.MANAGE_STUDENTS },
   { label: "Sessions", icon: CalendarClock, href: "/lms-home/admin/sessions", permission: AdminPermission.VIEW_ALL_SCHEDULES },
+  {
+    label: "Class Feedback",
+    icon: Star,
+    href: "/lms-home/admin/feedback",
+    permission: AdminPermission.APPROVE_RESOURCES,
+    hodPermission: [HodPermission.MANAGE_COURSES, HodPermission.VIEW_REPORTS],
+  },
   {
     label: "Document Upload",
     icon: FileStack,

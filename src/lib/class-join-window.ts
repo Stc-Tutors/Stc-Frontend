@@ -21,3 +21,9 @@ export function getJoinWindow(scheduledDate: string, durationMinutes: number, no
     endsAt,
   };
 }
+
+// A lesson can be joined if it has a pasted external link OR runs in the
+// in-app classroom (which has no link to paste).
+export function hasJoinableClass(lesson: { meetingUrl?: string; deliveryMode?: string }): boolean {
+  return !!lesson.meetingUrl || lesson.deliveryMode === "LIVEKIT";
+}

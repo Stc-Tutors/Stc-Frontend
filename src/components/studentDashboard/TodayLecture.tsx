@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { CalendarClock } from "lucide-react";
 import JoinClassLink from "@/components/classroom/JoinClassLink";
+import { hasJoinableClass } from "@/lib/class-join-window";
 import { GetLinkedStudentsAction, GetEnrollmentsAction } from "@/server/enrollment";
 import { GetStudentCoursesAction } from "@/server/course-enrollment";
 import { formatScheduleTime } from "@/lib/datetime";
@@ -87,7 +88,7 @@ export default function TodayLectures() {
               <span className="text-xs text-gray-600">
                 {formatScheduleTime(lesson.scheduledDate)}
               </span>
-              {lesson.meetingUrl && (
+              {hasJoinableClass(lesson) && (
                 <JoinClassLink
                   lessonId={lesson.id}
                   scheduledDate={lesson.scheduledDate}

@@ -5,6 +5,7 @@ import { formatDateTime, formatDate } from "@/lib/datetime";
 import InlineLoader from "@/components/shared/InlineLoader";
 import { useParams, useRouter } from "next/navigation";
 import JoinClassLink from "@/components/classroom/JoinClassLink";
+import { hasJoinableClass } from "@/lib/class-join-window";
 import { ArrowLeft, Star, Upload } from "lucide-react";
 import { Circle } from "rc-progress";
 import {
@@ -281,7 +282,7 @@ export default function TutorCourseDetailPage() {
                   <span>{l.title}</span>
                   <div className="flex items-center gap-2">
                     <span className="text-gray-500">{formatDateTime(l.scheduledDate)}</span>
-                    {l.meetingUrl && l.status === LessonStatus.SCHEDULED && (
+                    {hasJoinableClass(l) && l.status === LessonStatus.SCHEDULED && (
                       <JoinClassLink
                         lessonId={l.id}
                         scheduledDate={l.scheduledDate}

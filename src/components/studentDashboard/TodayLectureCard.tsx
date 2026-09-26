@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Circle } from "rc-progress";
 import JoinClassLink from "@/components/classroom/JoinClassLink";
+import { hasJoinableClass } from "@/lib/class-join-window";
 import { CalendarClock } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { GetLinkedStudentsAction, GetEnrollmentsAction } from "@/server/enrollment";
@@ -117,7 +118,7 @@ export default function TodayLectureCard() {
                     {formatScheduleTime(lesson.scheduledDate)}
                   </span>
                   <div className="flex gap-1 shrink-0">
-                    {lesson.meetingUrl && (
+                    {hasJoinableClass(lesson) && (
                       <JoinClassLink
                         lessonId={lesson.id}
                         scheduledDate={lesson.scheduledDate}

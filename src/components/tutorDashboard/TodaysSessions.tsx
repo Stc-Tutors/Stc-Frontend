@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CalendarClock, Play, Square, ChevronDown } from "lucide-react";
+import { CalendarClock, Play, Square, ChevronDown, Video } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { GetMyCoursesAction, GetCourseStudentsAction } from "@/server/course";
@@ -15,6 +15,7 @@ import { Lesson } from "@/types/lesson";
 import { CourseEnrollment } from "@/types/course-enrollment";
 import { Student } from "@/types/student";
 import { AttendanceStatus } from "@/types/attendance";
+import { LessonDeliveryMode } from "@/types/live-class";
 
 interface Row {
   lesson: Lesson;
@@ -148,13 +149,28 @@ export default function TodaysSessions() {
                   </div>
 
                   {!lesson.actualStartTime ? (
-                    <Button size="sm" onClick={() => handleClockIn(lesson.id)}>
-                      <Play className="w-3.5 h-3.5 mr-1" /> Clock In
-                    </Button>
+                    lesson.deliveryMode === LessonDeliveryMode.LIVEKIT ? (
+                      // In-app class: the server sees when the tutor connects,
+                      // so joining the classroom IS the clock-in.
+                      <Button size="sm" onClick={() => router.push(`/lms-home/classroom/live/${lesson.id}`)}>
+                        <Video className="w-3.5 h-3.5 mr-1" /> Start class
+                      </Button>
+                    ) : (
+                      <Button size="sm" onClick={() => handleClockIn(lesson.id)}>
+                        <Play className="w-3.5 h-3.5 mr-1" /> Clock In
+                      </Button>
+                    )
                   ) : !lesson.actualEndTime ? (
-                    <Button size="sm" variant="destructive" onClick={() => setClockOutLessonId(lesson.id)}>
-                      <Square className="w-3.5 h-3.5 mr-1" /> Clock Out
-                    </Button>
+                    <div className="flex gap-2">
+                      {lesson.deliveryMode === LessonDeliveryMode.LIVEKIT && (
+                        <Button size="sm" variant="outline" onClick={() => router.push(`/lms-home/classroom/live/${lesson.id}`)}>
+                          <Video className="w-3.5 h-3.5 mr-1" /> Rejoin
+                        </Button>
+                      )}
+                      <Button size="sm" variant="destructive" onClick={() => setClockOutLessonId(lesson.id)}>
+                        <Square className="w-3.5 h-3.5 mr-1" /> Clock Out
+                      </Button>
+                    </div>
                   ) : (
                     <span className="text-xs text-green-600 font-medium">Completed</span>
                   )}

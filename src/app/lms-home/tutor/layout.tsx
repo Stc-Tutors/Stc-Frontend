@@ -25,7 +25,9 @@ import {
   Target,
   FolderUp,
   Gift,
-  UserCheck
+  UserCheck,
+  Hourglass,
+  Star,
 } from "lucide-react";
 import BrandLogo from "@/components/shared/BrandLogo";
 import LogoutButton from "@/components/shared/LogoutButton";
@@ -46,6 +48,7 @@ const sidebarLinks = [
   { label: "Schedule", icon: Calendar, href: "/lms-home/tutor/scheduling" },
   { label: "Pending Assignments", icon: UserCheck, href: "/lms-home/tutor/pending-assignments" },
   { label: "Classroom", icon: Users, href: "/lms-home/tutor/classroom" },
+  { label: "My Hours", icon: Hourglass, href: "/lms-home/tutor/hours" },
   { label: "Student Progress", icon: Target, href: "/lms-home/tutor/student-progress" },
   { label: "Assignments", icon: BookOpen, href: "/lms-home/tutor/assignments" },
   { label: "Messages", icon: MessageSquare, href: "/lms-home/tutor/messages" },
@@ -77,6 +80,12 @@ const HOD_LINKS: {
   { label: "Tutor Applications", icon: FileUser, href: "/lms-home/admin/tutor-applications", hodPermission: HodPermission.REVIEW_TUTOR_APPLICATIONS },
   { label: "HOD Reports", icon: BarChart2, href: "/lms-home/admin/hod-reports", hodPermission: HodPermission.VIEW_REPORTS },
   { label: "My Unassigned Queue", icon: Users, href: "/lms-home/admin/hod-unassigned-queue", hodPermission: HodPermission.MANAGE_UNASSIGNED_QUEUE },
+  {
+    label: "Class Feedback",
+    icon: Star,
+    href: "/lms-home/admin/feedback",
+    hodPermission: [HodPermission.MANAGE_COURSES, HodPermission.VIEW_REPORTS],
+  },
   {
     label: "My Tutors (HOD Scope)",
     icon: Users,

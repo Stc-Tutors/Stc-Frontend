@@ -30,6 +30,7 @@ import {
   PlayCircle,
   Wallet,
   ShoppingBag,
+  Hourglass,
 } from "lucide-react";
 import BrandLogo from "@/components/shared/BrandLogo";
 import LogoutButton from "@/components/shared/LogoutButton";
@@ -56,6 +57,7 @@ const sidebarLinks = [
   { label: "Tutors", icon: GraduationCap, href: "/lms-home/student/tutors" },
   { label: "Schedule", icon: Calendar, href: "/lms-home/student/scheduling" },
   { label: "Classroom", icon: Users, href: "/lms-home/student/classroom" },
+  { label: "Hours & Reports", icon: Hourglass, href: "/lms-home/student/hours" },
   { label: "Resources", icon: FolderOpen, href: "/lms-home/student/resources" },
   { label: "Video Courses", icon: PlayCircle, href: "/lms-home/student/video-courses" },
   { label: "Messages", icon: MessageSquare, href: "/lms-home/student/messages" },

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import { formatDateTime } from "@/lib/datetime";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Video, Clock } from "lucide-react";
@@ -10,6 +11,19 @@ import { Lesson } from "@/types/lesson";
 import { Course } from "@/types/course";
 import LiveClassRedirect from "@/components/classroom/LiveClassRedirect";
 import { getJoinWindow } from "@/lib/class-join-window";
+import { LessonDeliveryMode } from "@/types/live-class";
+
+// The in-app room pulls in the whole LiveKit client - only load it when this
+// is actually an in-app class, and never on the server.
+const LiveKitClassroom = dynamic(() => import("@/components/classroom/LiveKitClassroom"), {
+  ssr: false,
+  loading: () => <p className="text-sm text-gray-500">Loading classroom...</p>,
+});
+
+// Admins/HODs may observe well before the start, and anyone may reconnect for
+// a while after the scheduled end (see stcbe LiveClassService's join window).
+const OBSERVER_LEAD_MS = 60 * 60000;
+const REJOIN_GRACE_MS = 30 * 60000;
 
 export default function LiveClassroomPage() {
   const { lessonId } = useParams();
@@ -46,10 +60,15 @@ export default function LiveClassroomPage() {
   }, []);
 
   const joinWindow = lesson ? getJoinWindow(lesson.scheduledDate, lesson.durationMinutes, now) : null;
+  const isInApp = lesson?.deliveryMode === LessonDeliveryMode.LIVEKIT;
+  // For an in-app class the server is the judge of who may enter and when, so
+  // try whenever we're anywhere near the window and show its answer.
+  const inAppMayTry =
+    !!lesson && !!joinWindow && now >= joinWindow.opensAt - OBSERVER_LEAD_MS && now <= joinWindow.endsAt + REJOIN_GRACE_MS;
 
   return (
     <div className="min-h-screen bg-white px-6 py-4">
-      <div className="max-w-4xl mx-auto">
+      <div className={isInApp ? "max-w-6xl mx-auto" : "max-w-4xl mx-auto"}>
         <button
           onClick={() => router.back()}
           className="flex items-center text-gray-700 mb-6 hover:text-blue-500 transition-colors"
@@ -65,6 +84,28 @@ export default function LiveClassroomPage() {
 
         {isLoading ? (
           <p className="text-sm text-gray-500">Loading classroom...</p>
+        ) : isInApp && lesson ? (
+          <>
+            <div className="mb-4">
+              <h2 className="text-xl font-semibold text-gray-800">{lesson.title}</h2>
+              {course && <p className="text-sm text-gray-500">{course.title}</p>}
+            </div>
+            {inAppMayTry ? (
+              <LiveKitClassroom lessonId={lesson.id} onExit={() => router.back()} />
+            ) : (
+              <div className="bg-gray-50 border border-dashed border-gray-300 rounded-lg py-16 flex flex-col items-center gap-3 text-center">
+                <Clock className="w-8 h-8 text-gray-400" />
+                {joinWindow?.hasEnded ? (
+                  <p className="text-sm text-gray-500">This class session has ended.</p>
+                ) : (
+                  <>
+                    <p className="text-sm text-gray-600">This room opens 10 minutes before class starts.</p>
+                    <p className="text-sm text-gray-500">Class begins {formatDateTime(lesson.scheduledDate)}</p>
+                  </>
+                )}
+              </div>
+            )}
+          </>
         ) : error || !lesson?.meetingUrl ? (
           <p className="text-sm text-gray-500">
             {error || "This lesson doesn't have a live class link yet."}

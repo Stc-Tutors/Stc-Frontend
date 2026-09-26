@@ -41,11 +41,13 @@ import { useUser } from "@/contexts/user-context";
 import { AdminPermission } from "@/types/admin-permission";
 import { UserRole } from "@/types/user";
 import JoinClassLink from "@/components/classroom/JoinClassLink";
+import { hasJoinableClass } from "@/lib/class-join-window";
+import LessonDeliveryControls from "@/components/live-class/LessonDeliveryControls";
 
 type Filter = "upcoming" | "pending" | "cancelled";
 
 export default function AdminSessionsPage() {
-  const { user, hasPermission } = useUser();
+  const { user, hasPermission, hodAssignment } = useUser();
   // HOD keeps meeting-link access unconditionally, same as the backend
   // (LessonService.assertCanSetMeetingUrl only gates STC_ADMIN/TUTOR_ADMIN
   // behind this permission - HOD and SUPER_ADMIN/ALMIGHTY_ADMIN always pass).
@@ -62,6 +64,10 @@ export default function AdminSessionsPage() {
   // returning [] (never a bypass) for a plain HOD.
   const canManageNoticeSettings = hasPermission(AdminPermission.MANAGE_SCHEDULES);
   const canManagePricing = hasPermission(AdminPermission.MANAGE_PRICING);
+  // Recording is an oversight control: an HOD (for their scope), a granted
+  // admin, or a super/almighty admin. The server checks the exact scope.
+  const canManageRecording =
+    !!hodAssignment || user?.role === UserRole.HOD || hasPermission(AdminPermission.MANAGE_CLASS_RECORDING);
 
   const [filter, setFilter] = useState<Filter>("upcoming");
   const [lessons, setLessons] = useState<Lesson[]>([]);
@@ -334,6 +340,7 @@ export default function AdminSessionsPage() {
               <TableHead>Date</TableHead>
               <TableHead>Status</TableHead>
               {filter === "upcoming" && <TableHead>Meeting Link</TableHead>}
+              {filter === "upcoming" && <TableHead>Delivery</TableHead>}
               <TableHead className="text-right">Action</TableHead>
             </TableRow>
           </TableHeader>
@@ -377,9 +384,23 @@ export default function AdminSessionsPage() {
                       )}
                     </TableCell>
                   )}
+                  {filter === "upcoming" && (
+                    <TableCell>
+                      <LessonDeliveryControls
+                        lesson={lesson}
+                        courseId={typeof lesson.course === "string" ? lesson.course : (lesson.course as LessonCourseRef).id}
+                        canChooseDelivery={canManageMeetingLinks}
+                        canManageRecording={canManageRecording}
+                        onChanged={(updated) =>
+                          setLessons((prev) => prev.map((l) => (l.id === updated.id ? { ...l, ...updated, course: l.course } : l)))
+                        }
+                        onBulkChanged={() => load(filter)}
+                      />
+                    </TableCell>
+                  )}
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-3">
-                      {lesson.meetingUrl && lesson.status === LessonStatus.SCHEDULED && (
+                      {hasJoinableClass(lesson) && lesson.status === LessonStatus.SCHEDULED && (
                         <JoinClassLink
                           lessonId={lesson.id}
                           scheduledDate={lesson.scheduledDate}
@@ -405,7 +426,7 @@ export default function AdminSessionsPage() {
                 </TableRow>
                 {cancellingLessonId === lesson.id && (
                   <TableRow>
-                    <TableCell colSpan={filter === "upcoming" ? 5 : 4} className="bg-red-50">
+                    <TableCell colSpan={filter === "upcoming" ? 6 : 4} className="bg-red-50">
                       <div className="flex items-center gap-2 py-1">
                         <Input
                           value={cancelReason}
