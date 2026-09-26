@@ -161,6 +161,10 @@ export type EnrollmentData = {
   // above). Entered by the family at Review, validated/redeemed server-side
   // in StudentService.computeEnrollmentQuote.
   couponCode?: string;
+  // Optional, unticked by default: the parent (or adult learner) allows this
+  // child's classes to be recorded. Never sent with the enrollment itself - it is
+  // applied as a separate consent record once the enrollment has been saved.
+  allowRecording?: boolean;
   // Present = this is another service enrollment for a child the parent/
   // student already has (see stcbe's IStudent.childId) - the backend links
   // the new enrollment to that existing Child instead of creating a

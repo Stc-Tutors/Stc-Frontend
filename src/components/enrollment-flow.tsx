@@ -17,6 +17,7 @@ import { GetServicesAction } from "@/server/service-catalog";
 import { GetLinkedStudentsAction } from "@/server/enrollment";
 import { EnrollmentStatus } from "@/types/student";
 import { VerifyPaymentAction } from "@/server/payment";
+import { SetRecordingConsentAction } from "@/server/live-class";
 import PaymentConsentModal from "./payment-consent-modal";
 
 const steps = [
@@ -219,6 +220,14 @@ export default function EnrollmentFlow({ forcedUserType, dashboardPath, paymentH
       const result = await saveEnrollment();
       if (result.success && result.data) {
         setErrors({});
+        // The optional recording consent ticked on the Review step. Best-effort
+        // and separate from the enrollment: failing here must never block
+        // registration or payment - the family can set it later in Hours & Reports.
+        const enrolledStudentId = result.data.student?.id;
+        if (enrollmentData.allowRecording && enrolledStudentId) {
+          const [, consentError] = await SetRecordingConsentAction(enrolledStudentId, true);
+          if (consentError) ToastError("We couldn't save your recording preference - you can set it later under Hours & Reports.");
+        }
         // Task 3/5 - a cohort/group placement can land the student on a
         // waitlist instead of a confirmed seat; payment is still initiated
         // either way, but call that out distinctly rather than implying a

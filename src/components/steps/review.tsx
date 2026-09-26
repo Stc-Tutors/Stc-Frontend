@@ -531,6 +531,30 @@ export default function EnrollmentReview({ onNext, errors }: StepProps) {
         </CardContent>
       </Card>
 
+      {/* Optional class-recording consent - unticked, and can be changed any time
+          under Hours & Reports. Not a condition of registering. */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Class recordings (optional)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-start space-x-3">
+            <Checkbox
+              id="allow-recording"
+              checked={!!enrollmentData.allowRecording}
+              onCheckedChange={(checked) => setEnrollmentData((prev) => ({ ...prev, allowRecording: checked === true }))}
+              className="mt-1"
+            />
+            <Label htmlFor="allow-recording" className="text-sm leading-relaxed">
+              Allow some of {childInfo?.userType === "student" ? "my" : "my child's"} classes to be recorded so they can be
+              watched again. Recordings are private, visible only to the family, the tutor and authorised school staff, and
+              deleted after a set time. A class is only recorded when the school switches it on, and you&apos;ll be told
+              first. You can withdraw this at any time from Hours &amp; Reports.
+            </Label>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Terms and Conditions */}
       <Card>
         <CardHeader>
