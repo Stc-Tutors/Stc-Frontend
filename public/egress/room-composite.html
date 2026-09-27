@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<!--
+  LiveKit's recorder page for a class recording that must leave certain
+  participants out (see stcbe's LiveKitService.startRecording).
+
+  This is NOT a page a person ever opens. LiveKit's Egress service launches its
+  own headless Chrome, loads this exact file with `?url=...&token=...&layout=...`
+  appended, and records whatever it renders. It is a static file (not a Next.js
+  page) on purpose: every real page in this app is wrapped in providers that
+  redirect an unauthenticated visitor to /auth/login (see app/layout.tsx's
+  UserProvider), and this page has no session cookie at all - LiveKit's browser
+  is not a logged-in user. A static file under public/ sidesteps that entirely.
+
+  The protocol below (read url/token/layout from the query string; log the
+  literal strings START_RECORDING/END_RECORDING to signal readiness/completion)
+  is LiveKit's own documented custom-template contract - see the (tiny, official)
+  @livekit/egress-sdk source, reimplemented directly here rather than pulled in
+  as a dependency, since a build step would defeat the point of a plain static
+  file LiveKit's browser can load with nothing else to fetch or compile.
+
+  How exclusion works: the `layout` param carries "exclude:<id1>,<id2>,...", the
+  LiveKit participant identities (User ids - see LiveKitService.issueToken) that
+  must never appear in the recording. This page connects with autoSubscribe
+  turned off, so it never even receives an excluded identity's audio/video -
+  their media never reaches this page, let alone the recording. Everyone else
+  (the tutor, every consenting student) is subscribed and rendered normally.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Class recording</title>
+    <style>
+      html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: #0b0b0f; overflow: hidden; }
+      #grid {
+        display: grid;
+        width: 100%;
+        height: 100%;
+        gap: 4px;
+        padding: 4px;
+        box-sizing: border-box;
+      }
+      .tile {
+        position: relative;
+        background: #17171d;
+        border-radius: 8px;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .tile video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .tile .name {
+        position: absolute;
+        left: 8px;
+        bottom: 8px;
+        color: #fff;
+        font: 500 14px/1.2 -apple-system, Segoe UI, Roboto, sans-serif;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+      }
+      #empty {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #666;
+        font: 500 16px -apple-system, Segoe UI, Roboto, sans-serif;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="grid"></div>
+    <div id="empty">Waiting for the class to begin&hellip;</div>
+
+    <!-- Vendored, not a CDN import: this app's CSP only allows scripts from
+         'self', and this page must never depend on network access it isn't
+         guaranteed. Re-copy from node_modules/livekit-client/dist whenever the
+         livekit-client dependency version changes. -->
+    <script src="/egress/livekit-client.umd.js"></script>
+    <script>
+      (function () {
+        "use strict";
+        var LK = window.LivekitClient;
+        var Room = LK.Room;
+        var RoomEvent = LK.RoomEvent;
+
+        var params = new URLSearchParams(window.location.search);
+        var url = params.get("url");
+        var token = params.get("token");
+        var layout = params.get("layout") || "";
+
+        // "exclude:id1,id2" -> Set{"id1","id2"}. Anything else (including an
+        // empty/unrecognised value) excludes nobody - the safe default is to
+        // record everyone rather than silently record no one.
+        var excluded = new Set();
+        if (layout.indexOf("exclude:") === 0) {
+          layout
+            .slice("exclude:".length)
+            .split(",")
+            .map(function (s) { return s.trim(); })
+            .filter(Boolean)
+            .forEach(function (id) { excluded.add(id); });
+        }
+
+        var grid = document.getElementById("grid");
+        var empty = document.getElementById("empty");
+        var tiles = new Map(); // identity -> tile element
+        var tileCounts = new Map(); // identity -> number of attached media elements
+
+        function relayout() {
+          var n = tiles.size;
+          empty.style.display = n === 0 ? "flex" : "none";
+          var cols = Math.max(1, Math.ceil(Math.sqrt(n)));
+          grid.style.gridTemplateColumns = "repeat(" + cols + ", 1fr)";
+        }
+
+        function tileFor(participant) {
+          var existing = tiles.get(participant.identity);
+          if (existing) return existing;
+          var tile = document.createElement("div");
+          tile.className = "tile";
+          var label = document.createElement("div");
+          label.className = "name";
+          label.textContent = participant.name || participant.identity;
+          tile.appendChild(label);
+          grid.appendChild(tile);
+          tiles.set(participant.identity, tile);
+          tileCounts.set(participant.identity, 0);
+          relayout();
+          return tile;
+        }
+
+        function removeTileIfEmpty(identity) {
+          var count = tileCounts.get(identity) || 0;
+          if (count > 0) return;
+          var tile = tiles.get(identity);
+          if (tile) tile.remove();
+          tiles.delete(identity);
+          tileCounts.delete(identity);
+          relayout();
+        }
+
+        function subscribeAllOf(participant) {
+          if (excluded.has(participant.identity)) return;
+          participant.trackPublications.forEach(function (publication) {
+            if (!publication.isSubscribed) publication.setSubscribed(true);
+          });
+        }
+
+        var room = new Room();
+
+        room.on(RoomEvent.TrackPublished, function (publication, participant) {
+          if (excluded.has(participant.identity)) return;
+          publication.setSubscribed(true);
+        });
+
+        room.on(RoomEvent.TrackSubscribed, function (track, _publication, participant) {
+          if (excluded.has(participant.identity)) return; // belt-and-braces; should never subscribe in the first place
+          var tile = tileFor(participant);
+          var el = track.attach();
+          tile.appendChild(el);
+          tileCounts.set(participant.identity, (tileCounts.get(participant.identity) || 0) + 1);
+        });
+
+        room.on(RoomEvent.TrackUnsubscribed, function (track, _publication, participant) {
+          track.detach().forEach(function (el) { el.remove(); });
+          tileCounts.set(participant.identity, Math.max(0, (tileCounts.get(participant.identity) || 1) - 1));
+          removeTileIfEmpty(participant.identity);
+        });
+
+        room.on(RoomEvent.ParticipantDisconnected, function (participant) {
+          var tile = tiles.get(participant.identity);
+          if (tile) tile.remove();
+          tiles.delete(participant.identity);
+          tileCounts.delete(participant.identity);
+          relayout();
+        });
+
+        // LiveKit's custom-template contract: the page logs this literal string
+        // once it's connected and ready; Egress's controller watches the
+        // browser console for it before it starts capturing frames.
+        room.on(RoomEvent.Disconnected, function () {
+          console.log("END_RECORDING");
+        });
+
+        room
+          .connect(url, token, { autoSubscribe: false })
+          .then(function () {
+            room.remoteParticipants.forEach(subscribeAllOf);
+            console.log("START_RECORDING");
+          })
+          .catch(function (err) {
+            console.error("Recorder failed to connect", err);
+          });
+      })();
+    </script>
+  </body>
+</html>

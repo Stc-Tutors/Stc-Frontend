@@ -8,11 +8,14 @@ import RecordingConsentPanel from "@/components/live-class/RecordingConsentPanel
 
 // One home for everything a family wants to know after class: how many hours
 // they've used, what the tutor said about each class (and a way to rate it),
-// and the recording consent they control. A child's own login sees hours and
-// reports but not the consent screen - consent is a parent's to give.
+// and the recording consent they control. A parent-created child login (no
+// email, signs in with a Student ID) sees hours and reports but not the
+// consent screen - consent is a parent's to give. A self-registered student
+// (their own email/login) manages their own consent and sees money, same as
+// a parent, since nobody else is managing their account.
 export default function FamilyHoursPage() {
   const { user } = useUser();
-  const isChildLogin = user?.role === "STUDENT";
+  const isChildLogin = user?.role === "STUDENT" && !!user.studentId;
 
   return (
     <div className="space-y-6 p-6">

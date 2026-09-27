@@ -168,7 +168,8 @@ export default function LessonDeliveryControls({
                 <div className="text-amber-800">
                   <p className="flex items-start gap-1.5">
                     <TriangleAlert className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                    A parent&apos;s consent is needed first for:
+                    Recording can still start, but these children (and their own login) will not appear in it - no
+                    consent on file:
                   </p>
                   <ul className="ml-5 list-disc">
                     {readiness.missingConsent.map((c) => (
@@ -178,7 +179,8 @@ export default function LessonDeliveryControls({
                 </div>
               ) : (
                 <p className="flex items-center gap-1.5 text-emerald-700">
-                  <ShieldCheck className="h-3.5 w-3.5" /> Every enrolled child has a parent&apos;s consent.
+                  <ShieldCheck className="h-3.5 w-3.5" /> Every enrolled child has a parent&apos;s consent - everyone will
+                  appear in the recording.
                 </p>
               )}
 

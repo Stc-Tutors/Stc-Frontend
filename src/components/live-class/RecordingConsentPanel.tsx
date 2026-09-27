@@ -47,6 +47,8 @@ export default function RecordingConsentPanel() {
             Some classes may be recorded so you and your child can watch them again. Recordings are stored privately,
             only visible to your family, the tutor and authorised school staff, and deleted automatically after a set
             time. You&apos;ll be told before any class is recorded, and a &quot;Recording&quot; badge shows in the room.
+            If your child is in a class with other students and you don&apos;t allow recording, the class can still be
+            recorded for the others - your child simply won&apos;t appear or be heard in it.
           </p>
         </div>
       </div>

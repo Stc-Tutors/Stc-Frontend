@@ -79,6 +79,12 @@ const publicPaths = [
   // link. Without these the proxy bounced them to the login page.
   "/reference",
   "/courses/register",
+  // LiveKit's recorder page (public/egress/room-composite.html) - a static
+  // file, but this middleware's matcher doesn't exempt public/ files, only the
+  // prefixes listed there. LiveKit's own headless browser loads this with no
+  // session cookie, so without this entry it would be bounced to /auth/login
+  // before the file ever loads, and every recording would fail.
+  "/egress",
 ];
 
 async function getRoleFromToken(token: string): Promise<UserRole | null> {
