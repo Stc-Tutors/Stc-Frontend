@@ -4,6 +4,7 @@ import { Toaster } from "sonner";
 import { UserProvider } from "@/contexts/user-context";
 import { TenantBrandingProvider } from "@/contexts/tenant-branding-context";
 import TermsGateModal from "@/components/terms-gate-modal";
+import OnboardingTour from "@/components/onboarding-tour/onboarding-tour";
 import PushNotificationRegistrar from "@/components/push-notification-registrar";
 import RealtimeSync from "@/components/realtime-sync";
 
@@ -22,6 +23,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             {children}
             {/* Mandatory for every role, on top of any page - see TermsGateModal. */}
             <TermsGateModal />
+            {/* First-login walkthrough - gates itself on hasCompletedTour, see OnboardingTour. */}
+            <OnboardingTour />
             <PushNotificationRegistrar />
             <RealtimeSync />
             <Toaster position="top-right" />

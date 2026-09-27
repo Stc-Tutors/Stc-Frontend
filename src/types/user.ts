@@ -47,6 +47,9 @@ export interface User {
   // attempt). Presence alone is enough for the UI to know "already
   // referred, don't ask again" without needing the referrer's identity.
   referredBy?: string;
+  // Whether this user has clicked through (or skipped) the first-login
+  // product walkthrough - drives OnboardingTour. Defaults false server-side.
+  hasCompletedTour?: boolean;
 }
 
 // A tutor applicant who's still PENDING_APPROVAL (drafting or flagged for

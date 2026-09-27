@@ -74,6 +74,19 @@ const sidebarLinks = [
   { label: "Notifications", icon: Bell, href: "/lms-home/student/notification", badge: true },
 ];
 
+// Spotlight targets for the first-login walkthrough (see OnboardingTour) -
+// keyed by label since sidebarLinks is filtered/spliced differently per
+// account type below and a fixed index would drift.
+const TOUR_TARGETS: Record<string, string> = {
+  Dashboard: "tour-dashboard",
+  Schedule: "tour-schedule",
+  Classroom: "tour-classroom",
+  Assignments: "tour-assignments",
+  Messages: "tour-messages",
+  Wallet: "tour-wallet",
+  Profile: "tour-profile",
+};
+
 // Paths a student must still be able to reach before they've registered for
 // any service - the registration wizard itself, and the admin-confirmation
 // review flow (which implies a Student record already exists).
@@ -189,6 +202,7 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
             <Link
             key={label}
             href={href}
+            data-tour={TOUR_TARGETS[label]}
             className={`flex items-center justify-between px-4 py-2 rounded-lg transition-transform duration-200 ${
                 pathname === href
                 ? "bg-blue-100 text-gray-500 hover:text-[#38b6ff] font-medium -translate-x-1"
@@ -203,7 +217,7 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
                             </Link>
                         ))}
                         </nav>
-                        
+
                         <div className="p-4 border-t space-y-4">
                             {/* Support */}
                             <Link
@@ -267,7 +281,9 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
 
             <AnnouncementsOverlay />
 
-            <NotificationBell viewAllHref="/lms-home/student/notification" />
+            <span data-tour="tour-notifications">
+              <NotificationBell viewAllHref="/lms-home/student/notification" />
+            </span>
 
             <UserProfileDropdown />
           </div>

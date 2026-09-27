@@ -250,6 +250,18 @@ const sidebarLinks: {
   { label: "Notifications", icon: Bell, href: "/lms-home/admin/notification", badge: true },
 ];
 
+// Spotlight targets for the first-login walkthrough - see OnboardingTour.
+// Most of these are permission-gated links that won't exist for every admin;
+// OnboardingTour skips a step whose target never shows up in the DOM.
+const TOUR_TARGETS: Record<string, string> = {
+  Dashboard: "tour-dashboard",
+  Students: "tour-students",
+  Enrollments: "tour-enrollments",
+  Finance: "tour-finance",
+  Reports: "tour-reports",
+  Profile: "tour-profile",
+};
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -326,6 +338,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <Link
                 key={label}
                 href={href}
+                data-tour={TOUR_TARGETS[label]}
                 className={`flex items-center justify-between px-4 py-2 rounded-lg transition-transform duration-200 ${
                   pathname === href
                     ? "bg-blue-100 text-gray-500 hover:text-[#38b6ff] font-medium -translate-x-1"
@@ -386,7 +399,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
             <AnnouncementsOverlay />
 
-            <NotificationBell viewAllHref="/lms-home/admin/notification" />
+            <span data-tour="tour-notifications">
+              <NotificationBell viewAllHref="/lms-home/admin/notification" />
+            </span>
 
             <UserProfileDropdown />
           </div>

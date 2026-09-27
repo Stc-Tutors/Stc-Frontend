@@ -66,6 +66,16 @@ const sidebarLinks = [
   { label: "Notifications", icon: Bell, href: "/lms-home/parent/notification", badge: true },
 ];
 
+// Spotlight targets for the first-login walkthrough - see OnboardingTour.
+const TOUR_TARGETS: Record<string, string> = {
+  Dashboard: "tour-dashboard",
+  Enrollment: "tour-enrollment",
+  Tutors: "tour-tutors",
+  Schedule: "tour-schedule",
+  Wallet: "tour-wallet",
+  Messages: "tour-messages",
+};
+
 export default function LMSLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -112,6 +122,7 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
             <Link
             key={label}
             href={href}
+            data-tour={TOUR_TARGETS[label]}
             className={`flex items-center justify-between px-4 py-2 rounded-lg transition-transform duration-200 ${
                 pathname === href
                 ? "bg-blue-100 text-gray-500 hover:text-[#38b6ff] font-medium -translate-x-1"
@@ -126,7 +137,7 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
                             </Link>
                         ))}
                         </nav>
-                        
+
                         <div className="p-4 border-t space-y-6">
                             {/* Support */}
                             <Link
@@ -180,7 +191,9 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
 
           {/* Icons */}
           <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-            <ChildSwitcherDropdown />
+            <span data-tour="tour-child-switcher">
+              <ChildSwitcherDropdown />
+            </span>
 
             <Link
               href="/lms-home/parent/messages"
@@ -192,7 +205,9 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
 
             <AnnouncementsOverlay />
 
-            <NotificationBell viewAllHref="/lms-home/parent/notification" />
+            <span data-tour="tour-notifications">
+              <NotificationBell viewAllHref="/lms-home/parent/notification" />
+            </span>
 
             <UserProfileDropdown />
           </div>
