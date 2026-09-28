@@ -52,6 +52,7 @@ export default function AdminComplaintsPage() {
   const [assigneeSearch, setAssigneeSearch] = useState("");
   const [assigneeResults, setAssigneeResults] = useState<User[]>([]);
   const [assignedToName, setAssignedToName] = useState<string | null>(null);
+  const [userNames, setUserNames] = useState<Record<string, string>>({});
   const [resolutionStatus, setResolutionStatus] = useState<ComplaintStatus.RESOLVED | ComplaintStatus.DISMISSED>(
     ComplaintStatus.RESOLVED
   );
@@ -73,6 +74,27 @@ export default function AdminComplaintsPage() {
   }, []);
 
   const selected = complaints.find((c) => c.id === selectedId) ?? null;
+
+  // complainant/respondent come back as bare user ids (see Complaint type) -
+  // resolved in one batch per complaints list load, same as assignedTo below
+  // resolves per-selection, so every row can name who filed it, not just the
+  // subject line.
+  useEffect(() => {
+    const ids = Array.from(
+      new Set(complaints.flatMap((c) => [c.complainant, c.respondent].filter((id): id is string => !!id)))
+    ).filter((id) => !(id in userNames));
+    if (ids.length === 0) return;
+    Promise.all(ids.map((id) => GetUserByIdAction(id))).then((results) => {
+      setUserNames((prev) => {
+        const next = { ...prev };
+        results.forEach(([res], i) => {
+          if (res?.data) next[ids[i]] = `${res.data.firstName} ${res.data.lastName}`;
+        });
+        return next;
+      });
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [complaints]);
 
   useEffect(() => {
     if (!selected?.assignedTo) {
@@ -162,6 +184,7 @@ export default function AdminComplaintsPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Subject</TableHead>
+              <TableHead>Filed by</TableHead>
               <TableHead>Category</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Filed</TableHead>
@@ -172,6 +195,7 @@ export default function AdminComplaintsPage() {
             {complaints.map((c) => (
               <TableRow key={c.id}>
                 <TableCell>{c.subject}</TableCell>
+                <TableCell>{userNames[c.complainant] ?? "..."}</TableCell>
                 <TableCell>{CATEGORY_LABELS[c.category]}</TableCell>
                 <TableCell>
                   <span className={`text-xs px-2 py-1 rounded-full font-medium ${STATUS_COLORS[c.status]}`}>
@@ -202,6 +226,10 @@ export default function AdminComplaintsPage() {
               {CATEGORY_LABELS[selected.category]} &middot; Filed {formatDateTime(selected.createdAt)}
             </p>
             <p className="text-sm text-gray-600 mt-2">{selected.description}</p>
+            <p className="text-xs text-gray-500 mt-2">
+              Filed by: {userNames[selected.complainant] ?? "..."}
+              {selected.respondent && <> &middot; About: {userNames[selected.respondent] ?? "..."}</>}
+            </p>
             {selected.assignedTo && (
               <p className="text-xs text-gray-500 mt-2">Assigned to: {assignedToName ?? "..."}</p>
             )}

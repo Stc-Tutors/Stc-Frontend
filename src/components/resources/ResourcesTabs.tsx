@@ -32,6 +32,9 @@ interface ResourcesTabsProps {
   renderExtraActions?: (r: CourseResource) => React.ReactNode;
   // When length > 1, shows a "Course" filter Select above the list.
   courses?: { id: string; title: string }[];
+  // Resolves CourseResource.students (bare ids) to display names on the
+  // "N students" badge below - omit to fall back to a generic tooltip.
+  studentNames?: Record<string, string>;
   emptyMessage?: string;
 }
 
@@ -91,6 +94,7 @@ export default function ResourcesTabs({
   statusBadge,
   renderExtraActions,
   courses,
+  studentNames,
   emptyMessage = "Nothing here yet.",
 }: ResourcesTabsProps) {
   const [sort, setSort] = useState<SortOption>("newest");
@@ -153,7 +157,11 @@ export default function ResourcesTabs({
               {!!r.students?.length && (
                 <span
                   className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full shrink-0 bg-purple-100 text-purple-700"
-                  title="Only visible to the students it was targeted to"
+                  title={
+                    studentNames
+                      ? `Only visible to: ${r.students.map((id) => studentNames[id] ?? id).join(", ")}`
+                      : "Only visible to the students it was targeted to"
+                  }
                 >
                   <User className="w-3 h-3" /> {r.students.length} student{r.students.length === 1 ? "" : "s"}
                 </span>

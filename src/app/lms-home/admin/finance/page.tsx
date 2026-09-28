@@ -7,6 +7,7 @@ import { formatMoney, formatMoneyCompact } from "@/lib/money";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { GetRevenueReportAction, ListStudentsForAdminAction } from "@/server/admin";
 import { ListAllPayoutRequestsAction } from "@/server/payout";
+import { GetUserByIdAction } from "@/server/admin";
 import { RevenuePoint } from "@/types/admin";
 import { PayoutRequest, PayoutRequestStatus } from "@/types/payout";
 import { EnrollmentStatus, Student } from "@/types/student";
@@ -26,6 +27,7 @@ export default function AdminFinancePage() {
   const [revenue, setRevenue] = useState<RevenuePoint[]>([]);
   const [payouts, setPayouts] = useState<PayoutRequest[]>([]);
   const [pendingStudents, setPendingStudents] = useState<Student[]>([]);
+  const [tutorNames, setTutorNames] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -38,7 +40,25 @@ export default function AdminFinancePage() {
       setRevenue(revenueRes?.data ?? []);
 
       const [payoutsRes] = await ListAllPayoutRequestsAction(PayoutRequestStatus.PAID);
-      setPayouts(payoutsRes?.data ?? []);
+      const payoutRows = payoutsRes?.data ?? [];
+      setPayouts(payoutRows);
+
+      // PayoutRequest.tutor is a bare id (never populated server-side) -
+      // resolved here so the expenses table shows who was paid, not just a
+      // date and an amount.
+      const tutorIds = Array.from(new Set(payoutRows.map((p) => p.tutor)));
+      if (tutorIds.length > 0) {
+        const results = await Promise.all(tutorIds.map((id) => GetUserByIdAction(id)));
+        setTutorNames(
+          Object.fromEntries(
+            results
+              .map(([res], i): [string, string] | null =>
+                res?.data ? [tutorIds[i], `${res.data.firstName} ${res.data.lastName}`] : null
+              )
+              .filter((entry): entry is [string, string] => entry !== null)
+          )
+        );
+      }
 
       const [studentsRes] = await ListStudentsForAdminAction({ limit: 100 });
       setPendingStudents(
@@ -140,14 +160,16 @@ export default function AdminFinancePage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-xs text-gray-400 border-b">
-                  <th className="py-2">Date</th>
+                  <th className="py-2">Tutor</th>
+                  <th>Date</th>
                   <th>Amount</th>
                 </tr>
               </thead>
               <tbody>
                 {payouts.slice(0, 8).map((p) => (
                   <tr key={p.id} className="border-b last:border-none">
-                    <td className="py-2">{p.paidAt ? formatDate(p.paidAt) : "—"}</td>
+                    <td className="py-2">{tutorNames[p.tutor] ?? "..."}</td>
+                    <td>{p.paidAt ? formatDate(p.paidAt) : "—"}</td>
                     <td>{formatMoney(p.amount)}</td>
                   </tr>
                 ))}

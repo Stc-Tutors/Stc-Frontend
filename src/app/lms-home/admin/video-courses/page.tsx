@@ -26,6 +26,9 @@ export default function VideoCoursesPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   // slug -> service Mongo id, needed to build the service-workspace link.
   const [serviceIdBySlug, setServiceIdBySlug] = useState<Record<string, string>>({});
+  // slug -> display name, so the table shows "Academic Tutoring" instead of
+  // the raw "academic-tutoring" slug.
+  const [serviceNameBySlug, setServiceNameBySlug] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -35,6 +38,9 @@ export default function VideoCoursesPage() {
       setCourses(coursesRes?.data ?? []);
       setServiceIdBySlug(
         Object.fromEntries((servicesRes?.data ?? []).map((s) => [s.slug, s.id]))
+      );
+      setServiceNameBySlug(
+        Object.fromEntries((servicesRes?.data ?? []).map((s) => [s.slug, s.serviceName]))
       );
       setIsLoading(false);
     })();
@@ -76,7 +82,7 @@ export default function VideoCoursesPage() {
                   onClick={() => goToCourse(course)}
                 >
                   <TableCell className={serviceId ? "text-blue-600 hover:underline" : ""}>{course.title}</TableCell>
-                  <TableCell className="font-mono text-xs">{course.serviceType}</TableCell>
+                  <TableCell>{serviceNameBySlug[course.serviceType] ?? course.serviceType}</TableCell>
                   <TableCell>
                     <span className={`text-xs rounded-full px-2 py-0.5 ${statusBadgeClass(course.status)}`}>
                       {course.status}

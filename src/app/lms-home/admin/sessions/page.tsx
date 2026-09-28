@@ -27,6 +27,7 @@ import {
   UpdateRescheduleNoticeSettingsAction,
 } from "@/server/lesson";
 import { formatScheduleDateTime } from "@/lib/datetime";
+import { formatMoney } from "@/lib/money";
 import {
   Lesson,
   LessonCourseRef,
@@ -178,6 +179,13 @@ export default function AdminSessionsPage() {
   const courseTitle = (course: Lesson["course"]) =>
     typeof course === "string" ? course : (course as LessonCourseRef).title;
 
+  const courseTutorName = (course: Lesson["course"]): string => {
+    if (typeof course === "string") return "-";
+    const tutor = (course as LessonCourseRef).tutor;
+    if (!tutor) return "-";
+    return typeof tutor === "string" ? "-" : `${tutor.firstName} ${tutor.lastName}`;
+  };
+
   const lessonOf = (r: RescheduleRequest) => (typeof r.lesson === "string" ? null : r.lesson);
   const courseOf = (r: RescheduleRequest) => (typeof r.course === "string" ? null : r.course);
 
@@ -261,7 +269,7 @@ export default function AdminSessionsPage() {
                       {r.reason && <p className="text-gray-500 mt-1">Reason: {r.reason}</p>}
                       {r.surcharge && (
                         <p className="text-gray-500 mt-1">
-                          Surcharge: {r.surcharge.amount} {r.surcharge.currency}
+                          Surcharge: {formatMoney(r.surcharge.amount, r.surcharge.currency)}
                           {r.surcharge.overriddenAt ? " (overridden)" : ""}
                         </p>
                       )}
@@ -337,6 +345,7 @@ export default function AdminSessionsPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Subject/Course</TableHead>
+              <TableHead>Tutor</TableHead>
               <TableHead>Date</TableHead>
               <TableHead>Status</TableHead>
               {filter === "upcoming" && <TableHead>Meeting Link</TableHead>}
@@ -349,6 +358,7 @@ export default function AdminSessionsPage() {
               <Fragment key={lesson.id}>
                 <TableRow>
                   <TableCell>{courseTitle(lesson.course)}</TableCell>
+                  <TableCell className="text-gray-500">{courseTutorName(lesson.course)}</TableCell>
                   <TableCell>{formatScheduleDateTime(lesson.scheduledDate)}</TableCell>
                   <TableCell>
                     <span className={`text-xs px-2 py-1 rounded-full ${lesson.status === LessonStatus.CANCELLED ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"}`}>
@@ -426,7 +436,7 @@ export default function AdminSessionsPage() {
                 </TableRow>
                 {cancellingLessonId === lesson.id && (
                   <TableRow>
-                    <TableCell colSpan={filter === "upcoming" ? 6 : 4} className="bg-red-50">
+                    <TableCell colSpan={filter === "upcoming" ? 7 : 5} className="bg-red-50">
                       <div className="flex items-center gap-2 py-1">
                         <Input
                           value={cancelReason}

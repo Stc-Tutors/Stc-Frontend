@@ -24,7 +24,13 @@ export async function GetAllocationSummaryAction(): Promise<
 }
 
 export async function ListAllocationEnrollmentsAction(
-  params?: { status?: SubjectEnrollmentStatus; statuses?: SubjectEnrollmentStatus[]; subject?: string; search?: string }
+  params?: {
+    status?: SubjectEnrollmentStatus;
+    statuses?: SubjectEnrollmentStatus[];
+    subject?: string;
+    search?: string;
+    classGroup?: string;
+  }
 ): Promise<[ApiResponse<SubjectEnrollment[]> | null, string | null]> {
   const { statuses, ...rest } = params ?? {};
   const query = new URLSearchParams(

@@ -14,6 +14,7 @@ import { Course, CourseDailyActivity, CourseDemographics, CourseTutor } from "@/
 import { CourseEnrollment } from "@/types/course-enrollment";
 import { Student, studentAvatarUrl } from "@/types/student";
 import { TutorRatingSummary } from "@/types/session-feedback";
+import { formatMoney } from "@/lib/money";
 
 export default function AdminCourseDetailPage() {
   const { id } = useParams();
@@ -109,7 +110,7 @@ export default function AdminCourseDetailPage() {
         </div>
         <div>
           <p className="font-medium text-gray-700">Price</p>
-          <p>{course.currency} {course.price}</p>
+          <p>{formatMoney(course.price, course.currency)}</p>
         </div>
         <div>
           <p className="font-medium text-gray-700">Category</p>

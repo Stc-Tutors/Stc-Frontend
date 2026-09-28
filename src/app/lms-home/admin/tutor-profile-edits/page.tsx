@@ -12,9 +12,47 @@ import {
 } from "@/server/tutor-profile";
 import { TutorProfileEditRequest } from "@/server/tutor-profile";
 
-function formatFieldValue(value: unknown): string {
+// Reviewing a diff sight-unseen is the one place an admin most needs a
+// readable value, not a JSON blob - mirrors how each of these same
+// TutorProfile fields is already rendered on the live profile (see
+// users/[id]/page.tsx's teachingCombinations formatting).
+const STRUCTURED_FIELD_FORMATTERS: Record<string, (value: unknown) => string> = {
+  teachingCombinations: (value) =>
+    (value as { country: string; curriculum: string; gradeLevel: string; subjectsTaught: string[] }[])
+      .map((c) => `${c.country} · ${c.curriculum} · ${c.gradeLevel}: ${c.subjectsTaught.join(", ")}`)
+      .join("; "),
+  education: (value) =>
+    (value as { degree: string; institution?: string; year?: number }[])
+      .map((e) => `${e.degree}${e.institution ? ` - ${e.institution}` : ""}${e.year ? ` (${e.year})` : ""}`)
+      .join("; "),
+  availability: (value) =>
+    (value as { dayOfWeek: string; startTime: string; endTime: string }[])
+      .map((s) => `${s.dayOfWeek} ${s.startTime}-${s.endTime}`)
+      .join("; "),
+  teachingExperienceHistory: (value) =>
+    (value as { institution: string; role: string; startDate: string; endDate?: string; currentlyWorkHere: boolean }[])
+      .map((e) => `${e.role} at ${e.institution} (${e.startDate} - ${e.currentlyWorkHere ? "present" : e.endDate ?? "?"})`)
+      .join("; "),
+  certificationProofs: (value) =>
+    (value as { certification: string }[]).map((c) => c.certification).join(", "),
+  govIdFile: (value) => (value as { fileName: string }).fileName,
+  cvFile: (value) => (value as { fileName: string }).fileName,
+  supportingDocumentsFile: (value) => (value as { fileName: string }).fileName,
+};
+
+function formatFieldValue(field: string, value: unknown): string {
   if (value === null || value === undefined) return "—";
-  if (Array.isArray(value)) return value.length === 0 ? "(empty)" : JSON.stringify(value);
+  if (Array.isArray(value) && value.length === 0) return "(empty)";
+  const formatter = STRUCTURED_FIELD_FORMATTERS[field];
+  if (formatter) {
+    try {
+      return formatter(value);
+    } catch {
+      // Falls through to the generic handling below if the diff's shape
+      // doesn't match what's expected (e.g. a partial/legacy edit).
+    }
+  }
+  if (Array.isArray(value)) return value.every((v) => typeof v !== "object") ? value.join(", ") : JSON.stringify(value);
   if (typeof value === "object") return JSON.stringify(value);
   return String(value);
 }
@@ -100,7 +138,7 @@ export default function TutorProfileEditsPage() {
                 <div className="text-sm text-gray-700 space-y-1">
                   {Object.entries(req.changes).map(([field, value]) => (
                     <p key={field}>
-                      <span className="font-medium">{field}:</span> {formatFieldValue(value)}
+                      <span className="font-medium">{field}:</span> {formatFieldValue(field, value)}
                     </p>
                   ))}
                 </div>

@@ -9,6 +9,7 @@ import {
 } from "@/server/service-pricing";
 import { GetCoursesAction } from "@/server/course";
 import { GetServicesAction } from "@/server/service-catalog";
+import { formatMoney } from "@/lib/money";
 import { CURRENCIES, CurrencyCode, EnrollmentServiceType, PricePoint, ServicePricing } from "@/types/service-pricing";
 import { Course } from "@/types/course";
 import { IService } from "@/types/service-catalog";
@@ -172,6 +173,7 @@ export default function ServicePricingPage() {
   }, []);
 
   const courseTitleById = (id?: string) => courses.find((c) => c.id === id)?.title ?? id;
+  const serviceNameOf = (slug: string) => services.find((s) => s.slug === slug)?.serviceName ?? slug;
 
   // A price set against one specific Flow Tree item has none of the legacy
   // columns (curriculum/subject/grade/country) filled in when the service's tree
@@ -350,7 +352,7 @@ export default function ServicePricingPage() {
             <tbody className="divide-y">
               {pricing.map((row) => (
                 <tr key={row.id} className="align-top">
-                  <td className="p-3">{row.serviceType}</td>
+                  <td className="p-3">{serviceNameOf(row.serviceType)}</td>
                   <td className="p-3">{row.taxonomyNodeId ? nodePaths[row.taxonomyNodeId] ?? "..." : "-"}</td>
                   <td className="p-3">{row.curriculum ?? "-"}</td>
                   <td className="p-3">{row.gradeLevel ?? "-"}</td>
@@ -374,7 +376,7 @@ export default function ServicePricingPage() {
                       <div className="space-y-1">
                         {row.prices.map((p, i) => (
                           <div key={i} className="text-gray-700">
-                            {p.currency} {p.flatRate ?? p.ratePerHour} {p.flatRate != null ? "(flat)" : row.courseId ? "(/hr - a course needs a flat price, please edit)" : "(/hr)"}
+                            {formatMoney(p.flatRate ?? p.ratePerHour, p.currency)} {p.flatRate != null ? "(flat)" : row.courseId ? "(/hr - a course needs a flat price, please edit)" : "(/hr)"}
                           </div>
                         ))}
                         <button onClick={() => startEditingPrices(row)} className="text-xs font-medium text-blue-600 hover:underline">

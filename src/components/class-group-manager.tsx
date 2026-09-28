@@ -7,6 +7,7 @@ import { GetAdminServicesAction } from "@/server/service-catalog";
 import { GetCoursesAction } from "@/server/course";
 import { CLASS_GROUP_STATUS_LABELS, ClassGroupStatus, IClassGroup, IService } from "@/types/service-catalog";
 import { Course } from "@/types/course";
+import ClassGroupMembersDialog from "@/components/class-group-members-dialog";
 
 interface GroupForm {
   serviceType: string;
@@ -71,6 +72,7 @@ export function ClassGroupManager({ serviceType, hideHeading }: { serviceType?: 
   const [form, setForm] = useState<GroupForm>(emptyForm(serviceType ?? ""));
   const [isSaving, setIsSaving] = useState(false);
   const [courses, setCourses] = useState<Course[]>([]);
+  const [viewingMembers, setViewingMembers] = useState<IClassGroup | null>(null);
 
   useEffect(() => {
     if (!form.serviceType) {
@@ -334,6 +336,9 @@ export function ClassGroupManager({ serviceType, hideHeading }: { serviceType?: 
                     <span className={`text-xs rounded-full px-2 py-0.5 ${statusBadgeClass(g.status)}`}>{CLASS_GROUP_STATUS_LABELS[g.status]}</span>
                   </td>
                   <td className="p-3 text-right whitespace-nowrap">
+                    <button onClick={() => setViewingMembers(g)} className="text-xs text-blue-600 hover:underline mr-3">
+                      View members
+                    </button>
                     <button onClick={() => openEdit(g)} className="text-xs text-blue-600 hover:underline mr-3">
                       Edit
                     </button>
@@ -348,6 +353,8 @@ export function ClassGroupManager({ serviceType, hideHeading }: { serviceType?: 
           </div>
         )}
       </div>
+
+      <ClassGroupMembersDialog group={viewingMembers} onOpenChange={(open) => !open && setViewingMembers(null)} />
     </div>
   );
 }

@@ -194,7 +194,7 @@ export async function GetEnrollmentsByStatusAction(
 }
 
 export async function ListStudentsForAdminAction(
-  params?: { search?: string; page?: number; limit?: number }
+  params?: { search?: string; page?: number; limit?: number; tutorId?: string }
 ): Promise<[ApiResponse<Student[]> | null, string | null]> {
   const query = new URLSearchParams(
     Object.entries(params ?? {}).filter(([, v]) => v !== undefined && v !== "").map(([k, v]) => [k, String(v)])

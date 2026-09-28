@@ -43,7 +43,7 @@ export default function AdminEnrollmentsPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Student</TableHead>
-              <TableHead>Parent Email</TableHead>
+              <TableHead>Parent</TableHead>
               <TableHead>Subjects</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Action</TableHead>
@@ -53,7 +53,10 @@ export default function AdminEnrollmentsPage() {
             {students.map((s) => (
               <TableRow key={s.id}>
                 <TableCell>{s.fullName}</TableCell>
-                <TableCell>{s.parentEmail || "Hidden"}</TableCell>
+                <TableCell>
+                  {s.parentName || "-"}
+                  {s.parentEmail && <span className="block text-xs text-gray-400">{s.parentEmail}</span>}
+                </TableCell>
                 <TableCell>{s.serviceDetails?.selectedSubjects?.join(", ")}</TableCell>
                 <TableCell>{s.enrollmentStatus}</TableCell>
                 <TableCell className="text-right">

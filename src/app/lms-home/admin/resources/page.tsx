@@ -37,6 +37,7 @@ export default function AdminResourcesPage() {
   const [rows, setRows] = useState<CourseResource[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [recordings, setRecordings] = useState<RecordingItem[]>([]);
+  const [studentNames, setStudentNames] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -66,6 +67,12 @@ export default function AdminResourcesPage() {
         return { id: l.id, title: l.title, date: String(l.scheduledDate), url: l.recordingUrl!, meta: courseRef };
       });
     setRecordings(recs);
+
+    // Resolves a "specific students" resource's target ids to names for
+    // ResourcesTabs' "N students" badge - the same roster the target picker
+    // fetches on demand, loaded here since the badge needs it up front.
+    const [studentsRes] = await ListStudentsForAdminAction({ limit: 200 });
+    setStudentNames(Object.fromEntries((studentsRes?.data ?? []).map((s) => [s.id, s.fullName])));
 
     setIsLoading(false);
   };
@@ -176,6 +183,7 @@ export default function AdminResourcesPage() {
           recordings={recordings}
           statusBadge
           courses={courses.map((c) => ({ id: c.id, title: c.title }))}
+          studentNames={studentNames}
           renderExtraActions={(r) =>
             r.status === ResourceStatus.PENDING ? (
               <div className="flex gap-2 mt-1">
