@@ -16,9 +16,19 @@ export interface LessonCourseRef {
   tutor: string | { id: string; firstName: string; lastName: string };
 }
 
+// A lesson generated for exactly one student's own schedule
+// (CourseEnrollmentService.allocateWithSchedule) - absent on a genuinely
+// shared Group Class session, which has no single "the student" by design
+// (see ILesson.courseEnrollment in stcbe).
+export interface LessonCourseEnrollmentRef {
+  id: string;
+  student: string | { id: string; fullName: string };
+}
+
 export interface Lesson {
   id: string;
   course: string | LessonCourseRef;
+  courseEnrollment?: string | LessonCourseEnrollmentRef;
   title: string;
   description?: string;
   order: number;
@@ -108,7 +118,7 @@ export interface RescheduleNoticeSettings {
 // if the backend ever stops populating them.
 export interface RescheduleRequest {
   id: string;
-  lesson: string | { id: string; title: string; scheduledDate: string; meetingUrl?: string };
+  lesson: string | { id: string; title: string; scheduledDate: string; meetingUrl?: string; courseEnrollment?: LessonCourseEnrollmentRef };
   course: string | { id: string; title: string };
   requestedBy: string | { id: string; firstName: string; lastName: string; email?: string; role?: string };
   type: RescheduleRequestType;

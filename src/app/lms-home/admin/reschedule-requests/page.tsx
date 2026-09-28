@@ -73,6 +73,14 @@ export default function AdminRescheduleRequestsPage() {
   const requesterName = (r: RescheduleRequest) =>
     typeof r.requestedBy === "string" ? r.requestedBy : `${r.requestedBy.firstName} ${r.requestedBy.lastName}`;
   const lessonTitle = (r: RescheduleRequest) => (typeof r.lesson === "string" ? "Lesson" : r.lesson.title);
+  // Absent for a genuinely shared Group Class session (every enrolled
+  // student attends the same lesson, so there's no single "the student").
+  const lessonStudentName = (r: RescheduleRequest) => {
+    const courseEnrollment = typeof r.lesson === "string" ? undefined : r.lesson.courseEnrollment;
+    if (!courseEnrollment || typeof courseEnrollment === "string") return "Group class";
+    const student = courseEnrollment.student;
+    return typeof student === "string" ? "Group class" : student.fullName;
+  };
 
   return (
     <div className="bg-white shadow rounded-2xl p-6">
@@ -139,6 +147,7 @@ export default function AdminRescheduleRequestsPage() {
                   <p className="font-medium text-gray-800">
                     {lessonTitle(r)} &middot; {courseTitle(r.course)}
                   </p>
+                  <p className="text-gray-500">Student: {lessonStudentName(r)}</p>
                   <p className="text-gray-500">Requested by {requesterName(r)}</p>
                   <p className="text-gray-500">
                     {formatScheduleDateTime(r.currentScheduledDate)} &rarr;{" "}

@@ -186,6 +186,16 @@ export default function AdminSessionsPage() {
     return typeof tutor === "string" ? "-" : `${tutor.firstName} ${tutor.lastName}`;
   };
 
+  // Absent for a genuinely shared Group Class session (every enrolled
+  // student attends the same lesson, so there's no single "the student") -
+  // see LessonCourseEnrollmentRef. Only set for a lesson generated on one
+  // student's own schedule.
+  const lessonStudentName = (courseEnrollment: Lesson["courseEnrollment"] | undefined): string => {
+    if (!courseEnrollment || typeof courseEnrollment === "string") return "Group class";
+    const student = courseEnrollment.student;
+    return typeof student === "string" ? "Group class" : student.fullName;
+  };
+
   const lessonOf = (r: RescheduleRequest) => (typeof r.lesson === "string" ? null : r.lesson);
   const courseOf = (r: RescheduleRequest) => (typeof r.course === "string" ? null : r.course);
 
@@ -263,6 +273,7 @@ export default function AdminSessionsPage() {
                       <p className="font-medium text-gray-800">
                         {lesson?.title ?? "Lesson"} {course?.title ? `· ${course.title}` : ""}
                       </p>
+                      <p className="text-gray-500">Student: {lessonStudentName(lesson?.courseEnrollment)}</p>
                       <p className="text-gray-500">
                         {formatScheduleDateTime(r.currentScheduledDate)} &rarr; {r.requestedScheduledDate ? formatScheduleDateTime(r.requestedScheduledDate) : "(cancellation)"}
                       </p>
@@ -345,6 +356,7 @@ export default function AdminSessionsPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Subject/Course</TableHead>
+              <TableHead>Student</TableHead>
               <TableHead>Tutor</TableHead>
               <TableHead>Date</TableHead>
               <TableHead>Status</TableHead>
@@ -358,6 +370,7 @@ export default function AdminSessionsPage() {
               <Fragment key={lesson.id}>
                 <TableRow>
                   <TableCell>{courseTitle(lesson.course)}</TableCell>
+                  <TableCell className="text-gray-500">{lessonStudentName(lesson.courseEnrollment)}</TableCell>
                   <TableCell className="text-gray-500">{courseTutorName(lesson.course)}</TableCell>
                   <TableCell>{formatScheduleDateTime(lesson.scheduledDate)}</TableCell>
                   <TableCell>
@@ -436,7 +449,7 @@ export default function AdminSessionsPage() {
                 </TableRow>
                 {cancellingLessonId === lesson.id && (
                   <TableRow>
-                    <TableCell colSpan={filter === "upcoming" ? 7 : 5} className="bg-red-50">
+                    <TableCell colSpan={filter === "upcoming" ? 8 : 6} className="bg-red-50">
                       <div className="flex items-center gap-2 py-1">
                         <Input
                           value={cancelReason}
