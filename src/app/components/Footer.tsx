@@ -23,6 +23,11 @@ const DEFAULT_FOOTER: FooterContent = {
     { label: "Careers", href: "/careers" },
     { label: "Contact", href: "/contact" },
   ],
+  partners: [
+    { name: "Apps & Scripts", logoUrl: "/image/apps&scripts.jpg", url: "https://appsandscripts.tech" },
+  ],
+  loginText: "Login",
+  loginLink: "/auth/login",
 };
 
 const SOCIAL_ICON: Record<string, { Icon: typeof FaGlobe; bg: string; hoverBg: string }> = {
@@ -37,11 +42,11 @@ export default function Footer() {
   const { user, logout } = useUser();
 
   return (
-    <footer className="bg-[#38b6ff] text-white p-8">
+    <footer className="bg-[#38b6ff] text-white p-5">
       {/* Top Section: Social Icons, Logo, Login/Signup */}
-      <div className="flex flex-col md:flex-row justify-between items-center mb-6">
+      <div className="flex flex-col md:flex-row justify-between items-center gap-3 mb-3">
         {/* Social Icons */}
-        <div className="flex space-x-4">
+        <div className="flex space-x-3">
           {content.socialLinks.map((social) => {
             const icon = SOCIAL_ICON[social.platform.toLowerCase()] ?? { Icon: FaGlobe, bg: "bg-blue-600", hoverBg: "hover:bg-blue-500" };
             const { Icon } = icon;
@@ -51,61 +56,66 @@ export default function Footer() {
                 href={social.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`w-10 h-10 flex items-center justify-center rounded-full ${icon.bg} ${icon.hoverBg} cursor-pointer`}
+                className={`w-8 h-8 flex items-center justify-center rounded-full ${icon.bg} ${icon.hoverBg} cursor-pointer`}
               >
-                <Icon size={20} />
+                <Icon size={16} />
               </a>
             );
           })}
         </div>
 
         {/* Logo Image */}
-        <div className="my-4 md:my-0">
+        <div>
           <Image
             src="/image/image.png"
             alt="STC Logo"
-            width={150}
-            height={100}
+            width={100}
+            height={67}
           />
         </div>
 
         {/* Account links */}
-        <div className="flex space-x-4">
+        <div className="flex items-center space-x-3">
           {user ? (
             <>
               <Link href={lmsDashboardPath(user.role)}>
-                <span className="bg-white text-[#38b6ff] px-4 py-2 rounded-md hover:bg-blue-100 transition">
+                <span className="bg-white text-[#38b6ff] px-3 py-1.5 rounded-md text-sm hover:bg-blue-100 transition">
                   Dashboard
                 </span>
               </Link>
               <button type="button" onClick={logout}>
-                <span className="border border-white px-4 py-2 rounded-md hover:bg-white/10 transition">
+                <span className="border border-white px-3 py-1.5 rounded-md text-sm hover:bg-white/10 transition">
                   Log out
                 </span>
               </button>
             </>
           ) : (
-            <Link href={ROUTES.AUTH.REGISTER}>
-              <span className="bg-white text-[#38b6ff] px-4 py-2 rounded-md hover:bg-blue-100 transition">
-                Get Started
-              </span>
-            </Link>
+            <>
+              <Link href={content.loginLink} className="text-sm hover:text-blue-100 transition">
+                {content.loginText}
+              </Link>
+              <Link href={ROUTES.AUTH.REGISTER}>
+                <span className="bg-white text-[#38b6ff] px-3 py-1.5 rounded-md text-sm hover:bg-blue-100 transition">
+                  Get Started
+                </span>
+              </Link>
+            </>
           )}
         </div>
       </div>
 
       {/* Footer Links Section */}
-      <div className="container mx-auto mt-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="container mx-auto">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {/* Company Column */}
           <div>
-            <h2 className="text-xl font-semibold mb-4 border-b border-gray-700 pb-2">Company</h2>
-            <ul className="space-y-2">
+            <h2 className="text-sm font-semibold mb-2 border-b border-white/20 pb-1">Company</h2>
+            <ul className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
               {content.companyLinks.map((item) => (
                 <li key={item.label}>
                   <Link
                     href={item.href}
-                    className="hover:text-blue-300 transition-colors"
+                    className="hover:text-blue-100 transition-colors"
                   >
                     {item.label}
                   </Link>
@@ -115,25 +125,28 @@ export default function Footer() {
           </div>
 
           {/* Partners Section */}
-          <div>
-            <h2 className="text-xl font-semibold mb-4 border-b border-gray-700 pb-2">Partners</h2>
-            <a href="https://appsandscripts.tech" target="_blank" rel="noopener noreferrer">
-            <img
-            src="/image/apps&scripts.jpg"
-            alt="Apps & Scripts"
-            className="w-20 h-auto hover:opacity-80 transition"/>
-            </a>
+          {content.partners.length > 0 && (
+            <div>
+              <h2 className="text-sm font-semibold mb-2 border-b border-white/20 pb-1">Partners</h2>
+              <div className="flex flex-wrap items-center gap-3">
+                {content.partners.map((partner) => (
+                  <a key={partner.name} href={partner.url} target="_blank" rel="noopener noreferrer">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={partner.logoUrl} alt={partner.name} className="h-8 w-auto hover:opacity-80 transition" />
+                  </a>
+                ))}
+              </div>
             </div>
-
-            </div>
+          )}
+        </div>
       </div>
 
       {/* Copyright Section */}
-      <div className="mt-8 pt-4 border-t border-gray-800 text-center text-blue-900">
+      <div className="mt-3 pt-2 border-t border-white/20 text-center text-sm text-blue-950">
         <p>
           © {new Date().getFullYear()} {content.copyrightName}. All rights reserved.
         </p>
-        <p className="mt-2 flex items-center justify-center gap-4 text-sm">
+        <p className="mt-1 flex items-center justify-center gap-4">
           <Link href="/terms" className="underline-offset-2 hover:underline">
             Terms &amp; Conditions
           </Link>

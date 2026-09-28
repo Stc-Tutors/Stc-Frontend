@@ -56,12 +56,23 @@ export interface HeaderContent {
   navLinks: FooterLink[];
   ctaText: string;
   ctaLink: string;
+  loginText: string;
+  loginLink: string;
+}
+
+export interface FooterPartner {
+  name: string;
+  logoUrl: string;
+  url: string;
 }
 
 export interface FooterContent {
   copyrightName: string;
   socialLinks: FooterSocialLink[];
   companyLinks: FooterLink[];
+  partners: FooterPartner[];
+  loginText: string;
+  loginLink: string;
 }
 
 export interface HeadSeoContent {
@@ -302,6 +313,8 @@ export interface CareersTeaserContent {
   body: string;
   buttonText: string;
   buttonLink: string;
+  secondaryButtonText: string;
+  secondaryButtonLink: string;
   imageUrl?: string;
 }
 

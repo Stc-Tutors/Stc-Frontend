@@ -22,6 +22,8 @@ const DEFAULT_HEADER: HeaderContent = {
   ],
   ctaText: "Get Started",
   ctaLink: "/services",
+  loginText: "Login",
+  loginLink: "/auth/login",
 };
 
 const Navbar = () => {
@@ -73,9 +75,14 @@ const Navbar = () => {
           {user ? (
             <UserProfileDropdown />
           ) : (
-            <Link href={header.ctaLink} className="navbarCta">
-              {header.ctaText}
-            </Link>
+            <>
+              <Link href={header.loginLink} className="link">
+                {header.loginText}
+              </Link>
+              <Link href={header.ctaLink} className="navbarCta">
+                {header.ctaText}
+              </Link>
+            </>
           )}
         </nav>
 
@@ -130,15 +137,26 @@ const Navbar = () => {
                   </li>
                 </>
               ) : (
-                <li>
-                  <Link
-                    href={header.ctaLink}
-                    className="mobileCta"
-                    onClick={() => setMobileOpen(false)}
-                  >
-                    {header.ctaText}
-                  </Link>
-                </li>
+                <>
+                  <li>
+                    <Link
+                      href={header.loginLink}
+                      className="mobileLink"
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      {header.loginText}
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      href={header.ctaLink}
+                      className="mobileCta"
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      {header.ctaText}
+                    </Link>
+                  </li>
+                </>
               )}
             </ul>
           </div>
