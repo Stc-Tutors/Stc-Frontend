@@ -10,7 +10,15 @@ export async function GetCampaignLandingPageAction(
     url: `/public/landing-pages/${slug}`,
     request: { method: "GET", headers: { "Content-Type": "application/json" } },
   });
+  if (!res) return [null, error];
 
-  const resData = res ? ((await res.json()) as ApiResponse<CampaignLandingPage>) : null;
-  return [resData, error];
+  // A malformed/non-JSON body here (e.g. an intermediary error page slipping
+  // through with a 2xx status) used to throw uncaught out of this Server
+  // Component, which Next has no boundary for and turns into its bare
+  // generic 500 instead of a normal not-found. Degrade to that instead.
+  try {
+    return [(await res.json()) as ApiResponse<CampaignLandingPage>, null];
+  } catch {
+    return [null, "Could not read the server response"];
+  }
 }
