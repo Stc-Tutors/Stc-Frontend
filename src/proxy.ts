@@ -79,6 +79,9 @@ const publicPaths = [
   // link. Without these the proxy bounced them to the login page.
   "/reference",
   "/courses/register",
+  // Campaign landing pages (/go/<slug>) - a marketing link meant for
+  // logged-out visitors. Without this the proxy bounced them to login.
+  "/go",
   // LiveKit's recorder page (public/egress/room-composite.html) - a static
   // file, but this middleware's matcher doesn't exempt public/ files, only the
   // prefixes listed there. LiveKit's own headless browser loads this with no
