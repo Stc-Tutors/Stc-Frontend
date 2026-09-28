@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
+import { Loader2 } from "lucide-react";
 import { useUser } from "@/contexts/user-context";
 import { UpdateUserAction } from "@/server/user";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,17 @@ const CARD_GAP = 16;
 // this user (a permission-gated link, a trimmed child-login sidebar, ...).
 const FIND_RETRY_MS = 200;
 const FIND_MAX_ATTEMPTS = 8;
+// Next.js dispatches Server Actions strictly one at a time per client (see
+// the comment atop client-cache.ts) - if a background poll (notifications,
+// announcements) is mid-flight or stalls, UpdateUserAction below can queue
+// behind it indefinitely. Bounding the wait keeps the tour from getting
+// stuck open with its buttons disabled; the action itself isn't cancelled,
+// so it can still land after this component has moved on.
+const PERSIST_TIMEOUT_MS = 4000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T | undefined> {
+  return Promise.race([promise, new Promise<undefined>((resolve) => setTimeout(() => resolve(undefined), ms))]);
+}
 
 // Only ever triggered from the exact route the post-login redirect lands on
 // (see ROLE_DASHBOARD in login-form.tsx) - never on the bare full-screen
@@ -37,6 +49,7 @@ export default function OnboardingTour() {
   const [started, setStarted] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
   const [rect, setRect] = useState<DOMRect | null>(null);
+  const [isPersisting, setIsPersisting] = useState(false);
 
   useEffect(() => setMounted(true), []);
 
@@ -100,16 +113,24 @@ export default function OnboardingTour() {
   const isFirst = stepIndex === 0;
   const isLast = stepIndex === steps.length - 1;
 
-  const persistCompletion = () => {
-    // Optimistic: closes the tour immediately regardless of network state -
-    // this is a one-time nicety, not something worth blocking on or retrying.
+  // Awaits the PATCH (bounded by PERSIST_TIMEOUT_MS above) before touching
+  // local state - updateUser() flips `eligible` false and unmounts this
+  // component on the next render, so calling it first would abandon the PATCH
+  // before Next.js's one-at-a-time action queue ever got to dispatch it.
+  // Matches TermsGateModal's handleAgree, which awaits AcceptTermsAction()
+  // the same way before updating local state.
+  const persistCompletion = async () => {
+    if (isPersisting) return;
+    setIsPersisting(true);
+    await withTimeout(UpdateUserAction({ hasCompletedTour: true }).catch(() => undefined), PERSIST_TIMEOUT_MS);
+    // Closes either way - a PATCH that failed or timed out here just means
+    // the tour shows again next session, not worth blocking the user on it.
     updateUser({ hasCompletedTour: true });
-    UpdateUserAction({ hasCompletedTour: true }).catch(() => {});
   };
 
-  const goNext = () => (isLast ? persistCompletion() : setStepIndex((i) => i + 1));
+  const goNext = () => (isLast ? void persistCompletion() : setStepIndex((i) => i + 1));
   const goBack = () => !isFirst && setStepIndex((i) => i - 1);
-  const skip = () => persistCompletion();
+  const skip = () => void persistCompletion();
 
   useEffect(() => {
     if (!visible) return;
@@ -181,16 +202,17 @@ export default function OnboardingTour() {
           </p>
         </CardContent>
         <CardFooter className="px-5 justify-between">
-          <Button variant="ghost" size="sm" onClick={skip}>
+          <Button variant="ghost" size="sm" onClick={skip} disabled={isPersisting}>
             Skip
           </Button>
           <div className="flex gap-2">
             {!isFirst && (
-              <Button variant="outline" size="sm" onClick={goBack}>
+              <Button variant="outline" size="sm" onClick={goBack} disabled={isPersisting}>
                 Back
               </Button>
             )}
-            <Button size="sm" onClick={goNext}>
+            <Button size="sm" onClick={goNext} disabled={isPersisting}>
+              {isPersisting && <Loader2 className="w-4 h-4 animate-spin" />}
               {isLast ? "Done" : "Next"}
             </Button>
           </div>
