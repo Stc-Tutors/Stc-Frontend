@@ -9,6 +9,7 @@ import { Lesson } from "@/types/lesson";
 import { formatScheduleTime } from "@/lib/datetime";
 import { WEEKDAYS_ABBREVIATED } from "@/constants/weekdays";
 import { matchesSelectedStudent, useSelectedStudent } from "@/contexts/selected-student-context";
+import { courseTutorName } from "@/lib/tutor-name";
 
 interface Row {
   lesson: Lesson;
@@ -111,7 +112,12 @@ export default function Timetable() {
                     key={lesson.id}
                     className={`${DAY_COLORS[idx % DAY_COLORS.length]} p-2 rounded-md text-sm`}
                   >
-                    <p className="font-medium">{course.title}</p>
+                    <p className="font-medium truncate" title={course.title}>
+                      {course.title}
+                    </p>
+                    <p className="text-xs text-gray-500 truncate" title={courseTutorName(course.tutor)}>
+                      {courseTutorName(course.tutor)}
+                    </p>
                     <p className="text-xs text-gray-500">
                       {formatScheduleTime(lesson.scheduledDate)}
                     </p>

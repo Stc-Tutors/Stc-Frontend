@@ -15,6 +15,7 @@ import {
   GetRescheduleNoticeSettingsAction,
 } from "@/server/lesson";
 import { Course } from "@/types/course";
+import { courseTutorName } from "@/lib/tutor-name";
 import { Lesson, LessonStatus, RescheduleRequest } from "@/types/lesson";
 import { ScheduleReviewStatus, Student } from "@/types/student";
 import { formatScheduleDateTime } from "@/lib/datetime";
@@ -313,6 +314,7 @@ export default function ParentSchedulePage() {
                 <tr>
                   {isAllSelected && <th className="py-2 text-left">Child</th>}
                   <th className="py-2 text-left">Course</th>
+                  <th className="py-2 text-left">Tutor</th>
                   <th className="py-2 text-left">Lesson</th>
                   <th className="py-2 text-left">Date</th>
                   <th className="py-2 text-left">Status</th>
@@ -330,6 +332,7 @@ export default function ParentSchedulePage() {
                     <tr className="border-b">
                       {isAllSelected && <td className="py-3">{childName}</td>}
                       <td className="py-3">{course.title}</td>
+                      <td className="py-3">{courseTutorName(course.tutor)}</td>
                       <td className="py-3">{lesson.title}</td>
                       <td className="py-3">{formatScheduleDateTime(lesson.scheduledDate)}</td>
                       <td className="py-3">
@@ -389,7 +392,7 @@ export default function ParentSchedulePage() {
                     </tr>
                     {rescheduleLessonId === lesson.id && (
                       <tr className="border-b bg-gray-50">
-                        <td colSpan={isAllSelected ? 6 : 5} className="py-3 px-2">
+                        <td colSpan={isAllSelected ? 7 : 6} className="py-3 px-2">
                           <div className="flex flex-wrap items-center gap-2">
                             <input
                               type="datetime-local"
@@ -427,7 +430,7 @@ export default function ParentSchedulePage() {
                     )}
                     {cancelLessonId === lesson.id && (
                       <tr className="border-b bg-gray-50">
-                        <td colSpan={isAllSelected ? 6 : 5} className="py-3 px-2">
+                        <td colSpan={isAllSelected ? 7 : 6} className="py-3 px-2">
                           <div className="flex flex-wrap items-center gap-2">
                             <input
                               type="text"

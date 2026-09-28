@@ -5,7 +5,7 @@ import { ArrowLeft, CalendarSync } from "lucide-react";
 import { useRouter } from "next/navigation";
 import JoinClassLink from "@/components/classroom/JoinClassLink";
 import TutorsCard from "@/components/tutorDashboard/TutorsCard";
-import { GetMyCoursesAction } from "@/server/course";
+import { GetMyCoursesAction, GetCourseStudentsAction } from "@/server/course";
 import {
   GetCourseLessonsAction,
   GetRescheduleSurchargeSettingsAction,
@@ -13,6 +13,7 @@ import {
   RescheduleLessonAction,
 } from "@/server/lesson";
 import { Course } from "@/types/course";
+import { Student } from "@/types/student";
 import { Lesson, LessonStatus, RescheduleSurchargeSettings, RescheduleSurchargeType } from "@/types/lesson";
 import { formatScheduleDateTime } from "@/lib/datetime";
 import { isInsideTutorRescheduleGate, isInsideTutorRescheduleHardFloor, DEFAULT_TUTOR_NOTICE_HOURS } from "@/lib/schedule-gate";
@@ -25,6 +26,12 @@ interface Row {
 export default function TutorSchedulePage() {
   const router = useRouter();
   const [rows, setRows] = useState<Row[]>([]);
+  // Which student(s) each course belongs to - "Course" is reused across every one-on-one student this tutor
+  // teaches the same subject (see stcbe's resolveCourseForTutorSubject), so a bare course/lesson title alone
+  // doesn't say whose class it is. Keyed by course id; a course with more than one enrolled student (a shared
+  // one-on-one course, or a group class) lists all of them, since a single lesson slot can't be attributed to
+  // just one without the backend recording that per lesson.
+  const [studentsByCourse, setStudentsByCourse] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [rescheduleLessonId, setRescheduleLessonId] = useState<string | null>(null);
   const [newDate, setNewDate] = useState("");
@@ -37,12 +44,24 @@ export default function TutorSchedulePage() {
     const [coursesRes] = await GetMyCoursesAction();
     const courses = coursesRes?.data ?? [];
 
-    const lessonLists = await Promise.all(courses.map((c) => GetCourseLessonsAction(c.id)));
+    const [lessonLists, studentLists] = await Promise.all([
+      Promise.all(courses.map((c) => GetCourseLessonsAction(c.id))),
+      Promise.all(courses.map((c) => GetCourseStudentsAction(c.id))),
+    ]);
 
     const allRows: Row[] = [];
     lessonLists.forEach(([res], i) => {
       (res?.data ?? []).forEach((lesson) => allRows.push({ lesson, course: courses[i] }));
     });
+
+    const byCourse: Record<string, string> = {};
+    studentLists.forEach(([res], i) => {
+      const names = (res?.data ?? [])
+        .map((e) => (typeof e.student === "string" ? null : (e.student as Student).fullName))
+        .filter((n): n is string => !!n);
+      byCourse[courses[i].id] = names.length > 0 ? names.join(", ") : "-";
+    });
+    setStudentsByCourse(byCourse);
 
     allRows.sort((a, b) => new Date(a.lesson.scheduledDate).getTime() - new Date(b.lesson.scheduledDate).getTime());
     setRows(allRows);
@@ -125,6 +144,7 @@ export default function TutorSchedulePage() {
               <thead className="text-gray-500 border-b">
                 <tr>
                   <th className="py-2 text-left">Course</th>
+                  <th className="py-2 text-left">Student</th>
                   <th className="py-2 text-left">Lesson</th>
                   <th className="py-2 text-left">Date</th>
                   <th className="py-2 text-left">Status</th>
@@ -136,6 +156,7 @@ export default function TutorSchedulePage() {
                   <Fragment key={lesson.id}>
                     <tr className="border-b">
                       <td className="py-3">{course.title}</td>
+                      <td className="py-3">{studentsByCourse[course.id] ?? "-"}</td>
                       <td className="py-3">{lesson.title}</td>
                       <td className="py-3">{formatScheduleDateTime(lesson.scheduledDate)}</td>
                       <td className="py-3">

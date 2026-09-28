@@ -29,6 +29,9 @@ function isToday(dateStr: string): boolean {
 export default function TodaysSessions() {
   const router = useRouter();
   const [rows, setRows] = useState<Row[]>([]);
+  // Which student(s) each course belongs to - a course is reused across every one-on-one student this tutor
+  // teaches the same subject, so "Mathematics · 5:00 PM" alone doesn't say whose class this is.
+  const [studentsByCourse, setStudentsByCourse] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [comments, setComments] = useState<Record<string, string>>({});
   const [message, setMessage] = useState<string | null>(null);
@@ -42,7 +45,10 @@ export default function TodaysSessions() {
     const [coursesRes] = await GetMyCoursesAction();
     const courses = coursesRes?.data ?? [];
 
-    const lessonLists = await Promise.all(courses.map((c) => GetCourseLessonsAction(c.id)));
+    const [lessonLists, studentLists] = await Promise.all([
+      Promise.all(courses.map((c) => GetCourseLessonsAction(c.id))),
+      Promise.all(courses.map((c) => GetCourseStudentsAction(c.id))),
+    ]);
 
     const todayRows: Row[] = [];
     lessonLists.forEach(([res], i) => {
@@ -50,6 +56,15 @@ export default function TodaysSessions() {
         .filter((lesson) => isToday(lesson.scheduledDate))
         .forEach((lesson) => todayRows.push({ lesson, course: courses[i] }));
     });
+
+    const byCourse: Record<string, string> = {};
+    studentLists.forEach(([res], i) => {
+      const names = (res?.data ?? [])
+        .map((e) => (typeof e.student === "string" ? null : (e.student as Student).fullName))
+        .filter((n): n is string => !!n);
+      byCourse[courses[i].id] = names.length > 0 ? names.join(", ") : "-";
+    });
+    setStudentsByCourse(byCourse);
 
     todayRows.sort((a, b) => new Date(a.lesson.scheduledDate).getTime() - new Date(b.lesson.scheduledDate).getTime());
     setRows(todayRows);
@@ -141,7 +156,12 @@ export default function TodaysSessions() {
                 <div className="flex items-center gap-3">
                   <CalendarClock className="w-5 h-5 text-blue-500 shrink-0" />
                   <div className="flex-1">
-                    <p className="font-medium text-sm">{course.title}</p>
+                    <p className="font-medium text-sm">
+                      {course.title}
+                      {studentsByCourse[course.id] && (
+                        <span className="font-normal text-gray-500"> · {studentsByCourse[course.id]}</span>
+                      )}
+                    </p>
                     <p className="text-xs text-gray-500">
                       {lesson.title} ·{" "}
                       {formatScheduleTime(lesson.scheduledDate)}
