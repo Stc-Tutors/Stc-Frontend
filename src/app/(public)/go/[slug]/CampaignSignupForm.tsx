@@ -13,8 +13,10 @@ import { QuotePricingAction } from "@/server/pricing";
 import { GetTaxonomyOptionsAction } from "@/server/taxonomy-option";
 import { GetServiceBySlugAction } from "@/server/service-catalog";
 import { GetCoursesAction } from "@/server/course";
+import { GetCurriculumChildrenAction } from "@/server/curriculum";
 import { CampaignLandingPage } from "@/types/campaign-landing-page";
 import { ITaxonomyOption, TaxonomyOptionKind } from "@/types/service-catalog";
+import { CurriculumNode } from "@/types/curriculum";
 import { UserRole } from "@/types/user";
 import { PaymentRequest } from "@/types/payment";
 import { Course } from "@/types/course";
@@ -46,33 +48,46 @@ const EMPTY_FORM: FormState = {
   primaryLanguage: "",
 };
 
+function formatMoney(currency?: string, amount?: number) {
+  if (amount == null) return "";
+  return `${currency ?? "NGN"} ${amount.toLocaleString()}`;
+}
+
 // One short form replacing the generic multi-step registration wizard for a
 // visitor who arrived at a specific campaign's /go/:slug page - the
-// service/cohort/age-range are already fixed by the admin (see stcbe's
-// ICampaignLandingPage), so there's nothing to pick there. A course is
-// usually locked too, but an admin can deliberately leave it unset (e.g. a
-// cohort that covers several programs) - in that case a course picker
-// appears right after account creation, once GetCoursesAction can actually
-// be called (it requires auth, so it can't be shown before signup). Either
-// way, submitting silently chains the same steps the wizard already
-// performs as separate pages (sign up -> log in -> submit the enrollment ->
-// pay via Paystack -> land in the LMS) - no parallel account/enrollment/
-// payment logic, just fewer screens.
+// service/cohort are already fixed by the admin (see stcbe's
+// ICampaignLandingPage). An age range and/or course are usually locked too,
+// but an admin can deliberately leave either unset (e.g. one cohort covering
+// several age bands/programs) - in that case this component does its own
+// age-range -> course drill-down, mirroring subjects-schedule.tsx's Course
+// Module logic exactly (age range is public and can be picked before
+// signup; the actual course list needs auth, same as the wizard, so it's
+// fetched right after silent signup/login). Each course carries its own
+// price - there's no single "the price" to show up front when the course
+// isn't locked yet.
 export default function CampaignSignupForm({ page }: { page: CampaignLandingPage }) {
   const router = useRouter();
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [countries, setCountries] = useState<ITaxonomyOption[]>([]);
   const [languages, setLanguages] = useState<ITaxonomyOption[]>([]);
   const [quote, setQuote] = useState<{ amount: number; currency: string } | null>(null);
-  const [isLoadingQuote, setIsLoadingQuote] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [needsCourseChoice, setNeedsCourseChoice] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [step, setStep] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Populated only once signup/login has succeeded and a course still needs
-  // picking - the account already exists by then, so "Continue" just resumes
-  // straight into enroll + pay rather than repeating signup.
+  // Age range: public data, so it's fetched and (if not locked by the admin)
+  // picked as part of the main form, before signup. `lockedAgeRangeNodeId`
+  // resolves page.ageLevel (a name) against the fetched roots so the course
+  // fetch below can use a node id either way.
+  const [ageRangeOptions, setAgeRangeOptions] = useState<CurriculumNode[]>([]);
+  const [needsAgeRangeChoice, setNeedsAgeRangeChoice] = useState(false);
+  const [chosenAgeRangeNodeId, setChosenAgeRangeNodeId] = useState("");
+  const [lockedAgeRangeNodeId, setLockedAgeRangeNodeId] = useState<string | undefined>(undefined);
+
+  // Course: requires auth, so it's only ever fetched/shown after signup/login
+  // succeed - see the "choose-course" phase below.
   const [phase, setPhase] = useState<"form" | "choose-course">("form");
   const [availableCourses, setAvailableCourses] = useState<Course[]>([]);
   const [chosenCourseId, setChosenCourseId] = useState("");
@@ -81,29 +96,50 @@ export default function CampaignSignupForm({ page }: { page: CampaignLandingPage
     Promise.all([
       GetTaxonomyOptionsAction(TaxonomyOptionKind.COUNTRY),
       GetTaxonomyOptionsAction(TaxonomyOptionKind.LANGUAGE),
-      QuotePricingAction({ serviceType: page.serviceType, courseId: page.courseId, classGroupId: page.classGroupId }),
       GetServiceBySlugAction(page.serviceType),
-    ]).then(([[countryRes], [languageRes], [quoteRes, quoteError], [serviceRes]]) => {
+    ]).then(async ([[countryRes], [languageRes], [serviceRes]]) => {
       setCountries(countryRes?.data ?? []);
       setLanguages(languageRes?.data ?? []);
-      if (quoteRes?.data) setQuote({ amount: quoteRes.data.amount, currency: quoteRes.data.currency });
-      else if (quoteError) setError(quoteError);
-      // The admin deliberately left the course unlocked (see the Landing
-      // Pages tab) - this service still needs one, just not decided until
-      // after the visitor has an account.
-      setNeedsCourseChoice(!page.courseId && !!serviceRes?.data?.flowRequirements?.requires_course_selection);
-      setIsLoadingQuote(false);
+
+      const flow = serviceRes?.data?.flowRequirements;
+      const courseNeeded = !page.courseId && !!flow?.requires_course_selection;
+      setNeedsCourseChoice(courseNeeded);
+
+      if (courseNeeded && flow?.requires_age_range) {
+        const [rootsRes] = await GetCurriculumChildrenAction(null, page.serviceType);
+        const roots = rootsRes?.data ?? [];
+        setAgeRangeOptions(roots);
+        if (page.ageLevel) {
+          setLockedAgeRangeNodeId(roots.find((n) => n.name === page.ageLevel)?.id);
+        } else {
+          setNeedsAgeRangeChoice(true);
+        }
+      }
+
+      // A locked course already has one fixed price, resolvable live right
+      // now. An unlocked one doesn't - every course has its own price, only
+      // knowable once the visitor actually picks one (see the course-choice
+      // phase below), so there's nothing to show here yet.
+      if (!courseNeeded) {
+        const [quoteRes, quoteError] = await QuotePricingAction({
+          serviceType: page.serviceType,
+          courseId: page.courseId,
+          classGroupId: page.classGroupId,
+        });
+        if (quoteRes?.data) setQuote({ amount: quoteRes.data.amount, currency: quoteRes.data.currency });
+        else if (quoteError) setError(quoteError);
+      }
+      setIsLoading(false);
     });
-  }, [page.serviceType, page.courseId, page.classGroupId]);
+  }, [page.serviceType, page.courseId, page.classGroupId, page.ageLevel]);
 
   const countryOptions = countries.map((c) => ({ value: c.value, label: c.label }));
   const languageOptions = languages.map((l) => ({ value: l.value, label: l.label }));
 
   const handleChange = (patch: Partial<FormState>) => setForm((prev) => ({ ...prev, ...patch }));
 
-  const enrollAndPay = async (courseId?: string) => {
+  const enrollAndPay = async (course?: Course) => {
     setStep("Submitting enrollment...");
-    const course = availableCourses.find((c) => c.id === courseId);
     const [enrollRes, enrollError] = await EnrollAction({
       fullName: form.childFullName,
       gender: form.childGender,
@@ -117,14 +153,14 @@ export default function CampaignSignupForm({ page }: { page: CampaignLandingPage
       parentPhone: form.parentPhone,
       serviceDetails: {
         serviceType: page.serviceType,
-        courseId: page.courseId || courseId || undefined,
+        courseId: page.courseId || course?.id || undefined,
         classGroupId: page.classGroupId,
-        ageLevel: page.ageLevel || "",
+        ageLevel: page.ageLevel || ageRangeOptions.find((n) => n.id === chosenAgeRangeNodeId)?.name || "",
         learningFocus: page.heading,
         learningGoals: page.heading,
         selectedSubjects: [course?.title || page.title],
         tutorGender: "No preference",
-        totalCost: quote?.amount ?? 0,
+        totalCost: (course ? course.price : quote?.amount) ?? 0,
       },
       schedule: [],
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -179,6 +215,10 @@ export default function CampaignSignupForm({ page }: { page: CampaignLandingPage
       setError("Please fill in every field");
       return;
     }
+    if (needsAgeRangeChoice && !chosenAgeRangeNodeId) {
+      setError("Please choose an age range");
+      return;
+    }
     if (form.password.length < 8) {
       setError("Password must be at least 8 characters");
       return;
@@ -209,14 +249,18 @@ export default function CampaignSignupForm({ page }: { page: CampaignLandingPage
 
       if (needsCourseChoice) {
         setStep("Loading courses...");
-        const [coursesRes, coursesError] = await GetCoursesAction({ serviceType: page.serviceType });
+        const ageRangeNodeId = lockedAgeRangeNodeId || chosenAgeRangeNodeId || undefined;
+        const [coursesRes, coursesError] = await GetCoursesAction({
+          serviceType: page.serviceType,
+          ...(ageRangeNodeId ? { taxonomyNodeId: ageRangeNodeId } : {}),
+        });
         const courses = coursesRes?.data ?? [];
         if (coursesError || courses.length === 0) {
           setError(coursesError || "No courses are available for this program right now - please contact us.");
           return;
         }
         if (courses.length === 1) {
-          await enrollAndPay(courses[0].id);
+          await enrollAndPay(courses[0]);
           return;
         }
         setAvailableCourses(courses);
@@ -234,14 +278,15 @@ export default function CampaignSignupForm({ page }: { page: CampaignLandingPage
   };
 
   const handleConfirmCourse = async () => {
-    if (!chosenCourseId) {
+    const course = availableCourses.find((c) => c.id === chosenCourseId);
+    if (!course) {
       setError("Please choose a course");
       return;
     }
     setError(null);
     setIsSubmitting(true);
     try {
-      await enrollAndPay(chosenCourseId);
+      await enrollAndPay(course);
     } catch {
       setError("Something went wrong - please try again.");
     } finally {
@@ -253,29 +298,21 @@ export default function CampaignSignupForm({ page }: { page: CampaignLandingPage
   if (phase === "choose-course") {
     return (
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 sticky top-6 space-y-4">
-        <div>
-          <p className="text-sm text-gray-500">Price</p>
-          <p className="text-2xl font-bold text-gray-900">
-            {quote ? `${quote.currency} ${quote.amount.toLocaleString()}` : "Contact us"}
-          </p>
-        </div>
         <p className="text-sm text-gray-700">Your account is ready - now pick which course to enroll in:</p>
         {error && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">{error}</p>}
         <div className="space-y-2">
           {availableCourses.map((c) => (
             <label
               key={c.id}
-              className={`flex items-center gap-2 border rounded-md px-3 py-2 text-sm cursor-pointer ${
+              className={`flex items-center justify-between gap-2 border rounded-md px-3 py-2 text-sm cursor-pointer ${
                 chosenCourseId === c.id ? "border-blue-500 bg-blue-50" : "border-gray-200"
               }`}
             >
-              <input
-                type="radio"
-                name="course"
-                checked={chosenCourseId === c.id}
-                onChange={() => setChosenCourseId(c.id)}
-              />
-              {c.title}
+              <span className="flex items-center gap-2">
+                <input type="radio" name="course" checked={chosenCourseId === c.id} onChange={() => setChosenCourseId(c.id)} />
+                {c.title}
+              </span>
+              <span className="font-medium text-gray-700">{formatMoney(c.currency, c.price)}</span>
             </label>
           ))}
         </div>
@@ -288,16 +325,41 @@ export default function CampaignSignupForm({ page }: { page: CampaignLandingPage
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 sticky top-6 space-y-4">
-      <div>
-        <p className="text-sm text-gray-500">Price</p>
-        <p className="text-2xl font-bold text-gray-900">
-          {isLoadingQuote ? "Loading..." : quote ? `${quote.currency} ${quote.amount.toLocaleString()}` : "Contact us"}
-        </p>
-      </div>
+      {needsCourseChoice ? (
+        <div>
+          <p className="text-sm text-gray-500">Price</p>
+          <p className="text-sm text-gray-700">Depends on the course you choose - shown before you pay.</p>
+        </div>
+      ) : (
+        <div>
+          <p className="text-sm text-gray-500">Price</p>
+          <p className="text-2xl font-bold text-gray-900">
+            {isLoading ? "Loading..." : quote ? formatMoney(quote.currency, quote.amount) : "Contact us"}
+          </p>
+        </div>
+      )}
 
       {error && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">{error}</p>}
 
       <div className="space-y-3">
+        {needsAgeRangeChoice && (
+          <div>
+            <Label>Age range</Label>
+            <Select value={chosenAgeRangeNodeId} onValueChange={setChosenAgeRangeNodeId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select an age range" />
+              </SelectTrigger>
+              <SelectContent>
+                {ageRangeOptions.map((n) => (
+                  <SelectItem key={n.id} value={n.id}>
+                    {n.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Your details</p>
         <div className="grid grid-cols-2 gap-2">
           <div>
@@ -365,7 +427,7 @@ export default function CampaignSignupForm({ page }: { page: CampaignLandingPage
         </div>
       </div>
 
-      <Button className="w-full" size="lg" onClick={handleSubmit} disabled={isSubmitting || isLoadingQuote}>
+      <Button className="w-full" size="lg" onClick={handleSubmit} disabled={isSubmitting || isLoading}>
         {isSubmitting ? step || "Please wait..." : page.ctaLabel}
       </Button>
       <p className="text-xs text-gray-400 text-center">
