@@ -13,6 +13,10 @@ export interface QuotePricingPayload {
   country?: string;
   // Overrides the currency implied by the resolved country.
   currency?: string;
+  // The cohort this quote is for, if one's already fixed (e.g. a campaign
+  // landing page locked to one cohort) - see stcbe's
+  // IServicePricing.classGroupId.
+  classGroupId?: string;
 }
 
 export interface PricingQuote {
