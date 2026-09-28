@@ -23,6 +23,31 @@ export async function RegisterAction(
   return [resData, error];
 }
 
+// Signup from a campaign landing page (/go/:slug) - unlike RegisterAction,
+// this skips the usual "verify your email before you can log in" gate, since
+// the whole point of that page is to sign up and pay in one continuous
+// action. Only reachable by naming a real, currently published landing
+// page - see stcbe's AuthService.registerForCampaign.
+export async function RegisterForCampaignAction(
+  landingPageSlug: string,
+  data: IUserSignup
+): Promise<[ApiResponse<null> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: `/auth/campaign-signup/${landingPageSlug}`,
+    request: {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ ...data }),
+    },
+  });
+
+  const resData = res ? ((await res.json()) as ApiResponse<null>) : null;
+
+  return [resData, error];
+}
+
 // Accepts either an email or a studentId as the login identifier - exactly
 // one should be present, matching the backend's LoginDto.
 export async function SigninAction(data: {

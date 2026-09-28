@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SearchableCombobox } from "@/components/ui/searchable-combobox";
 import { Button } from "@/components/ui/button";
-import { RegisterAction, SigninAction } from "@/server/auth";
+import { RegisterForCampaignAction, SigninAction } from "@/server/auth";
 import { EnrollAction } from "@/server/enrollment";
 import { QuotePricingAction } from "@/server/pricing";
 import { GetTaxonomyOptionsAction } from "@/server/taxonomy-option";
@@ -106,7 +106,7 @@ export default function CampaignSignupForm({ page }: { page: CampaignLandingPage
     setIsSubmitting(true);
     try {
       setStep("Creating your account...");
-      const [, signupError] = await RegisterAction({
+      const [, signupError] = await RegisterForCampaignAction(page.slug, {
         firstName: form.parentFirstName,
         lastName: form.parentLastName,
         email: form.parentEmail,
