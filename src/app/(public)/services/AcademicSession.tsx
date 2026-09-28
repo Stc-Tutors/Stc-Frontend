@@ -48,7 +48,7 @@ const AcademicSession = () => {
           return {
             slug: s.slug,
             title: s.serviceName,
-            description: page?.heroSubtitle || page?.overview || s.description || "",
+            description: page?.heroSubtitle || s.description || page?.overview || "",
             image: page?.heroImageUrl || FALLBACK_IMAGE,
           };
         })
