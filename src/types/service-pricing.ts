@@ -36,6 +36,9 @@ export interface ServicePricing {
   // One-on-one vs group - a row with this unset matches either format (see
   // stcbe's IServicePricing.classFormat/ServicePricingRepository.findMatching).
   classFormat?: "one-on-one" | "group";
+  // Scopes this row to one specific admin-provisioned cohort instead of the
+  // service as a whole - see stcbe's IServicePricing.classGroupId.
+  classGroupId?: string;
   prices: PricePoint[];
   isActive: boolean;
 }

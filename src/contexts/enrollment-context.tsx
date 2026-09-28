@@ -312,21 +312,35 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
     subjectName: string,
     serviceDetails: PricingDetails
   ): ServicePricing | undefined => {
-    const { curriculum, country, gradeLevel, classFormat, selectedSubjects, selectedSubjectNodeIds, subjectAncestorNodeIds } =
+    const { curriculum, country, gradeLevel, classFormat, classGroupId, selectedSubjects, selectedSubjectNodeIds, subjectAncestorNodeIds } =
       serviceDetails;
     const index = (selectedSubjects ?? []).indexOf(subjectName);
     const nodeId = selectedSubjectNodeIds?.[index];
     if (nodeId) {
+      const chain = [nodeId, ...(subjectAncestorNodeIds?.[index] ?? [])];
+      // The chosen cohort's own pricing (if it has any, anywhere up the
+      // chain) always wins over the standard price - mirrors the server's
+      // findMatching, which checks the whole cohort-scoped walk before ever
+      // falling back to the walk every other student's estimate uses below.
+      const rowInChain = (id: string, wantClassGroupId?: string) => {
+        const rows = candidates
+          .filter((p) => p.taxonomyNodeId === id && (p.classGroupId ?? "") === (wantClassGroupId ?? ""))
+          // A row priced against the item itself beats one that only reaches it
+          // through a Course attached to the item (the API tags those with the item's id).
+          .sort((x, y) => Number(!!x.courseId) - Number(!!y.courseId));
+        return (classFormat && rows.find((p) => p.classFormat === classFormat)) || rows.find((p) => !p.classFormat);
+      };
+      if (classGroupId) {
+        for (const id of chain) {
+          const row = rowInChain(id, classGroupId);
+          if (row) return row;
+        }
+      }
       // The item itself first, then each ancestor going up - the nearest price
       // wins, so a price on a higher item covers everything beneath it until a
       // lower item (or the item itself) has its own. Mirrors the server's lookup.
-      for (const id of [nodeId, ...(subjectAncestorNodeIds?.[index] ?? [])]) {
-        // A row priced against the item itself beats one that only reaches it
-        // through a Course attached to the item (the API tags those with the item's id).
-        const rows = candidates
-          .filter((p) => p.taxonomyNodeId === id)
-          .sort((x, y) => Number(!!x.courseId) - Number(!!y.courseId));
-        const row = (classFormat && rows.find((p) => p.classFormat === classFormat)) || rows.find((p) => !p.classFormat);
+      for (const id of chain) {
+        const row = rowInChain(id, undefined);
         if (row) return row;
       }
     }
