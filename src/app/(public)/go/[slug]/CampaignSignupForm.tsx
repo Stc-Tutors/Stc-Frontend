@@ -11,9 +11,8 @@ import { RegisterForCampaignAction, SigninAction } from "@/server/auth";
 import { EnrollAction } from "@/server/enrollment";
 import { QuotePricingAction } from "@/server/pricing";
 import { GetTaxonomyOptionsAction } from "@/server/taxonomy-option";
-import { GetServiceBySlugAction } from "@/server/service-catalog";
+import { GetCurriculumChildrenAction, GetCurriculumNodeAction } from "@/server/curriculum";
 import { GetCoursesAction } from "@/server/course";
-import { GetCurriculumChildrenAction } from "@/server/curriculum";
 import { CampaignLandingPage } from "@/types/campaign-landing-page";
 import { ITaxonomyOption, TaxonomyOptionKind } from "@/types/service-catalog";
 import { CurriculumNode } from "@/types/curriculum";
@@ -53,92 +52,152 @@ function formatMoney(currency?: string, amount?: number) {
   return `${currency ?? "NGN"} ${amount.toLocaleString()}`;
 }
 
+interface EnrollChoice {
+  courseId?: string;
+  taxonomyNodeId?: string;
+  label: string;
+  amount: number;
+  currency: string;
+}
+
 // One short form replacing the generic multi-step registration wizard for a
 // visitor who arrived at a specific campaign's /go/:slug page - the
 // service/cohort are already fixed by the admin (see stcbe's
-// ICampaignLandingPage). An age range and/or course are usually locked too,
-// but an admin can deliberately leave either unset (e.g. one cohort covering
-// several age bands/programs) - in that case this component does its own
-// age-range -> course drill-down, mirroring subjects-schedule.tsx's Course
-// Module logic exactly (age range is public and can be picked before
-// signup; the actual course list needs auth, same as the wizard, so it's
-// fetched right after silent signup/login). Each course carries its own
-// price - there's no single "the price" to show up front when the course
-// isn't locked yet.
+// ICampaignLandingPage). Enrollment then goes one of two ways, per the
+// page's own pricingMode:
+//  - FLOW_TREE (the default): the visitor drills through the service's
+//    curriculum tree directly on this page - public data, so it (and its
+//    live per-leaf pricing) can happen before signup, no Course involved.
+//  - COURSE: enrolls into a full Course. Course browsing needs auth, so an
+//    unlocked course only gets picked right after silent signup/login.
+// Either way, submitting silently chains the same steps the wizard already
+// performs as separate pages (sign up -> log in -> submit the enrollment ->
+// pay via Paystack -> land in the LMS) - no parallel account/enrollment/
+// payment logic, just fewer screens.
 export default function CampaignSignupForm({ page }: { page: CampaignLandingPage }) {
   const router = useRouter();
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [countries, setCountries] = useState<ITaxonomyOption[]>([]);
   const [languages, setLanguages] = useState<ITaxonomyOption[]>([]);
-  const [quote, setQuote] = useState<{ amount: number; currency: string } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [needsCourseChoice, setNeedsCourseChoice] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [step, setStep] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Age range: public data, so it's fetched and (if not locked by the admin)
-  // picked as part of the main form, before signup. `lockedAgeRangeNodeId`
-  // resolves page.ageLevel (a name) against the fetched roots so the course
-  // fetch below can use a node id either way.
-  const [ageRangeOptions, setAgeRangeOptions] = useState<CurriculumNode[]>([]);
-  const [needsAgeRangeChoice, setNeedsAgeRangeChoice] = useState(false);
-  const [chosenAgeRangeNodeId, setChosenAgeRangeNodeId] = useState("");
-  const [lockedAgeRangeNodeId, setLockedAgeRangeNodeId] = useState<string | undefined>(undefined);
+  // --- FLOW_TREE mode: public, so this all happens before signup ---
+  const [flowTreePath, setFlowTreePath] = useState<CurriculumNode[]>([]);
+  const [flowTreeOptions, setFlowTreeOptions] = useState<CurriculumNode[]>([]);
+  const [flowTreeLeaf, setFlowTreeLeaf] = useState<CurriculumNode | null>(null);
+  const [flowTreeQuote, setFlowTreeQuote] = useState<{ amount: number; currency: string } | null>(null);
+  const [isLoadingFlowTreeStep, setIsLoadingFlowTreeStep] = useState(false);
 
-  // Course: requires auth, so it's only ever fetched/shown after signup/login
-  // succeed - see the "choose-course" phase below.
+  // --- COURSE mode: course browsing needs auth, so it's deferred ---
+  const [quote, setQuote] = useState<{ amount: number; currency: string } | null>(null);
+  const [needsCourseChoice, setNeedsCourseChoice] = useState(false);
   const [phase, setPhase] = useState<"form" | "choose-course">("form");
   const [availableCourses, setAvailableCourses] = useState<Course[]>([]);
   const [chosenCourseId, setChosenCourseId] = useState("");
 
+  const isFlowTree = page.pricingMode !== "COURSE";
+
   useEffect(() => {
-    Promise.all([
-      GetTaxonomyOptionsAction(TaxonomyOptionKind.COUNTRY),
-      GetTaxonomyOptionsAction(TaxonomyOptionKind.LANGUAGE),
-      GetServiceBySlugAction(page.serviceType),
-    ]).then(async ([[countryRes], [languageRes], [serviceRes]]) => {
-      setCountries(countryRes?.data ?? []);
-      setLanguages(languageRes?.data ?? []);
+    Promise.all([GetTaxonomyOptionsAction(TaxonomyOptionKind.COUNTRY), GetTaxonomyOptionsAction(TaxonomyOptionKind.LANGUAGE)]).then(
+      ([[countryRes], [languageRes]]) => {
+        setCountries(countryRes?.data ?? []);
+        setLanguages(languageRes?.data ?? []);
+      }
+    );
 
-      const flow = serviceRes?.data?.flowRequirements;
-      const courseNeeded = !page.courseId && !!flow?.requires_course_selection;
-      setNeedsCourseChoice(courseNeeded);
-
-      if (courseNeeded && flow?.requires_age_range) {
-        const [rootsRes] = await GetCurriculumChildrenAction(null, page.serviceType);
-        const roots = rootsRes?.data ?? [];
-        setAgeRangeOptions(roots);
-        if (page.ageLevel) {
-          setLockedAgeRangeNodeId(roots.find((n) => n.name === page.ageLevel)?.id);
+    if (isFlowTree) {
+      (async () => {
+        if (page.taxonomyNodeId) {
+          const [[lockedRes], [childrenRes]] = await Promise.all([
+            GetCurriculumNodeAction(page.taxonomyNodeId),
+            GetCurriculumChildrenAction(page.taxonomyNodeId, page.serviceType),
+          ]);
+          const locked = lockedRes?.data;
+          const children = childrenRes?.data ?? [];
+          if (locked && children.length > 0) {
+            setFlowTreePath([locked]);
+            setFlowTreeOptions(children);
+          } else if (locked) {
+            // The lock is itself a leaf - nothing to pick, price it directly.
+            setFlowTreeLeaf(locked);
+            const [quoteRes] = await QuotePricingAction({
+              serviceType: page.serviceType,
+              taxonomyNodeId: locked.id,
+              classGroupId: page.classGroupId,
+            });
+            if (quoteRes?.data) setFlowTreeQuote({ amount: quoteRes.data.amount, currency: quoteRes.data.currency });
+          }
         } else {
-          setNeedsAgeRangeChoice(true);
+          const [res] = await GetCurriculumChildrenAction(null, page.serviceType);
+          setFlowTreeOptions(res?.data ?? []);
         }
-      }
-
-      // A locked course already has one fixed price, resolvable live right
-      // now. An unlocked one doesn't - every course has its own price, only
-      // knowable once the visitor actually picks one (see the course-choice
-      // phase below), so there's nothing to show here yet.
-      if (!courseNeeded) {
-        const [quoteRes, quoteError] = await QuotePricingAction({
-          serviceType: page.serviceType,
-          courseId: page.courseId,
-          classGroupId: page.classGroupId,
-        });
-        if (quoteRes?.data) setQuote({ amount: quoteRes.data.amount, currency: quoteRes.data.currency });
-        else if (quoteError) setError(quoteError);
-      }
-      setIsLoading(false);
-    });
-  }, [page.serviceType, page.courseId, page.classGroupId, page.ageLevel]);
+        setIsLoading(false);
+      })();
+    } else {
+      (async () => {
+        setNeedsCourseChoice(!page.courseId);
+        if (page.courseId) {
+          const [quoteRes, quoteError] = await QuotePricingAction({
+            serviceType: page.serviceType,
+            courseId: page.courseId,
+            classGroupId: page.classGroupId,
+          });
+          if (quoteRes?.data) setQuote({ amount: quoteRes.data.amount, currency: quoteRes.data.currency });
+          else if (quoteError) setError(quoteError);
+        }
+        setIsLoading(false);
+      })();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page.serviceType, page.courseId, page.taxonomyNodeId, page.classGroupId, page.pricingMode]);
 
   const countryOptions = countries.map((c) => ({ value: c.value, label: c.label }));
   const languageOptions = languages.map((l) => ({ value: l.value, label: l.label }));
 
   const handleChange = (patch: Partial<FormState>) => setForm((prev) => ({ ...prev, ...patch }));
 
-  const enrollAndPay = async (course?: Course) => {
+  const canGoBackInTree = page.taxonomyNodeId ? flowTreePath.length > 1 : flowTreePath.length > 0;
+
+  const handlePickFlowTreeNode = async (node: CurriculumNode) => {
+    setIsLoadingFlowTreeStep(true);
+    setFlowTreeLeaf(null);
+    setFlowTreeQuote(null);
+    const [childrenRes] = await GetCurriculumChildrenAction(node.id, page.serviceType);
+    const children = childrenRes?.data ?? [];
+    if (children.length > 0) {
+      setFlowTreePath((prev) => [...prev, node]);
+      setFlowTreeOptions(children);
+    } else {
+      setFlowTreeLeaf(node);
+      const [quoteRes, quoteError] = await QuotePricingAction({
+        serviceType: page.serviceType,
+        taxonomyNodeId: node.id,
+        classGroupId: page.classGroupId,
+      });
+      if (quoteRes?.data) setFlowTreeQuote({ amount: quoteRes.data.amount, currency: quoteRes.data.currency });
+      else if (quoteError) setError(quoteError);
+    }
+    setIsLoadingFlowTreeStep(false);
+  };
+
+  const handleBackInTree = async () => {
+    if (!canGoBackInTree) return;
+    setIsLoadingFlowTreeStep(true);
+    const newPath = flowTreePath.slice(0, -1);
+    const parentNode = newPath[newPath.length - 1];
+    const parentId = parentNode ? parentNode.id : page.taxonomyNodeId ?? null;
+    const [res] = await GetCurriculumChildrenAction(parentId, page.serviceType);
+    setFlowTreePath(newPath);
+    setFlowTreeOptions(res?.data ?? []);
+    setFlowTreeLeaf(null);
+    setFlowTreeQuote(null);
+    setIsLoadingFlowTreeStep(false);
+  };
+
+  const enrollAndPay = async (choice: EnrollChoice) => {
     setStep("Submitting enrollment...");
     const [enrollRes, enrollError] = await EnrollAction({
       fullName: form.childFullName,
@@ -153,14 +212,14 @@ export default function CampaignSignupForm({ page }: { page: CampaignLandingPage
       parentPhone: form.parentPhone,
       serviceDetails: {
         serviceType: page.serviceType,
-        courseId: page.courseId || course?.id || undefined,
+        courseId: choice.courseId,
         classGroupId: page.classGroupId,
-        ageLevel: page.ageLevel || ageRangeOptions.find((n) => n.id === chosenAgeRangeNodeId)?.name || "",
         learningFocus: page.heading,
         learningGoals: page.heading,
-        selectedSubjects: [course?.title || page.title],
+        selectedSubjects: [choice.label],
+        selectedSubjectNodeIds: choice.taxonomyNodeId ? [choice.taxonomyNodeId] : undefined,
         tutorGender: "No preference",
-        totalCost: (course ? course.price : quote?.amount) ?? 0,
+        totalCost: choice.amount,
       },
       schedule: [],
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -215,8 +274,8 @@ export default function CampaignSignupForm({ page }: { page: CampaignLandingPage
       setError("Please fill in every field");
       return;
     }
-    if (needsAgeRangeChoice && !chosenAgeRangeNodeId) {
-      setError("Please choose an age range");
+    if (isFlowTree && !flowTreeLeaf) {
+      setError("Please choose from the list");
       return;
     }
     if (form.password.length < 8) {
@@ -237,12 +296,10 @@ export default function CampaignSignupForm({ page }: { page: CampaignLandingPage
       });
       // An earlier attempt on this exact page can fail partway through
       // (network drop, a later step erroring) after the account itself was
-      // already created - the family would otherwise be stuck seeing "email
-      // already exists" forever with no way back in. If this is that same
-      // family retrying with the same email/password, logging in just works
-      // and the flow continues exactly as if signup had succeeded. Only a
-      // genuinely different password (someone else's email, or they mistyped
-      // it) falls through to sending them to sign in instead.
+      // already created - retrying now auto-signs-in with whatever email/
+      // password was just typed; if that's the same family retrying, it
+      // just works and the flow continues. Only a genuine mismatch (someone
+      // else's email, or a mistyped password) falls through to sign-in.
       if (signupError) {
         if (!signupError.toLowerCase().includes("email already exists")) {
           setError(signupError);
@@ -255,8 +312,6 @@ export default function CampaignSignupForm({ page }: { page: CampaignLandingPage
           router.push(`${ROUTES.AUTH.LOGIN}?email=${encodeURIComponent(form.parentEmail)}`);
           return;
         }
-        // Already signed in via the retry path above - fall through to the
-        // rest of the flow without a second, redundant sign-in call.
       } else {
         setStep("Signing you in...");
         const [signinRes, signinError] = await SigninAction({ email: form.parentEmail, password: form.password });
@@ -266,20 +321,28 @@ export default function CampaignSignupForm({ page }: { page: CampaignLandingPage
         }
       }
 
+      if (isFlowTree) {
+        // Both the pick and the price were already resolved above, before
+        // signup - nothing left to do but submit.
+        await enrollAndPay({
+          taxonomyNodeId: flowTreeLeaf!.id,
+          label: flowTreeLeaf!.name,
+          amount: flowTreeQuote?.amount ?? 0,
+          currency: flowTreeQuote?.currency ?? "NGN",
+        });
+        return;
+      }
+
       if (needsCourseChoice) {
         setStep("Loading courses...");
-        const ageRangeNodeId = lockedAgeRangeNodeId || chosenAgeRangeNodeId || undefined;
-        const [coursesRes, coursesError] = await GetCoursesAction({
-          serviceType: page.serviceType,
-          ...(ageRangeNodeId ? { taxonomyNodeId: ageRangeNodeId } : {}),
-        });
+        const [coursesRes, coursesError] = await GetCoursesAction({ serviceType: page.serviceType });
         const courses = coursesRes?.data ?? [];
         if (coursesError || courses.length === 0) {
           setError(coursesError || "No courses are available for this program right now - please contact us.");
           return;
         }
         if (courses.length === 1) {
-          await enrollAndPay(courses[0]);
+          await enrollAndPay({ courseId: courses[0].id, label: courses[0].title, amount: courses[0].price, currency: courses[0].currency });
           return;
         }
         setAvailableCourses(courses);
@@ -287,7 +350,12 @@ export default function CampaignSignupForm({ page }: { page: CampaignLandingPage
         return;
       }
 
-      await enrollAndPay();
+      await enrollAndPay({
+        courseId: page.courseId,
+        label: page.title,
+        amount: quote?.amount ?? 0,
+        currency: quote?.currency ?? "NGN",
+      });
     } catch {
       setError("Something went wrong - please try again.");
     } finally {
@@ -305,7 +373,7 @@ export default function CampaignSignupForm({ page }: { page: CampaignLandingPage
     setError(null);
     setIsSubmitting(true);
     try {
-      await enrollAndPay(course);
+      await enrollAndPay({ courseId: course.id, label: course.title, amount: course.price, currency: course.currency });
     } catch {
       setError("Something went wrong - please try again.");
     } finally {
@@ -344,41 +412,63 @@ export default function CampaignSignupForm({ page }: { page: CampaignLandingPage
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 sticky top-6 space-y-4">
-      {needsCourseChoice ? (
-        <div>
-          <p className="text-sm text-gray-500">Price</p>
-          <p className="text-sm text-gray-700">Depends on the course you choose - shown before you pay.</p>
+      {isFlowTree ? (
+        <div className="space-y-2">
+          <p className="text-sm text-gray-500">
+            {flowTreePath.length > 0 && (
+              <span className="block text-xs text-gray-400 mb-1">{flowTreePath.map((n) => n.name).join(" > ")}</span>
+            )}
+            {flowTreeLeaf ? "Selected" : "Choose an option"}
+          </p>
+          {flowTreeLeaf ? (
+            <p className="text-2xl font-bold text-gray-900">
+              {flowTreeLeaf.name} - {flowTreeQuote ? formatMoney(flowTreeQuote.currency, flowTreeQuote.amount) : "Loading..."}
+            </p>
+          ) : (
+            <p className="text-sm text-gray-700">Pick one below to see its price.</p>
+          )}
+          <div className="space-y-1.5">
+            {canGoBackInTree && (
+              <button type="button" onClick={handleBackInTree} className="text-xs text-blue-600 hover:underline">
+                ← Back
+              </button>
+            )}
+            {isLoading || isLoadingFlowTreeStep ? (
+              <p className="text-sm text-gray-500">Loading...</p>
+            ) : flowTreeOptions.length === 0 ? (
+              <p className="text-sm text-gray-500">Nothing available here yet - please contact us.</p>
+            ) : (
+              flowTreeOptions.map((n) => (
+                <button
+                  key={n.id}
+                  type="button"
+                  onClick={() => handlePickFlowTreeNode(n)}
+                  className={`w-full text-left border rounded-md px-3 py-2 text-sm ${
+                    flowTreeLeaf?.id === n.id ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:bg-gray-50"
+                  }`}
+                >
+                  {n.name}
+                </button>
+              ))
+            )}
+          </div>
         </div>
       ) : (
         <div>
           <p className="text-sm text-gray-500">Price</p>
-          <p className="text-2xl font-bold text-gray-900">
-            {isLoading ? "Loading..." : quote ? formatMoney(quote.currency, quote.amount) : "Contact us"}
-          </p>
+          {needsCourseChoice ? (
+            <p className="text-sm text-gray-700">Depends on the course you choose - shown before you pay.</p>
+          ) : (
+            <p className="text-2xl font-bold text-gray-900">
+              {isLoading ? "Loading..." : quote ? formatMoney(quote.currency, quote.amount) : "Contact us"}
+            </p>
+          )}
         </div>
       )}
 
       {error && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">{error}</p>}
 
       <div className="space-y-3">
-        {needsAgeRangeChoice && (
-          <div>
-            <Label>Age range</Label>
-            <Select value={chosenAgeRangeNodeId} onValueChange={setChosenAgeRangeNodeId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select an age range" />
-              </SelectTrigger>
-              <SelectContent>
-                {ageRangeOptions.map((n) => (
-                  <SelectItem key={n.id} value={n.id}>
-                    {n.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
-
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Your details</p>
         <div className="grid grid-cols-2 gap-2">
           <div>

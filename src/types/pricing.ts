@@ -9,6 +9,10 @@ export interface QuotePricingPayload {
   subject?: string;
   courseId?: string;
   gradeLevel?: string;
+  // The generalized dimension - a specific CurriculumNode, for pricing an
+  // arbitrary depth of a service's flow tree - see stcbe's
+  // IServicePricing.taxonomyNodeId.
+  taxonomyNodeId?: string;
   // Overrides IP-detected country.
   country?: string;
   // Overrides the currency implied by the resolved country.
