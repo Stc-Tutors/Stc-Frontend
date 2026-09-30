@@ -15,7 +15,7 @@ import { GetCurriculumChildrenAction, GetCurriculumNodeAction } from "@/server/c
 import { GetCoursesAction } from "@/server/course";
 import { CampaignLandingPage } from "@/types/campaign-landing-page";
 import { ITaxonomyOption, TaxonomyOptionKind } from "@/types/service-catalog";
-import { CurriculumNode } from "@/types/curriculum";
+import { CurriculumNode, CurriculumNodeType } from "@/types/curriculum";
 import { UserRole } from "@/types/user";
 import { PaymentRequest } from "@/types/payment";
 import { Course } from "@/types/course";
@@ -55,6 +55,12 @@ function formatMoney(currency?: string, amount?: number) {
 interface EnrollChoice {
   courseId?: string;
   taxonomyNodeId?: string;
+  // Only relevant for services whose flowRequirements.requires_age_range is
+  // true (e.g. tech-bootcamp) - StudentService.assertServiceDetailsSatisfyFlowRequirements
+  // checks this as a plain string, completely independent of
+  // selectedSubjectNodeIds, so picking a node under an Age Range branch of
+  // the flow tree does NOT by itself satisfy it.
+  ageLevel?: string;
   label: string;
   amount: number;
   currency: string;
@@ -162,6 +168,7 @@ export default function CampaignSignupForm({ page }: { page: CampaignLandingPage
   const canGoBackInTree = page.taxonomyNodeId ? flowTreePath.length > 1 : flowTreePath.length > 0;
 
   const handlePickFlowTreeNode = async (node: CurriculumNode) => {
+    setError(null);
     setIsLoadingFlowTreeStep(true);
     setFlowTreeLeaf(null);
     setFlowTreeQuote(null);
@@ -185,6 +192,7 @@ export default function CampaignSignupForm({ page }: { page: CampaignLandingPage
 
   const handleBackInTree = async () => {
     if (!canGoBackInTree) return;
+    setError(null);
     setIsLoadingFlowTreeStep(true);
     const newPath = flowTreePath.slice(0, -1);
     const parentNode = newPath[newPath.length - 1];
@@ -218,6 +226,7 @@ export default function CampaignSignupForm({ page }: { page: CampaignLandingPage
         learningGoals: page.heading,
         selectedSubjects: [choice.label],
         selectedSubjectNodeIds: choice.taxonomyNodeId ? [choice.taxonomyNodeId] : undefined,
+        ageLevel: choice.ageLevel,
         tutorGender: "No preference",
         totalCost: choice.amount,
       },
@@ -312,6 +321,17 @@ export default function CampaignSignupForm({ page }: { page: CampaignLandingPage
           router.push(`${ROUTES.AUTH.LOGIN}?email=${encodeURIComponent(form.parentEmail)}`);
           return;
         }
+        // The matched account might not be a family account at all (e.g. an
+        // existing tutor's own login) - enrolling would just fail server-side
+        // with a confusing generic permissions error, so catch it here with a
+        // message that actually explains what's wrong.
+        const existingRole = retryRes.data.user.role;
+        if (existingRole !== UserRole.PARENT && existingRole !== UserRole.STUDENT) {
+          setError(
+            `This email already has a ${existingRole.toLowerCase()} account on our platform, which can't be used to enroll a child here - please use a different email address.`
+          );
+          return;
+        }
       } else {
         setStep("Signing you in...");
         const [signinRes, signinError] = await SigninAction({ email: form.parentEmail, password: form.password });
@@ -323,12 +343,20 @@ export default function CampaignSignupForm({ page }: { page: CampaignLandingPage
 
       if (isFlowTree) {
         // Both the pick and the price were already resolved above, before
-        // signup - nothing left to do but submit.
+        // signup - nothing left to do but submit. Age Range is only ever the
+        // tree's root stage (see stcbe's AGE_RANGE_STAGE) or the locked
+        // starting node itself, so it's whichever of those is an AGE_RANGE
+        // node; a leaf-locked page with no Age Range in its path at all has
+        // no age to report, which is fine for services that don't need one.
+        const ageLevel =
+          flowTreePath.find((n) => n.type === CurriculumNodeType.AGE_RANGE)?.name ??
+          (flowTreeLeaf?.type === CurriculumNodeType.AGE_RANGE ? flowTreeLeaf.name : undefined);
         await enrollAndPay({
           taxonomyNodeId: flowTreeLeaf!.id,
           label: flowTreeLeaf!.name,
           amount: flowTreeQuote?.amount ?? 0,
           currency: flowTreeQuote?.currency ?? "NGN",
+          ageLevel,
         });
         return;
       }
