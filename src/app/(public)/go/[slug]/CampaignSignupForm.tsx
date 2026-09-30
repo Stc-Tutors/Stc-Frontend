@@ -80,7 +80,7 @@ interface EnrollChoice {
 // performs as separate pages (sign up -> log in -> submit the enrollment ->
 // pay via Paystack -> land in the LMS) - no parallel account/enrollment/
 // payment logic, just fewer screens.
-export default function CampaignSignupForm({ page }: { page: CampaignLandingPage }) {
+export default function CampaignSignupForm({ page, cohortName }: { page: CampaignLandingPage; cohortName: string }) {
   const router = useRouter();
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [countries, setCountries] = useState<ITaxonomyOption[]>([]);
@@ -413,6 +413,7 @@ export default function CampaignSignupForm({ page }: { page: CampaignLandingPage
   if (phase === "choose-course") {
     return (
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 sticky top-6 space-y-4">
+        <p className="text-lg font-bold text-gray-900 leading-snug">{cohortName}</p>
         <p className="text-sm text-gray-700">Your account is ready - now pick which course to enroll in:</p>
         {error && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">{error}</p>}
         <div className="space-y-2">
@@ -440,59 +441,7 @@ export default function CampaignSignupForm({ page }: { page: CampaignLandingPage
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 sticky top-6 space-y-4">
-      {isFlowTree ? (
-        <div className="space-y-2">
-          <p className="text-sm text-gray-500">
-            {flowTreePath.length > 0 && (
-              <span className="block text-xs text-gray-400 mb-1">{flowTreePath.map((n) => n.name).join(" > ")}</span>
-            )}
-            {flowTreeLeaf ? "Selected" : "Choose an option"}
-          </p>
-          {flowTreeLeaf ? (
-            <p className="text-2xl font-bold text-gray-900">
-              {flowTreeLeaf.name} - {flowTreeQuote ? formatMoney(flowTreeQuote.currency, flowTreeQuote.amount) : "Loading..."}
-            </p>
-          ) : (
-            <p className="text-sm text-gray-700">Pick one below to see its price.</p>
-          )}
-          <div className="space-y-1.5">
-            {canGoBackInTree && (
-              <button type="button" onClick={handleBackInTree} className="text-xs text-blue-600 hover:underline">
-                ← Back
-              </button>
-            )}
-            {isLoading || isLoadingFlowTreeStep ? (
-              <p className="text-sm text-gray-500">Loading...</p>
-            ) : flowTreeOptions.length === 0 ? (
-              <p className="text-sm text-gray-500">Nothing available here yet - please contact us.</p>
-            ) : (
-              flowTreeOptions.map((n) => (
-                <button
-                  key={n.id}
-                  type="button"
-                  onClick={() => handlePickFlowTreeNode(n)}
-                  className={`w-full text-left border rounded-md px-3 py-2 text-sm ${
-                    flowTreeLeaf?.id === n.id ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:bg-gray-50"
-                  }`}
-                >
-                  {n.name}
-                </button>
-              ))
-            )}
-          </div>
-        </div>
-      ) : (
-        <div>
-          <p className="text-sm text-gray-500">Price</p>
-          {needsCourseChoice ? (
-            <p className="text-sm text-gray-700">Depends on the course you choose - shown before you pay.</p>
-          ) : (
-            <p className="text-2xl font-bold text-gray-900">
-              {isLoading ? "Loading..." : quote ? formatMoney(quote.currency, quote.amount) : "Contact us"}
-            </p>
-          )}
-        </div>
-      )}
+      <p className="text-lg font-bold text-gray-900 leading-snug">{cohortName}</p>
 
       {error && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">{error}</p>}
 
@@ -562,6 +511,64 @@ export default function CampaignSignupForm({ page }: { page: CampaignLandingPage
             placeholder="Select language"
           />
         </div>
+      </div>
+
+      <div className="border-t border-gray-100 pt-4">
+        {isFlowTree ? (
+          <div className="space-y-2">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+              {flowTreePath.length > 0 && (
+                <span className="block normal-case text-gray-400 mb-1 font-normal">
+                  {flowTreePath.map((n) => n.name).join(" > ")}
+                </span>
+              )}
+              {flowTreeLeaf ? "Selected" : "Choose an option"}
+            </p>
+            {flowTreeLeaf ? (
+              <p className="text-2xl font-bold text-gray-900">
+                {flowTreeLeaf.name} - {flowTreeQuote ? formatMoney(flowTreeQuote.currency, flowTreeQuote.amount) : "Loading..."}
+              </p>
+            ) : (
+              <p className="text-sm text-gray-700">Pick one below to see its price.</p>
+            )}
+            <div className="space-y-1.5">
+              {canGoBackInTree && (
+                <button type="button" onClick={handleBackInTree} className="text-xs text-blue-600 hover:underline">
+                  ← Back
+                </button>
+              )}
+              {isLoading || isLoadingFlowTreeStep ? (
+                <p className="text-sm text-gray-500">Loading...</p>
+              ) : flowTreeOptions.length === 0 ? (
+                <p className="text-sm text-gray-500">Nothing available here yet - please contact us.</p>
+              ) : (
+                flowTreeOptions.map((n) => (
+                  <button
+                    key={n.id}
+                    type="button"
+                    onClick={() => handlePickFlowTreeNode(n)}
+                    className={`w-full text-left border rounded-md px-3 py-2 text-sm ${
+                      flowTreeLeaf?.id === n.id ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:bg-gray-50"
+                    }`}
+                  >
+                    {n.name}
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+        ) : (
+          <div>
+            <p className="text-sm text-gray-500">Price</p>
+            {needsCourseChoice ? (
+              <p className="text-sm text-gray-700">Depends on the course you choose - shown before you pay.</p>
+            ) : (
+              <p className="text-2xl font-bold text-gray-900">
+                {isLoading ? "Loading..." : quote ? formatMoney(quote.currency, quote.amount) : "Contact us"}
+              </p>
+            )}
+          </div>
+        )}
       </div>
 
       <Button className="w-full" size="lg" onClick={handleSubmit} disabled={isSubmitting || isLoading}>

@@ -23,4 +23,11 @@ export interface CampaignLandingPage {
   scheduleNote?: string;
   benefits: string[];
   ctaLabel: string;
+
+  promoLabel?: string;
+  promoDeadline?: string;
+  promoCouponCode?: string;
+  stats?: { value: string; label: string }[];
+  howItWorks?: { title: string; description: string }[];
+  faqs?: { question: string; answer: string }[];
 }
