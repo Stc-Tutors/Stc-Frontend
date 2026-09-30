@@ -68,7 +68,14 @@ export default function RegisterForm() {
       router.push(service ? `${ROUTES.AUTH.LOGIN}?service=${service}` : ROUTES.AUTH.LOGIN);
     }
     if (error) {
-      ToastError(error);
+      // A duplicate-email attempt left them nowhere to go before - now
+      // sends them straight to sign in instead of just naming the problem.
+      if (error.toLowerCase().includes("email already exists")) {
+        ToastError("This email is already registered - please sign in instead.");
+        router.push(`${ROUTES.AUTH.LOGIN}?email=${encodeURIComponent(data.email)}`);
+      } else {
+        ToastError(error);
+      }
     }
     form.reset();
   }

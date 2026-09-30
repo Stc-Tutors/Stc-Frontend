@@ -235,16 +235,35 @@ export default function CampaignSignupForm({ page }: { page: CampaignLandingPage
         role: UserRole.PARENT,
         password: form.password,
       });
+      // An earlier attempt on this exact page can fail partway through
+      // (network drop, a later step erroring) after the account itself was
+      // already created - the family would otherwise be stuck seeing "email
+      // already exists" forever with no way back in. If this is that same
+      // family retrying with the same email/password, logging in just works
+      // and the flow continues exactly as if signup had succeeded. Only a
+      // genuinely different password (someone else's email, or they mistyped
+      // it) falls through to sending them to sign in instead.
       if (signupError) {
-        setError(signupError);
-        return;
-      }
-
-      setStep("Signing you in...");
-      const [signinRes, signinError] = await SigninAction({ email: form.parentEmail, password: form.password });
-      if (signinError || !signinRes?.data?.token) {
-        setError(signinError || "Could not sign you in - please try logging in manually.");
-        return;
+        if (!signupError.toLowerCase().includes("email already exists")) {
+          setError(signupError);
+          return;
+        }
+        setStep("This email already has an account - signing you in...");
+        const [retryRes, retryError] = await SigninAction({ email: form.parentEmail, password: form.password });
+        if (retryError || !retryRes?.data?.token) {
+          setError("This email is already registered. Please sign in instead, then continue from your dashboard.");
+          router.push(`${ROUTES.AUTH.LOGIN}?email=${encodeURIComponent(form.parentEmail)}`);
+          return;
+        }
+        // Already signed in via the retry path above - fall through to the
+        // rest of the flow without a second, redundant sign-in call.
+      } else {
+        setStep("Signing you in...");
+        const [signinRes, signinError] = await SigninAction({ email: form.parentEmail, password: form.password });
+        if (signinError || !signinRes?.data?.token) {
+          setError(signinError || "Could not sign you in - please try logging in manually.");
+          return;
+        }
       }
 
       if (needsCourseChoice) {

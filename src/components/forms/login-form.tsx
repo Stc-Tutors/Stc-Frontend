@@ -56,7 +56,9 @@ export default function LoginForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      identifier: "",
+      // Carried over from a signup attempt against an email that already
+      // has an account (see register-form.tsx) - saves retyping it here.
+      identifier: searchParams.get("email") ?? "",
       password: "",
     },
   });
