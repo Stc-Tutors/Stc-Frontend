@@ -13,6 +13,10 @@ import { QuotePricingAction } from "@/server/pricing";
 import { GetTaxonomyOptionsAction } from "@/server/taxonomy-option";
 import { GetCurriculumChildrenAction, GetCurriculumNodeAction } from "@/server/curriculum";
 import { GetCoursesAction } from "@/server/course";
+import { ValidateCouponAction } from "@/server/coupon";
+import { ApplyReferralCodeAction } from "@/server/referral";
+import PaymentConsentModal from "@/components/payment-consent-modal";
+import { isValidPassword, PASSWORD_POLICY_MESSAGE } from "@/lib/password-policy";
 import { CampaignLandingPage } from "@/types/campaign-landing-page";
 import { ITaxonomyOption, TaxonomyOptionKind } from "@/types/service-catalog";
 import { CurriculumNode, CurriculumNodeType } from "@/types/curriculum";
@@ -32,6 +36,8 @@ interface FormState {
   childDateOfBirth: string;
   countryOfResidence: string;
   primaryLanguage: string;
+  couponCode: string;
+  referralCode: string;
 }
 
 const EMPTY_FORM: FormState = {
@@ -45,6 +51,8 @@ const EMPTY_FORM: FormState = {
   childDateOfBirth: "",
   countryOfResidence: "",
   primaryLanguage: "",
+  couponCode: "",
+  referralCode: "",
 };
 
 function formatMoney(currency?: string, amount?: number) {
@@ -89,6 +97,14 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [step, setStep] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // "Before you pay" consent, shown once the account exists and a specific
+  // choice (course/subject + price) is settled - same gate the main
+  // registration wizard uses (PaymentConsentModal), just reached via one
+  // continuous form instead of a multi-step review page.
+  const [pendingChoice, setPendingChoice] = useState<EnrollChoice | null>(null);
+  const [showConsent, setShowConsent] = useState(false);
+  const [isPaying, setIsPaying] = useState(false);
 
   // --- FLOW_TREE mode: public, so this all happens before signup ---
   const [flowTreePath, setFlowTreePath] = useState<CurriculumNode[]>([]);
@@ -205,7 +221,9 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
     setIsLoadingFlowTreeStep(false);
   };
 
-  const enrollAndPay = async (choice: EnrollChoice) => {
+  // Actually creates the enrollment and opens Paystack - only ever called
+  // after the parent has agreed to PaymentConsentModal (see requestPayment).
+  const submitEnrollment = async (choice: EnrollChoice) => {
     setStep("Submitting enrollment...");
     const [enrollRes, enrollError] = await EnrollAction({
       fullName: form.childFullName,
@@ -218,6 +236,11 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
       parentName: `${form.parentFirstName} ${form.parentLastName}`,
       parentEmail: form.parentEmail,
       parentPhone: form.parentPhone,
+      // Redeemed server-side against the server's own recomputed price
+      // (StudentService.computeEnrollmentQuote) - an invalid/expired/
+      // exhausted code throws and aborts the enrollment, which is why this
+      // is validated (see handleSubmit) before ever reaching here.
+      couponCode: form.couponCode.trim() || undefined,
       serviceDetails: {
         serviceType: page.serviceType,
         courseId: choice.courseId,
@@ -266,6 +289,22 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
     });
   };
 
+  const requestPayment = (choice: EnrollChoice) => {
+    setPendingChoice(choice);
+    setShowConsent(true);
+  };
+
+  const handleAgreeToPay = async () => {
+    if (!pendingChoice) return;
+    setIsPaying(true);
+    try {
+      await submitEnrollment(pendingChoice);
+    } finally {
+      setIsPaying(false);
+      setShowConsent(false);
+    }
+  };
+
   const handleSubmit = async () => {
     setError(null);
     if (
@@ -287,8 +326,8 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
       setError("Please choose from the list");
       return;
     }
-    if (form.password.length < 8) {
-      setError("Password must be at least 8 characters");
+    if (!isValidPassword(form.password)) {
+      setError(PASSWORD_POLICY_MESSAGE);
       return;
     }
 
@@ -341,6 +380,32 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
         }
       }
 
+      // Referral attribution (who gets credited if this family ever pays) is
+      // separate from a coupon (a discount on this specific charge) - see
+      // ReferralService.applyReferralCode vs CouponService.redeem. Applying
+      // the referral code is best-effort: an already-referred account or a
+      // bad code here shouldn't block payment, it just means no one gets
+      // attributed for this signup.
+      if (form.referralCode.trim()) {
+        setStep("Applying referral code...");
+        await ApplyReferralCodeAction(form.referralCode.trim());
+      }
+
+      // Unlike the referral code, an invalid/expired/exhausted coupon THROWS
+      // and aborts the whole enrollment if sent as-is (CouponService.redeem
+      // actually consumes it at submit time) - so it's checked here first,
+      // with a clear error the family can act on, rather than surfacing that
+      // failure after they've already gone through the payment consent step.
+      if (form.couponCode.trim()) {
+        setStep("Checking coupon code...");
+        const previewAmount = isFlowTree ? flowTreeQuote?.amount ?? 0 : quote?.amount ?? 0;
+        const [, couponError] = await ValidateCouponAction(form.couponCode.trim(), previewAmount);
+        if (couponError) {
+          setError(couponError);
+          return;
+        }
+      }
+
       if (isFlowTree) {
         // Both the pick and the price were already resolved above, before
         // signup - nothing left to do but submit. Age Range is only ever the
@@ -351,7 +416,7 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
         const ageLevel =
           flowTreePath.find((n) => n.type === CurriculumNodeType.AGE_RANGE)?.name ??
           (flowTreeLeaf?.type === CurriculumNodeType.AGE_RANGE ? flowTreeLeaf.name : undefined);
-        await enrollAndPay({
+        requestPayment({
           taxonomyNodeId: flowTreeLeaf!.id,
           label: flowTreeLeaf!.name,
           amount: flowTreeQuote?.amount ?? 0,
@@ -370,7 +435,7 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
           return;
         }
         if (courses.length === 1) {
-          await enrollAndPay({ courseId: courses[0].id, label: courses[0].title, amount: courses[0].price, currency: courses[0].currency });
+          requestPayment({ courseId: courses[0].id, label: courses[0].title, amount: courses[0].price, currency: courses[0].currency });
           return;
         }
         setAvailableCourses(courses);
@@ -378,7 +443,7 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
         return;
       }
 
-      await enrollAndPay({
+      requestPayment({
         courseId: page.courseId,
         label: page.title,
         amount: quote?.amount ?? 0,
@@ -392,22 +457,14 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
     }
   };
 
-  const handleConfirmCourse = async () => {
+  const handleConfirmCourse = () => {
     const course = availableCourses.find((c) => c.id === chosenCourseId);
     if (!course) {
       setError("Please choose a course");
       return;
     }
     setError(null);
-    setIsSubmitting(true);
-    try {
-      await enrollAndPay({ courseId: course.id, label: course.title, amount: course.price, currency: course.currency });
-    } catch {
-      setError("Something went wrong - please try again.");
-    } finally {
-      setIsSubmitting(false);
-      setStep(null);
-    }
+    requestPayment({ courseId: course.id, label: course.title, amount: course.price, currency: course.currency });
   };
 
   if (phase === "choose-course") {
@@ -435,6 +492,7 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
         <Button className="w-full" size="lg" onClick={handleConfirmCourse} disabled={isSubmitting}>
           {isSubmitting ? step || "Please wait..." : "Continue to payment"}
         </Button>
+        <PaymentConsentModal open={showConsent} onAgree={handleAgreeToPay} onOpenChange={setShowConsent} isSubmitting={isPaying} />
       </div>
     );
   }
@@ -467,7 +525,7 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
         </div>
         <div>
           <Label>Choose a password</Label>
-          <Input type="password" value={form.password} onChange={(e) => handleChange({ password: e.target.value })} placeholder="At least 8 characters" />
+          <Input type="password" value={form.password} onChange={(e) => handleChange({ password: e.target.value })} placeholder="8+ characters, with an uppercase letter and a number" />
         </div>
 
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide pt-2">Your child&apos;s details</p>
@@ -510,6 +568,21 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
             onChange={(value) => handleChange({ primaryLanguage: value })}
             placeholder="Select language"
           />
+        </div>
+
+        <div className="grid grid-cols-2 gap-2 pt-1">
+          <div>
+            <Label>Coupon code (optional)</Label>
+            <Input
+              value={form.couponCode}
+              onChange={(e) => handleChange({ couponCode: e.target.value })}
+              placeholder={page.promoCouponCode || "e.g. SAVE15"}
+            />
+          </div>
+          <div>
+            <Label>Referral code (optional)</Label>
+            <Input value={form.referralCode} onChange={(e) => handleChange({ referralCode: e.target.value })} placeholder="Who referred you?" />
+          </div>
         </div>
       </div>
 
@@ -576,8 +649,9 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
       </Button>
       <p className="text-xs text-gray-400 text-center">
         Creates your STC Tutors account{needsCourseChoice ? ", then a quick course pick, " : " and takes you straight "}
-        to secure payment.
+        to secure payment. We&apos;ll also email you a link to verify your address - no need to click it before paying.
       </p>
+      <PaymentConsentModal open={showConsent} onAgree={handleAgreeToPay} onOpenChange={setShowConsent} isSubmitting={isPaying} />
     </div>
   );
 }
