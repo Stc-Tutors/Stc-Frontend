@@ -10,6 +10,7 @@ import { ChevronLeft, ChevronRight, AlertCircle } from "lucide-react";
 import { ToastError, ToastSuccess } from "@/components/ui/custom/toast";
 import { useTutorApplication } from "@/contexts/tutor-application-context";
 import { TutorApplicationStatus } from "@/types/tutor-application";
+import { ResendTutorDraftVerificationAction } from "@/server/tutor-application";
 import { FLAGGABLE_FIELDS_BY_ID } from "@/lib/tutor-application-fields";
 import ServicesStep from "@/components/tutor-application-steps/services";
 import PersonalInformationStep from "@/components/tutor-application-steps/personal-information";
@@ -65,7 +66,10 @@ export default function TutorApplicationFlow() {
     submitStep10,
     submitResubmit,
     goToStep,
+    checkEmailVerified,
   } = useTutorApplication();
+  const [checking, setChecking] = useState(false);
+  const [resending, setResending] = useState(false);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const isEditingFlagged = draft.applicationStatus === TutorApplicationStatus.NEEDS_MORE_INFO;
@@ -159,6 +163,52 @@ export default function TutorApplicationFlow() {
 
   if (draft.submitted) {
     return null;
+  }
+
+  // The account is created at step 2 for whatever email was typed, so nothing else saves until the mailbox owner proves it is theirs.
+  if (draft.applicationId && draft.emailVerified === false) {
+    return (
+      <div className="w-full flex-1 py-8">
+        <div className="max-w-xl mx-auto px-4">
+          <Card>
+            <CardContent className="py-8 space-y-4 text-center">
+              <h1 className="text-xl font-bold text-gray-900">Verify your email to continue</h1>
+              <p className="text-sm text-gray-600">
+                We sent a verification link to <strong>{draft.step1.email}</strong>. Open it, then come back to this page and press the button below.
+                Check your spam folder if you don&apos;t see it.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button
+                  disabled={checking}
+                  onClick={async () => {
+                    setChecking(true);
+                    const ok = await checkEmailVerified();
+                    setChecking(false);
+                    if (!ok) ToastError("We haven't seen your verification yet - open the link in the email first.");
+                  }}
+                >
+                  {checking ? "Checking..." : "I've verified - continue"}
+                </Button>
+                <Button
+                  variant="outline"
+                  disabled={resending}
+                  onClick={async () => {
+                    if (!draft.applicationId || !draft.draftToken) return;
+                    setResending(true);
+                    const [, error] = await ResendTutorDraftVerificationAction(draft.applicationId, draft.draftToken);
+                    setResending(false);
+                    if (error) ToastError(error);
+                    else ToastSuccess("Verification email sent again.");
+                  }}
+                >
+                  {resending ? "Sending..." : "Resend email"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
   }
 
   return (

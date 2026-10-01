@@ -64,6 +64,8 @@ export type TutorApplicationDraftState = {
   // resubmit below and the "Resubmit for Review" affordance in
   // tutor-application-flow.tsx, shown instead of the normal step10 submit flow.
   applicationStatus?: TutorApplicationStatus;
+  // false = the applicant still has to click the emailed link before any later step will save.
+  emailVerified?: boolean;
   flaggedFields?: string[];
   needsMoreInfoNote?: string;
 };
@@ -114,6 +116,8 @@ type TutorApplicationContextType = {
   searchReferringTutors: (query: string) => Promise<TutorSearchResult[]>;
   updateCustomFieldResponse: (fieldId: string, value: CustomFieldResponses[string] | undefined) => void;
   goToStep: (step: number) => void;
+  // Re-reads the draft to see whether the emailed link has been clicked yet; returns the verified state.
+  checkEmailVerified: () => Promise<boolean>;
 };
 
 const TutorApplicationContext = createContext<TutorApplicationContextType | undefined>(undefined);
@@ -178,6 +182,7 @@ export function TutorApplicationProvider({ children }: { children: ReactNode }) 
       setDraft({
         applicationId: ref.applicationId,
         draftToken: ref.draftToken,
+        emailVerified: application.emailVerified,
         // Backend currentStep (1-10) tracks the last completed backend step
         // (see TutorApplicationService.updateStepN); UI steps run 1-12
         // (Services + Personal Info are UI steps 1-2 but count as backend
@@ -186,6 +191,7 @@ export function TutorApplicationProvider({ children }: { children: ReactNode }) 
         currentStep: Math.min((application.currentStep ?? -1) + 2, 12),
         step1: {
           servicesOffered: application.servicesOffered,
+          email: (application.user as { email?: string } | undefined)?.email ?? "",
           countryOfResidence: application.countryOfResidence,
           preferredLanguages: application.preferredLanguages,
           dateOfBirth: application.dateOfBirth,
@@ -297,6 +303,14 @@ export function TutorApplicationProvider({ children }: { children: ReactNode }) 
 
   const goToStep = (step: number) => setDraft((prev) => ({ ...prev, currentStep: step }));
 
+  const checkEmailVerified = async (): Promise<boolean> => {
+    if (!draft.applicationId || !draft.draftToken) return false;
+    const [res] = await GetTutorApplicationDraftAction(draft.applicationId, draft.draftToken);
+    const verified = !!res?.data?.emailVerified;
+    if (verified) setDraft((prev) => ({ ...prev, emailVerified: true }));
+    return verified;
+  };
+
   const setServicesOffered = (servicesOffered: string[]) => {
     setDraft((prev) => ({ ...prev, step1: { ...prev.step1, servicesOffered }, currentStep: 2 }));
   };
@@ -314,7 +328,7 @@ export function TutorApplicationProvider({ children }: { children: ReactNode }) 
       }
       const { applicationId, draftToken } = res.data;
       persistDraftRef(applicationId, draftToken);
-      setDraft((prev) => ({ ...prev, applicationId, draftToken, step1: payload, currentStep: 3 }));
+      setDraft((prev) => ({ ...prev, applicationId, draftToken, step1: payload, currentStep: 3, emailVerified: false }));
       return { success: true };
     } finally {
       setIsSubmitting(false);
@@ -444,6 +458,7 @@ export function TutorApplicationProvider({ children }: { children: ReactNode }) 
         searchReferringTutors,
         updateCustomFieldResponse,
         goToStep,
+        checkEmailVerified,
       }}
     >
       {children}

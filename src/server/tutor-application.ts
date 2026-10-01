@@ -198,6 +198,21 @@ export async function StartTutorApplicationAction(
   return [resData, error];
 }
 
+export async function ResendTutorDraftVerificationAction(
+  id: string,
+  draftToken: string
+): Promise<[ApiResponse<null> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: `/tutor-applications/${id}/resend-verification`,
+    request: {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${draftToken}` },
+    },
+  });
+  const resData = res ? ((await res.json()) as ApiResponse<null>) : null;
+  return [resData, error];
+}
+
 export async function GetTutorApplicationDraftAction(
   id: string,
   draftToken: string

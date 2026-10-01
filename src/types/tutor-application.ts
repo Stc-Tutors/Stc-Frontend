@@ -189,6 +189,8 @@ export interface TeachingExperienceEntry {
 }
 
 export interface TutorApplication {
+  // Only set by the draft read: false until the applicant has clicked the emailed verification link.
+  emailVerified?: boolean;
   id: string;
   user: TutorApplicationApplicant | string;
   qualifications: string;
