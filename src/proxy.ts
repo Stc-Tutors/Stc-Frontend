@@ -59,6 +59,8 @@ const ROLE_HOME_SHORTCUTS: Record<string, (role: UserRole) => string> = {
   "/lms-home/messages": (role) => `${roleSectionBase(role)}/messages`,
   "/lms-home/notification": (role) => `${roleSectionBase(role)}/notification`,
   "/lms-home/profile": (role) => `${roleSectionBase(role)}/profile`,
+  // Referral emails/notifications link here without knowing the role.
+  "/lms-home/refer-earn": (role) => `${roleSectionBase(role)}/refer-earn`,
 };
 
 const publicPaths = [

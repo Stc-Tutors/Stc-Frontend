@@ -16,6 +16,7 @@ import { DisconnectReason, Track } from "livekit-client";
 import { Circle, DoorOpen, EyeOff, Loader2, PhoneOff, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ToastError } from "@/components/ui/custom/toast";
+import { useUser } from "@/contexts/user-context";
 import { EndLiveClassAction, JoinLiveClassAction } from "@/server/live-class";
 import type { JoinInfo } from "@/types/live-class";
 
@@ -46,6 +47,7 @@ function ObserverView() {
 }
 
 export default function LiveKitClassroom({ lessonId, onExit }: LiveKitClassroomProps) {
+  const { user } = useUser();
   const [phase, setPhase] = useState<Phase>("loading");
   const [join, setJoin] = useState<JoinInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -168,7 +170,7 @@ export default function LiveKitClassroom({ lessonId, onExit }: LiveKitClassroomP
           </p>
         )}
         <PreJoin
-          defaults={{ username: "", videoEnabled: true, audioEnabled: true }}
+          defaults={{ username: user ? `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() : "", videoEnabled: true, audioEnabled: true }}
           joinLabel="Join class"
           persistUserChoices={false}
           onError={(e) => ToastError(e.message || "Couldn't access your camera or microphone")}

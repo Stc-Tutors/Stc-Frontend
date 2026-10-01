@@ -135,7 +135,7 @@ export default function RegisterForm() {
               <FormItem>
                 <FormLabel>Phone Number</FormLabel>
                 <FormControl>
-                  <PhoneInput {...field} country={"ng"} />
+                  <PhoneInput value={field.value} onChange={field.onChange} onBlur={field.onBlur} country={"ng"} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

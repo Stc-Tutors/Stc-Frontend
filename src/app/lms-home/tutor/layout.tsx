@@ -107,6 +107,9 @@ const TOUR_TARGETS: Record<string, string> = {
 
 const ONBOARDING_PATH = "/lms-home/tutor/onboarding";
 const VETTING_PATH = "/lms-home/tutor/vetting";
+// Account basics stay reachable while onboarding/vetting is pending: profile (incl. change password), notifications, support.
+const GATE_ALLOWED_PATHS = ["/lms-home/tutor/profile", "/lms-home/tutor/notification", "/lms-home/tutor/your-account", "/lms-home/tutor/complaints"];
+const isGateAllowed = (path: string) => GATE_ALLOWED_PATHS.some((p) => path.startsWith(p));
 
 export default function LMSLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -136,7 +139,7 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
   // through here. Checked ahead of the onboarding check below since
   // completing vetting comes first.
   useEffect(() => {
-    if (pathname === VETTING_PATH) return;
+    if (pathname === VETTING_PATH || isGateAllowed(pathname)) return;
     (async () => {
       const [res] = await GetMyTutorApplicationAction();
       if (
@@ -149,7 +152,7 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
   }, [pathname, router]);
 
   useEffect(() => {
-    if (pathname === ONBOARDING_PATH || pathname === VETTING_PATH) return;
+    if (pathname === ONBOARDING_PATH || pathname === VETTING_PATH || isGateAllowed(pathname)) return;
     (async () => {
       const [res] = await GetMyTutorProfileAction();
       const profile = res?.data;
@@ -194,7 +197,17 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
   // both bare full-screen steps - no sidebar/topbar chrome, so a tutor can't
   // wander off into the rest of the dashboard before completing either one.
   if (pathname === ONBOARDING_PATH || pathname === VETTING_PATH) {
-    return <>{children}</>;
+    return (
+      <>
+        {children}
+        <nav className="mx-auto flex max-w-xl flex-wrap justify-center gap-x-6 gap-y-2 px-4 pb-8 text-sm text-gray-600">
+          <Link href="/lms-home/tutor/profile" className="underline">Profile</Link>
+          <Link href="/lms-home/tutor/notification" className="underline">Notifications</Link>
+          <Link href="/lms-home/tutor/profile-details" className="underline">Change password</Link>
+          <Link href="/lms-home/tutor/complaints" className="underline">Support</Link>
+        </nav>
+      </>
+    );
   }
 
   return (

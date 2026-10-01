@@ -93,6 +93,7 @@ const TOUR_TARGETS: Record<string, string> = {
 const ENROLLMENT_PATH = "/lms-home/student/enrollment";
 const COMPLETE_PROFILE_PATH = "/lms-home/student/complete-profile";
 const NEW_ENROLLMENT_PATH = "/lms-home/student/enrollment/new";
+const GATE_ALLOWED_PATHS = ["/lms-home/student/profile", "/lms-home/student/notification", "/lms-home/student/complaints"];
 
 // A login a parent created for their child (Student ID, no email) doesn't handle money: no wallet top-ups, no
 // referral withdrawals, no plan changes - the parent does that from their own account.
@@ -126,6 +127,8 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
     if (isLoading || !user) return;
     if (user.studentId) return;
     if (pathname.startsWith(ENROLLMENT_PATH) || pathname.startsWith(COMPLETE_PROFILE_PATH)) return;
+    // Account basics stay reachable before the first enrolment: profile (incl. change password), notifications, support.
+    if (GATE_ALLOWED_PATHS.some((p) => pathname.startsWith(p))) return;
     (async () => {
       const [res] = await GetEnrollmentsAction();
       if (res?.data && res.data.length === 0) {

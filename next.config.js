@@ -103,6 +103,23 @@ const nextConfig = {
     // never read; kept in sync here rather than deleted, out of caution.
     remotePatterns: [{ protocol: "https", hostname: "res.cloudinary.com" }],
   },
+  // The old standalone /dashboard/* wizard, the /auths/* Google-Form-style register pages and the mock payment demo were
+  // replaced by the LMS flows (/lms-home/*, /auth/*). Old bookmarks and emailed links land on the real flow instead of a 404.
+  // /dashboard/enroll and /dashboard/enrollments[/id] stay as small client shims (they know the user's role).
+  async redirects() {
+    return [
+      { source: "/auths/signin", destination: "/auth/login", permanent: true },
+      { source: "/auths/forgotpassword", destination: "/auth/forgot-password", permanent: true },
+      { source: "/auths/register/:path*", destination: "/auth/register", permanent: true },
+      { source: "/auths/:path*", destination: "/auth/login", permanent: true },
+      { source: "/dashboard", destination: "/lms-home", permanent: false },
+      {
+        source: "/dashboard/:path(child-info|payment-history|payment|review|schedule|select-service|signup|subjects|test-payment)",
+        destination: "/lms-home",
+        permanent: false,
+      },
+    ];
+  },
   // Baseline security headers that cannot break a page: nothing relies on
   // being framed by someone else or sending a referrer's full query string
   // cross-origin (verify-email/reset-password links carry a token).
