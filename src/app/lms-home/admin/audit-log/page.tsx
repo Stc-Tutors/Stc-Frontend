@@ -17,8 +17,8 @@ import { AuditLog, AuditLogActor } from "@/types/audit-log";
 
 const PAGE_SIZE = 20;
 
-const actorLabel = (actor: AuditLogActor) =>
-  typeof actor === "string" ? actor : `${actor.firstName} ${actor.lastName} (${actor.email})`;
+const actorLabel = (actor: AuditLogActor | null | undefined) =>
+  !actor ? "System" : typeof actor === "string" ? actor : `${actor.firstName} ${actor.lastName} (${actor.email})`;
 
 export default function AdminAuditLogPage() {
   const [logs, setLogs] = useState<AuditLog[]>([]);

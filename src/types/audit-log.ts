@@ -5,7 +5,8 @@ export type AuditLogActor = string | { id: string; firstName: string; lastName: 
 
 export interface AuditLog {
   id: string;
-  actor: AuditLogActor;
+  // null for system-originated events (webhooks, background jobs).
+  actor?: AuditLogActor | null;
   actorRole?: string;
   action: string;
   entityType: string;
