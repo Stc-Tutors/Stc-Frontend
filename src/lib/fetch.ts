@@ -1,3 +1,4 @@
+import { createHmac } from "crypto";
 import { cookies, headers } from "next/headers";
 
 interface FetchApiTypes {
@@ -57,9 +58,27 @@ export default async function fetchAPI<T>({
       const incomingHost = (await headers()).get("host");
       if (incomingHost && !requestHeaders.has("X-Tenant-Host")) {
         requestHeaders.set("X-Tenant-Host", incomingHost);
+        if (incomingHost && !requestHeaders.has("X-Tenant-Host-Sig") && process.env.JWT_SECRET) {
+          requestHeaders.set("X-Tenant-Host-Sig", createHmac("sha256", process.env.JWT_SECRET).update("tenant-host:" + incomingHost).digest("hex"));
+        }
       }
     } catch {
       // No request-scoped headers available - proceed without the hint.
+    }
+
+
+    // Forward the visitor's real IP (signed with the secret both sides share) so the API's per-IP rate limits and audit log see the
+    // person, not this server - without it every user shares one rate-limit bucket. See stcbe client-ip.middleware.ts.
+    try {
+      const incoming = await headers();
+      const visitorIp = incoming.get("x-forwarded-for")?.split(",")[0]?.trim() || incoming.get("x-real-ip") || "";
+      const secret = process.env.JWT_SECRET;
+      if (visitorIp && secret && !requestHeaders.has("X-Client-IP")) {
+        requestHeaders.set("X-Client-IP", visitorIp);
+        requestHeaders.set("X-Client-IP-Sig", createHmac("sha256", secret).update("client-ip:" + visitorIp).digest("hex"));
+      }
+    } catch {
+      // No request-scoped headers (build time) - nothing to forward.
     }
 
     const controller = new AbortController();
