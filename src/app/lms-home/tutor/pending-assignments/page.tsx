@@ -210,7 +210,7 @@ export default function PendingAssignmentsPage() {
                   </CardTitle>
                   {entry.kind === "one-on-one" ? (
                     <div className="mt-1">
-                      <p className="text-sm font-medium">{entry.row.student.fullName}</p>
+                      <p className="text-sm font-medium">{(entry.row.student?.fullName ?? "Removed student")}</p>
                       {studentSummary(entry.row.student) && (
                         <p className="text-xs text-gray-500">{studentSummary(entry.row.student)}</p>
                       )}
@@ -222,7 +222,7 @@ export default function PendingAssignmentsPage() {
                     <ul className="mt-1 space-y-1">
                       {entry.rows.map((r) => (
                         <li key={r.id}>
-                          <p className="text-sm font-medium">{r.student.fullName}</p>
+                          <p className="text-sm font-medium">{(r.student?.fullName ?? "Removed student")}</p>
                           {studentSummary(r.student) && <p className="text-xs text-gray-500">{studentSummary(r.student)}</p>}
                         </li>
                       ))}

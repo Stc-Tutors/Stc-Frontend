@@ -78,7 +78,7 @@ export default function ReassignTutorDialog({ enrollment, onOpenChange, onReassi
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>
-            Reassign {enrollment.student.fullName} — {enrollment.subject}
+            Reassign {(enrollment.student?.fullName ?? "Removed student")} — {enrollment.subject}
           </DialogTitle>
           <DialogDescription>
             Pick a different tutor already allocated to teach this subject. Blocked only by a real schedule clash -

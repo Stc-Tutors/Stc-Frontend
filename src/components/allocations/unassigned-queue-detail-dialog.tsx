@@ -127,7 +127,7 @@ export default function UnassignedQueueDetailDialog({ enrollment, onOpenChange, 
       <DialogContent className="max-w-xl">
         <DialogHeader>
           <DialogTitle>
-            {enrollment.student.fullName} - {enrollment.subject}
+            {(enrollment.student?.fullName ?? "Removed student")} - {enrollment.subject}
           </DialogTitle>
           <DialogDescription>
             <Badge variant="outline">{SUBJECT_ENROLLMENT_STATUS_LABELS[enrollment.status]}</Badge>

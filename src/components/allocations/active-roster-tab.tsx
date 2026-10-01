@@ -65,7 +65,7 @@ export default function ActiveRosterTab({ jumpToken = 0 }: { jumpToken?: number 
   }, [jumpToken]);
 
   const columns: DataTableColumn<SubjectEnrollment>[] = [
-    { header: "Student", cell: (row) => <span className="font-medium text-gray-900">{row.student.fullName}</span> },
+    { header: "Student", cell: (row) => <span className="font-medium text-gray-900">{(row.student?.fullName ?? "Removed student")}</span> },
     { header: "Subject/Course", cell: (row) => row.subject },
     { header: "Current tutor", cell: (row) => <span className="text-gray-500">{tutorLabel(row, tutorsById)}</span> },
     { header: "Status", cell: (row) => <Badge variant="outline">{SUBJECT_ENROLLMENT_STATUS_LABELS[row.status]}</Badge> },

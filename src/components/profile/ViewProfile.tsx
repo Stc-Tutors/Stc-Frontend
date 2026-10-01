@@ -313,7 +313,7 @@ export default function ViewProfile({ userId }: { userId: string }) {
               <p className="text-sm font-medium text-gray-700 mb-2">Reviews</p>
               <ul className="space-y-3">
                 {reviews.map((review) => {
-                  const reviewer = typeof review.student === "string" ? "A student" : review.student.fullName;
+                  const reviewer = typeof review.student === "string" ? "A student" : (review.student?.fullName ?? "Removed student");
                   return (
                     <li key={review.id} className="border rounded-md p-3">
                       <div className="flex items-center justify-between">

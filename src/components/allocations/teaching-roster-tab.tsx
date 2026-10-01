@@ -16,7 +16,7 @@ import { isSubjectAllocatedToTutor } from "@/lib/tutor-allocation";
 import DualPaneTransferList from "./dual-pane-transfer-list";
 
 function enrollmentToItem(e: SubjectEnrollment) {
-  return { id: e.id, primary: e.student.fullName, secondary: e.subject };
+  return { id: e.id, primary: (e.student?.fullName ?? "Removed student"), secondary: e.subject };
 }
 
 // Workflow A: pick a tutor -> the subjects they're allocated to teach -> which

@@ -211,7 +211,7 @@ export default function PaymentHistoryPage() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
                       <div>
-                        <h3 className="font-semibold text-lg">{payment.student.fullName}</h3>
+                        <h3 className="font-semibold text-lg">{(payment.student?.fullName ?? "Removed student")}</h3>
                         <div className="flex items-center space-x-2 mt-1">
                           <Badge className={getStatusColor(payment.status)}>{payment.status}</Badge>
                           <span className="text-sm text-gray-500">

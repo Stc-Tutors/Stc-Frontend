@@ -58,7 +58,7 @@ export default function ClassGroupMembersDialog({ group, onOpenChange }: Props) 
   }, [group, load]);
 
   const columns: DataTableColumn<SubjectEnrollment>[] = [
-    { header: "Student", cell: (row) => <span className="font-medium text-gray-900">{row.student.fullName}</span> },
+    { header: "Student", cell: (row) => <span className="font-medium text-gray-900">{(row.student?.fullName ?? "Removed student")}</span> },
     { header: "Subject", cell: (row) => row.subject },
     { header: "Tutor", cell: (row) => <span className="text-gray-500">{tutorLabel(row, tutorsById)}</span> },
     { header: "Status", cell: (row) => <Badge variant="outline">{SUBJECT_ENROLLMENT_STATUS_LABELS[row.status]}</Badge> },

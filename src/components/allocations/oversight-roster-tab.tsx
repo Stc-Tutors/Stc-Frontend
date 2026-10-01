@@ -9,11 +9,11 @@ import { User, UserRole } from "@/types/user";
 import DualPaneTransferList from "./dual-pane-transfer-list";
 
 function enrollmentToItem(e: SubjectEnrollment) {
-  return { id: e.id, primary: e.student.fullName, secondary: e.subject };
+  return { id: e.id, primary: (e.student?.fullName ?? "Removed student"), secondary: e.subject };
 }
 
 function allocationToItem(a: AdminOversightAllocation) {
-  return { id: a.subjectEnrollment.id, primary: a.subjectEnrollment.student.fullName, secondary: a.subjectEnrollment.subject };
+  return { id: a.subjectEnrollment.id, primary: (a.subjectEnrollment.student?.fullName ?? "Removed student"), secondary: a.subjectEnrollment.subject };
 }
 
 // Workflow B: pick an STC_Admin/TUTOR_ADMIN -> move unmanaged subject
