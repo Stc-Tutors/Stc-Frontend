@@ -12,8 +12,15 @@ export async function GetClassGroupsAction(params: {
   course?: string;
   ageRange?: string;
   // A group set up for a plain Flow Tree item (no Course) is found by that
-  // item's name.
+  // item's name - taxonomyNodeId (below) is the robust counterpart and takes
+  // priority server-side when both are sent.
   subject?: string;
+  // The exact flow-tree node the student picked (e.g. a tech-bootcamp
+  // Subject under an Age Range) - unambiguous, unlike subject/ageRange free
+  // text, and also matches a cohort left unscoped (no taxonomyNodeId of its
+  // own) so a single cohort can cover a whole service. See stcbe's
+  // ClassGroupRepository.findOpenForService.
+  taxonomyNodeId?: string;
 }): Promise<[ApiResponse<IClassGroup[]> | null, string | null]> {
   const query = new URLSearchParams(
     Object.entries(params).filter(([, v]) => !!v) as [string, string][]

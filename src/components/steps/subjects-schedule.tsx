@@ -364,9 +364,11 @@ export default function SubjectsSchedule({ onNext, errors, forcedUserType }: Ste
   );
   // What pricing needs to know about each subject (its tree item), so a price
   // set against one specific item is found - see EnrollmentContext.priceRowFor.
-  // A cohort-only service has no format to choose - it is a group class, so its
-  // price is looked up (and submitted) as one.
-  const effectiveClassFormat: ClassFormat | undefined = isCohortBased ? "group" : serviceData.classFormat;
+  // A cohort-having service used to force "group" here with no student
+  // choice - it now offers one-on-one/group/a-specific-cohort like any other
+  // service, so classFormat is always whatever the student actually picked
+  // (see the Class Format card below).
+  const effectiveClassFormat: ClassFormat | undefined = serviceData.classFormat;
   // For a plain tree pick: the ids of the items ABOVE it, nearest first - so a
   // price set on a higher item (e.g. a whole "Bundle Courses" group) covers
   // everything beneath it until a lower item has its own price.
@@ -480,7 +482,13 @@ export default function SubjectsSchedule({ onNext, errors, forcedUserType }: Ste
   // several subjects there's no single group to pick, so they're placed per
   // subject after payment instead.
   const groupLookupSubject = serviceData.selectedSubjects.length === 1 ? serviceData.selectedSubjects[0] : undefined;
-  const wantsClassGroup = isCohortBased || serviceData.classFormat === "group";
+  // The exact flow-tree node behind groupLookupSubject (when plain-picked,
+  // e.g. tech-bootcamp) - the robust match (see GetClassGroupsAction),
+  // unlike the free-text subject/ageRange fallback below it.
+  const groupLookupNodeId = serviceData.selectedSubjects.length === 1 ? subjectNodeIds[0] || undefined : undefined;
+  // Only ever reached by the student's own classFormat choice now -
+  // requires_cohort no longer forces this (see the Class Format card below).
+  const wantsClassGroup = serviceData.classFormat === "group";
   const classGroupLookupReady = !!(serviceData.courseId || groupLookupSubject);
   useEffect(() => {
     if (!wantsClassGroup || !serviceType || !classGroupLookupReady) {
@@ -491,7 +499,9 @@ export default function SubjectsSchedule({ onNext, errors, forcedUserType }: Ste
     setIsLoadingGroups(true);
     GetClassGroupsAction({
       serviceType,
-      ...(serviceData.courseId ? { course: serviceData.courseId } : { subject: groupLookupSubject }),
+      ...(serviceData.courseId
+        ? { course: serviceData.courseId }
+        : { subject: groupLookupSubject, taxonomyNodeId: groupLookupNodeId }),
       ageRange: serviceData.ageLevel || undefined,
     }).then(([res]) => {
       if (cancelled) return;
@@ -501,7 +511,15 @@ export default function SubjectsSchedule({ onNext, errors, forcedUserType }: Ste
     return () => {
       cancelled = true;
     };
-  }, [wantsClassGroup, classGroupLookupReady, serviceData.courseId, groupLookupSubject, serviceData.ageLevel, serviceType]);
+  }, [
+    wantsClassGroup,
+    classGroupLookupReady,
+    serviceData.courseId,
+    groupLookupSubject,
+    groupLookupNodeId,
+    serviceData.ageLevel,
+    serviceType,
+  ]);
 
   // A picked group that's no longer on offer (different subject/age range chosen)
   // must not linger.
@@ -597,15 +615,13 @@ export default function SubjectsSchedule({ onNext, errors, forcedUserType }: Ste
         stepErrors.language = "Please select a language";
       }
       // Any open group means the student picks one (they can pick any of a
-      // service's cohorts); a group-only service can't proceed without one.
-      if (wantsClassGroup && classGroupLookupReady && !isLoadingGroups) {
-        if (classGroups.length > 0 && !serviceData.classGroupId) {
-          stepErrors.classGroupId = isCohortBased ? "Please choose a cohort to join" : "Please choose a group to join";
-        } else if (classGroups.length === 0 && isCohortBased) {
-          stepErrors.classGroupId = "No open cohort is available for this yet - please check back soon";
-        }
-      } else if (isCohortBased && !serviceData.classGroupId) {
-        stepErrors.classGroupId = "Please choose a cohort to join";
+      // service's cohorts) once they've chosen Group Class. With none open
+      // yet, Group Class still proceeds fine as an ad-hoc pooled class -
+      // placed after payment (see the Class Format card's note) - same as
+      // any non-cohort service's Group Class; requires_cohort no longer
+      // blocks on a specific cohort existing.
+      if (wantsClassGroup && classGroupLookupReady && !isLoadingGroups && classGroups.length > 0 && !serviceData.classGroupId) {
+        stepErrors.classGroupId = isCohortBased ? "Please choose a cohort to join" : "Please choose a group to join";
       }
 
       // Group/cohort placement is confirmed after enrollment, not picked
@@ -615,9 +631,11 @@ export default function SubjectsSchedule({ onNext, errors, forcedUserType }: Ste
       // Schedule section below never even asked them to (or, before that was
       // fixed, showed the picker but nothing downstream used what they
       // entered) - see the Schedule section's classFormat === "group" branch.
+      // Applies the same way whether or not the service has cohorts - a
+      // one-on-one pick on a requires_cohort service still needs real
+      // days/times, same as any other one-on-one.
       if (
         !isPathC &&
-        !isCohortBased &&
         !serviceData.flexibleSchedule &&
         // A group class normally submits no days/times (placement is confirmed later) -
         // unless something is priced per hour, where they give the hours.
@@ -645,9 +663,10 @@ export default function SubjectsSchedule({ onNext, errors, forcedUserType }: Ste
         if (unpriced.length > 0) {
           const formatNote = effectiveClassFormat ? ` (${effectiveClassFormat === "group" ? "group class" : "one-on-one"})` : "";
           stepErrors.subjects = `${NO_PRICING_PREFIX} ${unpriced.join(", ")}${formatNote} - please contact us below, or choose a different option.`;
-        } else if (serviceData.flexibleSchedule || isCohortBased) {
-          // No days/times are submitted for these, so a price per hour has nothing
-          // to multiply - the total would be 0. Only a flat price works here.
+        } else if (serviceData.flexibleSchedule || effectiveClassFormat === "group") {
+          // No days/times are submitted for a group class (cohort or ad-hoc)
+          // or a flexible one-on-one, so a price per hour has nothing to
+          // multiply - the total would be 0. Only a flat price works here.
           const hourly = getHourlyPricedSubjects(serviceData.selectedSubjects, pricingDetails);
           if (hourly.length > 0) {
             stepErrors.subjects = `${hourly.join(", ")} ${hourly.length === 1 ? "is" : "are"} priced per hour, so ${
@@ -657,15 +676,13 @@ export default function SubjectsSchedule({ onNext, errors, forcedUserType }: Ste
         }
       }
 
-      if (!isCohortBased) {
-        if (!serviceData.classFormat) {
-          stepErrors.classFormat = "Please select One-on-One or Group Class";
-        } else if (serviceData.classFormat === "one-on-one") {
-          if (!serviceData.startDate) {
-            stepErrors.startDate = "Please select a start date";
-          } else if (new Date(serviceData.startDate).getTime() < Date.now() + 24 * 60 * 60 * 1000) {
-            stepErrors.startDate = "Start date must be at least 24 hours from now";
-          }
+      if (!serviceData.classFormat) {
+        stepErrors.classFormat = "Please select One-on-One or Group Class";
+      } else if (serviceData.classFormat === "one-on-one") {
+        if (!serviceData.startDate) {
+          stepErrors.startDate = "Please select a start date";
+        } else if (new Date(serviceData.startDate).getTime() < Date.now() + 24 * 60 * 60 * 1000) {
+          stepErrors.startDate = "Start date must be at least 24 hours from now";
         }
       }
 
@@ -710,7 +727,7 @@ export default function SubjectsSchedule({ onNext, errors, forcedUserType }: Ste
         // validateScheduleDaysRequired on the backend, which would otherwise
         // reject each row's empty `days`).
         const submittedSchedule =
-          !isPathC && (serviceData.flexibleSchedule || (serviceData.classFormat === "group" && !hasHourlySubject) || isCohortBased)
+          !isPathC && (serviceData.flexibleSchedule || (serviceData.classFormat === "group" && !hasHourlySubject))
             ? []
             : schedule;
         updateSchedule(submittedSchedule);
@@ -1398,14 +1415,17 @@ export default function SubjectsSchedule({ onNext, errors, forcedUserType }: Ste
         </Card>
       )}
 
-      {/* Task 5 - One-on-One vs Group Class, whenever this service isn't
-          cohort-based. */}
-      {!isCohortBased && serviceData.selectedSubjects.length > 0 && (
+      {/* Task 5 - One-on-One vs Group Class. requires_cohort used to hide
+          this entirely and force "group" with a cohort pick as the only
+          option - a cohort is now just one way INTO a group class (the
+          "Choose a Cohort" card below), offered alongside an ad-hoc group
+          class and one-on-one, same as any other service. */}
+      {serviceData.selectedSubjects.length > 0 && (
         <Card>
           <CardHeader><CardTitle>Class Format</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label>One-on-One or Group Class? *</Label>
+              <Label>{isCohortBased ? "One-on-One, Group Class, or Join a Cohort? *" : "One-on-One or Group Class? *"}</Label>
               <Select
                 value={serviceData.classFormat ?? ""}
                 onValueChange={(value) =>
@@ -1423,7 +1443,7 @@ export default function SubjectsSchedule({ onNext, errors, forcedUserType }: Ste
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="one-on-one">One-on-One</SelectItem>
-                  <SelectItem value="group">Group Class</SelectItem>
+                  <SelectItem value="group">{isCohortBased ? "Group Class / Join a Cohort" : "Group Class"}</SelectItem>
                 </SelectContent>
               </Select>
               {errors.classFormat && <p className="text-red-600 text-sm">{errors.classFormat}</p>}
@@ -1476,19 +1496,17 @@ export default function SubjectsSchedule({ onNext, errors, forcedUserType }: Ste
         </Card>
       )}
 
-      {/* A cohort is a group class. Once the student wants a group (they chose
-          Group Class, or the service is group-only) they pick any one of the open
-          cohorts for what they chose - each with its own start date and seats. With
-          none set up yet, a Group Class just places them in the next available
-          group after payment (the note in the Class Format card above). */}
-      {wantsClassGroup && classGroupLookupReady && (isLoadingGroups || classGroups.length > 0 || isCohortBased) && (
+      {/* A cohort is a group class. Once the student chose Group Class, they
+          pick any one of the open cohorts for what they chose - each with its
+          own start date and seats. With none set up yet, this card doesn't
+          render at all - a Group Class just places them in the next
+          available group after payment instead (the note in the Class
+          Format card above already says so). */}
+      {wantsClassGroup && classGroupLookupReady && (isLoadingGroups || classGroups.length > 0) && (
         <Card>
           <CardHeader><CardTitle>{isCohortBased ? "Choose a Cohort" : "Choose a Group"}</CardTitle></CardHeader>
           <CardContent className="space-y-3">
             {isLoadingGroups && <p className="text-sm text-gray-500">Loading available groups...</p>}
-            {!isLoadingGroups && classGroups.length === 0 && (
-              <p className="text-sm text-gray-500">No open cohort yet for this - check back soon.</p>
-            )}
             {classGroups.map((group) => {
               const seatsLeft = Math.max(group.capacity - group.confirmedCount, 0);
               return (
