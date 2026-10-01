@@ -130,17 +130,18 @@ export default function MarketplacePage() {
     setShowPaymentConsent(false);
     setIsSubmitting(true);
     try {
-      const [enrollRes, enrollError] = await EnrollInCourseAction(selectedCourse.id, selectedStudent.id);
-      if (enrollError || !enrollRes?.data) {
-        ToastError(enrollError || "Failed to add this course");
-        return;
-      }
-
+      // A priced course is paid for FIRST: the server adds the student to the course the moment the payment is verified (and
+      // refuses a free enrolment into a priced course), so there is no separate enroll call before checkout any more.
       if (displayAmount > 0 && bypassCode.trim()) {
         const [, redeemError] = await RedeemPaymentBypassTokenAction(selectedStudent.id, bypassCode.trim());
         if (redeemError) {
           ToastError(redeemError);
           router.push(paymentsPath);
+          return;
+        }
+        const [bypassEnrollRes, bypassEnrollError] = await EnrollInCourseAction(selectedCourse.id, selectedStudent.id);
+        if (bypassEnrollError || !bypassEnrollRes?.data) {
+          ToastError(bypassEnrollError || "Failed to add this course");
           return;
         }
         ToastSuccess(`${selectedCourse.title} added - payment waived with your bypass code`);
@@ -161,7 +162,7 @@ export default function MarketplacePage() {
         });
 
         if (payError || !payRes?.data) {
-          ToastError(payError || "Course added, but payment couldn't be started. Complete it from Payments.");
+          ToastError(payError || "We couldn't start the payment. Please try again.");
           router.push(paymentsPath);
           return;
         }
@@ -203,6 +204,11 @@ export default function MarketplacePage() {
           },
         });
       } else {
+        const [freeEnrollRes, freeEnrollError] = await EnrollInCourseAction(selectedCourse.id, selectedStudent.id);
+        if (freeEnrollError || !freeEnrollRes?.data) {
+          ToastError(freeEnrollError || "Failed to add this course");
+          return;
+        }
         ToastSuccess(`${selectedCourse.title} added to ${selectedStudent.fullName}'s enrollments`);
         setSelectedCourseId("");
         setQuote(null);
