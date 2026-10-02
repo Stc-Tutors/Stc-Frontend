@@ -158,7 +158,13 @@ export default function SubjectsSchedule({ onNext, errors, forcedUserType }: Ste
   // `curriculum` field, kept populated for Path B (from the Exam name) purely
   // for pricing-lookup parity even though the DTO's canonical Path B fields
   // are examPreparationDetails.{educationLevel,exam}/examCategory.
+  // The tree items above the subjects, nearest first (Class/Year, Grade Level,
+  // Curriculum, Country) - a price set on any of them covers the subjects
+  // beneath it, so pricing needs these ids (see EnrollmentContext.priceRowFor).
+  const [curriculumAncestorIds, setCurriculumAncestorIds] = useState<string[]>([]);
   const handleCurriculumPath = (path: CurriculumPath) => {
+    const ids = [path.klass, path.level, path.curriculum, path.country].filter((n): n is CurriculumNode => !!n).map((n) => n.id);
+    setCurriculumAncestorIds((prev) => (prev.join(",") === ids.join(",") ? prev : ids));
     setServiceData((prev) => {
       if (isPathB) {
         return {
@@ -374,7 +380,9 @@ export default function SubjectsSchedule({ onNext, errors, forcedUserType }: Ste
   // everything beneath it until a lower item has its own price.
   const pickAncestorIds = nodeBacked
     ? (lastStageIsPick ? [...stageSelections] : stageSelections.slice(0, Math.max(deepestIndex, 0))).reverse()
-    : [];
+    : isPathA || isPathB
+      ? curriculumAncestorIds
+      : [];
   const subjectAncestorNodeIds = serviceData.selectedSubjects.map(() => pickAncestorIds);
   const pricingDetails = {
     ...serviceData,
