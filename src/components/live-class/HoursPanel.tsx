@@ -7,6 +7,8 @@ import { unwrap, useCachedQuery } from "@/lib/client-cache";
 import { formatDate } from "@/lib/datetime";
 import { formatMoney } from "@/lib/money";
 import { formatMinutes, percent } from "@/lib/live-class-format";
+import ExtendWeeksDialog from "@/components/live-class/ExtendWeeksDialog";
+import { useUser } from "@/contexts/user-context";
 import { GetMyHoursAction } from "@/server/hours";
 import type { HoursAccountSummary, HoursLessonLine } from "@/types/live-class";
 
@@ -21,6 +23,9 @@ function AccountCard({ account }: { account: HoursAccountSummary }) {
   const usedPct = percent(usedMinutes, purchasedMinutes);
   const pendingPct = Math.min(100 - usedPct, percent(pendingMinutes, purchasedMinutes));
   const hasMoney = account.effectiveRatePerHour != null && account.currency;
+  // A child's own login can't spend money - only a parent (or a self-registered student) buys more weeks.
+  const { user } = useUser();
+  const canBuyWeeks = !(user?.role === "STUDENT" && !!user.studentId) && !!account.subject;
 
   return (
     <Card>
@@ -83,6 +88,12 @@ function AccountCard({ account }: { account: HoursAccountSummary }) {
             <strong>{formatMoney(account.valueUsed, account.currency)}</strong> of your prepaid classes and{" "}
             <strong>{formatMoney(account.valueRemaining, account.currency)}</strong> is still available.
           </p>
+        )}
+
+        {canBuyWeeks && (
+          <div className="flex justify-end">
+            <ExtendWeeksDialog studentId={account.studentId} courseId={account.courseId} subject={account.subject} />
+          </div>
         )}
 
         {account.lessons.length > 0 && (

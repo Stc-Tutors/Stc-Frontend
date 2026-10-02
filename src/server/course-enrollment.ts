@@ -111,3 +111,51 @@ export async function DropCourseAction(id: string): Promise<[ApiResponse<null> |
   const resData = res ? ((await res.json()) as ApiResponse<null>) : null;
   return [resData, error];
 }
+
+export interface ExtensionQuote {
+  weeks: number;
+  subject: string;
+  amount: number;
+  currency: string;
+  lessonsPerWeek: number;
+  firstNewLesson?: string;
+}
+
+export interface ExtensionResult {
+  applied: boolean;
+  message: string;
+  created?: number;
+  payment?: { authorization_url: string; access_code: string; reference: string; fullyCoveredByWallet?: boolean };
+}
+
+// What N more weeks of an existing one-on-one service would cost.
+export async function GetExtensionQuoteAction(
+  studentId: string,
+  courseId: string,
+  weeks: number
+): Promise<[ApiResponse<ExtensionQuote> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: `/course-enrollments/extension-quote?studentId=${encodeURIComponent(studentId)}&courseId=${encodeURIComponent(courseId)}&weeks=${weeks}`,
+    request: { method: "GET", headers: { "Content-Type": "application/json" } },
+  });
+  const resData = res ? ((await res.json()) as ApiResponse<ExtensionQuote>) : null;
+  return [resData, error];
+}
+
+// Starts payment for N more weeks - the classes are added once the payment is verified.
+export async function ExtendScheduleAction(
+  studentId: string,
+  courseId: string,
+  weeks: number
+): Promise<[ApiResponse<ExtensionResult> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: "/course-enrollments/extend",
+    request: {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ studentId, courseId, weeks }),
+    },
+  });
+  const resData = res ? ((await res.json()) as ApiResponse<ExtensionResult>) : null;
+  return [resData, error];
+}
