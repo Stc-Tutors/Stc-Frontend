@@ -68,7 +68,7 @@ const sidebarLinks: {
   icon: typeof Home;
   href: string;
   badge?: boolean;
-  permission?: AdminPermission;
+  permission?: AdminPermission | AdminPermission[];
   // A single permission, or several treated as OR (any one is enough) - e.g.
   // My Tutors mirrors HodAuthorizationService.getVisibleTutorIds, which
   // resolves off either MANAGE_COURSES or VIEW_REPORTS courses.
@@ -80,8 +80,8 @@ const sidebarLinks: {
   adminOnly?: boolean;
 }[] = [
   { label: "Dashboard", icon: Home, href: "/lms-home/admin/dashboard" },
-  { label: "Students", icon: Users, href: "/lms-home/admin/students", permission: AdminPermission.MANAGE_STUDENTS },
-  { label: "Parents", icon: Baby, href: "/lms-home/admin/parents", permission: AdminPermission.MANAGE_STUDENTS },
+  { label: "Students", icon: Users, href: "/lms-home/admin/students", permission: [AdminPermission.MANAGE_STUDENTS, AdminPermission.VIEW_ENROLLMENTS] },
+  { label: "Parents", icon: Baby, href: "/lms-home/admin/parents", permission: [AdminPermission.MANAGE_STUDENTS, AdminPermission.VIEW_ENROLLMENTS] },
   { label: "Users", icon: Users, href: "/lms-home/admin/users", permission: AdminPermission.MANAGE_USERS },
   {
     label: "Messaging Permissions",
@@ -155,7 +155,7 @@ const sidebarLinks: {
     href: "/lms-home/admin/custom-form-fields",
     permission: AdminPermission.MANAGE_TAXONOMY,
   },
-  { label: "Enrollments", icon: ClipboardList, href: "/lms-home/admin/enrollments", permission: AdminPermission.MANAGE_STUDENTS },
+  { label: "Enrollments", icon: ClipboardList, href: "/lms-home/admin/enrollments", permission: [AdminPermission.MANAGE_STUDENTS, AdminPermission.VIEW_ENROLLMENTS] },
   { label: "Sessions", icon: CalendarClock, href: "/lms-home/admin/sessions", permission: AdminPermission.VIEW_ALL_SCHEDULES },
   {
     label: "Class Feedback",
@@ -277,7 +277,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (link.hodOnly) return !!hodAssignment;
     if (link.adminOnly && !(user && isAdminOrAbove(user.role))) return false;
     const grants: boolean[] = [];
-    if (link.permission) grants.push(hasPermission(link.permission));
+    if (link.permission) grants.push((Array.isArray(link.permission) ? link.permission : [link.permission]).some(hasPermission));
     if (link.hodPermission) {
       const hodPerms = Array.isArray(link.hodPermission) ? link.hodPermission : [link.hodPermission];
       grants.push(hodPerms.some(hasHodPermission));

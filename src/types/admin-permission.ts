@@ -36,6 +36,8 @@ export enum AdminPermission {
   // they go live - distinct from REVIEW_TUTOR_APPLICATIONS (the one-time
   // signup wizard).
   APPROVE_TUTOR_PROFILE_EDITS = "APPROVE_TUTOR_PROFILE_EDITS",
+  // Read-only view of every enrolled parent/student and their enrollment status (not narrowed to the admin's own list).
+  VIEW_ENROLLMENTS = "VIEW_ENROLLMENTS",
 }
 
 // The GET /users/me/permissions response shape: '*' means unrestricted

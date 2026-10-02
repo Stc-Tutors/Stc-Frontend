@@ -17,6 +17,7 @@ import { GetNotificationsAction } from "@/server/notification";
 import { AcademicSummary, Student, studentAvatarUrl, studentLoginId } from "@/types/student";
 import ScheduleReviewPanel from "@/components/schedule-review-panel";
 import ScheduleEditor from "@/components/schedule-editor";
+import AllocationStatusCard from "@/components/allocation-status-card";
 
 export default function AdminStudentDetailPage() {
   const { id } = useParams();
@@ -106,9 +107,10 @@ export default function AdminStudentDetailPage() {
         )}
       </div>
 
-      <div className="mb-6">
+      <div className="mb-6 space-y-4">
+        <AllocationStatusCard studentId={student.id} onChanged={load} />
         <ScheduleReviewPanel student={student} onChanged={load} />
-      <ScheduleEditor student={student} onChanged={load} />
+        <ScheduleEditor student={student} onChanged={load} />
       </div>
 
       <Tabs defaultValue="personal">
