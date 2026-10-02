@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Send, Users } from "lucide-react";
+import { ArrowLeft, Send, Users } from "lucide-react";
 import { useUser } from "@/contexts/user-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -276,9 +276,10 @@ export default function MessagesPanel({ initialConversationId }: { initialConver
   };
 
   return (
-    <div className="flex h-[calc(100vh-9rem)] bg-white shadow rounded-lg overflow-hidden">
+    <div className="flex h-[calc(100dvh-8rem)] sm:h-[calc(100dvh-9rem)] bg-white shadow rounded-lg overflow-hidden">
       {/* Contact list */}
-      <div className="w-full sm:w-80 border-r flex flex-col shrink-0">
+      {/* On a phone the list and the thread cannot sit side by side: show one at a time (list first, thread once someone is picked). */}
+      <div className={`${selectedContact ? "hidden sm:flex" : "flex"} w-full sm:w-80 border-r flex-col shrink-0`}>
         <div className="flex items-center gap-2 p-4 border-b">
           <Users className="size-5 text-blue-600" />
           <h2 className="font-semibold text-gray-900">Messages</h2>
@@ -330,14 +331,29 @@ export default function MessagesPanel({ initialConversationId }: { initialConver
       </div>
 
       {/* Thread */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className={`${selectedContact ? "flex" : "hidden sm:flex"} flex-1 flex-col min-w-0`}>
         {!selectedContact ? (
           <div className="flex-1 flex items-center justify-center text-gray-400 text-sm">
             Select someone to start chatting
           </div>
         ) : (
           <>
-            <div className="flex items-center gap-3 p-4 border-b">
+            <div className="flex items-center gap-3 p-3 sm:p-4 border-b">
+              <button
+                type="button"
+                onClick={() => {
+                  openRequestRef.current++;
+                  setSelectedContactId(null);
+                  setConversationId(null);
+                  setMessages([]);
+                  setError(null);
+                  setIsLoadingThread(false);
+                }}
+                className="sm:hidden -ml-1 flex size-10 shrink-0 items-center justify-center rounded-full text-gray-600 hover:bg-gray-100"
+                aria-label="Back to conversations"
+              >
+                <ArrowLeft className="size-5" />
+              </button>
               <div className="relative shrink-0">
                 <Avatar className="size-9">
                   <AvatarImage src={selectedContact.avatarUrl} alt={selectedContact.firstName} />
@@ -348,8 +364,8 @@ export default function MessagesPanel({ initialConversationId }: { initialConver
                 </Avatar>
                 <PresenceDot online={selectedContact.online} />
               </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 leading-tight">
+              <div className="min-w-0">
+                <h3 className="font-semibold text-gray-900 leading-tight truncate">
                   {selectedContact.firstName} {selectedContact.lastName}
                 </h3>
                 <p className="text-xs text-gray-400">
@@ -363,19 +379,19 @@ export default function MessagesPanel({ initialConversationId }: { initialConver
             {isLoadingThread ? (
               <div className="flex-1 flex items-center justify-center text-sm text-gray-500">Loading...</div>
             ) : (
-              <div className="flex-1 overflow-y-auto p-4 space-y-1.5">
+              <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-1.5">
                 {messages.length === 0 ? (
                   <p className="text-sm text-gray-400">No messages yet - say hello.</p>
                 ) : (
                   messages.map((m) => {
                     const isMine = m.sender === user?.id;
                     return (
-                      <div key={m.id} className={`max-w-md ${isMine ? "ml-auto" : ""}`}>
+                      <div key={m.id} className={`max-w-[85%] sm:max-w-md ${isMine ? "ml-auto" : ""}`}>
                         <p className={`text-[11px] font-medium text-gray-500 mb-0.5 ${isMine ? "text-right" : ""}`}>
                           {senderLabel(m.sender)}
                         </p>
                         <div
-                          className={`p-3 rounded-2xl text-sm ${
+                          className={`p-3 rounded-2xl text-sm break-words [overflow-wrap:anywhere] ${
                             isMine ? "bg-blue-600 text-white rounded-br-sm" : "bg-gray-100 text-gray-800 rounded-bl-sm"
                           }`}
                         >
@@ -401,7 +417,7 @@ export default function MessagesPanel({ initialConversationId }: { initialConver
               </div>
             )}
 
-            <div className="flex gap-2 p-4 border-t">
+            <div className="flex gap-2 p-3 sm:p-4 border-t pb-[max(0.75rem,env(safe-area-inset-bottom))]">
               <input
                 value={body}
                 onChange={(e) => setBody(e.target.value)}

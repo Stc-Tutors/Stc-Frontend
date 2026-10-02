@@ -190,7 +190,7 @@ export default function OnboardingTour() {
         <div className="fixed inset-0 backdrop-blur-sm bg-black/60 transition-all duration-300" />
       )}
 
-      <Card className="fixed shadow-2xl py-5 gap-3" style={{ width: CARD_WIDTH, top: pos.top, left: pos.left }}>
+      <Card className="fixed shadow-2xl py-5 gap-3 max-w-[calc(100vw-1rem)]" style={{ width: CARD_WIDTH, top: pos.top, left: pos.left }}>
         <CardHeader className="px-5">
           <CardTitle className="text-base">{step.title}</CardTitle>
         </CardHeader>
@@ -230,7 +230,7 @@ function computeCardPosition(rect: DOMRect | null, placement: "top" | "bottom" |
   if (!rect) {
     return {
       top: Math.max(16, viewportH / 2 - estimatedHeight / 2),
-      left: Math.max(16, viewportW / 2 - CARD_WIDTH / 2),
+      left: Math.max(8, viewportW / 2 - Math.min(CARD_WIDTH, viewportW - 16) / 2),
     };
   }
 

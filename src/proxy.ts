@@ -80,6 +80,7 @@ const publicPaths = [
   // ?token=...) and anyone opening a Special Course's shared registration
   // link. Without these the proxy bounced them to the login page.
   "/reference",
+  "/.well-known",
   "/courses/register",
   // Campaign landing pages (/go/<slug>) - a marketing link meant for
   // logged-out visitors. Without this the proxy bounced them to login.

@@ -7,7 +7,7 @@ import MessagesPanel from "@/components/messaging/MessagesPanel";
 
 export default function MessagesPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-gray-50 px-6 py-4" />}>
+    <Suspense fallback={<div className="min-h-screen bg-gray-50 px-3 sm:px-6 py-4" />}>
       <MessagesPageInner />
     </Suspense>
   );
@@ -18,7 +18,7 @@ function MessagesPageInner() {
   const conversationId = useSearchParams().get("conversationId");
 
   return (
-    <div className="min-h-screen bg-gray-50 px-6 py-4">
+    <div className="min-h-screen bg-gray-50 px-3 sm:px-6 py-4">
       <button
         onClick={() => router.push("/lms-home/student/dashboard")}
         className="flex items-center text-gray-700 mb-4 hover:text-blue-500"
