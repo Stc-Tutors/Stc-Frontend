@@ -127,6 +127,7 @@ export interface IClassGroup {
   confirmedCount: number;
   waitlistCount: number;
   startDate?: string;
+  schedule?: { days: string[]; time: string; durationMinutes: number; timezone?: string };
   status: ClassGroupStatus;
 }
 
@@ -282,12 +283,14 @@ export interface CreateClassGroupDto {
   label: string;
   capacity: number;
   startDate?: string;
+  schedule?: { days: string[]; time: string; durationMinutes: number } | null;
 }
 
 export interface UpdateClassGroupDto {
   label?: string;
   capacity?: number;
   startDate?: string;
+  schedule?: { days: string[]; time: string; durationMinutes: number } | null;
 }
 
 export const CUSTOM_FORM_FIELD_TYPE_LABELS: Record<CustomFormFieldType, string> = {

@@ -8,6 +8,8 @@ import { GetCoursesAction } from "@/server/course";
 import { CLASS_GROUP_STATUS_LABELS, ClassGroupStatus, IClassGroup, IService } from "@/types/service-catalog";
 import { Course } from "@/types/course";
 import ClassGroupMembersDialog from "@/components/class-group-members-dialog";
+import { GroupScheduleFields, emptyGroupScheduleForm, groupScheduleFromForm, type GroupScheduleForm } from "@/components/group-schedule-fields";
+import { describeGroupSchedule } from "@/lib/group-schedule";
 
 interface GroupForm {
   serviceType: string;
@@ -17,6 +19,7 @@ interface GroupForm {
   label: string;
   capacity: string;
   startDate: string;
+  schedule: GroupScheduleForm;
 }
 
 const emptyForm = (defaultServiceType: string): GroupForm => ({
@@ -27,6 +30,7 @@ const emptyForm = (defaultServiceType: string): GroupForm => ({
   label: "",
   capacity: "",
   startDate: "",
+  schedule: emptyGroupScheduleForm(),
 });
 
 function statusBadgeClass(status: ClassGroupStatus): string {
@@ -121,6 +125,9 @@ export function ClassGroupManager({ serviceType, hideHeading }: { serviceType?: 
       label: group.label,
       capacity: String(group.capacity),
       startDate: group.startDate ? new Date(group.startDate).toISOString().slice(0, 10) : "",
+      schedule: group.schedule
+        ? { days: group.schedule.days, time: group.schedule.time, duration: String(group.schedule.durationMinutes) }
+        : emptyGroupScheduleForm(),
     });
   };
 
@@ -145,6 +152,7 @@ export function ClassGroupManager({ serviceType, hideHeading }: { serviceType?: 
           label: form.label.trim(),
           capacity,
           startDate: form.startDate || undefined,
+          schedule: groupScheduleFromForm(form.schedule),
         })
       : await CreateClassGroupAction({
           serviceType: form.serviceType.trim(),
@@ -154,6 +162,7 @@ export function ClassGroupManager({ serviceType, hideHeading }: { serviceType?: 
           label: form.label.trim(),
           capacity,
           startDate: form.startDate || undefined,
+          schedule: groupScheduleFromForm(form.schedule),
         });
     setIsSaving(false);
     if (error) {
@@ -286,6 +295,7 @@ export function ClassGroupManager({ serviceType, hideHeading }: { serviceType?: 
               />
             </div>
           </div>
+          <GroupScheduleFields value={form.schedule} onChange={(schedule) => setForm((p) => ({ ...p, schedule }))} />
           <div className="flex gap-2">
             <button
               onClick={handleSave}
@@ -317,6 +327,7 @@ export function ClassGroupManager({ serviceType, hideHeading }: { serviceType?: 
                 <th className="p-3">Fill</th>
                 <th className="p-3">Waitlist</th>
                 <th className="p-3">Start date</th>
+                <th className="p-3">Meets</th>
                 <th className="p-3">Status</th>
                 <th className="p-3"></th>
               </tr>
@@ -332,6 +343,7 @@ export function ClassGroupManager({ serviceType, hideHeading }: { serviceType?: 
                   </td>
                   <td className="p-3">{g.waitlistCount}</td>
                   <td className="p-3">{g.startDate ? formatDate(g.startDate) : "—"}</td>
+                  <td className="p-3">{describeGroupSchedule(g.schedule) ?? "—"}</td>
                   <td className="p-3">
                     <span className={`text-xs rounded-full px-2 py-0.5 ${statusBadgeClass(g.status)}`}>{CLASS_GROUP_STATUS_LABELS[g.status]}</span>
                   </td>

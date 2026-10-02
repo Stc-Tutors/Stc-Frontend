@@ -26,6 +26,7 @@ import { GetServicesAction } from "@/server/service-catalog";
 import { GetTaxonomyOptionsAction } from "@/server/taxonomy-option";
 import { GetCurriculumChildrenAction } from "@/server/curriculum";
 import { GetClassGroupsAction } from "@/server/class-group";
+import { describeGroupSchedule } from "@/lib/group-schedule";
 import { GetCoursesAction } from "@/server/course";
 import { Course } from "@/types/course";
 import { OneOnOneDatePicker } from "@/components/ui/one-on-one-date-picker";
@@ -1535,6 +1536,8 @@ export default function SubjectsSchedule({ onNext, errors, forcedUserType }: Ste
                       <p className="font-medium">{group.label}</p>
                       <p className="text-xs text-gray-500">
                         {group.startDate ? `Starts ${formatDate(group.startDate)}` : "Start date to be confirmed"}
+                        {" · "}
+                        {describeGroupSchedule(group.schedule) ?? "Class day and time to be confirmed"}
                         {" · "}
                         {group.status === ClassGroupStatus.FULL ? "Full - you'll join the waitlist" : `${seatsLeft} seat(s) left`}
                       </p>
