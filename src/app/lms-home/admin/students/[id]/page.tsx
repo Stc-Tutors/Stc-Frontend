@@ -16,6 +16,7 @@ import { GetAcademicSummaryAction, ReactivateStudentAction, UpdateStudentAdminPr
 import { GetNotificationsAction } from "@/server/notification";
 import { AcademicSummary, Student, studentAvatarUrl, studentLoginId } from "@/types/student";
 import ScheduleReviewPanel from "@/components/schedule-review-panel";
+import ScheduleEditor from "@/components/schedule-editor";
 
 export default function AdminStudentDetailPage() {
   const { id } = useParams();
@@ -107,6 +108,7 @@ export default function AdminStudentDetailPage() {
 
       <div className="mb-6">
         <ScheduleReviewPanel student={student} onChanged={load} />
+      <ScheduleEditor student={student} onChanged={load} />
       </div>
 
       <Tabs defaultValue="personal">

@@ -52,3 +52,24 @@ export async function RejectScheduleProposalAction(id: string, reason?: string):
   const resData = res ? ((await res.json()) as ApiResponse<ScheduleProposal>) : null;
   return [resData, error];
 }
+
+// Proposals still waiting on this family - so one can be found without the notification link.
+export async function GetMyScheduleProposalsAction(): Promise<[ApiResponse<ScheduleProposal[]> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: "/schedule-proposals/mine",
+    request: { method: "GET", headers: { "Content-Type": "application/json" } },
+  });
+
+  const resData = res ? ((await res.json()) as ApiResponse<ScheduleProposal[]>) : null;
+  return [resData, error];
+}
+
+// Proposals for one student that are still waiting on the family.
+export async function GetPendingScheduleProposalsAction(studentId: string): Promise<[ApiResponse<ScheduleProposal[]> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: `/schedule-proposals?status=PENDING&student=${encodeURIComponent(studentId)}`,
+    request: { method: "GET", headers: { "Content-Type": "application/json" } },
+  });
+  const resData = res ? ((await res.json()) as ApiResponse<ScheduleProposal[]>) : null;
+  return [resData, error];
+}

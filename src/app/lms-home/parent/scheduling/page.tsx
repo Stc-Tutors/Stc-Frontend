@@ -31,6 +31,7 @@ import { ChildSwitcherDropdown } from "@/components/child-switcher-dropdown";
 import { useSelectedStudent } from "@/contexts/selected-student-context";
 import { ReportTutorNoShowAction, GetMyTutorNoShowReportsAction } from "@/server/penalty";
 import { DEFAULT_NO_SHOW_GRACE_PERIOD_MINUTES } from "@/types/penalty";
+import ScheduleProposalsBanner from "@/components/schedule-proposals-banner";
 import GroupScheduleConfirmationBanner from "@/components/group-schedule-confirmation-banner";
 
 interface Row {
@@ -231,6 +232,8 @@ export default function ParentSchedulePage() {
           </p>
         </div>
       )}
+
+      <ScheduleProposalsBanner area="parent" />
 
       <GroupScheduleConfirmationBanner />
 
