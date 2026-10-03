@@ -1687,7 +1687,7 @@ export default function SubjectsSchedule({ onNext, errors, forcedUserType }: Ste
                     ₦{totalCost.toLocaleString()}
                     {isPathC || !hasHourlySubject ? "" : ` / ${serviceData.billingWeeks} week${serviceData.billingWeeks === 1 ? "" : "s"}`}
                   </p>
-                  <LocalPriceNote amountNgn={totalCost} className="text-sm text-gray-700 mb-1" />
+                  <LocalPriceNote amount={totalCost} country={enrollmentData.childInfo?.countryOfResidence} className="text-sm text-gray-700 mb-1" />
                   <p className="text-sm text-gray-600">
                     {isPathC
                       ? hasTree

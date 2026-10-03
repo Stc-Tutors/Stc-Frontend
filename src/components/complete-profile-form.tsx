@@ -18,6 +18,7 @@ import { ITaxonomyOption, TaxonomyOptionKind } from "@/types/service-catalog";
 import { IServiceDetails, ISchedule } from "@/types/student";
 import { UserRole } from "@/types/user";
 import { ToastError, ToastSuccess } from "@/components/ui/custom/toast";
+import { rememberResidence } from "@/lib/display-currency";
 
 export default function CompleteProfileForm({ studentId, dashboardPath }: { studentId: string; dashboardPath: string }) {
   const router = useRouter();
@@ -65,6 +66,7 @@ export default function CompleteProfileForm({ studentId, dashboardPath }: { stud
       setDateOfBirth(s.dateOfBirth ? new Date(s.dateOfBirth).toISOString().slice(0, 10) : "");
       setPhone(s.phone || "");
       setCountryOfResidence(s.countryOfResidence || "");
+      if (s.countryOfResidence) rememberResidence(s.countryOfResidence);
       setPrimaryLanguage(s.primaryLanguage || "English");
       setParentName(s.parentName || "");
       setParentPhone(s.parentPhone || "");

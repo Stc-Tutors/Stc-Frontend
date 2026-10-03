@@ -628,7 +628,7 @@ export default function EnrollmentReview({ onNext, errors }: StepProps) {
             </div>
             <div className="text-right">
               <p className="text-2xl font-bold text-green-800">{formatMoney(totalCost)}</p>
-              <LocalPriceNote amountNgn={totalCost} className="text-sm text-green-700 max-w-xs ml-auto" />
+              <LocalPriceNote amount={totalCost} country={childInfo?.countryOfResidence} className="text-sm text-green-700 max-w-xs ml-auto" />
               {showWeeklyBreakdown && (
                 <p className="text-sm text-green-600">
                   for {billingWeeks} week{billingWeeks === 1 ? "" : "s"}

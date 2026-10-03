@@ -10,7 +10,8 @@ import { invalidateTags } from "@/lib/client-cache";
 import { formatDate } from "@/lib/datetime";
 import { formatMoney } from "@/lib/money";
 import { VerifyPaymentAction } from "@/server/payment";
-import { ExtendScheduleAction, GetExtensionQuoteAction, type ExtensionQuote } from "@/server/course-enrollment";
+import { ExtendScheduleAction, GetExtensionQuoteAction, type ExtensionQuote } from "@/server/course-enrollment";
+import { LocalPriceNote } from "@/components/local-price-note";
 
 const REFRESH_TAGS = ["hours", "lessons", "payments", "enrollments", "wallet"];
 
@@ -111,6 +112,7 @@ export default function ExtendWeeksDialog({ studentId, courseId, subject }: { st
                 {quote.weeks} week{quote.weeks === 1 ? "" : "s"} x {quote.lessonsPerWeek} class{quote.lessonsPerWeek === 1 ? "" : "es"} a week
               </p>
               <p className="mt-1 text-base font-semibold">{formatMoney(quote.amount, quote.currency)}</p>
+              <LocalPriceNote amount={quote.amount} currency={quote.currency} className="mt-1 text-xs text-gray-600" />
               {quote.firstNewLesson && <p className="mt-1 text-xs text-gray-500">First new class around {formatDate(quote.firstNewLesson)}</p>}
             </div>
           )}
