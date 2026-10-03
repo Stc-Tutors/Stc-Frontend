@@ -30,6 +30,7 @@ import {
 import { GetTutorProfileAction } from "@/server/tutor-profile";
 import { ReportTutorNoShowAction, GetMyTutorNoShowReportsAction } from "@/server/penalty";
 import { DEFAULT_NO_SHOW_GRACE_PERIOD_MINUTES } from "@/types/penalty";
+import { ScheduleViewControls, useScheduleView } from "@/components/schedule-view-controls";
 import ScheduleProposalsBanner from "@/components/schedule-proposals-banner";
 import GroupScheduleConfirmationBanner from "@/components/group-schedule-confirmation-banner";
 
@@ -41,6 +42,7 @@ interface Row {
 export default function SchedulePage() {
   const router = useRouter();
   const [rows, setRows] = useState<Row[]>([]);
+  const { view, setView, visible: visibleRows, counts } = useScheduleView(rows, (r) => r.lesson);
   const [isLoading, setIsLoading] = useState(true);
   const [rescheduleLessonId, setRescheduleLessonId] = useState<string | null>(null);
   const [newDate, setNewDate] = useState("");
@@ -295,12 +297,17 @@ export default function SchedulePage() {
       <div className="bg-white p-4 rounded-lg shadow-sm">
         <h3 className="font-semibold text-gray-800 mb-4">Your Classes</h3>
         {message && <p className="text-sm text-blue-600 mb-3">{message}</p>}
+        {!isLoading && rows.length > 0 && <ScheduleViewControls view={view} onChange={setView} counts={counts} />}
 
         {isLoading ? (
           <p className="text-sm text-gray-500 py-4">Loading your schedule...</p>
-        ) : rows.length === 0 ? (
+        ) : visibleRows.length === 0 ? (
           <p className="text-sm text-gray-500 py-4">
-            No classes scheduled yet. Once you're enrolled in a course and your tutor schedules a session, it will show up here.
+            {rows.length === 0
+              ? "No classes scheduled yet. Once you're enrolled in a course and your tutor schedules a session, it will show up here."
+              : view === "upcoming"
+                ? "No upcoming classes. Check the Past tab, or ask your parent to add more weeks."
+                : "No classes to show here."}
           </p>
         ) : (
           <div className="overflow-x-auto">
@@ -316,7 +323,7 @@ export default function SchedulePage() {
                 </tr>
               </thead>
               <tbody>
-                {rows.map(({ lesson, course }) => (
+                {visibleRows.map(({ lesson, course }) => (
                   <Fragment key={lesson.id}>
                     <tr className="border-b">
                       <td className="py-3">{course.title}</td>

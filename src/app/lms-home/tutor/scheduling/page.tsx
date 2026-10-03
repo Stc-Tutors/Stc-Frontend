@@ -15,6 +15,7 @@ import {
 import { Course } from "@/types/course";
 import { Student } from "@/types/student";
 import { Lesson, LessonStatus, RescheduleSurchargeSettings, RescheduleSurchargeType } from "@/types/lesson";
+import { ScheduleViewControls, useScheduleView } from "@/components/schedule-view-controls";
 import { formatScheduleDateTime } from "@/lib/datetime";
 import { isInsideTutorRescheduleGate, isInsideTutorRescheduleHardFloor, DEFAULT_TUTOR_NOTICE_HOURS } from "@/lib/schedule-gate";
 
@@ -26,6 +27,7 @@ interface Row {
 export default function TutorSchedulePage() {
   const router = useRouter();
   const [rows, setRows] = useState<Row[]>([]);
+  const { view, setView, visible: visibleRows, counts } = useScheduleView(rows, (r) => r.lesson);
   // Which student(s) each course belongs to - "Course" is reused across every one-on-one student this tutor
   // teaches the same subject (see stcbe's resolveCourseForTutorSubject), so a bare course/lesson title alone
   // doesn't say whose class it is. Keyed by course id; a course with more than one enrolled student (a shared
@@ -131,12 +133,17 @@ export default function TutorSchedulePage() {
           admin if you truly can't teach it.
         </p>
         {message && <p className="text-sm text-blue-600 mb-3">{message}</p>}
+        {!isLoading && rows.length > 0 && <ScheduleViewControls view={view} onChange={setView} counts={counts} />}
 
         {isLoading ? (
           <p className="text-sm text-gray-500 py-4">Loading your schedule...</p>
-        ) : rows.length === 0 ? (
+        ) : visibleRows.length === 0 ? (
           <p className="text-sm text-gray-500 py-4">
-            No lessons scheduled yet. Once students enroll in your courses and you schedule lessons, they will show up here.
+            {rows.length === 0
+              ? "No lessons scheduled yet. Once students enroll in your courses and you schedule lessons, they will show up here."
+              : view === "upcoming"
+                ? "No upcoming lessons. Check the Past tab."
+                : "No lessons to show here."}
           </p>
         ) : (
           <div className="overflow-x-auto">
@@ -152,7 +159,7 @@ export default function TutorSchedulePage() {
                 </tr>
               </thead>
               <tbody>
-                {rows.map(({ lesson, course }) => (
+                {visibleRows.map(({ lesson, course }) => (
                   <Fragment key={lesson.id}>
                     <tr className="border-b">
                       <td className="py-3">{course.title}</td>

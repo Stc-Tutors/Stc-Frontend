@@ -31,6 +31,7 @@ import { ChildSwitcherDropdown } from "@/components/child-switcher-dropdown";
 import { useSelectedStudent } from "@/contexts/selected-student-context";
 import { ReportTutorNoShowAction, GetMyTutorNoShowReportsAction } from "@/server/penalty";
 import { DEFAULT_NO_SHOW_GRACE_PERIOD_MINUTES } from "@/types/penalty";
+import { ScheduleViewControls, useScheduleView } from "@/components/schedule-view-controls";
 import ScheduleProposalsBanner from "@/components/schedule-proposals-banner";
 import GroupScheduleConfirmationBanner from "@/components/group-schedule-confirmation-banner";
 
@@ -120,7 +121,8 @@ export default function ParentSchedulePage() {
     loadNoticeSettings();
   }, []);
 
-  const visibleRows = isAllSelected ? rows : rows.filter((r) => r.childId === selectedId);
+  const childRows = isAllSelected ? rows : rows.filter((r) => r.childId === selectedId);
+  const { view, setView, visible: visibleRows, counts } = useScheduleView(childRows, (r) => r.lesson);
 
   // Only the tutor's confirmed absence can be *reported* here - the same
   // grace period AttendanceService.mark() enforces server-side for the
@@ -301,6 +303,7 @@ export default function ParentSchedulePage() {
       <div className="bg-white p-4 rounded-lg shadow-sm">
         <h3 className="font-semibold text-gray-800 mb-4">Your Children's Classes</h3>
         {message && <p className="text-sm text-blue-600 mb-3">{message}</p>}
+        {!isLoading && rows.length > 0 && <ScheduleViewControls view={view} onChange={setView} counts={counts} />}
 
         {isLoading ? (
           <p className="text-sm text-gray-500 py-4">Loading schedule...</p>
@@ -308,7 +311,11 @@ export default function ParentSchedulePage() {
           <p className="text-sm text-gray-500 py-4">
             {rows.length === 0
               ? "No classes scheduled yet. Once a child is enrolled in a course and their tutor schedules a session, it will show up here."
-              : "No classes scheduled for this child yet."}
+              : childRows.length === 0
+                ? "No classes scheduled for this child yet."
+                : view === "upcoming"
+                  ? "No upcoming classes. Check the Past tab, or add more weeks from Hours."
+                  : "No classes to show here."}
           </p>
         ) : (
           <div className="overflow-x-auto">
