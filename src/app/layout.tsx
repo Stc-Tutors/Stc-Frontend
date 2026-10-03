@@ -7,6 +7,7 @@ import TermsGateModal from "@/components/terms-gate-modal";
 import OnboardingTour from "@/components/onboarding-tour/onboarding-tour";
 import PushNotificationRegistrar from "@/components/push-notification-registrar";
 import RealtimeSync from "@/components/realtime-sync";
+import ContactUsWidget from "@/components/contact-us-widget";
 
 
 export const metadata = {
@@ -27,6 +28,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <OnboardingTour />
             <PushNotificationRegistrar />
             <RealtimeSync />
+            {/* "Need help?" - call / WhatsApp / email / support, with details per audience - see ContactUsWidget. */}
+            <ContactUsWidget />
             <Toaster position="top-right" />
           </body>
         </UserProvider>

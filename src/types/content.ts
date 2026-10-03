@@ -16,6 +16,7 @@ export enum PageSectionKey {
   CONTACT_INFO = "CONTACT_INFO",
   CAREERS_INTRO = "CAREERS_INTRO",
   CAREERS_TEASER = "CAREERS_TEASER",
+  SUPPORT_CONTACTS = "SUPPORT_CONTACTS",
 }
 
 export interface PageSection {
@@ -385,4 +386,22 @@ export interface CareerApplication {
   coverLetter?: string;
   status: CareerApplicationStatus;
   createdAt: string;
+}
+
+// One audience's ways to be reached. Anything left blank falls back to the general set, then the Contact page's details.
+export interface SupportChannel {
+  phone?: string;
+  // Digits with country code, e.g. 2347089118528 (a "+" or spaces are fine - they are stripped).
+  whatsapp?: string;
+  email?: string;
+}
+
+export type SupportAudience = "general" | "tutor" | "parent" | "student" | "admin";
+
+export interface SupportContactsContent {
+  general: SupportChannel;
+  tutor: SupportChannel;
+  parent: SupportChannel;
+  student: SupportChannel;
+  admin: SupportChannel;
 }
