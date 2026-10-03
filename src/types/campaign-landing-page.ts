@@ -30,4 +30,5 @@ export interface CampaignLandingPage {
   stats?: { value: string; label: string }[];
   howItWorks?: { title: string; description: string }[];
   faqs?: { question: string; answer: string }[];
+  testimonials?: { quote: string; name: string; location?: string }[];
 }

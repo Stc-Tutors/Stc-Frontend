@@ -24,6 +24,8 @@ import { UserRole } from "@/types/user";
 import { PaymentRequest } from "@/types/payment";
 import { Course } from "@/types/course";
 import { ROUTES } from "@/config/routes";
+import { APPLY_COUPON_EVENT } from "./PromoBanner";
+import { WhatsAppLink } from "./WhatsAppButtons";
 
 interface FormState {
   parentFirstName: string;
@@ -54,6 +56,25 @@ const EMPTY_FORM: FormState = {
   couponCode: "",
   referralCode: "",
 };
+
+// Placeholder while a price is being fetched - same footprint as the price
+// line, so the form doesn't jump when it arrives.
+function PriceSkeleton() {
+  return <div className="h-8 w-44 rounded-md bg-gray-200 animate-pulse" role="status" aria-label="Loading price" />;
+}
+
+// Shown instead of a price when the quote request failed.
+function PriceError({ onRetry, pageName }: { onRetry: () => void; pageName: string }) {
+  return (
+    <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 space-y-1">
+      <p>We couldn&apos;t load the price just now.</p>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+        <button type="button" onClick={onRetry} className="font-semibold underline">Try again</button>
+        <WhatsAppLink pageName={pageName} label="Ask us on WhatsApp" />
+      </div>
+    </div>
+  );
+}
 
 function formatMoney(currency?: string, amount?: number) {
   if (amount == null) return "";
@@ -88,6 +109,10 @@ interface EnrollChoice {
 // performs as separate pages (sign up -> log in -> submit the enrollment ->
 // pay via Paystack -> land in the LMS) - no parallel account/enrollment/
 // payment logic, just fewer screens.
+//
+// One child per submission: enrollment, pricing, coupon redemption and the
+// Paystack charge are all per-child on the backend, so the form points a
+// family with several children at WhatsApp rather than faking it here.
 export default function CampaignSignupForm({ page, cohortName }: { page: CampaignLandingPage; cohortName: string }) {
   const router = useRouter();
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
@@ -120,7 +145,53 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
   const [availableCourses, setAvailableCourses] = useState<Course[]>([]);
   const [chosenCourseId, setChosenCourseId] = useState("");
 
+  // Set when a price fetch fails, so the price area shows a retry instead of a
+  // loading state that never ends.
+  const [priceError, setPriceError] = useState<string | null>(null);
+
   const isFlowTree = page.pricingMode !== "COURSE";
+
+  // The price is resolved server-side from the visitor's IP/country (and any
+  // currency the Super Admin assigned to that country), so it is already in the
+  // visitor's currency wherever Price Management and the payment gateway support it.
+  const fetchFlowTreeQuote = async (nodeId: string) => {
+    setPriceError(null);
+    setFlowTreeQuote(null);
+    const [quoteRes, quoteError] = await QuotePricingAction({
+      serviceType: page.serviceType,
+      taxonomyNodeId: nodeId,
+      classGroupId: page.classGroupId,
+    });
+    if (quoteRes?.data) setFlowTreeQuote({ amount: quoteRes.data.amount, currency: quoteRes.data.currency });
+    else setPriceError(quoteError || "Could not load the price.");
+  };
+
+  const fetchCourseQuote = async () => {
+    setPriceError(null);
+    setQuote(null);
+    const [quoteRes, quoteError] = await QuotePricingAction({
+      serviceType: page.serviceType,
+      courseId: page.courseId,
+      classGroupId: page.classGroupId,
+    });
+    if (quoteRes?.data) setQuote({ amount: quoteRes.data.amount, currency: quoteRes.data.currency });
+    else setPriceError(quoteError || "Could not load the price.");
+  };
+
+  const handleRetryPrice = async () => {
+    if (isFlowTree && flowTreeLeaf) await fetchFlowTreeQuote(flowTreeLeaf.id);
+    else if (!isFlowTree && page.courseId) await fetchCourseQuote();
+  };
+
+  // "Tap to copy" on the offer banner also drops the code into the coupon field.
+  useEffect(() => {
+    const onApply = (e: Event) => {
+      const code = (e as CustomEvent<string>).detail;
+      if (typeof code === "string") setForm((prev) => ({ ...prev, couponCode: code }));
+    };
+    window.addEventListener(APPLY_COUPON_EVENT, onApply);
+    return () => window.removeEventListener(APPLY_COUPON_EVENT, onApply);
+  }, []);
 
   useEffect(() => {
     Promise.all([GetTaxonomyOptionsAction(TaxonomyOptionKind.COUNTRY), GetTaxonomyOptionsAction(TaxonomyOptionKind.LANGUAGE)]).then(
@@ -145,12 +216,7 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
           } else if (locked) {
             // The lock is itself a leaf - nothing to pick, price it directly.
             setFlowTreeLeaf(locked);
-            const [quoteRes] = await QuotePricingAction({
-              serviceType: page.serviceType,
-              taxonomyNodeId: locked.id,
-              classGroupId: page.classGroupId,
-            });
-            if (quoteRes?.data) setFlowTreeQuote({ amount: quoteRes.data.amount, currency: quoteRes.data.currency });
+            await fetchFlowTreeQuote(locked.id);
           }
         } else {
           const [res] = await GetCurriculumChildrenAction(null, page.serviceType);
@@ -161,15 +227,7 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
     } else {
       (async () => {
         setNeedsCourseChoice(!page.courseId);
-        if (page.courseId) {
-          const [quoteRes, quoteError] = await QuotePricingAction({
-            serviceType: page.serviceType,
-            courseId: page.courseId,
-            classGroupId: page.classGroupId,
-          });
-          if (quoteRes?.data) setQuote({ amount: quoteRes.data.amount, currency: quoteRes.data.currency });
-          else if (quoteError) setError(quoteError);
-        }
+        if (page.courseId) await fetchCourseQuote();
         setIsLoading(false);
       })();
     }
@@ -185,6 +243,7 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
 
   const handlePickFlowTreeNode = async (node: CurriculumNode) => {
     setError(null);
+    setPriceError(null);
     setIsLoadingFlowTreeStep(true);
     setFlowTreeLeaf(null);
     setFlowTreeQuote(null);
@@ -195,13 +254,7 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
       setFlowTreeOptions(children);
     } else {
       setFlowTreeLeaf(node);
-      const [quoteRes, quoteError] = await QuotePricingAction({
-        serviceType: page.serviceType,
-        taxonomyNodeId: node.id,
-        classGroupId: page.classGroupId,
-      });
-      if (quoteRes?.data) setFlowTreeQuote({ amount: quoteRes.data.amount, currency: quoteRes.data.currency });
-      else if (quoteError) setError(quoteError);
+      await fetchFlowTreeQuote(node.id);
     }
     setIsLoadingFlowTreeStep(false);
   };
@@ -209,6 +262,7 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
   const handleBackInTree = async () => {
     if (!canGoBackInTree) return;
     setError(null);
+    setPriceError(null);
     setIsLoadingFlowTreeStep(true);
     const newPath = flowTreePath.slice(0, -1);
     const parentNode = newPath[newPath.length - 1];
@@ -324,6 +378,11 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
     }
     if (isFlowTree && !flowTreeLeaf) {
       setError("Please choose from the list");
+      return;
+    }
+    // A price that hasn't arrived (or failed) would otherwise be submitted as 0.
+    if ((isFlowTree && flowTreeLeaf && !flowTreeQuote) || (!isFlowTree && page.courseId && !quote)) {
+      setError(priceError ? "We couldn't load the price - please retry it before continuing." : "The price is still loading - one moment.");
       return;
     }
     if (!isValidPassword(form.password)) {
@@ -469,7 +528,7 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
 
   if (phase === "choose-course") {
     return (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 sticky top-6 space-y-4">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6 md:sticky md:top-6 space-y-4">
         <p className="text-lg font-bold text-gray-900 leading-snug">{cohortName}</p>
         <p className="text-sm text-gray-700">Your account is ready - now pick which course to enroll in:</p>
         {error && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">{error}</p>}
@@ -498,7 +557,7 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 sticky top-6 space-y-4">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6 md:sticky md:top-6 space-y-4">
       <p className="text-lg font-bold text-gray-900 leading-snug">{cohortName}</p>
 
       {error && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">{error}</p>}
@@ -569,8 +628,11 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
             placeholder="Select language"
           />
         </div>
+        <p className="text-xs text-gray-500">
+          Registering more than one child? <WhatsAppLink pageName={cohortName} label="Message us on WhatsApp" />
+        </p>
 
-        <div className="grid grid-cols-2 gap-2 pt-1">
+        <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-2 pt-1">
           <div>
             <Label>Coupon code (optional)</Label>
             <Input
@@ -598,47 +660,50 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
               {flowTreeLeaf ? "Selected" : "Choose an option"}
             </p>
             {flowTreeLeaf ? (
-              <p className="text-2xl font-bold text-gray-900">
-                {flowTreeLeaf.name} - {flowTreeQuote ? formatMoney(flowTreeQuote.currency, flowTreeQuote.amount) : "Loading..."}
-              </p>
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-gray-700">{flowTreeLeaf.name}</p>
+                {flowTreeQuote ? (
+                  <p className="text-2xl font-bold text-gray-900">{formatMoney(flowTreeQuote.currency, flowTreeQuote.amount)}</p>
+                ) : priceError ? (
+                  <PriceError onRetry={handleRetryPrice} pageName={cohortName} />
+                ) : (
+                  <PriceSkeleton />
+                )}
+              </div>
             ) : (
               <p className="text-sm text-gray-700">Pick one below to see its price.</p>
             )}
             <div className="space-y-1.5">
               {canGoBackInTree && (
-                <button type="button" onClick={handleBackInTree} className="text-xs text-blue-600 hover:underline">
-                  ← Back
-                </button>
+                <button type="button" onClick={handleBackInTree} className="text-xs text-blue-600 hover:underline">← Back</button>
               )}
               {isLoading || isLoadingFlowTreeStep ? (
-                <p className="text-sm text-gray-500">Loading...</p>
+                <div className="space-y-1.5" role="status" aria-label="Loading options">
+                  <div className="h-10 rounded-md bg-gray-200 animate-pulse" />
+                  <div className="h-10 rounded-md bg-gray-200 animate-pulse" />
+                </div>
               ) : flowTreeOptions.length === 0 ? (
                 <p className="text-sm text-gray-500">Nothing available here yet - please contact us.</p>
               ) : (
                 flowTreeOptions.map((n) => (
-                  <button
-                    key={n.id}
-                    type="button"
-                    onClick={() => handlePickFlowTreeNode(n)}
-                    className={`w-full text-left border rounded-md px-3 py-2 text-sm ${
-                      flowTreeLeaf?.id === n.id ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:bg-gray-50"
-                    }`}
-                  >
-                    {n.name}
-                  </button>
+                  <button key={n.id} type="button" onClick={() => handlePickFlowTreeNode(n)} className={`w-full text-left border rounded-md px-3 py-2.5 text-sm ${flowTreeLeaf?.id === n.id ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:bg-gray-50"}`}>{n.name}</button>
                 ))
               )}
             </div>
           </div>
         ) : (
-          <div>
+          <div className="space-y-1">
             <p className="text-sm text-gray-500">Price</p>
             {needsCourseChoice ? (
               <p className="text-sm text-gray-700">Depends on the course you choose - shown before you pay.</p>
+            ) : isLoading ? (
+              <PriceSkeleton />
+            ) : quote ? (
+              <p className="text-2xl font-bold text-gray-900">{formatMoney(quote.currency, quote.amount)}</p>
+            ) : priceError ? (
+              <PriceError onRetry={handleRetryPrice} pageName={cohortName} />
             ) : (
-              <p className="text-2xl font-bold text-gray-900">
-                {isLoading ? "Loading..." : quote ? formatMoney(quote.currency, quote.amount) : "Contact us"}
-              </p>
+              <p className="text-2xl font-bold text-gray-900">Contact us</p>
             )}
           </div>
         )}
@@ -647,6 +712,9 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
       <Button className="w-full" size="lg" onClick={handleSubmit} disabled={isSubmitting || isLoading}>
         {isSubmitting ? step || "Please wait..." : page.ctaLabel}
       </Button>
+      <div className="text-center">
+        <WhatsAppLink pageName={cohortName} />
+      </div>
       <p className="text-xs text-gray-400 text-center">
         Creates your STC Tutors account{needsCourseChoice ? ", then a quick course pick, " : " and takes you straight "}
         to secure payment. We&apos;ll also email you a link to verify your address - no need to click it before paying.
