@@ -18,7 +18,8 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import CurriculumDrilldown, { CurriculumPath } from "@/components/curriculum-drilldown";
+import { LocalPriceNote } from "@/components/local-price-note";
+import CurriculumDrilldown,{ CurriculumPath } from "@/components/curriculum-drilldown";
 import RecommendedVideoCourses from "@/components/recommended-video-courses";
 import { CurriculumNode, CurriculumServiceType } from "@/types/curriculum";
 import { ArchitecturalPath, ClassGroupStatus, IClassGroup, IService, ITaxonomyOption, SelectionMode, TaxonomyOptionKind } from "@/types/service-catalog";
@@ -1686,6 +1687,7 @@ export default function SubjectsSchedule({ onNext, errors, forcedUserType }: Ste
                     ₦{totalCost.toLocaleString()}
                     {isPathC || !hasHourlySubject ? "" : ` / ${serviceData.billingWeeks} week${serviceData.billingWeeks === 1 ? "" : "s"}`}
                   </p>
+                  <LocalPriceNote amountNgn={totalCost} className="text-sm text-gray-700 mb-1" />
                   <p className="text-sm text-gray-600">
                     {isPathC
                       ? hasTree
