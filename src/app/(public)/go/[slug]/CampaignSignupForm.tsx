@@ -24,7 +24,7 @@ import { UserRole } from "@/types/user";
 import { PaymentRequest } from "@/types/payment";
 import { Course } from "@/types/course";
 import { ROUTES } from "@/config/routes";
-import { APPLY_COUPON_EVENT } from "./PromoBanner";
+import { APPLY_COUPON_EVENT } from "@/lib/campaign-promo";
 import { WhatsAppLink } from "./WhatsAppButtons";
 
 interface FormState {

@@ -10,7 +10,8 @@ import { sanitizeRichText } from "@/lib/sanitize-html";
 import { HeadSeoContent, PageSectionKey } from "@/types/content";
 import type { CampaignLandingPage as LandingPageData } from "@/types/campaign-landing-page";
 import CampaignSignupForm from "./CampaignSignupForm";
-import PromoBanner, { promoExpired } from "./PromoBanner";
+import PromoBanner from "./PromoBanner";
+import { promoExpired } from "@/lib/campaign-promo";
 import { WhatsAppFloat } from "./WhatsAppButtons";
 
 type Params = Promise<{ slug: string }>;

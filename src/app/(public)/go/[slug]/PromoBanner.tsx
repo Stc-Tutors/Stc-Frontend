@@ -2,23 +2,8 @@
 
 import { useState } from "react";
 import { Check, Copy } from "lucide-react";
+import { APPLY_COUPON_EVENT, formatPromoDeadline, promoExpired } from "@/lib/campaign-promo";
 
-// CampaignSignupForm listens for this to prefill its coupon field.
-export const APPLY_COUPON_EVENT = "stc:apply-coupon";
-
-const DAY_MS = 24 * 60 * 60 * 1000;
-
-// promoDeadline is stored as a date (UTC midnight), so it's formatted in UTC -
-// otherwise a visitor west of UTC would see the day before. The offer runs
-// through the end of that day.
-export function promoExpired(deadlineIso?: string, now = Date.now()) {
-  if (!deadlineIso) return false;
-  return now >= new Date(deadlineIso).getTime() + DAY_MS;
-}
-
-function formatDeadline(iso: string) {
-  return new Date(iso).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" });
-}
 
 export default function PromoBanner({ label, deadline, code }: { label?: string; deadline?: string; code?: string }) {
   const [copied, setCopied] = useState(false);
@@ -45,7 +30,7 @@ export default function PromoBanner({ label, deadline, code }: { label?: string;
           <span aria-hidden="true">🎁 </span>
           {label && <span className="font-semibold">{label}</span>}
           {label && deadline && <span> — </span>}
-          {deadline && <span>register before {formatDeadline(deadline)}.</span>}
+          {deadline && <span>register before {formatPromoDeadline(deadline)}.</span>}
         </p>
         {code && (
           <div className="flex items-center gap-2">
