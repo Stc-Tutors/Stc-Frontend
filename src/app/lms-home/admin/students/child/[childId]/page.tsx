@@ -40,7 +40,7 @@ export default function AdminChildProfilePage() {
   const { childId } = useParams();
   const router = useRouter();
   const { hasPermission } = useUser();
-  const canManageStudents = hasPermission(AdminPermission.MANAGE_STUDENTS);
+  const canManageStudents = hasPermission(AdminPermission.EDIT_STUDENTS);
 
   const [child, setChild] = useState<Child | null>(null);
   const [enrollmentData, setEnrollmentData] = useState<ChildEnrollmentsResponse | null>(null);

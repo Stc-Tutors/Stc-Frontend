@@ -80,9 +80,10 @@ const sidebarLinks: {
   adminOnly?: boolean;
 }[] = [
   { label: "Dashboard", icon: Home, href: "/lms-home/admin/dashboard" },
-  { label: "Students", icon: Users, href: "/lms-home/admin/students", permission: [AdminPermission.MANAGE_STUDENTS, AdminPermission.VIEW_ENROLLMENTS] },
-  { label: "Parents", icon: Baby, href: "/lms-home/admin/parents", permission: [AdminPermission.MANAGE_STUDENTS, AdminPermission.VIEW_ENROLLMENTS] },
-  { label: "Users", icon: Users, href: "/lms-home/admin/users", permission: AdminPermission.MANAGE_USERS },
+  { label: "Students", icon: Users, href: "/lms-home/admin/students", permission: [AdminPermission.CREATE_STUDENTS, AdminPermission.EDIT_STUDENTS, AdminPermission.SUSPEND_STUDENTS, AdminPermission.REMOVE_STUDENTS, AdminPermission.VIEW_ENROLLMENTS] },
+  { label: "Parents", icon: Baby, href: "/lms-home/admin/parents", permission: [AdminPermission.CREATE_STUDENTS, AdminPermission.EDIT_STUDENTS, AdminPermission.SUSPEND_STUDENTS, AdminPermission.REMOVE_STUDENTS, AdminPermission.VIEW_ENROLLMENTS] },
+  { label: "Tutors", icon: GraduationCap, href: "/lms-home/admin/tutors", permission: [AdminPermission.VIEW_STAFF_ROSTER, AdminPermission.VIEW_USERS] },
+  { label: "Users", icon: Users, href: "/lms-home/admin/users", permission: AdminPermission.VIEW_USERS },
   {
     label: "Messaging Permissions",
     icon: MessageSquare,
@@ -155,7 +156,7 @@ const sidebarLinks: {
     href: "/lms-home/admin/custom-form-fields",
     permission: AdminPermission.MANAGE_TAXONOMY,
   },
-  { label: "Enrollments", icon: ClipboardList, href: "/lms-home/admin/enrollments", permission: [AdminPermission.MANAGE_STUDENTS, AdminPermission.VIEW_ENROLLMENTS] },
+  { label: "Enrollments", icon: ClipboardList, href: "/lms-home/admin/enrollments", permission: [AdminPermission.CREATE_STUDENTS, AdminPermission.EDIT_STUDENTS, AdminPermission.SUSPEND_STUDENTS, AdminPermission.REMOVE_STUDENTS, AdminPermission.VIEW_ENROLLMENTS] },
   { label: "Sessions", icon: CalendarClock, href: "/lms-home/admin/sessions", permission: AdminPermission.VIEW_ALL_SCHEDULES },
   {
     label: "Class Feedback",

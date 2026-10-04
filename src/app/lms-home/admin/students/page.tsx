@@ -61,7 +61,6 @@ function AdminStudentsPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { hasPermission } = useUser();
-  const canManageStudents = hasPermission(AdminPermission.MANAGE_STUDENTS);
   const canCreateStudents = hasPermission(AdminPermission.CREATE_STUDENTS);
   const [children, setChildren] = useState<GroupedStudent[]>([]);
   const [search, setSearch] = useState(searchParams.get("search") || "");

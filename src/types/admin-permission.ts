@@ -1,5 +1,10 @@
 export enum AdminPermission {
-  MANAGE_USERS = "MANAGE_USERS",
+  VIEW_USERS = "VIEW_USERS",
+  CREATE_USERS = "CREATE_USERS",
+  SUSPEND_USERS = "SUSPEND_USERS",
+  CHANGE_USER_ROLES = "CHANGE_USER_ROLES",
+  EXPORT_USER_DATA = "EXPORT_USER_DATA",
+  DELETE_USER_ACCOUNTS = "DELETE_USER_ACCOUNTS",
   CANCEL_CLASSES = "CANCEL_CLASSES",
   APPROVE_RESCHEDULES = "APPROVE_RESCHEDULES",
   ASSIGN_STUDENTS_TO_TUTORS = "ASSIGN_STUDENTS_TO_TUTORS",
@@ -7,8 +12,10 @@ export enum AdminPermission {
   REVIEW_TUTOR_APPLICATIONS = "REVIEW_TUTOR_APPLICATIONS",
   VIEW_ALL_SCHEDULES = "VIEW_ALL_SCHEDULES",
   MANAGE_TAXONOMY = "MANAGE_TAXONOMY",
-  MANAGE_STUDENTS = "MANAGE_STUDENTS",
   CREATE_STUDENTS = "CREATE_STUDENTS",
+  EDIT_STUDENTS = "EDIT_STUDENTS",
+  SUSPEND_STUDENTS = "SUSPEND_STUDENTS",
+  REMOVE_STUDENTS = "REMOVE_STUDENTS",
   APPROVE_RESOURCES = "APPROVE_RESOURCES",
   MANAGE_SCHEDULES = "MANAGE_SCHEDULES",
   MANAGE_ANNOUNCEMENTS = "MANAGE_ANNOUNCEMENTS",
@@ -29,7 +36,8 @@ export enum AdminPermission {
   MANAGE_MEETING_LINKS = "MANAGE_MEETING_LINKS",
   // Switch a class's recording on/off and delete recordings - only for classes
   // in the admin's scope, and only once every enrolled child has parental consent.
-  MANAGE_CLASS_RECORDING = "MANAGE_CLASS_RECORDING",
+  TOGGLE_CLASS_RECORDING = "TOGGLE_CLASS_RECORDING",
+  DELETE_CLASS_RECORDINGS = "DELETE_CLASS_RECORDINGS",
   // Grant/revoke a direct-messaging override between two specific non-admin
   // users - see TutorMessagingPermissionService.
   MANAGE_MESSAGING_PERMISSIONS = "MANAGE_MESSAGING_PERMISSIONS",
@@ -39,6 +47,7 @@ export enum AdminPermission {
   APPROVE_TUTOR_PROFILE_EDITS = "APPROVE_TUTOR_PROFILE_EDITS",
   // Read-only view of every enrolled parent/student and their enrollment status (not narrowed to the admin's own list).
   VIEW_ENROLLMENTS = "VIEW_ENROLLMENTS",
+  VIEW_STAFF_ROSTER = "VIEW_STAFF_ROSTER",
 }
 
 // The GET /users/me/permissions response shape: '*' means unrestricted

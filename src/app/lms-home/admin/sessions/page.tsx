@@ -68,7 +68,7 @@ export default function AdminSessionsPage() {
   // Recording is an oversight control: an HOD (for their scope), a granted
   // admin, or a super/almighty admin. The server checks the exact scope.
   const canManageRecording =
-    !!hodAssignment || user?.role === UserRole.HOD || hasPermission(AdminPermission.MANAGE_CLASS_RECORDING);
+    !!hodAssignment || user?.role === UserRole.HOD || hasPermission(AdminPermission.TOGGLE_CLASS_RECORDING);
 
   const [filter, setFilter] = useState<Filter>("upcoming");
   const [lessons, setLessons] = useState<Lesson[]>([]);

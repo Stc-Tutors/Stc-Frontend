@@ -24,7 +24,7 @@ const CREATABLE_ROLES = [UserRole.STUDENT, UserRole.PARENT, UserRole.TUTOR];
 export default function AdminUsersPage() {
   const router = useRouter();
   const { hasPermission } = useUser();
-  const canManageUsers = hasPermission(AdminPermission.MANAGE_USERS);
+  const canManageUsers = hasPermission(AdminPermission.CREATE_USERS);
   const [users, setUsers] = useState<User[]>([]);
   const [search, setSearch] = useState("");
   const [role, setRole] = useState<string>("");
