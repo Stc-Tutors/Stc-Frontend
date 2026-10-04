@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { GetCoursesAction } from "@/server/course";
-import { GetAdminServicesAction } from "@/server/service-catalog";
+import { GetServicesAction } from "@/server/service-catalog";
 import { Course, CourseStatus } from "@/types/course";
 
 function statusBadgeClass(status: CourseStatus): string {
@@ -13,19 +13,13 @@ function statusBadgeClass(status: CourseStatus): string {
   return "bg-amber-100 text-amber-700";
 }
 
-// Flat, cross-service course browser - replaces the old standalone /courses
-// moderation table for the "just show me every course" use case. Row click
-// jumps straight into that course's Video Lessons tab in its service
-// workspace (?tab=courses&course=<id> - "courses" is the tab's `value`,
-// unchanged even though its label is now "Video Lessons", so this link
-// keeps working), since that's what an admin coming from a flat list is
-// almost always here to do - author lesson recordings, not re-litigate the
-// course's structural fields.
+// Flat, cross-service course browser. Row click opens that course's video
+// lessons in their own page (./lessons) - deliberately NOT the Service Catalog
+// workspace, which is Super Admin only and holds the service's structure and
+// settings, none of which a video-course admin should be able to reach.
 export default function VideoCoursesPage() {
   const router = useRouter();
   const [courses, setCourses] = useState<Course[]>([]);
-  // slug -> service Mongo id, needed to build the service-workspace link.
-  const [serviceIdBySlug, setServiceIdBySlug] = useState<Record<string, string>>({});
   // slug -> display name, so the table shows "Academic Tutoring" instead of
   // the raw "academic-tutoring" slug.
   const [serviceNameBySlug, setServiceNameBySlug] = useState<Record<string, string>>({});
@@ -34,11 +28,8 @@ export default function VideoCoursesPage() {
   useEffect(() => {
     (async () => {
       const [coursesRes] = await GetCoursesAction();
-      const [servicesRes] = await GetAdminServicesAction();
+      const [servicesRes] = await GetServicesAction();
       setCourses(coursesRes?.data ?? []);
-      setServiceIdBySlug(
-        Object.fromEntries((servicesRes?.data ?? []).map((s) => [s.slug, s.id]))
-      );
       setServiceNameBySlug(
         Object.fromEntries((servicesRes?.data ?? []).map((s) => [s.slug, s.serviceName]))
       );
@@ -47,9 +38,7 @@ export default function VideoCoursesPage() {
   }, []);
 
   const goToCourse = (course: Course) => {
-    const serviceId = serviceIdBySlug[course.serviceType];
-    if (!serviceId) return;
-    router.push(`/lms-home/admin/service-catalog/${serviceId}?tab=courses&course=${course.id}`);
+    router.push(`/lms-home/admin/video-courses/lessons?service=${encodeURIComponent(course.serviceType)}&course=${course.id}`);
   };
 
   return (
@@ -74,14 +63,9 @@ export default function VideoCoursesPage() {
           </TableHeader>
           <TableBody>
             {courses.map((course) => {
-              const serviceId = serviceIdBySlug[course.serviceType];
               return (
-                <TableRow
-                  key={course.id}
-                  className={serviceId ? "cursor-pointer" : ""}
-                  onClick={() => goToCourse(course)}
-                >
-                  <TableCell className={serviceId ? "text-blue-600 hover:underline" : ""}>{course.title}</TableCell>
+                <TableRow key={course.id} className="cursor-pointer" onClick={() => goToCourse(course)}>
+                  <TableCell className="text-blue-600 hover:underline">{course.title}</TableCell>
                   <TableCell>{serviceNameBySlug[course.serviceType] ?? course.serviceType}</TableCell>
                   <TableCell>
                     <span className={`text-xs rounded-full px-2 py-0.5 ${statusBadgeClass(course.status)}`}>

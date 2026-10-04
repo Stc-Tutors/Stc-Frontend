@@ -14,10 +14,15 @@ import { GetStudentCoursesAction } from "@/server/course-enrollment";
 import { EnrollmentStatus, Student, studentAvatarUrl } from "@/types/student";
 import { AttendanceStatus } from "@/types/attendance";
 import { UserRole } from "@/types/user";
+import { AdminPermission } from "@/types/admin-permission";
+import { useUser } from "@/contexts/user-context";
 
 export default function AdminEnrollmentDetailPage() {
   const { id } = useParams();
   const router = useRouter();
+  const { hasPermission } = useUser();
+  const canLinkAccounts = hasPermission(AdminPermission.LINK_STUDENT_ACCOUNTS);
+  const canEditStatus = hasPermission(AdminPermission.EDIT_STUDENTS);
   const [student, setStudent] = useState<Student | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
@@ -114,7 +119,8 @@ export default function AdminEnrollmentDetailPage() {
         <select
           value={student.enrollmentStatus}
           onChange={(e) => handleStatusChange(e.target.value as EnrollmentStatus)}
-          className="border rounded-md px-3 py-2 text-sm w-full max-w-xs"
+          disabled={!canEditStatus}
+          className="border rounded-md px-3 py-2 text-sm w-full max-w-xs disabled:opacity-60"
         >
           {Object.values(EnrollmentStatus).map((s) => (
             <option key={s} value={s}>
@@ -124,6 +130,7 @@ export default function AdminEnrollmentDetailPage() {
         </select>
       </div>
 
+      {canLinkAccounts && (
       <div className="border-t pt-6">
         <h2 className="font-semibold mb-3">Parent / Student account link</h2>
         <p className="text-sm text-gray-500 mb-4">
@@ -151,6 +158,7 @@ export default function AdminEnrollmentDetailPage() {
           </button>
         )}
       </div>
+      )}
     </div>
   );
 }
