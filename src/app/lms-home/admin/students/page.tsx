@@ -62,6 +62,7 @@ function AdminStudentsPageInner() {
   const searchParams = useSearchParams();
   const { hasPermission } = useUser();
   const canManageStudents = hasPermission(AdminPermission.MANAGE_STUDENTS);
+  const canCreateStudents = hasPermission(AdminPermission.CREATE_STUDENTS);
   const [children, setChildren] = useState<GroupedStudent[]>([]);
   const [search, setSearch] = useState(searchParams.get("search") || "");
   const [isLoading, setIsLoading] = useState(true);
@@ -87,7 +88,7 @@ function AdminStudentsPageInner() {
     <div className="bg-white shadow rounded-2xl p-6">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Students</h1>
-        {canManageStudents && (
+        {canCreateStudents && (
           <Button onClick={() => router.push("/lms-home/admin/students/new")}>
             <Plus className="w-4 h-4 mr-1" /> Add New Student
           </Button>
