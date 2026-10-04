@@ -29,6 +29,8 @@ export interface Lesson {
   id: string;
   course: string | LessonCourseRef;
   courseEnrollment?: string | LessonCourseEnrollmentRef;
+  // Admin schedule/session lists only: for a shared group class (no courseEnrollment), the names of the students in it.
+  groupStudents?: { id: string; fullName: string }[];
   title: string;
   description?: string;
   order: number;

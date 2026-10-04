@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, useEffect, useState } from "react";
+import { StudentsCell } from "@/components/group-students-cell";
 import { Check, X, Pencil, Ban } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -370,7 +371,7 @@ export default function AdminSessionsPage() {
               <Fragment key={lesson.id}>
                 <TableRow>
                   <TableCell>{courseTitle(lesson.course)}</TableCell>
-                  <TableCell className="text-gray-500">{lessonStudentName(lesson.courseEnrollment)}</TableCell>
+                  <TableCell className="text-gray-500"><StudentsCell courseEnrollment={lesson.courseEnrollment} groupStudents={lesson.groupStudents} /></TableCell>
                   <TableCell className="text-gray-500">{courseTutorName(lesson.course)}</TableCell>
                   <TableCell>{formatScheduleDateTime(lesson.scheduledDate)}</TableCell>
                   <TableCell>
