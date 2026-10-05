@@ -15,6 +15,7 @@ import { GetPaymentsOverviewAction, VerifyPaymentAction, type PaymentsOverview }
 import { Payment, PaymentStatus } from "@/types/payment";
 import { unwrap, useCachedQuery } from "@/lib/client-cache";
 import { ToastError, ToastSuccess } from "@/components/ui/custom/toast";
+import { LocalPriceNote } from "@/components/local-price-note";
 
 const MONTH_LABELS = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
@@ -123,6 +124,7 @@ export default function PaymentsList({ variant }: PaymentsListProps) {
                 <p className="text-2xl font-bold text-gray-900">
                   {summary.currency} {summary.totalSpent.toLocaleString()}
                 </p>
+                <LocalPriceNote variant="short" amount={summary.totalSpent} currency={summary.currency} className="block text-xs text-gray-500" />
                 <p className="text-sm text-gray-500">Total spent all-time</p>
               </div>
               {variant === "parent" && summary.byChild.length > 1 && (
@@ -191,6 +193,7 @@ export default function PaymentsList({ variant }: PaymentsListProps) {
                     {variant === "parent" && <TableCell>{payment.student?.fullName ?? "-"}</TableCell>}
                     <TableCell className="whitespace-nowrap">
                       {payment.currency} {payment.amount?.toLocaleString()}
+                      <LocalPriceNote variant="short" amount={payment.amount ?? 0} currency={payment.currency} className="block text-xs text-gray-500" />
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline" className={STATUS_STYLES[payment.status]}>

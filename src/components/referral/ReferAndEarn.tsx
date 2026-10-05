@@ -39,6 +39,7 @@ import {
   ReferralPayoutRequestStatus,
   ReferralSettings,
 } from "@/types/referral";
+import { LocalPriceNote } from "@/components/local-price-note";
 
 const STATUS_COLORS: Record<ReferralPayoutRequestStatus, string> = {
   [ReferralPayoutRequestStatus.PENDING]: "text-orange-500",
@@ -144,18 +145,21 @@ export default function ReferAndEarn() {
         <StatCard
           title="Available Balance"
           value={formatMoney(balance?.pendingBalance ?? 0)}
+          note={<LocalPriceNote variant="short" amount={balance?.pendingBalance ?? 0} className="block text-xs text-gray-500" />}
           icon={PiggyBank}
           color="bg-emerald-100 text-emerald-600"
         />
         <StatCard
           title="Awaiting Withdrawal Review"
           value={formatMoney(balance?.lockedBalance ?? 0)}
+          note={<LocalPriceNote variant="short" amount={balance?.lockedBalance ?? 0} className="block text-xs text-gray-500" />}
           icon={Clock}
           color="bg-purple-100 text-purple-600"
         />
         <StatCard
           title="Total Withdrawn"
           value={formatMoney(balance?.withdrawnTotal ?? 0)}
+          note={<LocalPriceNote variant="short" amount={balance?.withdrawnTotal ?? 0} className="block text-xs text-gray-500" />}
           icon={Wallet}
           color="bg-blue-100 text-blue-600"
         />
@@ -355,7 +359,7 @@ export default function ReferAndEarn() {
   );
 }
 
-function StatCard({ title, value, icon: Icon, color }: any) {
+function StatCard({ title, value, icon: Icon, color, note }: any) {
   return (
     <Card className="flex items-center p-4 gap-4">
       <div className={`p-3 rounded-lg ${color}`}>
@@ -363,6 +367,7 @@ function StatCard({ title, value, icon: Icon, color }: any) {
       </div>
       <div>
         <p className="text-xl font-semibold">{value}</p>
+        {note}
         <p className="text-sm text-gray-500">{title}</p>
       </div>
     </Card>

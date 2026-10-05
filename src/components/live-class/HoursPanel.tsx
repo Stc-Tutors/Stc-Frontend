@@ -11,6 +11,7 @@ import ExtendWeeksDialog from "@/components/live-class/ExtendWeeksDialog";
 import { useUser } from "@/contexts/user-context";
 import { GetMyHoursAction } from "@/server/hours";
 import type { HoursAccountSummary, HoursLessonLine } from "@/types/live-class";
+import { LocalPriceNote } from "@/components/local-price-note";
 
 const STATE_LABEL: Record<HoursLessonLine["state"], { label: string; variant: "success" | "secondary" | "destructive" }> = {
   COUNTED: { label: "Counted", variant: "success" },
@@ -86,7 +87,8 @@ function AccountCard({ account }: { account: HoursAccountSummary }) {
           <p className="rounded-md bg-gray-50 px-3 py-2 text-xs text-gray-600">
             At {formatMoney(account.effectiveRatePerHour, account.currency)} per hour, you have used{" "}
             <strong>{formatMoney(account.valueUsed, account.currency)}</strong> of your prepaid classes and{" "}
-            <strong>{formatMoney(account.valueRemaining, account.currency)}</strong> is still available.
+            <strong>{formatMoney(account.valueRemaining, account.currency)}</strong> is still available{" "}
+            <LocalPriceNote variant="short" amount={account.valueRemaining ?? 0} currency={account.currency} />.
           </p>
         )}
 

@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { GetMySpendingSummaryAction } from "@/server/payment";
 import { SpendingSummary } from "@/types/payment";
+import { LocalPriceNote } from "@/components/local-price-note";
 
 interface BillingSummaryPanelProps {
   studentId?: string;
@@ -45,6 +46,7 @@ export default function BillingSummaryPanel({ studentId }: BillingSummaryPanelPr
                 <p className="text-2xl font-semibold text-gray-800">
                   {summary.currency} {summary.totalSpent.toLocaleString()}
                 </p>
+                <LocalPriceNote variant="short" amount={summary.totalSpent} currency={summary.currency} className="block text-xs text-gray-500" />
                 <p className="text-sm text-gray-500">Total spent, all-time</p>
               </div>
               {selectedChildSpend && (
@@ -52,6 +54,7 @@ export default function BillingSummaryPanel({ studentId }: BillingSummaryPanelPr
                   <p className="text-2xl font-semibold text-gray-800">
                     {summary.currency} {selectedChildSpend.total.toLocaleString()}
                   </p>
+                  <LocalPriceNote variant="short" amount={selectedChildSpend.total} currency={summary.currency} className="block text-xs text-gray-500" />
                   <p className="text-sm text-gray-500">Spent on {selectedChildSpend.studentName}</p>
                 </div>
               )}

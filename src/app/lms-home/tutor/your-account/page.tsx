@@ -34,6 +34,7 @@ import {
 } from "@/server/payout";
 import { Bank, PayoutRequest, PayoutRequestStatus, RateStatus, TutorBalance, TutorPayoutProfile } from "@/types/payout";
 import { TutorRate } from "@/types/tutor-rate";
+import { LocalPriceNote } from "@/components/local-price-note";
 
 const STATUS_COLORS: Record<PayoutRequestStatus, string> = {
   [PayoutRequestStatus.PENDING]: "text-orange-500",
@@ -174,11 +175,12 @@ export default function DashboardPage() {
         <StatCard
           title="Current Balance"
           value={formatMoney(balance?.currentBalance ?? 0, balance?.currency)}
+          note={<LocalPriceNote variant="short" amount={balance?.currentBalance ?? 0} currency={balance?.currency} className="block text-xs text-gray-500" />}
           icon={PiggyBank}
           color="bg-emerald-100 text-emerald-600"
         />
-        <StatCard title="Total Paid Out" value={formatMoney(totalPaid)} icon={DollarSign} color="bg-orange-100 text-orange-600" />
-        <StatCard title="Pending Amount" value={formatMoney(pendingAmount)} icon={Wallet} color="bg-purple-100 text-purple-600" />
+        <StatCard title="Total Paid Out" value={formatMoney(totalPaid)} note={<LocalPriceNote variant="short" amount={totalPaid} className="block text-xs text-gray-500" />} icon={DollarSign} color="bg-orange-100 text-orange-600" />
+        <StatCard title="Pending Amount" value={formatMoney(pendingAmount)} note={<LocalPriceNote variant="short" amount={pendingAmount} className="block text-xs text-gray-500" />} icon={Wallet} color="bg-purple-100 text-purple-600" />
         <StatCard
           title="Confirmed Rates"
           value={rates.filter((r) => r.ratePerHour != null || r.flatRate != null).length}
@@ -395,7 +397,7 @@ export default function DashboardPage() {
 }
 
 /* ------------------- Reusable Stat Card ------------------- */
-function StatCard({ title, value, icon: Icon, color }: any) {
+function StatCard({ title, value, icon: Icon, color, note }: any) {
   return (
     <Card className="flex items-center p-4 gap-4">
       <div className={`p-3 rounded-lg ${color}`}>
@@ -403,6 +405,7 @@ function StatCard({ title, value, icon: Icon, color }: any) {
       </div>
       <div>
         <p className="text-xl font-semibold">{value}</p>
+        {note}
         <p className="text-sm text-gray-500">{title}</p>
       </div>
     </Card>

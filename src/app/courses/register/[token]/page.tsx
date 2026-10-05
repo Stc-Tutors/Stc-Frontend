@@ -14,6 +14,7 @@ import { ROUTES } from "@/config/routes";
 import { UserRole, User } from "@/types/user";
 import { Student } from "@/types/student";
 import Link from "next/link";
+import { LocalPriceNote } from "@/components/local-price-note";
 
 // Public landing page for a Special Course's shareable registration link
 // (see Stc-SuperAdmin's special-course-form.tsx, which generates it). A
@@ -54,6 +55,7 @@ export default function SpecialCourseRegisterPage() {
   return (
     <AuthLayout title={course.title} subtitle={`${course.category} · ${course.currency} ${course.price}`}>
       <div className="space-y-6">
+        <LocalPriceNote amount={Number(course.price)} currency={course.currency} className="text-sm text-gray-600" />
         <div className="text-sm text-gray-600 space-y-1">
           <p>{course.description}</p>
           {course.tutor && (

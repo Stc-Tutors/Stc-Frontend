@@ -30,6 +30,7 @@ import {
   StudentPenaltyChargeStatus,
   type StudentPenaltyCharge,
 } from "@/types/penalty";
+import { LocalPriceNote } from "@/components/local-price-note";
 
 // How long to keep asking Paystack whether a payment that hasn't settled yet
 // (bank transfer / USSD confirm after the popup closes) has gone through.
@@ -155,7 +156,7 @@ export default function WalletPage() {
           <StatCard title="Wallet Balance" value={formatMoney(0, "NGN")} />
         ) : (
           balances.map((b) => (
-            <StatCard key={b.currency} title={`${b.currency} Balance`} value={formatMoney(b.balance, b.currency)} />
+            <StatCard key={b.currency} title={`${b.currency} Balance`} value={formatMoney(b.balance, b.currency)} note={<LocalPriceNote variant="short" amount={b.balance} currency={b.currency} className="block text-xs text-gray-500" />} />
           ))
         )}
       </div>
@@ -232,6 +233,7 @@ export default function WalletPage() {
                       >
                         {t.type === WalletTransactionType.CREDIT ? "+" : "-"}
                         {formatMoney(t.amount, t.currency)}
+                        <LocalPriceNote variant="short" amount={t.amount} currency={t.currency} className="block text-xs text-gray-500" />
                       </td>
                       <td className="py-2 px-4">{formatMoney(t.balanceAfter, t.currency)}</td>
                     </tr>
@@ -359,7 +361,7 @@ function PenaltyChargesSection() {
   );
 }
 
-function StatCard({ title, value }: { title: string; value: string }) {
+function StatCard({ title, value, note }: { title: string; value: string; note?: React.ReactNode }) {
   return (
     <Card className="flex items-center p-4 gap-4">
       <div className="p-3 rounded-lg bg-emerald-100 text-emerald-600">
@@ -367,6 +369,7 @@ function StatCard({ title, value }: { title: string; value: string }) {
       </div>
       <div>
         <p className="text-xl font-semibold">{value}</p>
+        {note}
         <p className="text-sm text-gray-500">{title}</p>
       </div>
     </Card>

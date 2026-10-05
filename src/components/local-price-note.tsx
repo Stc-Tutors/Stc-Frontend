@@ -70,7 +70,11 @@ export function LocalPriceNote({ amount, currency, country, variant = "full", cl
   const rounded = local >= 100 ? Math.round(local) : Math.round(local * 100) / 100;
 
   if (variant === "short") {
-    return <span className={className ?? "text-xs text-gray-500"}>≈ {formatMoney(rounded, estimate.currency)}</span>;
+    return (
+      <span className={className ?? "text-xs text-gray-500"} title="Approximate, at today's exchange rate">
+        ≈ {formatMoney(rounded, estimate.currency)}
+      </span>
+    );
   }
   return (
     <p className={className ?? "text-sm text-gray-600"}>
