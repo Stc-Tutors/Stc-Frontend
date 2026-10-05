@@ -874,6 +874,7 @@ export default function SubjectsSchedule({ onNext, errors, forcedUserType }: Ste
                                 </div>
                                 <p className="font-semibold text-green-700 whitespace-nowrap">
                                   {course.currency ?? "NGN"} {course.price?.toLocaleString()}
+                                  <LocalPriceNote variant="short" amount={course.price ?? 0} currency={course.currency} country={enrollmentData.childInfo?.countryOfResidence} className="block text-xs font-normal text-gray-500" />
                                 </p>
                               </label>
                             ))}
@@ -941,7 +942,8 @@ export default function SubjectsSchedule({ onNext, errors, forcedUserType }: Ste
                   Fee:{" "}
                   <span className="font-semibold text-green-700">
                     {filteredCourses[0].currency ?? "NGN"} {filteredCourses[0].price?.toLocaleString()}
-                  </span>
+                  </span>{" "}
+                  <LocalPriceNote variant="short" amount={filteredCourses[0].price ?? 0} currency={filteredCourses[0].currency} country={enrollmentData.childInfo?.countryOfResidence} className="text-xs text-gray-500" />
                 </p>
               )}
               {treeExhausted && !courseDecidedByTree && filteredCourses.length > 0 && (
@@ -970,6 +972,7 @@ export default function SubjectsSchedule({ onNext, errors, forcedUserType }: Ste
                     </div>
                     <p className="font-semibold text-green-700 whitespace-nowrap">
                       {course.currency ?? "NGN"} {course.price?.toLocaleString()}
+                      <LocalPriceNote variant="short" amount={course.price ?? 0} currency={course.currency} country={enrollmentData.childInfo?.countryOfResidence} className="block text-xs font-normal text-gray-500" />
                     </p>
                   </label>
                 ))}

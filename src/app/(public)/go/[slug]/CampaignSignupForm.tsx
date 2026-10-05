@@ -26,6 +26,7 @@ import { Course } from "@/types/course";
 import { ROUTES } from "@/config/routes";
 import { APPLY_COUPON_EVENT } from "@/lib/campaign-promo";
 import { WhatsAppLink } from "./WhatsAppButtons";
+import { LocalPriceNote } from "@/components/local-price-note";
 
 interface FormState {
   parentFirstName: string;
@@ -544,7 +545,10 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
                 <input type="radio" name="course" checked={chosenCourseId === c.id} onChange={() => setChosenCourseId(c.id)} />
                 {c.title}
               </span>
-              <span className="font-medium text-gray-700">{formatMoney(c.currency, c.price)}</span>
+              <span className="font-medium text-gray-700 text-right">
+                {formatMoney(c.currency, c.price)}
+                <LocalPriceNote variant="short" amount={c.price} currency={c.currency} country={form.countryOfResidence} className="block text-xs font-normal text-gray-500" />
+              </span>
             </label>
           ))}
         </div>
@@ -663,7 +667,10 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
               <div className="space-y-1">
                 <p className="text-sm font-medium text-gray-700">{flowTreeLeaf.name}</p>
                 {flowTreeQuote ? (
-                  <p className="text-2xl font-bold text-gray-900">{formatMoney(flowTreeQuote.currency, flowTreeQuote.amount)}</p>
+                  <>
+                    <p className="text-2xl font-bold text-gray-900">{formatMoney(flowTreeQuote.currency, flowTreeQuote.amount)}</p>
+                    <LocalPriceNote amount={flowTreeQuote.amount} currency={flowTreeQuote.currency} country={form.countryOfResidence} className="text-sm text-gray-600" />
+                  </>
                 ) : priceError ? (
                   <PriceError onRetry={handleRetryPrice} pageName={cohortName} />
                 ) : (
@@ -699,7 +706,10 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
             ) : isLoading ? (
               <PriceSkeleton />
             ) : quote ? (
-              <p className="text-2xl font-bold text-gray-900">{formatMoney(quote.currency, quote.amount)}</p>
+              <>
+                <p className="text-2xl font-bold text-gray-900">{formatMoney(quote.currency, quote.amount)}</p>
+                <LocalPriceNote amount={quote.amount} currency={quote.currency} country={form.countryOfResidence} className="text-sm text-gray-600" />
+              </>
             ) : priceError ? (
               <PriceError onRetry={handleRetryPrice} pageName={cohortName} />
             ) : (

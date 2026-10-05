@@ -19,6 +19,7 @@ import { IServiceDetails, ISchedule } from "@/types/student";
 import { UserRole } from "@/types/user";
 import { ToastError, ToastSuccess } from "@/components/ui/custom/toast";
 import { rememberResidence } from "@/lib/display-currency";
+import { LocalPriceNote } from "@/components/local-price-note";
 
 export default function CompleteProfileForm({ studentId, dashboardPath }: { studentId: string; dashboardPath: string }) {
   const router = useRouter();
@@ -201,7 +202,10 @@ export default function CompleteProfileForm({ studentId, dashboardPath }: { stud
               <p><span className="font-medium">Subjects:</span> {serviceDetails.selectedSubjects.join(", ")}</p>
             )}
             {requiresPayment && !!serviceDetails.totalCost && (
-              <p><span className="font-medium">Cost:</span> {formatMoney(serviceDetails.totalCost)}</p>
+              <p>
+                <span className="font-medium">Cost:</span> {formatMoney(serviceDetails.totalCost)}{" "}
+                <LocalPriceNote variant="short" amount={serviceDetails.totalCost} country={countryOfResidence} />
+              </p>
             )}
             {schedule && schedule.length > 0 && (
               <div>

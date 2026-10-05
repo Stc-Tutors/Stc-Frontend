@@ -1,4 +1,5 @@
-import React from "react";
+import React from "react";
+import { LocalPriceNote } from "@/components/local-price-note";
 
 interface SummaryProps {
   childName: string;
@@ -68,6 +69,7 @@ export default function ServiceSummaryCard({
         {typeof totalCost === "number" && (
           <div className="text-right mt-4 font-bold text-blue-600">
             Estimated Monthly Cost: ₦{totalCost.toLocaleString()}
+            <LocalPriceNote amount={totalCost} variant="short" className="block text-xs font-normal text-gray-500" />
           </div>
         )}
       </div>

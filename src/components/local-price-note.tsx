@@ -47,8 +47,10 @@ export function LocalPriceNote({ amount, currency, country, variant = "full", cl
       // The "shows in" currency a Super Admin assigned this country wins; otherwise our
       // own guess. A residence we know is authoritative - even Nigeria (no note), rather
       // than falling through to the browser language of someone who lives in Nigeria.
-      const assigned = residence ? data?.countryCurrencies?.[residence.trim()]?.displayCurrency : undefined;
-      const target = assigned ?? (residence ? currencyForCountry(residence) : currencyFromLocale());
+      // Where they live (entered) wins; otherwise where their IP says, then the browser's language.
+      const where = residence || data?.viewerCountry || data?.viewerIso || "";
+      const assigned = where ? data?.countryCurrencies?.[where.trim()]?.displayCurrency : undefined;
+      const target = assigned ?? (where ? currencyForCountry(where) : currencyFromLocale());
       // Rates are per 1 NGN, so any pair converts through naira (NGN itself is 1).
       const perNaira = (code: string) => (code === "NGN" ? 1 : data?.rates[code]);
       const from = perNaira(chargeCode);

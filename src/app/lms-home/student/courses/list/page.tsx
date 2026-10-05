@@ -9,6 +9,7 @@ import { GetCoursesAction } from "@/server/course";
 import { EnrollInCourseAction } from "@/server/course-enrollment";
 import { GetEnrollmentsAction } from "@/server/enrollment";
 import { Course } from "@/types/course";
+import { LocalPriceNote } from "@/components/local-price-note";
 
 export default function CoursesPage() {
   const router = useRouter();
@@ -107,6 +108,7 @@ export default function CoursesPage() {
                 <div className="mt-auto flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-700">
                     {course.currency} {course.price}
+                    <LocalPriceNote variant="short" amount={Number(course.price)} currency={course.currency} className="block text-xs font-normal text-gray-500" />
                   </span>
 
                   <div className="flex gap-2">

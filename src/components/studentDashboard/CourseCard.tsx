@@ -2,6 +2,7 @@
 import Image from 'next/image';
 import { FaStar } from 'react-icons/fa';
 import { Course, CourseTutor } from '@/types/course';
+import { LocalPriceNote } from "@/components/local-price-note";
 
 interface CourseCardProps {
   course: Course;
@@ -39,6 +40,7 @@ const CourseCard = ({ course, onClick }: CourseCardProps) => {
         </div>
         <div className="text-green-600 text-sm font-medium">
           {course.currency} {course.price}
+          <LocalPriceNote variant="short" amount={Number(course.price)} currency={course.currency} className="block text-xs font-normal text-gray-500" />
         </div>
       </div>
     </div>

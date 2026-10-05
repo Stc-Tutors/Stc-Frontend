@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { FileText, Lock } from "lucide-react";
 import ResourcePreviewDialog from "@/components/resources/ResourcePreviewDialog";
+import { LocalPriceNote } from "@/components/local-price-note";
 
 interface ResourceCardProps {
   title: string;
@@ -37,6 +38,7 @@ export default function ResourceCard({ title, type, added, size, href, locked }:
           className="text-sm font-medium text-amber-600 hover:text-amber-700 whitespace-nowrap"
         >
           Unlock for {locked.currency} {locked.price}
+          <LocalPriceNote variant="short" amount={Number(locked.price)} currency={locked.currency} className="block text-xs font-normal text-gray-500" />
         </button>
       ) : (
         <div className="text-sm text-muted-foreground">{size}</div>

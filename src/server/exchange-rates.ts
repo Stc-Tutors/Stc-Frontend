@@ -12,6 +12,9 @@ export interface ExchangeRatesData {
   countryCurrencies?: Record<string, { payCurrency: string; displayCurrency: string | null }>;
   // Applied once to the converted figure so the estimate leans slightly high.
   margin?: number;
+  // Where the visitor is, from their IP (null when unknown) - used until they say where they live.
+  viewerCountry?: string | null;
+  viewerIso?: string | null;
 }
 
 // Display-only estimate rates - nothing is ever charged from these.

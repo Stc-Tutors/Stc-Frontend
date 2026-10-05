@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useVideoCourseUnlock } from "@/components/video-courses/use-video-course-unlock";
+import { LocalPriceNote } from "@/components/local-price-note";
 
 // Requirement 2's "Frontend Rendering": a student who has picked a specific
 // Subject sees any standalone Video Course an admin optionally cross-sold
@@ -64,6 +65,7 @@ export default function RecommendedVideoCourses({ subjectNodeIds }: { subjectNod
                 <p className="text-xs text-gray-500 truncate">By {vc.instructor}</p>
                 <p className="text-xs font-semibold text-green-700 mt-0.5">
                   {isFree ? "Free" : `${vc.currency} ${vc.price.toLocaleString()}`}
+                  {!isFree && <LocalPriceNote variant="short" amount={vc.price} currency={vc.currency} className="ml-1 font-normal text-gray-500" />}
                 </p>
                 {canLearn ? (
                   isUnlocked ? (
