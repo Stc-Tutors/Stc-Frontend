@@ -5,9 +5,8 @@ import { GetExchangeRatesAction, type ExchangeRatesData } from "@/server/exchang
 import { formatMoney } from "@/lib/money";
 import { currencyForCountry, currencyFromLocale, getRememberedResidence, rememberResidence } from "@/lib/display-currency";
 
-// Display-only. Prices are charged in naira (the only currency the payment gateway
-// collects today), so for a family living elsewhere this shows roughly what that is
-// in their own money - the amount actually charged never changes.
+// Display-only. Shows roughly what a price is in the family's own currency, converted
+// from the currency it is charged in - the amount actually charged never changes.
 
 let ratesPromise: Promise<ExchangeRatesData | null> | null = null;
 function loadRates(): Promise<ExchangeRatesData | null> {
@@ -25,7 +24,7 @@ function loadRates(): Promise<ExchangeRatesData | null> {
 
 interface LocalPriceNoteProps {
   amount: number;
-  // The currency `amount` is actually charged in. Only naira amounts are converted.
+  // The currency `amount` is charged in (naira when omitted).
   currency?: string | null;
   // Where the family lives (a country code or name) - decides the currency shown.
   // Omit it and the last residence they entered on this device is used, then the
@@ -38,29 +37,31 @@ interface LocalPriceNoteProps {
 
 export function LocalPriceNote({ amount, currency, country, variant = "full", className }: LocalPriceNoteProps) {
   const [estimate, setEstimate] = useState<{ currency: string; rate: number } | null>(null);
-  const isNaira = !currency || currency.toUpperCase() === "NGN";
+  const chargeCode = (currency || "NGN").toUpperCase();
 
   useEffect(() => {
-    if (!isNaira) return;
     if (country) rememberResidence(country);
     const residence = country || getRememberedResidence();
     let cancelled = false;
     loadRates().then((data) => {
-      // The currency a Super Admin assigned this country wins; otherwise our own guess.
-      // A residence we know is authoritative - even Nigeria (no note), rather than
-      // falling through to the browser language of someone who lives in Nigeria.
-      const assigned = residence ? data?.countryCurrencies?.[residence.trim()] : undefined;
+      // The "shows in" currency a Super Admin assigned this country wins; otherwise our
+      // own guess. A residence we know is authoritative - even Nigeria (no note), rather
+      // than falling through to the browser language of someone who lives in Nigeria.
+      const assigned = residence ? data?.countryCurrencies?.[residence.trim()]?.displayCurrency : undefined;
       const target = assigned ?? (residence ? currencyForCountry(residence) : currencyFromLocale());
-      const rate = target && target !== "NGN" ? data?.rates[target] : undefined;
+      // Rates are per 1 NGN, so any pair converts through naira (NGN itself is 1).
+      const perNaira = (code: string) => (code === "NGN" ? 1 : data?.rates[code]);
+      const from = perNaira(chargeCode);
+      const to = target ? perNaira(target) : undefined;
       if (cancelled) return;
-      setEstimate(target && rate ? { currency: target, rate } : null);
+      setEstimate(target && target !== chargeCode && from && to ? { currency: target, rate: (to / from) * (data?.margin ?? 1.03) } : null);
     });
     return () => {
       cancelled = true;
     };
-  }, [country, isNaira]);
+  }, [country, chargeCode]);
 
-  if (!isNaira || !estimate || !(amount > 0)) return null;
+  if (!estimate || !(amount > 0)) return null;
 
   const local = amount * estimate.rate;
   // Whole units for big amounts, cents for small ones.
@@ -71,7 +72,7 @@ export function LocalPriceNote({ amount, currency, country, variant = "full", cl
   }
   return (
     <p className={className ?? "text-sm text-gray-600"}>
-      ≈ {formatMoney(rounded, estimate.currency)} · you&apos;ll be charged {formatMoney(amount, "NGN")} in naira, and your bank
+      ≈ {formatMoney(rounded, estimate.currency)} · you&apos;ll be charged {formatMoney(amount, chargeCode)}, and your bank
       converts it. The exact amount depends on your bank&apos;s rate.
     </p>
   );

@@ -7,8 +7,11 @@ export interface ExchangeRatesData {
   // Units of each currency per 1 NGN.
   rates: Record<string, number>;
   asOf: string | null;
-  // The currency a Super Admin assigned each country (keyed by the country's value).
-  countryCurrencies?: Record<string, string>;
+  // What a Super Admin assigned each country (keyed by the country's value): the currency
+  // it is charged in, and the currency the family sees an approximate figure in.
+  countryCurrencies?: Record<string, { payCurrency: string; displayCurrency: string | null }>;
+  // Applied once to the converted figure so the estimate leans slightly high.
+  margin?: number;
 }
 
 // Display-only estimate rates - nothing is ever charged from these.

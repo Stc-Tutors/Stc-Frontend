@@ -2,7 +2,7 @@
 // any live Service Catalog entry can be priced, not just the original ten.
 export type EnrollmentServiceType = string;
 
-export const CURRENCIES = ["NGN", "USD", "EUR", "GBP", "CAD", "GHS", "ZAR", "KES", "ZMW", "CHF", "CNY"] as const;
+export const CURRENCIES = ["NGN", "USD", "EUR", "GBP", "CAD", "GHS", "ZAR", "KES", "ZMW", "CHF", "CNY", "EGP", "MAD", "TZS", "UGX", "RWF", "XOF", "XAF", "ETB", "BWP", "MUR", "AUD", "JPY", "INR", "AED", "SAR", "SGD", "NZD", "SEK", "NOK", "DKK", "BRL", "MXN", "HKD"] as const;
 export type CurrencyCode = (typeof CURRENCIES)[number];
 
 // A single currency-specific amount within a pricing row - one row can carry
