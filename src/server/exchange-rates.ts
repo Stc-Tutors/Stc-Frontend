@@ -7,6 +7,8 @@ export interface ExchangeRatesData {
   // Units of each currency per 1 NGN.
   rates: Record<string, number>;
   asOf: string | null;
+  // The currency a Super Admin assigned each country (keyed by the country's value).
+  countryCurrencies?: Record<string, string>;
 }
 
 // Display-only estimate rates - nothing is ever charged from these.

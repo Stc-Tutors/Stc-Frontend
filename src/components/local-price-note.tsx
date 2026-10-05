@@ -44,17 +44,16 @@ export function LocalPriceNote({ amount, currency, country, variant = "full", cl
     if (!isNaira) return;
     if (country) rememberResidence(country);
     const residence = country || getRememberedResidence();
-    // A residence we know is authoritative - even Nigeria (no note), rather than
-    // falling through to the browser language of someone who lives in Nigeria.
-    const target = residence ? currencyForCountry(residence) : currencyFromLocale();
-    if (!target) {
-      setEstimate(null);
-      return;
-    }
     let cancelled = false;
     loadRates().then((data) => {
-      const rate = data?.rates[target];
-      if (!cancelled && rate) setEstimate({ currency: target, rate });
+      // The currency a Super Admin assigned this country wins; otherwise our own guess.
+      // A residence we know is authoritative - even Nigeria (no note), rather than
+      // falling through to the browser language of someone who lives in Nigeria.
+      const assigned = residence ? data?.countryCurrencies?.[residence.trim()] : undefined;
+      const target = assigned ?? (residence ? currencyForCountry(residence) : currencyFromLocale());
+      const rate = target && target !== "NGN" ? data?.rates[target] : undefined;
+      if (cancelled) return;
+      setEstimate(target && rate ? { currency: target, rate } : null);
     });
     return () => {
       cancelled = true;
