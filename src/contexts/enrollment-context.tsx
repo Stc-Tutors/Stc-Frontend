@@ -375,6 +375,22 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
     const weeks = serviceDetails.billingWeeks && serviceDetails.billingWeeks > 0 ? serviceDetails.billingWeeks : 4;
 
     if (serviceType === "tech-bootcamp") {
+      // Tech Training for Kids is priced per age range AND per course/subject (nearest price wins: the course's own price, else its age
+      // range's). Use the same lookup as every other service first - the flat Nigerian/International amounts below are only the
+      // legacy fallback for when no price is configured for the picked item, and used to override every per-course price.
+      const techCandidates = pricing.filter((p) => p.serviceType === "tech-bootcamp");
+      const techNames = (serviceDetails.selectedSubjects ?? []).length > 0 ? (serviceDetails.selectedSubjects as string[]) : (schedule ?? []).map((r) => r.subject);
+      const techFlatCharged = new Set<string>();
+      let techTotal = 0;
+      for (const name of techNames) {
+        if (techFlatCharged.has(name)) continue;
+        const techPrice = pickPrice(priceRowFor(techCandidates, name, serviceDetails));
+        if (techPrice?.flatRate != null) {
+          techFlatCharged.add(name);
+          techTotal += techPrice.flatRate;
+        }
+      }
+      if (techTotal > 0) return techTotal;
       const bucket = (curriculum || "").trim().toLowerCase() === "nigerian" ? "Nigerian" : "International";
       const rateRow = pricing.find((p) => p.serviceType === "tech-bootcamp" && p.curriculum === bucket);
       const price = pickPrice(rateRow);
