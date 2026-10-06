@@ -114,7 +114,7 @@ export default function OffboardTutorDialog({ onDone }: { onDone?: () => void })
             <div>
               <label className="text-xs font-medium text-gray-600 mb-1 block">Incoming tutor</label>
               <UserSearchSelect
-                role={UserRole.TUTOR}
+                role={UserRole.TUTOR} assignableOnly
                 value={incomingId}
                 onChange={(id) => setIncomingId(id)}
                 placeholder="Search tutor by name or email..."

@@ -77,7 +77,7 @@ export default function UnassignedQueueDetailDialog({ enrollment, onOpenChange, 
   // is just a manual name/email search.
   const handleManualSearch = async () => {
     setIsSearchingManually(true);
-    const [res, error] = await GetUsersAction({ role: UserRole.TUTOR, search: manualSearch || undefined, limit: 20 });
+    const [res, error] = await GetUsersAction({ role: UserRole.TUTOR, search: manualSearch || undefined, limit: 20, assignable: true });
     if (error) {
       toast.error(error);
       setManualResults(null);

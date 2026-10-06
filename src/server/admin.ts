@@ -27,7 +27,7 @@ export async function CreateUserAction(data: {
 }
 
 export async function GetUsersAction(
-  params?: { role?: string; status?: string; search?: string; limit?: number }
+  params?: { role?: string; status?: string; search?: string; limit?: number; assignable?: boolean }
 ): Promise<[ApiResponse<User[]> | null, string | null]> {
   const query = new URLSearchParams(
     Object.entries(params ?? {})

@@ -20,12 +20,14 @@ interface Props {
   value: string; // user id, or "" for none
   onChange: (id: string, user?: User) => void;
   placeholder?: string;
+  // Only tutors who are fully approved AND vetted (use wherever the pick hands students/courses to a tutor).
+  assignableOnly?: boolean;
 }
 
 // Search-and-select for picking a user account by role, backed by GET
 // /users?role=&search= - replaces admins having to type a raw Mongo user ID
 // by hand to link an enrollment to an account.
-export function UserSearchSelect({ role, value, onChange, placeholder }: Props) {
+export function UserSearchSelect({ role, value, onChange, placeholder, assignableOnly }: Props) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [users, setUsers] = useState<User[]>([]);
@@ -36,13 +38,13 @@ export function UserSearchSelect({ role, value, onChange, placeholder }: Props) 
     if (!open) return;
     setIsLoading(true);
     const timeout = setTimeout(() => {
-      GetUsersAction({ role, search: search || undefined }).then(([res]) => {
+      GetUsersAction({ role, search: search || undefined, assignable: assignableOnly ? true : undefined }).then(([res]) => {
         setUsers(res?.data ?? []);
         setIsLoading(false);
       });
     }, 250);
     return () => clearTimeout(timeout);
-  }, [open, search, role]);
+  }, [open, search, role, assignableOnly]);
 
   useEffect(() => {
     if (!value) {

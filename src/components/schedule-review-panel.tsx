@@ -87,7 +87,7 @@ function TutorAllocationForm({ student, onDone }: { student: Student; onDone: ()
             </option>
           ))}
         </select>
-        <UserSearchSelect role={UserRole.TUTOR} value={tutorId} onChange={(id) => setTutorId(id)} placeholder="Search tutor by name or email..." />
+        <UserSearchSelect role={UserRole.TUTOR} assignableOnly value={tutorId} onChange={(id) => setTutorId(id)} placeholder="Search tutor by name or email..." />
       </div>
       {tutorId && (
         <select value={courseId} onChange={(e) => setCourseId(e.target.value)} className="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm">

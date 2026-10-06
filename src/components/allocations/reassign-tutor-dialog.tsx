@@ -41,7 +41,7 @@ export default function ReassignTutorDialog({ enrollment, onOpenChange, onReassi
     setSelectedTutorId("");
     if (!enrollment) return;
     setIsLoading(true);
-    Promise.all([GetUsersAction({ role: UserRole.TUTOR, limit: 1000 }), ListTutorAllocationsAction()]).then(
+    Promise.all([GetUsersAction({ role: UserRole.TUTOR, limit: 1000, assignable: true }), ListTutorAllocationsAction()]).then(
       ([[usersRes], [allocationsRes]]) => {
         setTutors(usersRes?.data ?? []);
         setAllocationsByTutor(new Map((allocationsRes?.data ?? []).map((a) => [a.tutor, a])));

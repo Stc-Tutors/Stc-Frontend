@@ -42,7 +42,7 @@ function AdminCreateCoursePageInner() {
         instructorPicker={
           <div className="space-y-1">
             <Label>Instructor *</Label>
-            <UserSearchSelect role={UserRole.TUTOR} value={tutorId} onChange={setTutorId} placeholder="Search tutor by name or email" />
+            <UserSearchSelect role={UserRole.TUTOR} assignableOnly value={tutorId} onChange={setTutorId} placeholder="Search tutor by name or email" />
           </div>
         }
         lockedServiceSlug={serviceSlug}
