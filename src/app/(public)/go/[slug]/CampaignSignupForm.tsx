@@ -323,6 +323,7 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
       return;
     }
     if (payment.fullyCoveredByWallet) {
+      trackMetaEvent("Purchase", { value: choice.amount, currency: choice.currency });
       router.push(ROUTES.LMS.PARENT.PAYMENT_HISTORY);
       return;
     }
@@ -333,7 +334,10 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
     popup.resumeTransaction((payment as PaymentRequest).access_code, {
       onSuccess: async () => {
         const { VerifyPaymentAction } = await import("@/server/payment");
-        await VerifyPaymentAction((payment as PaymentRequest).reference);
+        const [verifyRes] = await VerifyPaymentAction((payment as PaymentRequest).reference);
+        // Only count a payment that actually verified. The amount is the price
+        // quoted on this page (before any coupon discount).
+        if (verifyRes?.data?.status === "COMPLETED") trackMetaEvent("Purchase", { value: choice.amount, currency: choice.currency });
         router.push(ROUTES.LMS.PARENT.PAYMENT_HISTORY);
       },
       onCancel: () => {
