@@ -9,7 +9,7 @@ import { useUser } from "@/contexts/user-context";
 import { Button } from "@/components/ui/button";
 import { ToastError } from "@/components/ui/custom/toast";
 import { useVideoCourseUnlock } from "@/components/video-courses/use-video-course-unlock";
-import { LocalPriceNote } from "@/components/local-price-note";
+import { LocalFirstPrice } from "@/components/local-price-note";
 
 function Thumb({ course }: { course: CatalogVideoCourse }) {
   return course.thumbnailUrl ? (
@@ -95,8 +95,7 @@ export default function MyVideoCoursesView() {
                       <p className="font-medium text-sm truncate">{vc.title}</p>
                       <p className="text-xs text-gray-500 truncate">By {vc.instructor}</p>
                       <p className="text-xs font-semibold text-green-700 mt-0.5">
-                        {vc.currency} {vc.price.toLocaleString()}
-                        <LocalPriceNote variant="short" amount={vc.price} currency={vc.currency} className="ml-1 font-normal text-gray-500" />
+                        <LocalFirstPrice amount={vc.price} currency={vc.currency}>{vc.currency} {vc.price.toLocaleString()}</LocalFirstPrice>
                       </p>
                       <Button
                         type="button"

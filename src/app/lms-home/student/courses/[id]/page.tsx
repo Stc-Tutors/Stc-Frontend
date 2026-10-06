@@ -5,7 +5,7 @@ import { GetCourseAction } from "@/server/course";
 import { Course, CourseTutor } from "@/types/course";
 import { ReportDialog } from "@/components/moderation/report-dialog";
 import { ReportedEntityType } from "@/types/moderation";
-import { LocalPriceNote } from "@/components/local-price-note";
+import { LocalFirstPrice } from "@/components/local-price-note";
 
 export default function CourseDetailPage() {
   const { id } = useParams();
@@ -52,8 +52,7 @@ export default function CourseDetailPage() {
           <h3 className="text-xl font-semibold text-gray-800 mb-2">About this course</h3>
           <p className="text-gray-600 mb-4">{course.description}</p>
           <p className="text-sm font-medium text-gray-700">
-            Price: {course.currency} {course.price}{" "}
-            <LocalPriceNote variant="short" amount={Number(course.price)} currency={course.currency} className="font-normal text-gray-500" />
+            Price: <LocalFirstPrice amount={Number(course.price)} currency={course.currency}>{course.currency} {course.price}</LocalFirstPrice>
             {course.capacity ? ` · Capacity: ${course.capacity}` : ""}
           </p>
 

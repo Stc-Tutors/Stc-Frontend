@@ -5,7 +5,7 @@ import { formatDate } from "@/lib/datetime";
 import { GetPublicPricingPlansAction, SubscribeAction, GetMySubscriptionsAction } from "@/server/subscription";
 import { PricingPlan } from "@/types/pricing-plan";
 import { Subscription, SubscriptionStatus } from "@/types/subscription";
-import { LocalPriceNote } from "@/components/local-price-note";
+import { LocalFirstPrice } from "@/components/local-price-note";
 
 export default function PlansPanel() {
   const [plans, setPlans] = useState<PricingPlan[]>([]);
@@ -71,9 +71,8 @@ export default function PlansPanel() {
               <p className="font-semibold text-gray-900">{plan.name}</p>
               <p className="text-sm text-gray-500 mb-3">{plan.description}</p>
               <p className="text-2xl font-semibold mb-1">
-                {plan.currency} {plan.price.toLocaleString()}
+                <LocalFirstPrice amount={plan.price} currency={plan.currency}>{plan.currency} {plan.price.toLocaleString()}</LocalFirstPrice>
               </p>
-              <LocalPriceNote variant="short" amount={plan.price} currency={plan.currency} className="block text-sm text-gray-500 mb-1" />
               <p className="text-xs text-gray-500 mb-4">per {plan.billingPeriod}</p>
               {(plan.discountPercent || plan.resourceAccess || plan.referralBonusPercent || plan.priorityAllocation) && (
                 <div className="flex flex-wrap gap-1.5 mb-3">

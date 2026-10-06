@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ResourcePreviewDialog from "./ResourcePreviewDialog";
 import { CourseResource, ResourceAccessTier, ResourceStatus, ResourceType } from "@/types/resource";
-import { LocalPriceNote } from "@/components/local-price-note";
+import { LocalFirstPrice } from "@/components/local-price-note";
 
 export interface RecordingItem {
   id: string;
@@ -180,8 +180,7 @@ export default function ResourcesTabs({
               onClick={() => onUnlock?.(r)}
               className="text-sm font-medium text-amber-600 hover:text-amber-700 whitespace-nowrap"
             >
-              Unlock for {formatMoney(r.price ?? 0, r.currency)}
-              <LocalPriceNote variant="short" amount={r.price ?? 0} currency={r.currency} className="block text-xs font-normal text-gray-500" />
+              Unlock for <LocalFirstPrice amount={r.price ?? 0} currency={r.currency}>{formatMoney(r.price ?? 0, r.currency)}</LocalFirstPrice>
             </button>
           ) : (
             <button

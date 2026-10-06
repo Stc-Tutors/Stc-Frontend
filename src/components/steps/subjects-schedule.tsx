@@ -18,7 +18,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { LocalPriceNote } from "@/components/local-price-note";
+import { LocalFirstPrice } from "@/components/local-price-note";
 import CurriculumDrilldown,{ CurriculumPath } from "@/components/curriculum-drilldown";
 import RecommendedVideoCourses from "@/components/recommended-video-courses";
 import { CurriculumNode, CurriculumServiceType } from "@/types/curriculum";
@@ -873,8 +873,7 @@ export default function SubjectsSchedule({ onNext, errors, forcedUserType }: Ste
                                   </div>
                                 </div>
                                 <p className="font-semibold text-green-700 whitespace-nowrap">
-                                  {course.currency ?? "NGN"} {course.price?.toLocaleString()}
-                                  <LocalPriceNote variant="short" amount={course.price ?? 0} currency={course.currency} country={enrollmentData.childInfo?.countryOfResidence} className="block text-xs font-normal text-gray-500" />
+                                  <LocalFirstPrice amount={course.price ?? 0} currency={course.currency} country={enrollmentData.childInfo?.countryOfResidence}>{course.currency ?? "NGN"} {course.price?.toLocaleString()}</LocalFirstPrice>
                                 </p>
                               </label>
                             ))}
@@ -941,9 +940,8 @@ export default function SubjectsSchedule({ onNext, errors, forcedUserType }: Ste
                 <p className="text-sm text-gray-600">
                   Fee:{" "}
                   <span className="font-semibold text-green-700">
-                    {filteredCourses[0].currency ?? "NGN"} {filteredCourses[0].price?.toLocaleString()}
-                  </span>{" "}
-                  <LocalPriceNote variant="short" amount={filteredCourses[0].price ?? 0} currency={filteredCourses[0].currency} country={enrollmentData.childInfo?.countryOfResidence} className="text-xs text-gray-500" />
+                    <LocalFirstPrice amount={filteredCourses[0].price ?? 0} currency={filteredCourses[0].currency} country={enrollmentData.childInfo?.countryOfResidence}>{filteredCourses[0].currency ?? "NGN"} {filteredCourses[0].price?.toLocaleString()}</LocalFirstPrice>
+                  </span>
                 </p>
               )}
               {treeExhausted && !courseDecidedByTree && filteredCourses.length > 0 && (
@@ -971,8 +969,7 @@ export default function SubjectsSchedule({ onNext, errors, forcedUserType }: Ste
                       </div>
                     </div>
                     <p className="font-semibold text-green-700 whitespace-nowrap">
-                      {course.currency ?? "NGN"} {course.price?.toLocaleString()}
-                      <LocalPriceNote variant="short" amount={course.price ?? 0} currency={course.currency} country={enrollmentData.childInfo?.countryOfResidence} className="block text-xs font-normal text-gray-500" />
+                      <LocalFirstPrice amount={course.price ?? 0} currency={course.currency} country={enrollmentData.childInfo?.countryOfResidence}>{course.currency ?? "NGN"} {course.price?.toLocaleString()}</LocalFirstPrice>
                     </p>
                   </label>
                 ))}
@@ -1687,10 +1684,11 @@ export default function SubjectsSchedule({ onNext, errors, forcedUserType }: Ste
               {totalCost > 0 ? (
                 <>
                   <p className="text-2xl font-bold text-green-600">
+                    <LocalFirstPrice amount={totalCost} country={enrollmentData.childInfo?.countryOfResidence} explain>
                     ₦{totalCost.toLocaleString()}
                     {isPathC || !hasHourlySubject ? "" : ` / ${serviceData.billingWeeks} week${serviceData.billingWeeks === 1 ? "" : "s"}`}
+                    </LocalFirstPrice>
                   </p>
-                  <LocalPriceNote amount={totalCost} country={enrollmentData.childInfo?.countryOfResidence} className="text-sm text-gray-700 mb-1" />
                   <p className="text-sm text-gray-600">
                     {isPathC
                       ? hasTree

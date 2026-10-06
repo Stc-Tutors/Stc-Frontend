@@ -26,7 +26,7 @@ import { Course } from "@/types/course";
 import { ROUTES } from "@/config/routes";
 import { APPLY_COUPON_EVENT } from "@/lib/campaign-promo";
 import { WhatsAppLink } from "./WhatsAppButtons";
-import { LocalPriceNote } from "@/components/local-price-note";
+import { LocalPriceNote, LocalFirstPrice } from "@/components/local-price-note";
 
 interface FormState {
   parentFirstName: string;
@@ -546,8 +546,7 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
                 {c.title}
               </span>
               <span className="font-medium text-gray-700 text-right">
-                {formatMoney(c.currency, c.price)}
-                <LocalPriceNote variant="short" amount={c.price} currency={c.currency} country={form.countryOfResidence} className="block text-xs font-normal text-gray-500" />
+                <LocalFirstPrice amount={c.price} currency={c.currency} country={form.countryOfResidence}>{formatMoney(c.currency, c.price)}</LocalFirstPrice>
               </span>
             </label>
           ))}
@@ -668,8 +667,7 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
                 <p className="text-sm font-medium text-gray-700">{flowTreeLeaf.name}</p>
                 {flowTreeQuote ? (
                   <>
-                    <p className="text-2xl font-bold text-gray-900">{formatMoney(flowTreeQuote.currency, flowTreeQuote.amount)}</p>
-                    <LocalPriceNote amount={flowTreeQuote.amount} currency={flowTreeQuote.currency} country={form.countryOfResidence} className="text-sm text-gray-600" />
+                    <p className="text-2xl font-bold text-gray-900"><LocalFirstPrice amount={flowTreeQuote.amount} currency={flowTreeQuote.currency} country={form.countryOfResidence} explain>{formatMoney(flowTreeQuote.currency, flowTreeQuote.amount)}</LocalFirstPrice></p>
                   </>
                 ) : priceError ? (
                   <PriceError onRetry={handleRetryPrice} pageName={cohortName} />
@@ -707,8 +705,7 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
               <PriceSkeleton />
             ) : quote ? (
               <>
-                <p className="text-2xl font-bold text-gray-900">{formatMoney(quote.currency, quote.amount)}</p>
-                <LocalPriceNote amount={quote.amount} currency={quote.currency} country={form.countryOfResidence} className="text-sm text-gray-600" />
+                <p className="text-2xl font-bold text-gray-900"><LocalFirstPrice amount={quote.amount} currency={quote.currency} country={form.countryOfResidence} explain>{formatMoney(quote.currency, quote.amount)}</LocalFirstPrice></p>
               </>
             ) : priceError ? (
               <PriceError onRetry={handleRetryPrice} pageName={cohortName} />

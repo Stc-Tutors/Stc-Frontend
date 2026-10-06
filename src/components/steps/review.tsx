@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { formatMoney } from "@/lib/money";
-import { LocalPriceNote } from "@/components/local-price-note";
+import { LocalFirstPrice } from "@/components/local-price-note";
 import { useSearchParams } from "next/navigation";
 import { useEnrollment } from "@/contexts/enrollment-context";
 import { useUser } from "@/contexts/user-context";
@@ -627,8 +627,7 @@ export default function EnrollmentReview({ onNext, errors }: StepProps) {
               <p className="text-sm text-green-600">Click "Save & Continue" to proceed to secure payment</p>
             </div>
             <div className="text-right">
-              <p className="text-2xl font-bold text-green-800">{formatMoney(totalCost)}</p>
-              <LocalPriceNote amount={totalCost} country={childInfo?.countryOfResidence} className="text-sm text-green-700 max-w-xs ml-auto" />
+              <p className="text-2xl font-bold text-green-800"><LocalFirstPrice amount={totalCost} country={childInfo?.countryOfResidence} explain>{formatMoney(totalCost)}</LocalFirstPrice></p>
               {showWeeklyBreakdown && (
                 <p className="text-sm text-green-600">
                   for {billingWeeks} week{billingWeeks === 1 ? "" : "s"}

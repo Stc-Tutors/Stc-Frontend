@@ -25,7 +25,7 @@ import { EnrollInCourseAction } from "@/server/course-enrollment";
 import { InitiatePaymentAction, VerifyPaymentAction } from "@/server/payment";
 import { RedeemPaymentBypassTokenAction } from "@/server/enrollment";
 import PaymentConsentModal from "@/components/payment-consent-modal";
-import { LocalPriceNote } from "@/components/local-price-note";
+import { LocalPriceNote, LocalFirstPrice } from "@/components/local-price-note";
 
 // Lets a parent (or a self-registered student, who is effectively their own
 // parent - see stcbe's isParentRegisteredChild) add a new course/service to
@@ -365,8 +365,7 @@ export default function MarketplacePage() {
                     </div>
                   </div>
                   <p className="font-semibold text-green-700 whitespace-nowrap">
-                    {course.currency ?? "NGN"} {course.price?.toLocaleString()}
-                    <LocalPriceNote variant="short" amount={course.price ?? 0} currency={course.currency} className="block text-xs font-normal text-gray-500" />
+                    <LocalFirstPrice amount={course.price ?? 0} currency={course.currency}>{course.currency ?? "NGN"} {course.price?.toLocaleString()}</LocalFirstPrice>
                   </p>
                 </label>
               ))}
@@ -398,10 +397,9 @@ export default function MarketplacePage() {
                   </div>
                 ) : (
                   <p className="text-xl font-bold text-gray-900">
-                    {displayCurrency} {displayAmount.toLocaleString()}
+                    <LocalFirstPrice amount={displayAmount} currency={displayCurrency}>{displayCurrency} {displayAmount.toLocaleString()}</LocalFirstPrice>
                   </p>
                 )}
-                {!quoteLoading && <LocalPriceNote variant="short" amount={displayAmount} currency={displayCurrency} className="block text-xs text-gray-500" />}
                 {quoteError && <p className="text-xs text-amber-600 mt-1 max-w-xs">{quoteError}</p>}
               </div>
             </div>
