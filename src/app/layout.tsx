@@ -20,7 +20,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <TenantBrandingProvider>
         <UserProvider>
-          <body className="min-h-screen flex flex-col ">
+          {/* suppressHydrationWarning only ignores a mismatch on this element's own
+              attributes (not its children) - the standard fix for a browser
+              extension (Grammarly, Dark Reader, etc.) injecting attributes like
+              data-gr-ext-installed into <body> before React hydrates. Harmless and
+              unrelated to any app code; this just stops it being flagged as an error. */}
+          <body className="min-h-screen flex flex-col " suppressHydrationWarning>
             {children}
             {/* Mandatory for every role, on top of any page - see TermsGateModal. */}
             <TermsGateModal />
