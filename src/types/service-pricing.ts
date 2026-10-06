@@ -39,6 +39,9 @@ export interface ServicePricing {
   // Scopes this row to one specific admin-provisioned cohort instead of the
   // service as a whole - see stcbe's IServicePricing.classGroupId.
   classGroupId?: string;
+  // Set = this is the price for families LIVING in that country (a value from the Countries list);
+  // unset = the universal price, used for everyone unless a price for their country exists.
+  residenceCountry?: string;
   prices: PricePoint[];
   isActive: boolean;
 }

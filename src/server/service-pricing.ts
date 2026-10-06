@@ -33,6 +33,7 @@ export async function CreateServicePricingAction(data: {
   subject?: string;
   courseId?: string;
   country?: string;
+  residenceCountry?: string;
   prices: PricePoint[];
 }): Promise<[ApiResponse<ServicePricing> | null, string | null]> {
   const [res, error] = await fetchAPI({

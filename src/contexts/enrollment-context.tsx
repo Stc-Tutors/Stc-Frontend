@@ -350,6 +350,28 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
     );
   };
 
+  // A price set for the country the family lives in wins over the universal one (a row with no
+  // residenceCountry) - mirrors the server's findMatching.
+  const priceRowForResident = (
+    candidates: ServicePricing[],
+    subjectName: string,
+    serviceDetails: PricingDetails
+  ): ServicePricing | undefined => {
+    const residence = enrollmentData.childInfo?.countryOfResidence;
+    if (residence) {
+      const own = candidates.filter((p) => p.residenceCountry === residence);
+      if (own.length > 0) {
+        const row = priceRowFor(own, subjectName, serviceDetails);
+        if (row) return row;
+      }
+    }
+    return priceRowFor(
+      candidates.filter((p) => !p.residenceCountry),
+      subjectName,
+      serviceDetails
+    );
+  };
+
   // Rates come from the admin-editable /public/service-pricing endpoint
   // (fetched into `pricing` on mount). This is only a display estimate - the
   // backend recomputes the actual authoritative charge server-side (see
@@ -407,7 +429,7 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
     const flatCharged = new Set<string>();
 
     return schedule.reduce((total, subject) => {
-      const price = pickPrice(priceRowFor(candidates, subject.subject, serviceDetails));
+      const price = pickPrice(priceRowForResident(candidates, subject.subject, serviceDetails));
       if (!price) return total;
       // A flat price already covers the whole billing period for this
       // subject - it isn't a rate to multiply by hours or weeks.
@@ -432,7 +454,7 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
     const serviceDetails = { ...enrollmentData.serviceDetails, ...serviceDetailsOverride };
     const candidates = pricing.filter((p) => p.serviceType === serviceDetails.serviceType);
     return subjects.filter((name) => {
-      const price = pickPrice(priceRowFor(candidates, name, serviceDetails));
+      const price = pickPrice(priceRowForResident(candidates, name, serviceDetails));
       return !!price && price.flatRate == null;
     });
   };
@@ -445,7 +467,7 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
     const candidates = pricing.filter((p) => p.serviceType === serviceDetails.serviceType);
 
     return schedule
-      .filter((subject) => !pickPrice(priceRowFor(candidates, subject.subject, serviceDetails)))
+      .filter((subject) => !pickPrice(priceRowForResident(candidates, subject.subject, serviceDetails)))
       .map((subject) => subject.subject);
   };
 

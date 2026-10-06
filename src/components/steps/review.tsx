@@ -425,14 +425,22 @@ export default function EnrollmentReview({ onNext, errors }: StepProps) {
                     </div>
                     <div className="flex justify-between text-sm">
                       <span>Weekly cost:</span>
-                      <span>{formatMoney(totalCost / billingWeeks)}</span>
+                      <span className="text-right">
+                        <LocalFirstPrice amount={totalCost / billingWeeks} country={childInfo?.countryOfResidence}>
+                          {formatMoney(totalCost / billingWeeks)}
+                        </LocalFirstPrice>
+                      </span>
                     </div>
                   </>
                 )}
                 <Separator />
                 <div className="flex justify-between font-semibold text-lg">
                   <span>{!showWeeklyBreakdown ? "Total:" : `Total (${billingWeeks} week${billingWeeks === 1 ? "" : "s"}):`}</span>
-                  <span className="text-green-600">{formatMoney(totalCost)}</span>
+                  <span className="text-green-600 text-right">
+                    <LocalFirstPrice amount={totalCost} country={childInfo?.countryOfResidence}>
+                      {formatMoney(totalCost)}
+                    </LocalFirstPrice>
+                  </span>
                 </div>
               </div>
             </div>

@@ -9,6 +9,8 @@ import {
 } from "@/server/service-pricing";
 import { GetCoursesAction } from "@/server/course";
 import { GetServicesAction } from "@/server/service-catalog";
+import { GetTaxonomyOptionsAction } from "@/server/taxonomy-option";
+import { ITaxonomyOption, TaxonomyOptionKind } from "@/types/service-catalog";
 import { formatMoney } from "@/lib/money";
 import { CURRENCIES, CurrencyCode, EnrollmentServiceType, PricePoint, ServicePricing } from "@/types/service-pricing";
 import { Course } from "@/types/course";
@@ -122,6 +124,13 @@ export default function ServicePricingPage() {
   const [subject, setSubject] = useState("");
   const [courseId, setCourseId] = useState("");
   const [country, setCountry] = useState("");
+  // "" = the universal price; a country = the price for families living there only.
+  const [residenceCountry, setResidenceCountry] = useState("");
+  const [residenceOptions, setResidenceOptions] = useState<ITaxonomyOption[]>([]);
+  useEffect(() => {
+    GetTaxonomyOptionsAction(TaxonomyOptionKind.COUNTRY).then(([res]) => setResidenceOptions(res?.data ?? []));
+  }, []);
+  const residenceLabel = (value?: string) => residenceOptions.find((c) => c.value === value)?.label ?? value;
   const [draftPrices, setDraftPrices] = useState<DraftPrice[]>([emptyDraftPrice()]);
   const [isSaving, setIsSaving] = useState(false);
   const [selectedNodeId, setSelectedNodeId] = useState<string | undefined>(undefined);
@@ -195,6 +204,7 @@ export default function ServicePricingPage() {
       subject: subject || undefined,
       courseId: courseId || undefined,
       country: country || undefined,
+      residenceCountry: residenceCountry || undefined,
       prices,
     });
     setIsSaving(false);
@@ -205,6 +215,7 @@ export default function ServicePricingPage() {
       setSubject("");
       setCourseId("");
       setCountry("");
+      setResidenceCountry("");
       setSelectedNodeId(undefined);
       setDraftPrices([emptyDraftPrice()]);
     }
@@ -279,6 +290,18 @@ export default function ServicePricingPage() {
               <input placeholder="Curriculum (optional)" value={curriculum} onChange={(e) => setCurriculum(e.target.value)} className="border border-gray-300 rounded-md px-3 py-2 text-sm" />
               <input placeholder="Subject (optional)" value={subject} onChange={(e) => setSubject(e.target.value)} className="border border-gray-300 rounded-md px-3 py-2 text-sm" />
               <input placeholder="Country (optional)" value={country} onChange={(e) => setCountry(e.target.value)} className="border border-gray-300 rounded-md px-3 py-2 text-sm" />
+              <select
+                value={residenceCountry}
+                onChange={(e) => setResidenceCountry(e.target.value)}
+                className="border border-gray-300 rounded-md px-3 py-2 text-sm"
+              >
+                <option value="">Everyone - the universal price</option>
+                {residenceOptions.map((c) => (
+                  <option key={c.id} value={c.value}>
+                    Only families living in {c.label}
+                  </option>
+                ))}
+              </select>
               <input placeholder="Grade level (optional)" value={gradeLevel} onChange={(e) => setGradeLevel(e.target.value)} className="border border-gray-300 rounded-md px-3 py-2 text-sm" />
             </>
           )}
@@ -344,6 +367,7 @@ export default function ServicePricingPage() {
                 <th className="p-3">Subject</th>
                 <th className="p-3">Course</th>
                 <th className="p-3">Country</th>
+                <th className="p-3">Applies to</th>
                 <th className="p-3">Prices</th>
                 <th className="p-3">Active</th>
                 <th className="p-3"></th>
@@ -359,6 +383,7 @@ export default function ServicePricingPage() {
                   <td className="p-3">{row.subject ?? "-"}</td>
                   <td className="p-3">{courseTitleById(row.courseId) ?? "-"}</td>
                   <td className="p-3">{row.country ?? "-"}</td>
+                  <td className="p-3">{row.residenceCountry ? `Living in ${residenceLabel(row.residenceCountry)}` : "Everyone"}</td>
                   <td className="p-3">
                     {editingRowId === row.id ? (
                       <div className="space-y-2">
