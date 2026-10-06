@@ -17,7 +17,7 @@ export const metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <TenantBrandingProvider>
         <UserProvider>
           {/* suppressHydrationWarning only ignores a mismatch on this element's own
