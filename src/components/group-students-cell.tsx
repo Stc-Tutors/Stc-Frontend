@@ -15,7 +15,7 @@ type CourseEnrollmentRef = string | { student: string | { fullName: string } } |
 export function individualStudentName(courseEnrollment: CourseEnrollmentRef): string | undefined {
   if (!courseEnrollment || typeof courseEnrollment === "string") return undefined;
   const student = courseEnrollment.student;
-  return typeof student === "string" ? undefined : student.fullName;
+  return !student || typeof student === "string" ? undefined : student.fullName;
 }
 
 // "Student" column of the admin session/schedule tables: the student's name, or - for a group class - "Group class (n)" with a
@@ -35,6 +35,8 @@ export function StudentsCell({ courseEnrollment, groupStudents }: { courseEnroll
   }, [open]);
 
   if (name) return <>{name}</>;
+  // The lesson IS linked to an enrolment, but that student was deleted.
+  if (courseEnrollment && typeof courseEnrollment === "object" && !courseEnrollment.student) return <span className="text-gray-500">Removed student</span>;
 
   const students = groupStudents ?? [];
   // No linked student and no group members: an unlinked lesson (older data), not a group class - say so instead of mislabelling it.

@@ -79,7 +79,7 @@ export default function AdminRescheduleRequestsPage() {
     const courseEnrollment = typeof r.lesson === "string" ? undefined : r.lesson.courseEnrollment;
     if (!courseEnrollment || typeof courseEnrollment === "string") return "Group class";
     const student = courseEnrollment.student;
-    return typeof student === "string" ? "Group class" : student.fullName;
+    return !student || typeof student === "string" ? "Group class" : student.fullName;
   };
 
   return (

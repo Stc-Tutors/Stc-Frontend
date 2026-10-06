@@ -194,7 +194,7 @@ export default function AdminSessionsPage() {
   const lessonStudentName = (courseEnrollment: Lesson["courseEnrollment"] | undefined): string => {
     if (!courseEnrollment || typeof courseEnrollment === "string") return "Group class";
     const student = courseEnrollment.student;
-    return typeof student === "string" ? "Group class" : student.fullName;
+    return !student || typeof student === "string" ? "Group class" : student.fullName;
   };
 
   const lessonOf = (r: RescheduleRequest) => (typeof r.lesson === "string" ? null : r.lesson);
