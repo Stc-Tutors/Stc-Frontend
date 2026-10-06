@@ -43,7 +43,7 @@ function contentSecurityPolicy() {
   const api = apiOrigins();
   const directives = {
     "default-src": ["'self'"],
-    "script-src": ["'self'", "'unsafe-inline'", "https://js.paystack.co"],
+    "script-src": ["'self'", "'unsafe-inline'", "https://js.paystack.co", "https://connect.facebook.net"],
     "style-src": ["'self'", "'unsafe-inline'"],
     "img-src": [
       "'self'",
@@ -53,6 +53,7 @@ function contentSecurityPolicy() {
       "https://img.youtube.com",
       "https://drive.google.com",
       "https://*.googleusercontent.com",
+      "https://www.facebook.com",
     ],
     "font-src": ["'self'", "data:"],
     "connect-src": [
@@ -62,6 +63,8 @@ function contentSecurityPolicy() {
       "https://api.paystack.co",
       "https://checkout.paystack.com",
       "https://api.cloudinary.com",
+      "https://www.facebook.com",
+      "https://connect.facebook.net",
       // The in-app classroom connects straight to LiveKit (signalling over wss,
       // some fallbacks over https). LiveKit Cloud projects live under
       // livekit.cloud; a self-hosted server's host comes from the env var.

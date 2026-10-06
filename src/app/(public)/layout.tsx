@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Navbar from "../components/Navbar";
+import MetaPixel from "@/components/meta-pixel";
 import { GetPageSectionsAction } from "@/server/content";
 import { HeadSeoContent, PageSectionKey } from "@/types/content";
 
@@ -31,6 +32,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function HomeLayout({ children }: { children: React.ReactNode }) {
     return (
         <>
+            <MetaPixel />
             <Navbar />
             {children}
         </>

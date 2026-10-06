@@ -26,6 +26,7 @@ import { Course } from "@/types/course";
 import { ROUTES } from "@/config/routes";
 import { APPLY_COUPON_EVENT } from "@/lib/campaign-promo";
 import { WhatsAppLink } from "./WhatsAppButtons";
+import { trackMetaEvent } from "@/lib/meta-pixel";
 import { LocalPriceNote, LocalFirstPrice } from "@/components/local-price-note";
 
 interface FormState {
@@ -432,6 +433,8 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
           return;
         }
       } else {
+        // A brand-new account was just created from this ad landing page.
+        trackMetaEvent("Lead");
         setStep("Signing you in...");
         const [signinRes, signinError] = await SigninAction({ email: form.parentEmail, password: form.password });
         if (signinError || !signinRes?.data?.token) {
