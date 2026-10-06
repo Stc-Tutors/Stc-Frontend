@@ -37,6 +37,8 @@ export function StudentsCell({ courseEnrollment, groupStudents }: { courseEnroll
   if (name) return <>{name}</>;
 
   const students = groupStudents ?? [];
+  // No linked student and no group members: an unlinked lesson (older data), not a group class - say so instead of mislabelling it.
+  if (!courseEnrollment && students.length === 0) return <span className="text-amber-700">Not linked to a student</span>;
   return (
     <span ref={ref} className="relative inline-flex items-center gap-1">
       Group class{students.length > 0 ? ` (${students.length})` : ""}
