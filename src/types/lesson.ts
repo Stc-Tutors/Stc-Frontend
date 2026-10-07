@@ -42,6 +42,7 @@ export interface Lesson {
   // EXTERNAL (default) = pasted link; LIVEKIT = the in-app classroom.
   deliveryMode?: LessonDeliveryMode;
   recording?: LessonRecording;
+  waitingRoomEnabled?: boolean;
   // Set at clock-out. A family only ever receives billableMinutes/source.
   verification?: SessionVerification;
   reviewStatus?: "PENDING_REVIEW" | "APPROVED" | "FLAGGED";

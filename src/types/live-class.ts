@@ -13,11 +13,20 @@ export enum RecordingStatus {
   DELETED = "DELETED",
 }
 
+// FULL (default) records the tutor and every consenting student. TUTOR_ONLY
+// records just the tutor's camera/mic - no student ever appears, so no
+// student consent is needed for this mode at all.
+export enum RecordingScope {
+  FULL = "FULL",
+  TUTOR_ONLY = "TUTOR_ONLY",
+}
+
 export interface LessonRecording {
   enabled: boolean;
   enabledBy?: string;
   enabledAt?: string;
   reason?: string;
+  scope?: RecordingScope;
   status?: RecordingStatus;
   durationSeconds?: number;
   error?: string;
@@ -69,12 +78,27 @@ export interface SessionVerification {
 export type PresenceRole = "TUTOR" | "LEARNER" | "OBSERVER";
 
 export interface JoinInfo {
+  status: "joined";
   url: string;
   token: string;
   roomName: string;
   role: PresenceRole;
   recording: boolean;
   lesson: { id: string; title: string; scheduledDate: string; durationMinutes: number };
+}
+
+// Returned instead of a token when the lesson has a waiting room on and this
+// learner hasn't been admitted yet.
+export interface WaitingInfo {
+  status: "waiting";
+}
+
+export type JoinResponse = JoinInfo | WaitingInfo;
+
+export interface WaitingRoomEntry {
+  userId: string;
+  fullName: string;
+  requestedAt: string;
 }
 
 export interface ConsentIssue {

@@ -13,14 +13,43 @@ import {
   type LocalUserChoices,
 } from "@livekit/components-react";
 import { DisconnectReason, Track } from "livekit-client";
-import { Circle, DoorOpen, EyeOff, Loader2, PhoneOff, ShieldAlert } from "lucide-react";
+import { Circle, Clock, DoorOpen, EyeOff, Loader2, PhoneOff, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ToastError } from "@/components/ui/custom/toast";
 import { useUser } from "@/contexts/user-context";
+import { useLiveClassSocket } from "@/hooks/use-live-class-socket";
 import { EndLiveClassAction, JoinLiveClassAction } from "@/server/live-class";
 import type { JoinInfo } from "@/types/live-class";
+import { BackgroundBlurToggle, useNoiseSuppression } from "./LocalMediaEffects";
+import ReactionsBar from "./ReactionsBar";
+import ReportIssueButton from "./ReportIssueButton";
+import SelfConnectionQuality from "./SelfConnectionQuality";
+import WaitingRoomPanel from "./WaitingRoomPanel";
 
-type Phase = "loading" | "prejoin" | "live" | "left" | "ended" | "error";
+type Phase = "loading" | "waiting" | "prejoin" | "live" | "left" | "ended" | "error";
+
+// Everything inside <LiveKitRoom> that needs room context via hooks - kept as
+// its own component so it can call useNoiseSuppression/useLocalParticipant
+// etc., which only work inside the room provider.
+function RoomExtras({ lessonId, lessonTitle, isTutor }: { lessonId: string; lessonTitle: string; isTutor: boolean }) {
+  useNoiseSuppression();
+  return (
+    <>
+      {/* Docked above VideoConference's own built-in control bar (mute/camera/
+          screen-share/leave), not on top of it - these are extra controls, not
+          a replacement for the built-in ones. */}
+      <div className="absolute bottom-20 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2">
+        <ReactionsBar />
+        <BackgroundBlurToggle />
+        <ReportIssueButton lessonId={lessonId} lessonTitle={lessonTitle} />
+      </div>
+      <div className="absolute bottom-20 right-3 z-10">
+        <SelfConnectionQuality />
+      </div>
+      {isTutor && <WaitingRoomPanel lessonId={lessonId} />}
+    </>
+  );
+}
 
 interface LiveKitClassroomProps {
   lessonId: string;
@@ -46,6 +75,36 @@ function ObserverView() {
   );
 }
 
+// Shown to a LEARNER on a waiting-room-enabled lesson until the tutor (or an
+// admin/HOD) admits them. Listens live for that - no polling needed.
+function WaitingScreen({ lessonId, onAdmitted, onExit }: { lessonId: string; onAdmitted: () => void; onExit: () => void }) {
+  const [denied, setDenied] = useState(false);
+  useLiveClassSocket({
+    onAdmitted: (payload) => {
+      if (payload.lessonId === lessonId) onAdmitted();
+    },
+    onDenied: (payload) => {
+      if (payload.lessonId === lessonId) setDenied(true);
+    },
+  });
+
+  return (
+    <div className="flex flex-col items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 py-16 text-center">
+      <Clock className="h-8 w-8 text-gray-400" />
+      {denied ? (
+        <p className="max-w-sm text-sm text-gray-700">
+          The tutor hasn&apos;t let you in yet. You can try again, or come back closer to the class start time.
+        </p>
+      ) : (
+        <p className="max-w-sm text-sm text-gray-700">You&apos;re in the waiting room - the tutor will let you in shortly.</p>
+      )}
+      <Button variant="outline" onClick={onExit}>
+        Back to my schedule
+      </Button>
+    </div>
+  );
+}
+
 export default function LiveKitClassroom({ lessonId, onExit }: LiveKitClassroomProps) {
   const { user } = useUser();
   const [phase, setPhase] = useState<Phase>("loading");
@@ -61,6 +120,10 @@ export default function LiveKitClassroom({ lessonId, onExit }: LiveKitClassroomP
     if (err || !res?.data) {
       setError(err || "Couldn't open the classroom");
       setPhase("error");
+      return;
+    }
+    if (res.data.status === "waiting") {
+      setPhase("waiting");
       return;
     }
     setJoin(res.data);
@@ -86,6 +149,10 @@ export default function LiveKitClassroom({ lessonId, onExit }: LiveKitClassroomP
       if (err || !res?.data) {
         setError(err || "Couldn't open the classroom");
         setPhase("error");
+        return;
+      }
+      if (res.data.status === "waiting") {
+        setPhase("waiting");
         return;
       }
       setJoin(res.data);
@@ -125,6 +192,10 @@ export default function LiveKitClassroom({ lessonId, onExit }: LiveKitClassroomP
         </div>
       </div>
     );
+  }
+
+  if (phase === "waiting") {
+    return <WaitingScreen lessonId={lessonId} onAdmitted={requestJoin} onExit={onExit} />;
   }
 
   if (phase === "left" || phase === "ended") {
@@ -208,6 +279,7 @@ export default function LiveKitClassroom({ lessonId, onExit }: LiveKitClassroomP
       >
         {isObserver ? <ObserverView /> : <VideoConference />}
         <RoomAudioRenderer />
+        {!isObserver && <RoomExtras lessonId={lessonId} lessonTitle={join.lesson.title} isTutor={isTutor} />}
       </LiveKitRoom>
 
       <div className="pointer-events-none absolute left-3 top-3 flex flex-col gap-2">

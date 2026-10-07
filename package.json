@@ -14,6 +14,8 @@
     "@hookform/resolvers": "^5.0.1",
     "@livekit/components-react": "^2.9.24",
     "@livekit/components-styles": "^1.2.0",
+    "@livekit/krisp-noise-filter": "^0.4.5",
+    "@livekit/track-processors": "^0.8.1",
     "@netlify/plugin-nextjs": "^5.10.4",
     "@paystack/inline-js": "^2.22.2",
     "@radix-ui/react-alert-dialog": "^1.1.14",

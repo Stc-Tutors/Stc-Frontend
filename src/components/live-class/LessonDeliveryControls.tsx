@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Circle, Link2, Monitor, ShieldCheck, TriangleAlert } from "lucide-react";
+import { Circle, Clock, Link2, Monitor, ShieldCheck, TriangleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ToastError, ToastSuccess } from "@/components/ui/custom/toast";
@@ -9,16 +9,19 @@ import {
   GetRecordingReadinessAction,
   SetCourseDeliveryModeAction,
   SetCourseRecordingAction,
+  SetCourseWaitingRoomAction,
   SetLessonDeliveryModeAction,
   SetLessonRecordingAction,
+  SetLessonWaitingRoomAction,
 } from "@/server/live-class";
-import { LessonDeliveryMode, type LessonRecording, type RecordingReadiness } from "@/types/live-class";
+import { LessonDeliveryMode, RecordingScope, type LessonRecording, type RecordingReadiness } from "@/types/live-class";
 
 // Only what the controls read/write, so any app's own lesson type fits.
 export interface ControlLesson {
   id: string;
   deliveryMode?: LessonDeliveryMode;
   recording?: LessonRecording;
+  waitingRoomEnabled?: boolean;
 }
 
 interface LessonDeliveryControlsProps {
@@ -48,11 +51,13 @@ export default function LessonDeliveryControls({
   const mode = lesson.deliveryMode ?? LessonDeliveryMode.EXTERNAL;
   const inApp = mode === LessonDeliveryMode.LIVEKIT;
   const recording = !!lesson.recording?.enabled;
+  const waitingRoom = !!lesson.waitingRoomEnabled;
 
   const [busy, setBusy] = useState(false);
   const [panelOpen, setPanelOpen] = useState(false);
   const [readiness, setReadiness] = useState<RecordingReadiness | null>(null);
   const [reason, setReason] = useState("");
+  const [scope, setScope] = useState<RecordingScope>(lesson.recording?.scope ?? RecordingScope.FULL);
 
   const changeMode = async (next: LessonDeliveryMode, wholeCourse: boolean) => {
     setBusy(true);
@@ -83,19 +88,35 @@ export default function LessonDeliveryControls({
   const setRecording = async (enabled: boolean, wholeCourse: boolean) => {
     setBusy(true);
     if (wholeCourse) {
-      const [res, err] = await SetCourseRecordingAction(courseId, enabled, reason.trim() || undefined);
+      const [res, err] = await SetCourseRecordingAction(courseId, enabled, reason.trim() || undefined, scope);
       setBusy(false);
       if (err) return ToastError(err);
       ToastSuccess(`Recording ${enabled ? "turned on for" : "turned off for"} ${res?.data?.updated ?? 0} upcoming class(es)`);
       onBulkChanged?.();
       return;
     }
-    const [res, err] = await SetLessonRecordingAction(lesson.id, enabled, reason.trim() || undefined);
+    const [res, err] = await SetLessonRecordingAction(lesson.id, enabled, reason.trim() || undefined, scope);
     setBusy(false);
     if (err || !res?.data) return ToastError(err || "Couldn't change recording");
     ToastSuccess(enabled ? "This class will be recorded" : "Recording turned off for this class");
     onChanged(res.data);
     setPanelOpen(false);
+  };
+
+  const setWaitingRoom = async (enabled: boolean, wholeCourse: boolean) => {
+    setBusy(true);
+    if (wholeCourse) {
+      const [res, err] = await SetCourseWaitingRoomAction(courseId, enabled);
+      setBusy(false);
+      if (err) return ToastError(err);
+      ToastSuccess(`Waiting room ${enabled ? "turned on for" : "turned off for"} ${res?.data?.updated ?? 0} upcoming class(es)`);
+      onBulkChanged?.();
+      return;
+    }
+    const [res, err] = await SetLessonWaitingRoomAction(lesson.id, enabled);
+    setBusy(false);
+    if (err || !res?.data) return ToastError(err || "Couldn't change the waiting room");
+    onChanged(res.data);
   };
 
   return (
@@ -139,6 +160,22 @@ export default function LessonDeliveryControls({
             <Circle className="h-2.5 w-2.5 fill-current" /> Recorded
           </span>
         )}
+
+        {inApp && canChooseDelivery && (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => setWaitingRoom(!waitingRoom, false)}
+            title={waitingRoom ? "Students wait until the tutor admits them" : "Students join straight in"}
+            aria-pressed={waitingRoom}
+            className={`flex items-center gap-1 rounded-md border px-2 py-1 ${
+              waitingRoom ? "border-amber-300 bg-amber-50 text-amber-800" : "text-gray-600 hover:bg-gray-50"
+            }`}
+          >
+            <Clock className="h-2.5 w-2.5" />
+            {waitingRoom ? "Waiting room on" : "No waiting room"}
+          </button>
+        )}
       </div>
 
       {canChooseDelivery && (
@@ -164,7 +201,36 @@ export default function LessonDeliveryControls({
                   Recording storage isn&apos;t set up on the server yet, so recording can&apos;t start.
                 </p>
               )}
-              {readiness.missingConsent.length > 0 ? (
+              {!recording && (
+                <div className="inline-flex overflow-hidden rounded-md border" role="group" aria-label="What the recording captures">
+                  <button
+                    type="button"
+                    onClick={() => setScope(RecordingScope.FULL)}
+                    aria-pressed={scope === RecordingScope.FULL}
+                    className={`px-2 py-1 ${scope === RecordingScope.FULL ? "bg-gray-900 text-white" : "bg-white text-gray-600 hover:bg-gray-50"}`}
+                  >
+                    Everyone (minus non-consenting)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setScope(RecordingScope.TUTOR_ONLY)}
+                    aria-pressed={scope === RecordingScope.TUTOR_ONLY}
+                    className={`border-l px-2 py-1 ${scope === RecordingScope.TUTOR_ONLY ? "bg-gray-900 text-white" : "bg-white text-gray-600 hover:bg-gray-50"}`}
+                  >
+                    Tutor only
+                  </button>
+                </div>
+              )}
+
+              {recording && lesson.recording?.scope === RecordingScope.TUTOR_ONLY ? (
+                <p className="flex items-center gap-1.5 text-gray-600">
+                  <ShieldCheck className="h-3.5 w-3.5" /> Tutor only - no student appears in this recording.
+                </p>
+              ) : scope === RecordingScope.TUTOR_ONLY && !recording ? (
+                <p className="flex items-center gap-1.5 text-gray-600">
+                  <ShieldCheck className="h-3.5 w-3.5" /> Captures only the tutor - no student consent needed.
+                </p>
+              ) : readiness.missingConsent.length > 0 ? (
                 <div className="text-amber-800">
                   <p className="flex items-start gap-1.5">
                     <TriangleAlert className="mt-0.5 h-3.5 w-3.5 shrink-0" />
