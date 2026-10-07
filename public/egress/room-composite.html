@@ -18,12 +18,18 @@
   as a dependency, since a build step would defeat the point of a plain static
   file LiveKit's browser can load with nothing else to fetch or compile.
 
-  How exclusion works: the `layout` param carries "exclude:<id1>,<id2>,...", the
-  LiveKit participant identities (User ids - see LiveKitService.issueToken) that
-  must never appear in the recording. This page connects with autoSubscribe
-  turned off, so it never even receives an excluded identity's audio/video -
-  their media never reaches this page, let alone the recording. Everyone else
-  (the tutor, every consenting student) is subscribed and rendered normally.
+  Who ends up in the recording is decided entirely by the `layout` param, in one
+  of two forms:
+    - "exclude:<id1>,<id2>,..." - everyone EXCEPT these participant identities
+      (User ids - see LiveKitService.issueToken). Used for a group class where
+      some families haven't consented to recording.
+    - "only:<id>" - ONLY this one identity (the tutor). Used for "tutor only"
+      recording, where no student needs to consent at all because no student
+      ever appears.
+  Either way, this page connects with autoSubscribe turned off, so it never
+  even receives a not-included identity's audio/video - their media never
+  reaches this page, let alone the recording, rather than being merely hidden
+  after the fact.
 -->
 <html lang="en">
   <head>
@@ -93,17 +99,22 @@
         var token = params.get("token");
         var layout = params.get("layout") || "";
 
-        // "exclude:id1,id2" -> Set{"id1","id2"}. Anything else (including an
-        // empty/unrecognised value) excludes nobody - the safe default is to
-        // record everyone rather than silently record no one.
-        var excluded = new Set();
+        // Parses "exclude:id1,id2" or "only:id" into a single predicate. Anything
+        // else (including an empty/unrecognised value) includes everyone - the
+        // safe default is to record everyone rather than silently record no one.
+        var shouldInclude = function () { return true; };
         if (layout.indexOf("exclude:") === 0) {
-          layout
-            .slice("exclude:".length)
-            .split(",")
-            .map(function (s) { return s.trim(); })
-            .filter(Boolean)
-            .forEach(function (id) { excluded.add(id); });
+          var excluded = new Set(
+            layout
+              .slice("exclude:".length)
+              .split(",")
+              .map(function (s) { return s.trim(); })
+              .filter(Boolean)
+          );
+          shouldInclude = function (identity) { return !excluded.has(identity); };
+        } else if (layout.indexOf("only:") === 0) {
+          var onlyIdentity = layout.slice("only:".length).trim();
+          shouldInclude = function (identity) { return identity === onlyIdentity; };
         }
 
         var grid = document.getElementById("grid");
@@ -145,7 +156,7 @@
         }
 
         function subscribeAllOf(participant) {
-          if (excluded.has(participant.identity)) return;
+          if (!shouldInclude(participant.identity)) return;
           participant.trackPublications.forEach(function (publication) {
             if (!publication.isSubscribed) publication.setSubscribed(true);
           });
@@ -154,12 +165,12 @@
         var room = new Room();
 
         room.on(RoomEvent.TrackPublished, function (publication, participant) {
-          if (excluded.has(participant.identity)) return;
+          if (!shouldInclude(participant.identity)) return;
           publication.setSubscribed(true);
         });
 
         room.on(RoomEvent.TrackSubscribed, function (track, _publication, participant) {
-          if (excluded.has(participant.identity)) return; // belt-and-braces; should never subscribe in the first place
+          if (!shouldInclude(participant.identity)) return; // belt-and-braces; should never subscribe in the first place
           var tile = tileFor(participant);
           var el = track.attach();
           tile.appendChild(el);
