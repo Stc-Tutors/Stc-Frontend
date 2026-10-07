@@ -395,3 +395,14 @@ export async function OverrideRescheduleSurchargeAction(
   const resData = res ? ((await res.json()) as ApiResponse<RescheduleRequest>) : null;
   return [resData, error];
 }
+
+// An HOD's read-only schedule of the tutors in their scope (GET /lessons/hod-schedule - the server returns only that scope).
+export async function GetHodScheduleAction(params?: { tutor?: string; status?: string; from?: string; to?: string }): Promise<[ApiResponse<Lesson[]> | null, string | null]> {
+  const query = new URLSearchParams(Object.entries(params ?? {}).filter(([, v]) => !!v).map(([k, v]) => [k, String(v)])).toString();
+  const [res, error] = await fetchAPI({
+    url: `/lessons/hod-schedule${query ? `?${query}` : ""}`,
+    request: { method: "GET", headers: { "Content-Type": "application/json" } },
+  });
+  const resData = res ? ((await res.json()) as ApiResponse<Lesson[]>) : null;
+  return [resData, error];
+}

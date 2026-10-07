@@ -40,6 +40,7 @@ import {
   Settings,
   ArrowLeftRight,
   Star,
+  CalendarDays,
 } from "lucide-react";
 import BrandLogo from "@/components/shared/BrandLogo";
 import LogoutButton from "@/components/shared/LogoutButton";
@@ -118,6 +119,12 @@ const sidebarLinks: {
     icon: UsersRound,
     href: "/lms-home/admin/hod-tutors",
     hodPermission: [HodPermission.MANAGE_COURSES, HodPermission.VIEW_REPORTS],
+  },
+  {
+    label: "Schedule of My Tutors",
+    icon: CalendarDays,
+    href: "/lms-home/admin/hod-schedule",
+    hodPermission: [HodPermission.VIEW_SCHEDULE, HodPermission.MANAGE_COURSES, HodPermission.VIEW_REPORTS],
   },
   { label: "Video Courses", icon: BookOpen, href: "/lms-home/admin/video-courses", permission: AdminPermission.MANAGE_VIDEO_COURSES },
   {

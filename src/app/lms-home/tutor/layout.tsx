@@ -28,6 +28,7 @@ import {
   UserCheck,
   Hourglass,
   Star,
+  CalendarDays,
 } from "lucide-react";
 import BrandLogo from "@/components/shared/BrandLogo";
 import LogoutButton from "@/components/shared/LogoutButton";
@@ -91,6 +92,12 @@ const HOD_LINKS: {
     icon: Users,
     href: "/lms-home/admin/hod-tutors",
     hodPermission: [HodPermission.MANAGE_COURSES, HodPermission.VIEW_REPORTS],
+  },
+  {
+    label: "Schedule of My Tutors",
+    icon: CalendarDays,
+    href: "/lms-home/admin/hod-schedule",
+    hodPermission: [HodPermission.VIEW_SCHEDULE, HodPermission.MANAGE_COURSES, HodPermission.VIEW_REPORTS],
   },
 ];
 

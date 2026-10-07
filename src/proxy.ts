@@ -17,6 +17,7 @@ const ROLE_SECTION_PREFIX: Record<string, UserRole[]> = {
   "/lms-home/admin/hod-reports": HOD_SHARED_PAGE_ROLES,
   "/lms-home/admin/hod-unassigned-queue": HOD_SHARED_PAGE_ROLES,
   "/lms-home/admin/hod-tutors": HOD_SHARED_PAGE_ROLES,
+  "/lms-home/admin/hod-schedule": HOD_SHARED_PAGE_ROLES,
   "/lms-home/student": [UserRole.STUDENT],
   "/lms-home/tutor": [UserRole.TUTOR],
   "/lms-home/parent": [UserRole.PARENT],
