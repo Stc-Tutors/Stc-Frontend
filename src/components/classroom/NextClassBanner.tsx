@@ -14,7 +14,7 @@ interface Row {
 // tutor/student/parent Classroom tabs so landing there with no class in
 // progress shows the next scheduled class (or "no upcoming class") instead
 // of the tab just bouncing to another page.
-export default function NextClassBanner({ rows }: { rows: Row[] }) {
+export default function NextClassBanner({ rows, canJoin = true }: { rows: Row[]; canJoin?: boolean }) {
   const now = Date.now();
   const scheduled = rows
     .filter((r) => r.lesson.status === LessonStatus.SCHEDULED)
@@ -38,7 +38,7 @@ export default function NextClassBanner({ rows }: { rows: Row[] }) {
         <p className="font-semibold text-gray-800">{next.label}</p>
         <p className="text-sm text-gray-500">{formatScheduleDateTime(next.lesson.scheduledDate)}</p>
       </div>
-      {next.lesson.status === LessonStatus.SCHEDULED && (
+      {canJoin && next.lesson.status === LessonStatus.SCHEDULED && (
         <JoinClassLink
           lessonId={next.lesson.id}
           scheduledDate={next.lesson.scheduledDate}

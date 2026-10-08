@@ -68,6 +68,7 @@ export default function ParentClassroomPage() {
       ) : (
         <>
           <NextClassBanner
+            canJoin={false}
             rows={rows.map((r) => ({ lesson: r.lesson, label: `${r.childName} · ${r.course.title} · ${r.lesson.title}` }))}
           />
 

@@ -3,7 +3,6 @@
 import { Fragment, useEffect, useState } from "react";
 import { ArrowLeft, CalendarSync } from "lucide-react";
 import { useRouter } from "next/navigation";
-import JoinClassLink from "@/components/classroom/JoinClassLink";
 import { GetLinkedStudentsAction } from "@/server/enrollment";
 import { GetStudentCoursesAction } from "@/server/course-enrollment";
 import {
@@ -359,15 +358,6 @@ export default function ParentSchedulePage() {
                         </span>
                       </td>
                       <td className="py-3 space-x-3">
-                        {lesson.status === LessonStatus.SCHEDULED && (
-                          <JoinClassLink
-                            lessonId={lesson.id}
-                            scheduledDate={lesson.scheduledDate}
-                            durationMinutes={lesson.durationMinutes}
-                            className="text-green-600 hover:underline font-medium"
-                            label="Join Class"
-                          />
-                        )}
                         {lesson.status === LessonStatus.SCHEDULED && (
                           <>
                             <button

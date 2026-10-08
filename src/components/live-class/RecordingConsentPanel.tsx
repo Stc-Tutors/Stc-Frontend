@@ -22,15 +22,20 @@ export default function RecordingConsentPanel() {
   );
   const [busyId, setBusyId] = useState<string | null>(null);
 
-  const toggle = async (child: ChildConsent) => {
+  const decide = async (child: ChildConsent, approve: boolean) => {
+    if (approve === child.granted) return;
     setBusyId(child.studentId);
-    const [, err] = await SetRecordingConsentAction(child.studentId, !child.granted);
+    const [, err] = await SetRecordingConsentAction(child.studentId, approve);
     setBusyId(null);
     if (err) {
       ToastError(err);
       return;
     }
-    ToastSuccess(child.granted ? "Consent withdrawn. Upcoming classes won't be recorded." : "Thank you - consent recorded.");
+    ToastSuccess(
+      approve
+        ? `Approved. ${child.fullName} may appear in recorded classes.`
+        : `Declined. ${child.fullName} will not appear or be heard in any recording.`
+    );
     await refresh();
   };
 
@@ -61,20 +66,20 @@ export default function RecordingConsentPanel() {
             <CardContent className="flex flex-wrap items-center justify-between gap-3 pt-5">
               <div>
                 <p className="font-medium">{child.fullName}</p>
-                <p className="text-xs text-gray-500">
+                <p className={`text-xs font-medium ${child.granted ? "text-green-700" : "text-amber-700"}`}>
                   {child.granted
-                    ? `You allowed recording${child.grantedAt ? ` on ${formatDate(child.grantedAt)}` : ""}`
-                    : "Recording not allowed - this child's classes won't be recorded"}
+                    ? `Approved${child.grantedAt ? ` on ${formatDate(child.grantedAt)}` : ""} - ${child.fullName} may appear in recorded classes`
+                    : `Not approved - ${child.fullName} will not appear or be heard in any recording`}
                 </p>
               </div>
-              <Button
-                size="sm"
-                variant={child.granted ? "outline" : "default"}
-                disabled={busyId === child.studentId}
-                onClick={() => toggle(child)}
-              >
-                {busyId === child.studentId ? "Saving..." : child.granted ? "Withdraw consent" : "Allow recording"}
-              </Button>
+              <div className="flex gap-2">
+                <Button size="sm" variant={child.granted ? "default" : "outline"} disabled={busyId === child.studentId || child.granted} onClick={() => decide(child, true)}>
+                  {busyId === child.studentId && !child.granted ? "Saving..." : "Approve recording"}
+                </Button>
+                <Button size="sm" variant={child.granted ? "outline" : "default"} disabled={busyId === child.studentId || !child.granted} onClick={() => decide(child, false)}>
+                  {busyId === child.studentId && child.granted ? "Saving..." : "Decline recording"}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         ))
