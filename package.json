@@ -11,6 +11,7 @@
   "dependencies": {
     "@capacitor/core": "^7.6.8",
     "@capacitor/push-notifications": "^7.0.7",
+    "@excalidraw/excalidraw": "^0.18.1",
     "@hookform/resolvers": "^5.0.1",
     "@livekit/components-react": "^2.9.24",
     "@livekit/components-styles": "^1.2.0",

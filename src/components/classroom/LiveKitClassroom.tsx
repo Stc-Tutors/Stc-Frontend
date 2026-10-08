@@ -13,7 +13,7 @@ import {
   type LocalUserChoices,
 } from "@livekit/components-react";
 import { DisconnectReason, Track } from "livekit-client";
-import { Circle, Clock, DoorOpen, EyeOff, Loader2, PhoneOff, ShieldAlert } from "lucide-react";
+import { Circle, Clock, DoorOpen, EyeOff, Loader2, PenSquare, PhoneOff, ShieldAlert, Video as VideoIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ToastError } from "@/components/ui/custom/toast";
 import { useUser } from "@/contexts/user-context";
@@ -25,6 +25,7 @@ import ReactionsBar from "./ReactionsBar";
 import ReportIssueButton from "./ReportIssueButton";
 import SelfConnectionQuality from "./SelfConnectionQuality";
 import WaitingRoomPanel from "./WaitingRoomPanel";
+import WhiteboardPanel from "./WhiteboardPanel";
 
 type Phase = "loading" | "waiting" | "prejoin" | "live" | "left" | "ended" | "error";
 
@@ -112,6 +113,10 @@ export default function LiveKitClassroom({ lessonId, onExit }: LiveKitClassroomP
   const [error, setError] = useState<string | null>(null);
   const [choices, setChoices] = useState<LocalUserChoices | null>(null);
   const [ending, setEnding] = useState(false);
+  // The video room stays connected underneath (audio keeps playing) while the
+  // whiteboard is open - this only toggles which one is VISIBLE, never
+  // unmounts <LiveKitRoom>, so switching tabs never drops the call.
+  const [whiteboardOpen, setWhiteboardOpen] = useState(false);
 
   // Asks the server for a token and moves to the right phase. State is only
   // touched after the request returns, so it's safe to call from an effect.
@@ -282,6 +287,15 @@ export default function LiveKitClassroom({ lessonId, onExit }: LiveKitClassroomP
         {!isObserver && <RoomExtras lessonId={lessonId} lessonTitle={join.lesson.title} isTutor={isTutor} />}
       </LiveKitRoom>
 
+      {/* Overlaid on top of (never replacing) <LiveKitRoom> above, so toggling
+          this never disconnects the call - audio keeps playing underneath
+          even while the whiteboard covers the screen. */}
+      {whiteboardOpen && (
+        <div className="absolute inset-0 z-20 bg-white">
+          <WhiteboardPanel lessonId={lessonId} />
+        </div>
+      )}
+
       <div className="pointer-events-none absolute left-3 top-3 flex flex-col gap-2">
         {join.recording && (
           <span className="flex items-center gap-1.5 rounded-full bg-red-600/90 px-3 py-1 text-xs font-medium text-white">
@@ -297,13 +311,26 @@ export default function LiveKitClassroom({ lessonId, onExit }: LiveKitClassroomP
         )}
       </div>
 
-      {isTutor && (
-        <div className="absolute right-3 top-3">
+      <div className="absolute right-3 top-3 z-30 flex items-center gap-2">
+        <Button size="sm" variant="secondary" onClick={() => setWhiteboardOpen((open) => !open)}>
+          {whiteboardOpen ? (
+            <>
+              <VideoIcon className="mr-2 h-4 w-4" />
+              Back to video
+            </>
+          ) : (
+            <>
+              <PenSquare className="mr-2 h-4 w-4" />
+              Whiteboard
+            </>
+          )}
+        </Button>
+        {isTutor && (
           <Button size="sm" variant="destructive" disabled={ending} onClick={endForEveryone}>
             {ending ? "Ending..." : "End class for everyone"}
           </Button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
