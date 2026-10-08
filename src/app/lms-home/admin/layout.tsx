@@ -85,6 +85,7 @@ const sidebarLinks: {
   { label: "Parents", icon: Baby, href: "/lms-home/admin/parents", permission: [AdminPermission.CREATE_STUDENTS, AdminPermission.EDIT_STUDENTS, AdminPermission.SUSPEND_STUDENTS, AdminPermission.REMOVE_STUDENTS, AdminPermission.VIEW_ENROLLMENTS] },
   { label: "Tutors", icon: GraduationCap, href: "/lms-home/admin/tutors", permission: [AdminPermission.VIEW_STAFF_ROSTER, AdminPermission.VIEW_USERS] },
   { label: "Users", icon: Users, href: "/lms-home/admin/users", permission: AdminPermission.VIEW_USERS },
+  { label: "Campaign Leads", icon: Megaphone, href: "/lms-home/admin/campaign-leads", permission: AdminPermission.VIEW_USERS },
   {
     label: "Messaging Permissions",
     icon: MessageSquare,

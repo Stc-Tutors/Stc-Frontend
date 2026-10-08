@@ -367,3 +367,23 @@ export async function DeleteCourseAction(id: string): Promise<[ApiResponse<null>
   const resData = res ? ((await res.json()) as ApiResponse<null>) : null;
   return [resData, error];
 }
+
+export interface CampaignLead {
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  campaignSlug: string | null;
+  signedUpAt: string;
+  startedPayment: boolean;
+}
+
+// Parents who signed up from a /go/<slug> campaign page and have no completed payment yet.
+export async function GetCampaignLeadsAction(campaign?: string): Promise<[ApiResponse<CampaignLead[]> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: `/admin/reports/campaign-leads${campaign ? `?campaign=${encodeURIComponent(campaign)}` : ""}`,
+    request: { method: "GET", headers: { "Content-Type": "application/json" } },
+  });
+  const resData = res ? ((await res.json()) as ApiResponse<CampaignLead[]>) : null;
+  return [resData, error];
+}
