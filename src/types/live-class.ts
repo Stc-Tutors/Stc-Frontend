@@ -101,6 +101,24 @@ export interface WaitingRoomEntry {
   requestedAt: string;
 }
 
+export interface BreakoutRoomView {
+  id: string;
+  label: string;
+  participantIds: string[];
+}
+
+export interface BreakoutStatus {
+  active: boolean;
+  recording: boolean;
+  rooms: BreakoutRoomView[];
+}
+
+export interface RoamTarget {
+  url: string;
+  token: string;
+  roomId: string;
+}
+
 export interface ConsentIssue {
   studentId: string;
   fullName: string;

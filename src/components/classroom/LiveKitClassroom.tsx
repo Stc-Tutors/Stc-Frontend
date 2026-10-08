@@ -13,13 +13,25 @@ import {
   type LocalUserChoices,
 } from "@livekit/components-react";
 import { DisconnectReason, Track } from "livekit-client";
-import { Circle, Clock, DoorOpen, EyeOff, Loader2, PenSquare, PhoneOff, ShieldAlert, Video as VideoIcon } from "lucide-react";
+import {
+  ArrowLeft,
+  Circle,
+  Clock,
+  DoorOpen,
+  EyeOff,
+  Loader2,
+  PenSquare,
+  PhoneOff,
+  ShieldAlert,
+  Video as VideoIcon,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ToastError } from "@/components/ui/custom/toast";
 import { useUser } from "@/contexts/user-context";
 import { useLiveClassSocket } from "@/hooks/use-live-class-socket";
-import { EndLiveClassAction, JoinLiveClassAction } from "@/server/live-class";
+import { EndLiveClassAction, JoinLiveClassAction, RoamBreakoutAction } from "@/server/live-class";
 import type { JoinInfo } from "@/types/live-class";
+import BreakoutPanel from "./BreakoutPanel";
 import { BackgroundBlurToggle, useNoiseSuppression } from "./LocalMediaEffects";
 import ReactionsBar from "./ReactionsBar";
 import ReportIssueButton from "./ReportIssueButton";
@@ -29,10 +41,34 @@ import WhiteboardPanel from "./WhiteboardPanel";
 
 type Phase = "loading" | "waiting" | "prejoin" | "live" | "left" | "ended" | "error";
 
+// Which LiveKit room this device is actually connected to right now - always
+// the main room, unless a breakout session has either assigned this LEARNER
+// into a group (moved by the tutor) or the TUTOR/an OBSERVER is roaming in to
+// visit one. See LiveKitClassroom's roam handlers and BreakoutPanel.
+type RoomContext = { kind: "main" } | { kind: "assigned"; roomId: string; label: string } | { kind: "visiting"; roomId: string; label: string };
+
+interface RoomConnection {
+  url: string;
+  token: string;
+  context: RoomContext;
+}
+
 // Everything inside <LiveKitRoom> that needs room context via hooks - kept as
 // its own component so it can call useNoiseSuppression/useLocalParticipant
 // etc., which only work inside the room provider.
-function RoomExtras({ lessonId, lessonTitle, isTutor }: { lessonId: string; lessonTitle: string; isTutor: boolean }) {
+function RoomExtras({
+  lessonId,
+  lessonTitle,
+  isTutor,
+  isMainRoom,
+  onVisit,
+}: {
+  lessonId: string;
+  lessonTitle: string;
+  isTutor: boolean;
+  isMainRoom: boolean;
+  onVisit: (roomId: string, label: string) => void;
+}) {
   useNoiseSuppression();
   return (
     <>
@@ -48,6 +84,9 @@ function RoomExtras({ lessonId, lessonTitle, isTutor }: { lessonId: string; less
         <SelfConnectionQuality />
       </div>
       {isTutor && <WaitingRoomPanel lessonId={lessonId} />}
+      {/* Only shown from the main room - visiting a group is its own simple
+          "Back to main room" button at the top level, not this panel. */}
+      {isTutor && isMainRoom && <BreakoutPanel lessonId={lessonId} onVisit={onVisit} />}
     </>
   );
 }
@@ -117,6 +156,25 @@ export default function LiveKitClassroom({ lessonId, onExit }: LiveKitClassroomP
   // whiteboard is open - this only toggles which one is VISIBLE, never
   // unmounts <LiveKitRoom>, so switching tabs never drops the call.
   const [whiteboardOpen, setWhiteboardOpen] = useState(false);
+  // Which actual LiveKit room <LiveKitRoom> below is pointed at - starts null
+  // until the main room's own url/token are known (see the prejoin/observer
+  // transitions below), then changes only via a breakout move/roam/return.
+  const [connection, setConnection] = useState<RoomConnection | null>(null);
+
+  // A LEARNER has no roam button of their own - the tutor moves them, and
+  // moves them back, over the socket. Always listening while this component
+  // is mounted (same as the waiting-room admit/deny listeners elsewhere) so
+  // a move lands even if they're mid-prejoin.
+  useLiveClassSocket({
+    onBreakoutMove: (payload) => {
+      if (payload.lessonId !== lessonId || join?.role !== "LEARNER") return;
+      setConnection({ url: payload.url, token: payload.token, context: { kind: "assigned", roomId: payload.roomId, label: payload.label } });
+    },
+    onBreakoutEnded: (payload) => {
+      if (payload.lessonId !== lessonId || join?.role !== "LEARNER") return;
+      setConnection({ url: payload.url, token: payload.token, context: { kind: "main" } });
+    },
+  });
 
   // Asks the server for a token and moves to the right phase. State is only
   // touched after the request returns, so it's safe to call from an effect.
@@ -133,7 +191,12 @@ export default function LiveKitClassroom({ lessonId, onExit }: LiveKitClassroomP
     }
     setJoin(res.data);
     // Observers have no camera/mic to set up.
-    setPhase(res.data.role === "OBSERVER" ? "live" : "prejoin");
+    if (res.data.role === "OBSERVER") {
+      setConnection({ url: res.data.url, token: res.data.token, context: { kind: "main" } });
+      setPhase("live");
+    } else {
+      setPhase("prejoin");
+    }
   }, [lessonId]);
 
   // For the buttons (try again / rejoin): show the spinner, then load.
@@ -161,7 +224,12 @@ export default function LiveKitClassroom({ lessonId, onExit }: LiveKitClassroomP
         return;
       }
       setJoin(res.data);
-      setPhase(res.data.role === "OBSERVER" ? "live" : "prejoin");
+      if (res.data.role === "OBSERVER") {
+        setConnection({ url: res.data.url, token: res.data.token, context: { kind: "main" } });
+        setPhase("live");
+      } else {
+        setPhase("prejoin");
+      }
     })();
     return () => {
       cancelled = true;
@@ -173,6 +241,21 @@ export default function LiveKitClassroom({ lessonId, onExit }: LiveKitClassroomP
     const [, err] = await EndLiveClassAction(lessonId);
     setEnding(false);
     if (err) ToastError(err);
+  };
+
+  // The tutor (or an observing admin/HOD) dropping in on a group - this
+  // changes which LiveKit room THIS device is connected to; it never alters
+  // who's actually assigned to the group.
+  const visitRoom = async (roomId: string, label: string) => {
+    const [res, err] = await RoamBreakoutAction(lessonId, roomId);
+    if (err || !res?.data) return ToastError(err || "Couldn't switch rooms");
+    setConnection({ url: res.data.url, token: res.data.token, context: { kind: "visiting", roomId, label } });
+  };
+
+  const backToMainRoom = async () => {
+    const [res, err] = await RoamBreakoutAction(lessonId, "main");
+    if (err || !res?.data) return ToastError(err || "Couldn't return to the main room");
+    setConnection({ url: res.data.url, token: res.data.token, context: { kind: "main" } });
   };
 
   if (phase === "loading") {
@@ -252,6 +335,7 @@ export default function LiveKitClassroom({ lessonId, onExit }: LiveKitClassroomP
           onError={(e) => ToastError(e.message || "Couldn't access your camera or microphone")}
           onSubmit={(values) => {
             setChoices(values);
+            setConnection({ url: join.url, token: join.token, context: { kind: "main" } });
             setPhase("live");
           }}
         />
@@ -259,19 +343,33 @@ export default function LiveKitClassroom({ lessonId, onExit }: LiveKitClassroomP
     );
   }
 
+  if (!connection) return null;
+
   const isObserver = join.role === "OBSERVER";
   const isTutor = join.role === "TUTOR";
+  const isMainRoom = connection.context.kind === "main";
+  // Visiting a breakout group (tutor/observer dropping in) uses an OBSERVER
+  // grant on that room regardless of this person's role in the main room -
+  // same silent, watch-only view either way.
+  const isObserverView = isObserver || connection.context.kind === "visiting";
 
   return (
     <div className="relative overflow-hidden rounded-lg border border-gray-200 bg-black" data-lk-theme="default" style={{ height: "78dvh" }}>
       <LiveKitRoom
-        serverUrl={join.url}
-        token={join.token}
+        key={connection.token}
+        serverUrl={connection.url}
+        token={connection.token}
         connect
-        video={isObserver ? false : (choices?.videoEnabled ?? true)}
-        audio={isObserver ? false : (choices?.audioEnabled ?? true)}
+        video={isObserverView ? false : (choices?.videoEnabled ?? true)}
+        audio={isObserverView ? false : (choices?.audioEnabled ?? true)}
         options={{ adaptiveStream: true, dynacast: true }}
         onDisconnected={(reason) => {
+          // Visiting a breakout room that the tutor then closed from
+          // elsewhere isn't "the class ended" - fall back to the main room.
+          if (connection.context.kind === "visiting") {
+            void backToMainRoom();
+            return;
+          }
           // The room was closed by the tutor/admin/timeout vs. this person
           // simply dropping or leaving.
           setPhase(reason === DisconnectReason.ROOM_DELETED ? "ended" : "left");
@@ -282,9 +380,11 @@ export default function LiveKitClassroom({ lessonId, onExit }: LiveKitClassroomP
         onError={(e) => ToastError(e.message || "Something went wrong in the classroom")}
         style={{ height: "100%" }}
       >
-        {isObserver ? <ObserverView /> : <VideoConference />}
+        {isObserverView ? <ObserverView /> : <VideoConference />}
         <RoomAudioRenderer />
-        {!isObserver && <RoomExtras lessonId={lessonId} lessonTitle={join.lesson.title} isTutor={isTutor} />}
+        {!isObserverView && (
+          <RoomExtras lessonId={lessonId} lessonTitle={join.lesson.title} isTutor={isTutor} isMainRoom={isMainRoom} onVisit={visitRoom} />
+        )}
       </LiveKitRoom>
 
       {/* Overlaid on top of (never replacing) <LiveKitRoom> above, so toggling
@@ -303,15 +403,26 @@ export default function LiveKitClassroom({ lessonId, onExit }: LiveKitClassroomP
             Recording
           </span>
         )}
-        {isObserver && (
+        {isObserverView && (
           <span className="flex items-center gap-1.5 rounded-full bg-gray-800/90 px-3 py-1 text-xs font-medium text-white">
             <EyeOff className="h-3 w-3" />
             Observing - nobody can see you
           </span>
         )}
+        {connection.context.kind !== "main" && (
+          <span className="flex items-center gap-1.5 rounded-full bg-indigo-600/90 px-3 py-1 text-xs font-medium text-white">
+            {connection.context.kind === "visiting" ? "Visiting" : "Breakout"}: {connection.context.label}
+          </span>
+        )}
       </div>
 
       <div className="absolute right-3 top-3 z-30 flex items-center gap-2">
+        {connection.context.kind === "visiting" && (
+          <Button size="sm" variant="secondary" onClick={backToMainRoom}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to main room
+          </Button>
+        )}
         <Button size="sm" variant="secondary" onClick={() => setWhiteboardOpen((open) => !open)}>
           {whiteboardOpen ? (
             <>

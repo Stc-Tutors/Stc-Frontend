@@ -3,11 +3,13 @@
 import fetchAPI, { type ApiResponse } from "@/lib/fetch";
 import type { Lesson } from "@/types/lesson";
 import type {
+  BreakoutStatus,
   ChildConsent,
   JoinResponse,
   LessonDeliveryMode,
   RecordingReadiness,
   RecordingScope,
+  RoamTarget,
   WaitingRoomEntry,
 } from "@/types/live-class";
 
@@ -102,4 +104,24 @@ export async function AdmitFromWaitingRoomAction(lessonId: string, userId: strin
 
 export async function DenyFromWaitingRoomAction(lessonId: string, userId: string): Result<null> {
   return call(`/live-classes/${lessonId}/waiting-room/${userId}/deny`, "POST");
+}
+
+export async function GetBreakoutStatusAction(lessonId: string): Result<BreakoutStatus> {
+  return call(`/live-classes/${lessonId}/breakout`);
+}
+
+export async function StartBreakoutAction(
+  lessonId: string,
+  opts: { groupCount?: number; assignments?: Record<string, string[]>; recordBreakouts?: boolean }
+): Result<BreakoutStatus> {
+  return call(`/live-classes/${lessonId}/breakout/start`, "POST", opts);
+}
+
+// roomId is a breakout room's id, or "main" to return to the whole class.
+export async function RoamBreakoutAction(lessonId: string, roomId: string): Result<RoamTarget> {
+  return call(`/live-classes/${lessonId}/breakout/roam`, "POST", { roomId });
+}
+
+export async function EndBreakoutAction(lessonId: string): Result<null> {
+  return call(`/live-classes/${lessonId}/breakout/end`, "POST");
 }

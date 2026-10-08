@@ -16,18 +16,24 @@ interface UseLiveClassSocketOptions {
   onAdmitted?: (payload: { lessonId: string }) => void;
   // Fired on the LEARNER's device if they're turned away without being admitted.
   onDenied?: (payload: { lessonId: string }) => void;
+  // Fired on a LEARNER's device once the tutor assigns them into a breakout
+  // group - carries a fresh token for that group's own LiveKit room.
+  onBreakoutMove?: (payload: { lessonId: string; roomId: string; label: string; url: string; token: string }) => void;
+  // Fired once the tutor ends the breakout session - carries a fresh token
+  // for the main room (the original join token may have gone stale by then).
+  onBreakoutEnded?: (payload: { lessonId: string; url: string; token: string }) => void;
 }
 
 // A short-lived socket, open only while the classroom/waiting screen is on
 // screen - same pattern as useMessagingSocket, just for live-class:* events
 // instead of message:*. The JWT lives in an httpOnly cookie, so the handshake
 // authenticates with a short-lived copy fetched from /api/socket-token.
-export function useLiveClassSocket({ onWaiting, onAdmitted, onDenied }: UseLiveClassSocketOptions) {
+export function useLiveClassSocket({ onWaiting, onAdmitted, onDenied, onBreakoutMove, onBreakoutEnded }: UseLiveClassSocketOptions) {
   const socketRef = useRef<Socket | null>(null);
   const handlersRef = useRef<UseLiveClassSocketOptions>({});
   // Refs are only ever written in an effect, never during render itself.
   useEffect(() => {
-    handlersRef.current = { onWaiting, onAdmitted, onDenied };
+    handlersRef.current = { onWaiting, onAdmitted, onDenied, onBreakoutMove, onBreakoutEnded };
   });
 
   useEffect(() => {
@@ -47,6 +53,12 @@ export function useLiveClassSocket({ onWaiting, onAdmitted, onDenied }: UseLiveC
       );
       socket.on("live-class:admitted", (payload: { lessonId: string }) => handlersRef.current.onAdmitted?.(payload));
       socket.on("live-class:denied", (payload: { lessonId: string }) => handlersRef.current.onDenied?.(payload));
+      socket.on("live-class:breakout-move", (payload: { lessonId: string; roomId: string; label: string; url: string; token: string }) =>
+        handlersRef.current.onBreakoutMove?.(payload)
+      );
+      socket.on("live-class:breakout-ended", (payload: { lessonId: string; url: string; token: string }) =>
+        handlersRef.current.onBreakoutEnded?.(payload)
+      );
     })();
 
     return () => {
