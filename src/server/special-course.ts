@@ -30,12 +30,12 @@ export async function GetSpecialCourseByTokenAction(
 export async function RegisterForSpecialCourseAction(
   token: string,
   data: { firstName: string; lastName: string; email: string; password: string; phone?: string }
-): Promise<[ApiResponse<{ userId: string }> | null, string | null]> {
+): Promise<[ApiResponse<{ userId: string; requiresPayment?: boolean }> | null, string | null]> {
   const [res, error] = await fetchAPI({
     url: `/public/special-courses/${token}/register`,
     request: { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) },
   });
 
-  const resData = res ? ((await res.json()) as ApiResponse<{ userId: string }>) : null;
+  const resData = res ? ((await res.json()) as ApiResponse<{ userId: string; requiresPayment?: boolean }>) : null;
   return [resData, error];
 }

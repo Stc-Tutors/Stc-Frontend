@@ -32,6 +32,7 @@ const formSchema = z
 
 export default function SpecialCourseRegisterForm({ token }: { token: string }) {
   const [registered, setRegistered] = useState(false);
+  const [requiresPayment, setRequiresPayment] = useState(false);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: { firstName: "", lastName: "", email: "", phone: "", password: "", confirmPassword: "" },
@@ -42,6 +43,7 @@ export default function SpecialCourseRegisterForm({ token }: { token: string }) 
     const [res, error] = await RegisterForSpecialCourseAction(token, payload);
 
     if (res) {
+      setRequiresPayment(!!res.data?.requiresPayment);
       setRegistered(true);
     }
     if (error) {
@@ -53,7 +55,9 @@ export default function SpecialCourseRegisterForm({ token }: { token: string }) 
     return (
       <div className="text-center space-y-4">
         <p className="text-sm text-gray-700">
-          Account created. Check your email for a verification link, then log in to access your course.
+          {requiresPayment
+            ? "Account created. Check your email for a verification link, then log in and pay for this course to get access - it is not unlocked until the payment is confirmed."
+            : "Account created. Check your email for a verification link, then log in to access your course."}
         </p>
         <Link href={ROUTES.AUTH.LOGIN}>
           <Button className="w-full bg-[#3b5bdb] hover:bg-blue-800 text-white">Go to log in</Button>
