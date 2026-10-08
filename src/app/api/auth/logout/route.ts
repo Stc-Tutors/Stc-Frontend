@@ -11,6 +11,17 @@ export async function POST() {
     const token = cookieStore.get("token")?.value;
 
     if (token) {
+        // Tell the API to revoke this session token too - clearing the cookie alone left the token usable for its remaining 24 hours.
+        // Best effort: a slow or unreachable API must never stop the user from logging out here.
+        try {
+            await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/logout`, {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${token}` },
+                signal: AbortSignal.timeout(4000),
+            })
+        } catch {
+            // fall through to clearing the cookie
+        }
         cookieStore.delete('token')
         return redirect(`${ROUTES.AUTH.LOGIN}`)
     }
