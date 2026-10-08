@@ -1,5 +1,6 @@
 "use server";
 
+import type { User } from "@/types/user";
 import fetchAPI, { type ApiResponse } from "@/lib/fetch";
 import {
   AdminOversightAllocation,
@@ -304,5 +305,18 @@ export async function OffboardTutorAction(
     },
   });
   const resData = res ? ((await res.json()) as ApiResponse<BulkActionResult[]>) : null;
+  return [resData, error];
+}
+
+// Tutors who may be given THIS subject (fully approved, active, allocated to it), searched by name on the server.
+export async function SearchEligibleTutorsAction(
+  subjectEnrollmentId: string,
+  search?: string
+): Promise<[ApiResponse<User[]> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: `/allocation-hub/subject-enrollments/${subjectEnrollmentId}/eligible-tutors${search ? `?search=${encodeURIComponent(search)}` : ""}`,
+    request: { method: "GET", headers: { "Content-Type": "application/json" } },
+  });
+  const resData = res ? ((await res.json()) as ApiResponse<User[]>) : null;
   return [resData, error];
 }

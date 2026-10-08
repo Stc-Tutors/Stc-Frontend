@@ -16,12 +16,10 @@ import {
   AssignTutorToEnrollmentsAction,
   GetSuggestedTutorsAction,
   SetMeetingLinkAction,
+  SearchEligibleTutorsAction,
 } from "@/server/allocation-hub";
-import { GetTutorAllocationAction } from "@/server/tutor-allocation";
-import { GetUsersAction } from "@/server/admin";
 import { SUBJECT_ENROLLMENT_STATUS_LABELS, SubjectEnrollment, SubjectEnrollmentStatus, SuggestedTutor } from "@/types/allocation-hub";
-import { User, UserRole } from "@/types/user";
-import { isSubjectAllocatedToTutor } from "@/lib/tutor-allocation";
+import { User } from "@/types/user";
 
 interface Props {
   enrollment: SubjectEnrollment | null;
@@ -77,21 +75,16 @@ export default function UnassignedQueueDetailDialog({ enrollment, onOpenChange, 
   // is just a manual name/email search.
   const handleManualSearch = async () => {
     setIsSearchingManually(true);
-    const [res, error] = await GetUsersAction({ role: UserRole.TUTOR, search: manualSearch || undefined, limit: 20, assignable: true });
+    // Filtered on the server (approved + vetted + allocated to this subject) so the search covers every eligible tutor, not just the
+    // first few on the platform.
+    const [res, error] = await SearchEligibleTutorsAction(enrollment.id, manualSearch.trim() || undefined);
     if (error) {
       toast.error(error);
       setManualResults(null);
       setIsSearchingManually(false);
       return;
     }
-    const candidates = res?.data ?? [];
-    const eligible = await Promise.all(
-      candidates.map(async (u) => {
-        const [allocationRes] = await GetTutorAllocationAction(u.id);
-        return isSubjectAllocatedToTutor(allocationRes?.data ?? null, enrollment) ? u : null;
-      })
-    );
-    setManualResults(eligible.filter((u): u is User => u !== null));
+    setManualResults(res?.data ?? []);
     setIsSearchingManually(false);
   };
 
