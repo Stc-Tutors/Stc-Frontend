@@ -2,7 +2,8 @@
 
 import { Fragment, useEffect, useState } from "react";
 import { StudentsCell } from "@/components/group-students-cell";
-import { Check, X, Pencil, Ban } from "lucide-react";
+import Link from "next/link";
+import { Check, X, Pencil, Ban, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -424,7 +425,15 @@ export default function AdminSessionsPage() {
                   )}
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-3">
-                      {hasJoinableClass(lesson) && lesson.status === LessonStatus.SCHEDULED && (
+                      {lesson.deliveryMode === "LIVEKIT" && lesson.status === LessonStatus.SCHEDULED && (
+                        <Link
+                          href={`/lms-home/classroom/live/${lesson.id}`}
+                          className="inline-flex items-center gap-1.5 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
+                        >
+                          <Eye className="size-3.5" aria-hidden="true" /> Observe class
+                        </Link>
+                      )}
+                      {lesson.deliveryMode !== "LIVEKIT" && hasJoinableClass(lesson) && lesson.status === LessonStatus.SCHEDULED && (
                         <JoinClassLink
                           lessonId={lesson.id}
                           scheduledDate={lesson.scheduledDate}
