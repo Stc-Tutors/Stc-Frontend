@@ -31,6 +31,7 @@ import { useUser } from "@/contexts/user-context";
 import { useLiveClassSocket } from "@/hooks/use-live-class-socket";
 import { EndLiveClassAction, JoinLiveClassAction, RoamBreakoutAction } from "@/server/live-class";
 import type { JoinInfo } from "@/types/live-class";
+import AnnotatedScreenShare from "./AnnotatedScreenShare";
 import BreakoutPanel from "./BreakoutPanel";
 import { BackgroundBlurToggle, useNoiseSuppression } from "./LocalMediaEffects";
 import ReactionsBar from "./ReactionsBar";
@@ -79,6 +80,7 @@ function RoomExtras({
         <ReactionsBar />
         <BackgroundBlurToggle />
         <ReportIssueButton lessonId={lessonId} lessonTitle={lessonTitle} />
+        <AnnotatedScreenShare />
       </div>
       <div className="absolute bottom-20 right-3 z-10">
         <SelfConnectionQuality />
