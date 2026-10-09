@@ -123,7 +123,7 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   // Digits only, country code included (e.g. "2348012345678") - what react-phone-input-2 emits. dialCode is kept so the
   // number after the country code can be checked on its own.
-  const [phoneDialCode, setPhoneDialCode] = useState("234");
+  const [phoneDialCode, setPhoneDialCode] = useState("1");
   const [countries, setCountries] = useState<ITaxonomyOption[]>([]);
   const [languages, setLanguages] = useState<ITaxonomyOption[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -607,7 +607,7 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
         <div>
           <Label>Phone number *</Label>
           <PhoneInput
-            country="ng"
+            country="us"
             enableSearch
             value={form.parentPhone}
             onChange={(value, data) => {
