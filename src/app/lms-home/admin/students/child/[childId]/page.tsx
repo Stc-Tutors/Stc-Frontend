@@ -158,6 +158,16 @@ export default function AdminChildProfilePage() {
           onEdit={() => openEdit("basic", { fullName: child.fullName })}
           fields={{ "Full Name": child.fullName }}
         />
+        {/* Phone/email only arrive for staff allowed to see them (Super Admin, or an admin granted "View contact info"); others see dashes. */}
+        <InfoCard
+          title="Contact"
+          fields={{
+            "Child phone": child.phone,
+            "Parent / guardian": child.parentName,
+            "Parent email": child.parentEmail,
+            "Parent phone": child.parentPhone,
+          }}
+        />
         <InfoCard
           title="Personal Details"
           onEdit={() =>
@@ -313,13 +323,17 @@ function InfoCard({
 }: {
   title: string;
   fields: Record<string, string | undefined>;
-  onEdit: () => void;
+  onEdit?: () => void;
 }) {
   return (
     <div className="border rounded-lg p-4">
       <div className="flex items-center justify-between mb-3">
         <h3 className="font-semibold text-gray-800">{title}</h3>
-        <button onClick={onEdit} className="text-xs text-blue-600 hover:underline">Edit details</button>
+        {onEdit && (
+          <button onClick={onEdit} className="text-xs text-blue-600 hover:underline">
+            Edit details
+          </button>
+        )}
       </div>
       <div className="grid grid-cols-2 gap-3 text-sm">
         {Object.entries(fields).map(([label, value]) => (

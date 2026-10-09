@@ -174,7 +174,7 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
   return (
     <AccessRestrictionGate role="STUDENT">
     <SelectedStudentProvider>
-    <div className="flex h-dvh bg-gray-100 relative">
+    <div className="flex h-dvh overflow-hidden bg-gray-100 relative">
       {/* Sidebar */}
       {/* Mobile backdrop: tap outside the drawer to close it */}
       {isSidebarOpen && (
@@ -185,7 +185,7 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
         />
       )}
       <aside
-        className={`fixed md:static top-0 left-0 h-full w-64 bg-white border-r shadow-md z-40 transform transition-transform duration-300 ease-in-out
+        className={`fixed md:static top-0 left-0 h-full w-64 bg-white border-r shadow-md z-40 overflow-y-auto transform transition-transform duration-300 ease-in-out
         ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0 ${sidebarCollapsed ? "md:hidden" : "md:flex"} flex-col justify-between`}
       >
         
