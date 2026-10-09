@@ -3,6 +3,8 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import DisplayControls from "@/components/shared/display-controls";
+import { DesktopSidebarToggle, useSidebarCollapsed } from "@/components/shared/sidebar-collapse";
 import "keen-slider/keen-slider.min.css";
 import { GetMyTutorProfileAction } from "@/server/tutor-profile";
 import { GetMyTutorApplicationAction } from "@/server/tutor-application";
@@ -122,6 +124,7 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [sidebarCollapsed, toggleSidebarCollapsed] = useSidebarCollapsed();
   // Close the mobile drawer whenever the user navigates.
   useEffect(() => {
     setIsSidebarOpen(false);
@@ -230,7 +233,7 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
       )}
       <aside
         className={`fixed md:static top-0 left-0 h-full w-64 bg-white border-r shadow-md z-40 transform transition-transform duration-300 ease-in-out
-        ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0 md:flex flex-col justify-between`}
+        ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0 ${sidebarCollapsed ? "md:hidden" : "md:flex"} flex-col justify-between`}
       >
         
           <div className={`flex items-center justify-between p-4 border-b ${isSidebarOpen ? "pl-[4.5rem]" : ""} md:pl-4`}>
@@ -300,8 +303,9 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Topbar */}
-        <header className="h-16 bg-white shadow-sm px-3 sm:px-6 flex items-center justify-between gap-2">
+        <header className="sticky top-0 h-16 bg-white shadow-sm px-3 sm:px-6 flex items-center justify-between gap-2">
           {/* Hamburger (mobile only) */}
+          <DesktopSidebarToggle collapsed={sidebarCollapsed} onToggle={toggleSidebarCollapsed} />
           <button
             aria-label={isSidebarOpen ? "Close menu" : "Open menu"}
             className="md:hidden relative z-50 mr-2 sm:mr-4 p-2 rounded-md hover:bg-blue-100 transition shrink-0"
@@ -340,6 +344,7 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
               <NotificationBell viewAllHref="/lms-home/tutor/notification" />
             </span>
 
+            <DisplayControls />
             <UserProfileDropdown />
           </div>
         </header>

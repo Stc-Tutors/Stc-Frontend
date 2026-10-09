@@ -8,6 +8,7 @@ import OnboardingTour from "@/components/onboarding-tour/onboarding-tour";
 import PushNotificationRegistrar from "@/components/push-notification-registrar";
 import RealtimeSync from "@/components/realtime-sync";
 import ContactUsWidget from "@/components/contact-us-widget";
+import DisplayPrefsScript from "@/components/shared/display-prefs-script";
 
 
 export const metadata = {
@@ -26,6 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               data-gr-ext-installed into <body> before React hydrates. Harmless and
               unrelated to any app code; this just stops it being flagged as an error. */}
           <body className="min-h-screen flex flex-col " suppressHydrationWarning>
+            <DisplayPrefsScript />
             {children}
             {/* Mandatory for every role, on top of any page - see TermsGateModal. */}
             <TermsGateModal />

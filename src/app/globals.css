@@ -195,3 +195,56 @@
     min-width: 44px;
   }
 }
+
+/* ---------- Readability: tiny text was hard to read for anyone with weaker eyesight ---------- */
+.text-xs { font-size: 0.8125rem; line-height: 1.25rem; }          /* 13px, was 12px */
+.text-\[10px\], .text-\[11px\] { font-size: 0.75rem !important; } /* nothing below 12px */
+/* Long names/emails/titles wrap inside their box instead of running under neighbouring text. */
+main, aside, header { overflow-wrap: anywhere; }
+main :is(h1, h2, h3, p, td, th, li, label, span, a) { min-width: 0; }
+
+/* ---------- Sidebar: separators between tabs + a clear marker for the hovered / current tab ---------- */
+aside nav a, aside > div.border-t a, aside > div.border-t button {
+  border-bottom: 1px solid rgb(0 0 0 / 0.06);
+  border-left: 4px solid transparent;
+  border-radius: 0.5rem;
+}
+aside nav a:hover, aside > div.border-t a:hover, aside > div.border-t button:hover {
+  border-left-color: #38b6ff;
+  background-color: rgb(56 182 255 / 0.10);
+}
+aside nav a:focus-visible, aside > div.border-t a:focus-visible, aside > div.border-t button:focus-visible {
+  outline: 2px solid #38b6ff; outline-offset: 1px;
+}
+aside nav a.bg-blue-100 { border-left-color: #0a1f44; font-weight: 600; } /* current page */
+
+/* ---------- Night mode ----------
+   Pages are styled with fixed Tailwind greys (bg-white, text-gray-700 ...), which the token-based .dark theme above cannot reach, so
+   the common ones are remapped here. Anything not listed stays as designed. */
+.dark body { background: #0f1115; color: #e6e8ec; }
+.dark .bg-white { background-color: #171a21 !important; }
+.dark .bg-gray-50 { background-color: #12151b !important; }
+.dark .bg-gray-100 { background-color: #0f1115 !important; }
+.dark .bg-gray-200 { background-color: #232834 !important; }
+.dark .bg-blue-50, .dark .bg-blue-100 { background-color: #14263a !important; }
+.dark .bg-green-50, .dark .bg-green-100 { background-color: #12261b !important; }
+.dark .bg-red-50, .dark .bg-red-100 { background-color: #2b1618 !important; }
+.dark .bg-yellow-50, .dark .bg-yellow-100, .dark .bg-amber-50, .dark .bg-amber-100, .dark .bg-orange-50 { background-color: #2a2412 !important; }
+.dark .hover\:bg-gray-50:hover, .dark .hover\:bg-gray-100:hover { background-color: #232834 !important; }
+.dark .hover\:bg-blue-100:hover { background-color: #1b3550 !important; }
+.dark .text-black, .dark .text-gray-900, .dark .text-gray-800 { color: #f1f3f6 !important; }
+.dark .text-gray-700, .dark .text-gray-600 { color: #c9ced8 !important; }
+.dark .text-gray-500, .dark .text-gray-400 { color: #a3abb9 !important; }
+.dark .border, .dark .border-b, .dark .border-t, .dark .border-r, .dark .border-l,
+.dark .border-gray-100, .dark .border-gray-200, .dark .border-gray-300 { border-color: #2c3340 !important; }
+.dark .divide-y > * + * { border-color: #2c3340 !important; }
+.dark input, .dark select, .dark textarea { background-color: #12151b; color: #e6e8ec; border-color: #2c3340; }
+.dark ::placeholder { color: #7d8697; }
+.dark aside nav a, .dark aside > div.border-t a, .dark aside > div.border-t button { border-bottom-color: rgb(255 255 255 / 0.07); }
+.dark aside nav a.bg-blue-100 { border-left-color: #38b6ff; }
+.dark img[src$=".svg"]:not([data-keep-colour]) { filter: none; }
+/* Coloured tint cards (stat tiles, badges): deep tinted surface + light text instead of a pastel block. */
+.dark :is([class*="bg-pink-"],[class*="bg-rose-"],[class*="bg-purple-"],[class*="bg-violet-"],[class*="bg-indigo-"],[class*="bg-sky-"],[class*="bg-cyan-"],[class*="bg-teal-"],[class*="bg-emerald-"],[class*="bg-lime-"],[class*="bg-orange-"],[class*="bg-fuchsia-"]):is([class*="-50"],[class*="-100"],[class*="-200"]) { background-color: #1d2230 !important; }
+.dark :is([class*="text-pink-"],[class*="text-rose-"],[class*="text-purple-"],[class*="text-violet-"],[class*="text-indigo-"],[class*="text-blue-"],[class*="text-sky-"],[class*="text-cyan-"],[class*="text-teal-"],[class*="text-emerald-"],[class*="text-green-"],[class*="text-orange-"],[class*="text-amber-"],[class*="text-yellow-"],[class*="text-red-"]):is([class*="-600"],[class*="-700"],[class*="-800"],[class*="-900"]) { filter: brightness(1.55) saturate(0.9); }
+/* The wordmark is dark navy - unreadable on the dark sidebar, so show it in white. */
+.dark aside > div:first-child img { filter: brightness(0) invert(1); }

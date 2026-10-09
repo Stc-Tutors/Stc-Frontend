@@ -61,7 +61,7 @@ export default function TermsGateModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4">
+    <div data-terms-gate className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4">
       <div className="relative w-full max-w-2xl max-h-[85vh] rounded-2xl bg-white shadow-2xl flex flex-col">
         <div className="px-6 py-4 border-b">
           <h2 className="text-xl font-bold text-gray-900">Terms & Conditions</h2>
