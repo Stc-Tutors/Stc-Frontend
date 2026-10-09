@@ -2,7 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/custom/password-input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SearchableCombobox } from "@/components/ui/searchable-combobox";
@@ -118,6 +121,9 @@ interface EnrollChoice {
 export default function CampaignSignupForm({ page, cohortName }: { page: CampaignLandingPage; cohortName: string }) {
   const router = useRouter();
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
+  // Digits only, country code included (e.g. "2348012345678") - what react-phone-input-2 emits. dialCode is kept so the
+  // number after the country code can be checked on its own.
+  const [phoneDialCode, setPhoneDialCode] = useState("234");
   const [countries, setCountries] = useState<ITaxonomyOption[]>([]);
   const [languages, setLanguages] = useState<ITaxonomyOption[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -285,13 +291,13 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
       fullName: form.childFullName,
       gender: form.childGender,
       dateOfBirth: form.childDateOfBirth,
-      phone: form.parentPhone,
+      phone: `+${form.parentPhone}`,
       countryOfResidence: form.countryOfResidence,
       primaryLanguage: form.primaryLanguage,
       userType: "parent",
       parentName: `${form.parentFirstName} ${form.parentLastName}`,
       parentEmail: form.parentEmail,
-      parentPhone: form.parentPhone,
+      parentPhone: `+${form.parentPhone}`,
       // Redeemed server-side against the server's own recomputed price
       // (StudentService.computeEnrollmentQuote) - an invalid/expired/
       // exhausted code throws and aborts the enrollment, which is why this
@@ -387,8 +393,9 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
       setError("Please enter a valid email address");
       return;
     }
-    if (form.parentPhone.replace(/\D/g, "").length < 7) {
-      setError("Please enter a valid phone number, including the country code");
+    // Country code + the number itself: the digits after the dial code must be a plausible number.
+    if (!form.parentPhone || form.parentPhone.length - phoneDialCode.length < 6) {
+      setError("Please enter your phone number with its country code");
       return;
     }
     if (isFlowTree && !flowTreeLeaf) {
@@ -412,7 +419,7 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
         firstName: form.parentFirstName,
         lastName: form.parentLastName,
         email: form.parentEmail,
-        phone: form.parentPhone,
+        phone: `+${form.parentPhone}`,
         role: UserRole.PARENT,
         password: form.password,
       });
@@ -595,15 +602,26 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
         </div>
         <div>
           <Label>Email *</Label>
-          <Input type="email" inputMode="email" autoComplete="email" required value={form.parentEmail} onChange={(e) => handleChange({ parentEmail: e.target.value })} />
+          <Input type="email" inputMode="email" autoComplete="email" autoCapitalize="none" spellCheck={false} required placeholder="name@example.com" value={form.parentEmail} onChange={(e) => handleChange({ parentEmail: e.target.value.replace(/\s/g, "") })} />
         </div>
         <div>
           <Label>Phone number *</Label>
-          <Input type="tel" inputMode="tel" autoComplete="tel" required value={form.parentPhone} onChange={(e) => handleChange({ parentPhone: e.target.value })} placeholder="e.g. +234 801 234 5678" />
+          <PhoneInput
+            country="ng"
+            enableSearch
+            value={form.parentPhone}
+            onChange={(value, data) => {
+              handleChange({ parentPhone: value });
+              if (data && "dialCode" in data) setPhoneDialCode(data.dialCode);
+            }}
+            inputProps={{ name: "phone", autoComplete: "tel", required: true }}
+            containerClass="!w-full"
+            inputStyle={{ width: "100%" }}
+          />
         </div>
         <div>
           <Label>Choose a password</Label>
-          <Input type="password" value={form.password} onChange={(e) => handleChange({ password: e.target.value })} placeholder="8+ characters, with an uppercase letter and a number" />
+          <PasswordInput autoComplete="new-password" value={form.password} onChange={(e) => handleChange({ password: e.target.value })} placeholder="8+ characters, with an uppercase letter and a number" />
         </div>
 
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide pt-2">Your child&apos;s details</p>
