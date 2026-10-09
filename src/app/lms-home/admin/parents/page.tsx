@@ -85,7 +85,7 @@ export default function AdminParentsPage() {
                   {parent.firstName} {parent.lastName}
                 </TableCell>
                 <TableCell className="text-sm text-gray-500">{parent.email || "Hidden"}</TableCell>
-                <TableCell className="text-sm text-gray-500">{parent.phone || "—"}</TableCell>
+                <TableCell className="text-sm text-gray-500">{parent.phone || "No phone on file"}</TableCell>
                 <TableCell>
                   <span className="text-xs font-medium px-2 py-1 rounded-full bg-green-100 text-green-700">
                     {parent.status}
