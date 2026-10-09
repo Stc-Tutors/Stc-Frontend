@@ -382,6 +382,15 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
       setError("Please fill in every field");
       return;
     }
+    // Both are how the team reaches the family, so they are checked on their own with a specific message.
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.parentEmail.trim())) {
+      setError("Please enter a valid email address");
+      return;
+    }
+    if (form.parentPhone.replace(/\D/g, "").length < 7) {
+      setError("Please enter a valid phone number, including the country code");
+      return;
+    }
     if (isFlowTree && !flowTreeLeaf) {
       setError("Please choose from the list");
       return;
@@ -585,12 +594,12 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
           </div>
         </div>
         <div>
-          <Label>Email</Label>
-          <Input type="email" value={form.parentEmail} onChange={(e) => handleChange({ parentEmail: e.target.value })} />
+          <Label>Email *</Label>
+          <Input type="email" inputMode="email" autoComplete="email" required value={form.parentEmail} onChange={(e) => handleChange({ parentEmail: e.target.value })} />
         </div>
         <div>
-          <Label>Phone</Label>
-          <Input value={form.parentPhone} onChange={(e) => handleChange({ parentPhone: e.target.value })} />
+          <Label>Phone number *</Label>
+          <Input type="tel" inputMode="tel" autoComplete="tel" required value={form.parentPhone} onChange={(e) => handleChange({ parentPhone: e.target.value })} placeholder="e.g. +234 801 234 5678" />
         </div>
         <div>
           <Label>Choose a password</Label>
