@@ -124,6 +124,9 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
   // Digits only, country code included (e.g. "2348012345678") - what react-phone-input-2 emits. dialCode is kept so the
   // number after the country code can be checked on its own.
   const [phoneDialCode, setPhoneDialCode] = useState("1");
+  // Once the parent has pressed the button, every field that is still empty/invalid is outlined in red - and the outline
+  // clears by itself as each one is fixed (the set is recomputed from the live form on every render).
+  const [submitAttempted, setSubmitAttempted] = useState(false);
   const [countries, setCountries] = useState<ITaxonomyOption[]>([]);
   const [languages, setLanguages] = useState<ITaxonomyOption[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -241,6 +244,22 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page.serviceType, page.courseId, page.taxonomyNodeId, page.classGroupId, page.pricingMode]);
+
+  const flagged = new Set<string>();
+  if (submitAttempted) {
+    if (!form.parentFirstName.trim()) flagged.add("parentFirstName");
+    if (!form.parentLastName.trim()) flagged.add("parentLastName");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.parentEmail.trim())) flagged.add("parentEmail");
+    if (!form.parentPhone || form.parentPhone.length - phoneDialCode.length < 6) flagged.add("parentPhone");
+    if (!form.password || !isValidPassword(form.password)) flagged.add("password");
+    if (!form.childFullName.trim()) flagged.add("childFullName");
+    if (!form.childGender) flagged.add("childGender");
+    if (!form.childDateOfBirth) flagged.add("childDateOfBirth");
+    if (!form.countryOfResidence) flagged.add("countryOfResidence");
+    if (!form.primaryLanguage) flagged.add("primaryLanguage");
+    if (isFlowTree && !flowTreeLeaf) flagged.add("choice");
+  }
+  const hl = (key: string) => (flagged.has(key) ? "rounded-md ring-2 ring-red-500 ring-offset-1" : "");
 
   const countryOptions = countries.map((c) => ({ value: c.value, label: c.label }));
   const languageOptions = languages.map((l) => ({ value: l.value, label: l.label }));
@@ -373,6 +392,7 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
 
   const handleSubmit = async () => {
     setError(null);
+    setSubmitAttempted(true);
     if (
       !form.parentFirstName ||
       !form.parentLastName ||
@@ -593,19 +613,26 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
         <div className="grid grid-cols-2 gap-2">
           <div>
             <Label>First name</Label>
-            <Input value={form.parentFirstName} onChange={(e) => handleChange({ parentFirstName: e.target.value })} />
+            <div className={hl("parentFirstName")}>
+              <Input value={form.parentFirstName} onChange={(e) => handleChange({ parentFirstName: e.target.value })} />
+            </div>
           </div>
           <div>
             <Label>Last name</Label>
-            <Input value={form.parentLastName} onChange={(e) => handleChange({ parentLastName: e.target.value })} />
+            <div className={hl("parentLastName")}>
+              <Input value={form.parentLastName} onChange={(e) => handleChange({ parentLastName: e.target.value })} />
+            </div>
           </div>
         </div>
         <div>
           <Label>Email *</Label>
+          <div className={hl("parentEmail")}>
           <Input type="email" inputMode="email" autoComplete="email" autoCapitalize="none" spellCheck={false} required placeholder="name@example.com" value={form.parentEmail} onChange={(e) => handleChange({ parentEmail: e.target.value.replace(/\s/g, "") })} />
+          </div>
         </div>
         <div>
           <Label>Phone number *</Label>
+          <div className={hl("parentPhone")}>
           <PhoneInput
             country="us"
             enableSearch
@@ -618,20 +645,26 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
             containerClass="!w-full"
             inputStyle={{ width: "100%" }}
           />
+          </div>
         </div>
         <div>
           <Label>Choose a password</Label>
+          <div className={hl("password")}>
           <PasswordInput autoComplete="new-password" value={form.password} onChange={(e) => handleChange({ password: e.target.value })} placeholder="8+ characters, with an uppercase letter and a number" />
+          </div>
         </div>
 
         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide pt-2">Your child&apos;s details</p>
         <div>
           <Label>Full name</Label>
-          <Input value={form.childFullName} onChange={(e) => handleChange({ childFullName: e.target.value })} />
+          <div className={hl("childFullName")}>
+            <Input value={form.childFullName} onChange={(e) => handleChange({ childFullName: e.target.value })} />
+          </div>
         </div>
         <div className="grid grid-cols-2 gap-2">
           <div>
             <Label>Gender</Label>
+            <div className={hl("childGender")}>
             <Select value={form.childGender} onValueChange={(value) => handleChange({ childGender: value })}>
               <SelectTrigger>
                 <SelectValue placeholder="Select" />
@@ -641,29 +674,36 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
                 <SelectItem value="Female">Female</SelectItem>
               </SelectContent>
             </Select>
+            </div>
           </div>
           <div>
             <Label>Date of birth</Label>
-            <Input type="date" value={form.childDateOfBirth} onChange={(e) => handleChange({ childDateOfBirth: e.target.value })} />
+            <div className={hl("childDateOfBirth")}>
+              <Input type="date" value={form.childDateOfBirth} onChange={(e) => handleChange({ childDateOfBirth: e.target.value })} />
+            </div>
           </div>
         </div>
         <div>
           <Label>Country of residence</Label>
-          <SearchableCombobox
-            options={countryOptions}
-            value={form.countryOfResidence}
-            onChange={(value) => handleChange({ countryOfResidence: value })}
-            placeholder="Select country"
-          />
+          <div className={hl("countryOfResidence")}>
+            <SearchableCombobox
+              options={countryOptions}
+              value={form.countryOfResidence}
+              onChange={(value) => handleChange({ countryOfResidence: value })}
+              placeholder="Select country"
+            />
+          </div>
         </div>
         <div>
           <Label>Primary language</Label>
-          <SearchableCombobox
-            options={languageOptions}
-            value={form.primaryLanguage}
-            onChange={(value) => handleChange({ primaryLanguage: value })}
-            placeholder="Select language"
-          />
+          <div className={hl("primaryLanguage")}>
+            <SearchableCombobox
+              options={languageOptions}
+              value={form.primaryLanguage}
+              onChange={(value) => handleChange({ primaryLanguage: value })}
+              placeholder="Select language"
+            />
+          </div>
         </div>
         <p className="text-xs text-gray-500">
           Registering more than one child? <WhatsAppLink pageName={cohortName} label="Message us on WhatsApp" />
@@ -687,7 +727,7 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
 
       <div className="border-t border-gray-100 pt-4">
         {isFlowTree ? (
-          <div className="space-y-2">
+          <div className={`space-y-2 ${flagged.has("choice") ? "rounded-md ring-2 ring-red-500 ring-offset-2 p-2" : ""}`}>
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
               {flowTreePath.length > 0 && (
                 <span className="block normal-case text-gray-400 mb-1 font-normal">
