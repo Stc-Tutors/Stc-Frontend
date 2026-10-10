@@ -68,3 +68,18 @@ export const SyncExamResultsAction = (id: string) =>
 export const GetMyExamsAction = () => call<MyExam[]>("/exams/mine", "GET");
 export const LaunchExamAction = (id: string, learnerKey: string) =>
   call<ExamLaunchResult>(`/exams/${id}/launch`, "POST", { learnerKey });
+
+// ---- school mock exams ----
+// STC Exams' own response shapes for these are loosely documented, so they are passed through untyped and read defensively in the UI.
+export const GetMockLearnersAction = () => call<{ key: string; fullName: string }[]>("/exams/mock/learners", "GET");
+export const GetMockCatalogAction = () => call<Record<string, unknown>[]>("/exams/mock/catalog", "GET");
+export const GetMockBalanceAction = (learnerKey: string) =>
+  call<Record<string, unknown> | null>(`/exams/mock/balance?learnerKey=${encodeURIComponent(learnerKey)}`, "GET");
+export const LaunchMockAction = (learnerKey: string) => call<{ launchUrl: string }>("/exams/mock/launch", "POST", { learnerKey });
+export const GetMockStudentAction = (learnerKey: string) =>
+  call<{ learner: { key: string; fullName: string }; account: Record<string, unknown> | null }>(
+    `/admin/exams/mock/students/${encodeURIComponent(learnerKey)}`,
+    "GET"
+  );
+export const AllocateMockCoinsAction = (learnerKey: string, coins: number) =>
+  call<{ learner: { key: string; fullName: string }; coins: number }>("/admin/exams/mock/allocate", "POST", { learnerKey, coins });

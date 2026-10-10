@@ -64,7 +64,14 @@ export default function ExamsManager({ basePath }: { basePath: string }) {
     <div className="bg-white shadow rounded-2xl p-6 space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Exams</h1>
-        <Button onClick={() => setCreating((c) => !c)}>{creating ? "Cancel" : "New exam"}</Button>
+        <div className="flex gap-2">
+          {isStaff && (
+            <Link href="/lms-home/admin/exams/mock">
+              <Button variant="outline">Mock exam coins</Button>
+            </Link>
+          )}
+          <Button onClick={() => setCreating((c) => !c)}>{creating ? "Cancel" : "New exam"}</Button>
+        </div>
       </div>
       <p className="text-sm text-gray-500">
         Proctored tests run on STC Exams. Create one, add its questions and choose who sits it.

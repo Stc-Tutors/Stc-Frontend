@@ -6,6 +6,7 @@ import { GetMyExamsAction, LaunchExamAction } from "@/server/exam";
 import { ExamLaunchMode, MyExam } from "@/types/exam";
 import { Button } from "@/components/ui/button";
 import { ToastError } from "@/components/ui/custom/toast";
+import MockExamsSection from "@/components/exams/MockExamsSection";
 
 function statusLabel(seat: MyExam["seat"]): { text: string; className: string } {
   if (seat.status === "SUBMITTED") return { text: "Submitted", className: "bg-green-100 text-green-700" };
@@ -113,6 +114,8 @@ export default function MyExamsView() {
           })}
         </ul>
       )}
+
+      <MockExamsSection />
 
       {frame && (
         <div className="fixed inset-0 z-50 bg-black/70 flex flex-col">
