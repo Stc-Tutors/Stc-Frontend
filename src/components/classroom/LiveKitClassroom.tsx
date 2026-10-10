@@ -158,6 +158,8 @@ export default function LiveKitClassroom({ lessonId, onExit }: LiveKitClassroomP
   // whiteboard is open - this only toggles which one is VISIBLE, never
   // unmounts <LiveKitRoom>, so switching tabs never drops the call.
   const [whiteboardOpen, setWhiteboardOpen] = useState(false);
+  // An admin/HOD is a silent observer by default; "Join class" swaps to a visible STAFF seat with mic and camera.
+  const [switchingMode, setSwitchingMode] = useState(false);
   // Which actual LiveKit room <LiveKitRoom> below is pointed at - starts null
   // until the main room's own url/token are known (see the prejoin/observer
   // transitions below), then changes only via a breakout move/roam/return.
@@ -348,6 +350,16 @@ export default function LiveKitClassroom({ lessonId, onExit }: LiveKitClassroomP
   if (!connection) return null;
 
   const isObserver = join.role === "OBSERVER";
+  const isStaffSeat = join.role === "STAFF";
+  const canChooseStaffSeat = isObserver || isStaffSeat;
+  const switchSeat = async (mode: "observe" | "join") => {
+    setSwitchingMode(true);
+    const [res, err] = await JoinLiveClassAction(lessonId, mode);
+    setSwitchingMode(false);
+    if (err || !res?.data || res.data.status === "waiting") return ToastError(err || "Couldn't switch");
+    setJoin(res.data);
+    setConnection({ url: res.data.url, token: res.data.token, context: { kind: "main" } });
+  };
   const isTutor = join.role === "TUTOR";
   const isMainRoom = connection.context.kind === "main";
   // Visiting a breakout group (tutor/observer dropping in) uses an OBSERVER
@@ -411,6 +423,11 @@ export default function LiveKitClassroom({ lessonId, onExit }: LiveKitClassroomP
             Observing - nobody can see you
           </span>
         )}
+        {isStaffSeat && !isObserverView && (
+          <span className="flex items-center gap-1.5 rounded-full bg-emerald-700/90 px-3 py-1 text-xs font-medium text-white">
+            Joined as staff - everyone can see and hear you
+          </span>
+        )}
         {connection.context.kind !== "main" && (
           <span className="flex items-center gap-1.5 rounded-full bg-indigo-600/90 px-3 py-1 text-xs font-medium text-white">
             {connection.context.kind === "visiting" ? "Visiting" : "Breakout"}: {connection.context.label}
@@ -438,6 +455,11 @@ export default function LiveKitClassroom({ lessonId, onExit }: LiveKitClassroomP
             </>
           )}
         </Button>
+        {canChooseStaffSeat && isMainRoom && (
+          <Button size="sm" variant="secondary" disabled={switchingMode} onClick={() => switchSeat(isStaffSeat ? "observe" : "join")}>
+            {isStaffSeat ? "Observe quietly" : "Join class"}
+          </Button>
+        )}
         {isTutor && (
           <Button size="sm" variant="destructive" disabled={ending} onClick={endForEveryone}>
             {ending ? "Ending..." : "End class for everyone"}

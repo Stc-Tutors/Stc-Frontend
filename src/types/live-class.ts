@@ -77,7 +77,7 @@ export interface SessionVerification {
   computedAt?: string;
 }
 
-export type PresenceRole = "TUTOR" | "LEARNER" | "OBSERVER";
+export type PresenceRole = "TUTOR" | "LEARNER" | "OBSERVER" | "STAFF";
 
 export interface JoinInfo {
   status: "joined";

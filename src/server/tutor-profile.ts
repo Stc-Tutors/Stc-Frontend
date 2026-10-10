@@ -27,6 +27,8 @@ export type UpdateTutorProfileInput = Partial<
 // plain id from /me/pending-edit (the tutor already knows who they are) but
 // populated (name/avatar) from the admin review list below.
 export interface TutorProfileEditRequest {
+  // The live (currently approved) value of every field in `changes` - lets the reviewer see before -> after.
+  current?: Record<string, unknown>;
   id: string;
   tutor: string | TutorSummary;
   changes: UpdateTutorProfileInput;

@@ -135,11 +135,21 @@ export default function TutorProfileEditsPage() {
                   <span className="text-xs text-gray-400">{formatDate(req.submittedAt)}</span>
                 </div>
 
-                <div className="text-sm text-gray-700 space-y-1">
+                {/* Only the fields that actually differ from the live profile are listed, each as before -> after. */}
+                <div className="text-sm text-gray-700 space-y-2">
+                  {Object.keys(req.changes).length === 0 && <p className="text-gray-500">Nothing differs from the current profile.</p>}
                   {Object.entries(req.changes).map(([field, value]) => (
-                    <p key={field}>
-                      <span className="font-medium">{field}:</span> {formatFieldValue(field, value)}
-                    </p>
+                    <div key={field} className="rounded-md border p-2">
+                      <p className="font-medium">{field}</p>
+                      <p className="text-red-700 break-words">
+                        <span className="text-xs uppercase tracking-wide text-gray-500">Before </span>
+                        {formatFieldValue(field, req.current?.[field])}
+                      </p>
+                      <p className="text-green-700 break-words">
+                        <span className="text-xs uppercase tracking-wide text-gray-500">After </span>
+                        {formatFieldValue(field, value)}
+                      </p>
+                    </div>
                   ))}
                 </div>
 

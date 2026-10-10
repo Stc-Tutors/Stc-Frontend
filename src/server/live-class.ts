@@ -31,8 +31,8 @@ async function call<T>(url: string, method: "GET" | "POST" | "PATCH" | "PUT" | "
 // Asks the server for a short-lived token to enter one class's room. The
 // server decides whether this person may join, and as what (tutor, learner,
 // or a silent admin/HOD observer).
-export async function JoinLiveClassAction(lessonId: string): Result<JoinResponse> {
-  return call(`/live-classes/${lessonId}/join`, "POST");
+export async function JoinLiveClassAction(lessonId: string, mode?: "observe" | "join"): Result<JoinResponse> {
+  return call(`/live-classes/${lessonId}/join`, "POST", mode ? { mode } : undefined);
 }
 
 export async function EndLiveClassAction(lessonId: string): Result<null> {

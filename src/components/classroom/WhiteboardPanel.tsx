@@ -50,7 +50,7 @@ export default function WhiteboardPanel({ lessonId }: WhiteboardPanelProps) {
         excalidrawAPI={(api) => {
           apiRef.current = api;
         }}
-        viewModeEnabled={canEdit === false}
+        viewModeEnabled={canEdit !== true}
         onChange={(elements) => {
           if (applyingRemoteRef.current) {
             applyingRemoteRef.current = false;
