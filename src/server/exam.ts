@@ -3,10 +3,12 @@
 import fetchAPI, { type ApiResponse } from "@/lib/fetch";
 import type {
   Exam,
+  ExamCourseOption,
   ExamLaunchResult,
   ExamLearnerHit,
   ExamQuestion,
   MyExam,
+  ExamStatus,
   NewExamQuestion,
 } from "@/types/exam";
 
@@ -25,7 +27,11 @@ async function call<T>(
 }
 
 // ---- admin (MANAGE_EXAMS) ----
-export const GetExamStatusAction = () => call<{ configured: boolean }>("/admin/exams/status", "GET");
+export const GetExamStatusAction = () => call<ExamStatus>("/admin/exams/status", "GET");
+export const GetExamCoursesAction = () => call<ExamCourseOption[]>("/admin/exams/courses", "GET");
+export const ApproveExamAction = (id: string, acceptFeatureAddon = false) =>
+  call<Exam>(`/admin/exams/${id}/approve`, "POST", { acceptFeatureAddon });
+export const RejectExamAction = (id: string, reason: string) => call<Exam>(`/admin/exams/${id}/reject`, "POST", { reason });
 export const GetExamsAction = () => call<Exam[]>("/admin/exams", "GET");
 export const GetExamAction = (id: string) => call<Exam>(`/admin/exams/${id}`, "GET");
 export const CreateExamAction = (body: {

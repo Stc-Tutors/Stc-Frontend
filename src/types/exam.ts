@@ -9,7 +9,14 @@ export enum ExamAudienceType {
   COURSE = "COURSE",
 }
 
+export enum ExamApprovalStatus {
+  PENDING = "PENDING",
+  APPROVED = "APPROVED",
+  REJECTED = "REJECTED",
+}
+
 export enum ExamRemoteStatus {
+  NOT_CREATED = "NOT_CREATED",
   PENDING_PAYMENT = "PENDING_PAYMENT",
   READY = "READY",
 }
@@ -62,6 +69,11 @@ export interface Exam {
   audienceType: ExamAudienceType;
   courseIds: string[];
   published: boolean;
+  approvalStatus: ExamApprovalStatus;
+  rejectionReason?: string;
+  createdByName?: string;
+  createdByRole?: string;
+  draftQuestionCount?: number;
   createdAt: string;
   seatCount?: number;
   submittedCount?: number;
@@ -116,5 +128,16 @@ export interface MyExam {
 export interface ExamLaunchResult {
   launchUrl: string;
   launchMode: ExamLaunchMode;
+  title: string;
+}
+
+export interface ExamStatus {
+  configured: boolean;
+  canApprove: boolean;
+  isStaff: boolean;
+}
+
+export interface ExamCourseOption {
+  id: string;
   title: string;
 }

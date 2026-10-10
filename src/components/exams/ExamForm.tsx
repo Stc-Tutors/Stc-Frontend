@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { GetCoursesAction } from "@/server/course";
-import { Course } from "@/types/course";
-import { ExamAudienceType, ExamLaunchMode, PROCTORING_OPTIONS } from "@/types/exam";
+import { GetExamCoursesAction } from "@/server/exam";
+import { ExamAudienceType, ExamCourseOption, ExamLaunchMode, PROCTORING_OPTIONS } from "@/types/exam";
 
 export interface ExamFormValues {
   title: string;
@@ -46,12 +45,12 @@ export default function ExamForm({
   onSubmit: (values: ExamFormValues) => Promise<unknown>;
 }) {
   const [values, setValues] = useState<ExamFormValues>(initial);
-  const [courses, setCourses] = useState<Course[]>([]);
+  const [courses, setCourses] = useState<ExamCourseOption[]>([]);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     (async () => {
-      const [res] = await GetCoursesAction();
+      const [res] = await GetExamCoursesAction();
       setCourses(res?.data ?? []);
     })();
   }, []);

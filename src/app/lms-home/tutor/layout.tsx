@@ -31,6 +31,7 @@ import {
   Hourglass,
   Star,
   CalendarDays,
+  ClipboardList,
 } from "lucide-react";
 import BrandLogo from "@/components/shared/BrandLogo";
 import LogoutButton from "@/components/shared/LogoutButton";
@@ -55,6 +56,7 @@ const sidebarLinks = [
   { label: "My Hours", icon: Hourglass, href: "/lms-home/tutor/hours" },
   { label: "Student Progress", icon: Target, href: "/lms-home/tutor/student-progress" },
   { label: "Assignments", icon: BookOpen, href: "/lms-home/tutor/assignments" },
+  { label: "Exams", icon: ClipboardList, href: "/lms-home/tutor/exams" },
   { label: "Messages", icon: MessageSquare, href: "/lms-home/tutor/messages" },
   { label: "Your Account", icon: CircleUserRound, href: "/lms-home/tutor/your-account" },
   { label: "Refer & Earn", icon: Gift, href: "/lms-home/tutor/refer-earn" },
