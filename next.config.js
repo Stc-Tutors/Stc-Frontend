@@ -29,6 +29,10 @@ function apiOrigins() {
 // Drive/Docs/Meet and YouTube (embedded resources, recordings, live class).
 // Optional: set NEXT_PUBLIC_LIVEKIT_URL (e.g. wss://live.example.com) when
 // LiveKit is self-hosted so its host is allowed; returns "" otherwise.
+// STC Exams (proctored tests) - a test can be shown in a frame inside the LMS, so its site must be allowed to be framed here and be
+// delegated the camera/microphone/screen-share a proctored test asks for. Override when STC serves exams from a custom domain.
+const examsOrigin = process.env.NEXT_PUBLIC_STC_EXAMS_ORIGIN || "https://stc-exams.onrender.com";
+
 function livekitHost(scheme) {
   const raw = process.env.NEXT_PUBLIC_LIVEKIT_URL;
   if (!raw) return "";
@@ -80,6 +84,7 @@ function contentSecurityPolicy() {
       "https://docs.google.com",
       "https://meet.google.com",
       "https://www.youtube.com",
+      examsOrigin,
     ],
     "media-src": ["'self'", "https:", "blob:"],
     "worker-src": ["'self'", "blob:"],
@@ -137,7 +142,7 @@ const nextConfig = {
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "X-Frame-Options", value: "SAMEORIGIN" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-          { key: "Permissions-Policy", value: "camera=(self), microphone=(self), geolocation=()" },
+          { key: "Permissions-Policy", value: `camera=(self "${examsOrigin}"), microphone=(self "${examsOrigin}"), display-capture=(self "${examsOrigin}"), fullscreen=(self "${examsOrigin}"), geolocation=()` },
           { key: "Content-Security-Policy-Report-Only", value: contentSecurityPolicy() },
         ],
       },

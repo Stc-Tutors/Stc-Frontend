@@ -33,6 +33,8 @@ export enum AdminPermission {
   // permission rather than reusing APPROVE_RESOURCES/MANAGE_TAXONOMY, since
   // Video Courses are explicitly decoupled from the Service Catalog.
   MANAGE_VIDEO_COURSES = "MANAGE_VIDEO_COURSES",
+  // STC Exams integration: create/configure proctored tests, assign them, view results.
+  MANAGE_EXAMS = "MANAGE_EXAMS",
   // Set/edit a Lesson's meetingUrl - TUTOR can never do this regardless of
   // this toggle; only controls whether a plain STC_ADMIN/TUTOR_ADMIN can.
   MANAGE_MEETING_LINKS = "MANAGE_MEETING_LINKS",

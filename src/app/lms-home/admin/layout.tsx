@@ -130,6 +130,7 @@ const sidebarLinks: {
     href: "/lms-home/admin/hod-schedule",
     hodPermission: [HodPermission.VIEW_SCHEDULE, HodPermission.MANAGE_COURSES, HodPermission.VIEW_REPORTS],
   },
+  { label: "Exams", icon: FileCheck2, href: "/lms-home/admin/exams", permission: AdminPermission.MANAGE_EXAMS },
   { label: "Video Courses", icon: BookOpen, href: "/lms-home/admin/video-courses", permission: AdminPermission.MANAGE_VIDEO_COURSES },
   {
     label: "Curriculum Taxonomy",
