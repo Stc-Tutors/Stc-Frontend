@@ -11,7 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ReassignSubjectTutorAction, SearchEligibleTutorsAction } from "@/server/allocation-hub";
+import { ExplainTutorEligibilityAction, ReassignSubjectTutorAction, SearchEligibleTutorsAction, type TutorEligibilityExplanation } from "@/server/allocation-hub";
 import { SubjectEnrollment } from "@/types/allocation-hub";
 import { User } from "@/types/user";
 
@@ -31,6 +31,8 @@ export default function ReassignTutorDialog({ enrollment, onOpenChange, onReassi
   const [isLoading, setIsLoading] = useState(false);
   const [selectedTutorId, setSelectedTutorId] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // Why a searched-for tutor is not offered - and where this student's subject sits in the curriculum.
+  const [explain, setExplain] = useState<TutorEligibilityExplanation | null>(null);
 
   useEffect(() => {
     setSelectedTutorId("");
@@ -47,6 +49,14 @@ export default function ReassignTutorDialog({ enrollment, onOpenChange, onReassi
       if (error) toast.error(error);
       setTutors(res?.data ?? []);
       setIsLoading(false);
+      // Nothing eligible matched: say WHY for the tutor being looked for (and show where this subject sits), instead of an empty list.
+      if ((res?.data ?? []).length === 0 || !search.trim()) {
+        const [ex] = await ExplainTutorEligibilityAction(enrollment.id, search.trim() || undefined);
+        if (!stale) setExplain(ex?.data ?? null);
+      } else {
+        const [ex] = await ExplainTutorEligibilityAction(enrollment.id);
+        if (!stale) setExplain(ex?.data ? { ...ex.data, tutors: [] } : null);
+      }
     }, 250);
     return () => {
       stale = true;
@@ -94,13 +104,19 @@ export default function ReassignTutorDialog({ enrollment, onOpenChange, onReassi
           className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
         />
 
+        {explain && (
+          <p className="rounded-md bg-gray-50 px-3 py-2 text-xs text-gray-600">
+            This student&apos;s {enrollment.subject} sits at: <span className="font-medium text-gray-800">{explain.subjectPath}</span>
+          </p>
+        )}
+
         {isLoading ? (
           <p className="text-sm text-gray-500">Loading eligible tutors...</p>
         ) : eligibleTutors.length === 0 ? (
           <p className="text-sm text-gray-500">
             {search.trim()
               ? "No eligible tutor matches that search."
-              : `No other tutor can take "${enrollment.subject}" right now. A tutor appears here once they are active, fully approved and vetted, and allocated to this subject in Tutor Allocation.`}
+              : `No other tutor can take "${enrollment.subject}" right now. A tutor appears here once they are active, fully approved and vetted, and allocated to this exact subject in Tutor Allocation.`}
           </p>
         ) : (
           <div className="space-y-1 max-h-64 overflow-y-auto">
@@ -115,6 +131,28 @@ export default function ReassignTutorDialog({ enrollment, onOpenChange, onReassi
               >
                 {t.firstName} {t.lastName}
               </button>
+            ))}
+          </div>
+        )}
+
+        {search.trim() && explain && explain.tutors.length > 0 && eligibleTutors.length === 0 && (
+          <div className="space-y-2 max-h-56 overflow-y-auto">
+            <p className="text-xs font-medium text-gray-700">Why they are not offered:</p>
+            {explain.tutors.map((t) => (
+              <div key={t.tutorId} className="rounded-md border border-amber-200 bg-amber-50 p-2 text-xs text-amber-900 space-y-1">
+                <p className="font-medium">{t.name}</p>
+                <ul className="list-disc pl-4 space-y-0.5">
+                  {t.reasons.map((r, i) => (
+                    <li key={i}>{r}</li>
+                  ))}
+                </ul>
+                {t.allocatedTo.length > 0 && (
+                  <p className="text-amber-800">
+                    Allocated to: {t.allocatedTo.slice(0, 6).join(" | ")}
+                    {t.allocatedTo.length > 6 ? ` ... (+${t.allocatedTo.length - 6} more)` : ""}
+                  </p>
+                )}
+              </div>
             ))}
           </div>
         )}

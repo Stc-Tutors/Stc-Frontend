@@ -320,3 +320,21 @@ export async function SearchEligibleTutorsAction(
   const resData = res ? ((await res.json()) as ApiResponse<User[]>) : null;
   return [resData, error];
 }
+
+export interface TutorEligibilityExplanation {
+  subjectPath: string;
+  tutors: { tutorId: string; name: string; eligible: boolean; reasons: string[]; allocatedTo: string[] }[];
+}
+
+// Why a tutor is (or is not) offered for this student's subject - by name, with every reason that rules them out.
+export async function ExplainTutorEligibilityAction(
+  subjectEnrollmentId: string,
+  search?: string
+): Promise<[ApiResponse<TutorEligibilityExplanation> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: `/allocation-hub/subject-enrollments/${subjectEnrollmentId}/explain-tutor${search ? `?search=${encodeURIComponent(search)}` : ""}`,
+    request: { method: "GET", headers: { "Content-Type": "application/json" } },
+  });
+  const resData = res ? ((await res.json()) as ApiResponse<TutorEligibilityExplanation>) : null;
+  return [resData, error];
+}
