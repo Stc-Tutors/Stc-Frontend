@@ -51,6 +51,7 @@ const sidebarLinks = [
   { label: "Schedule", icon: Calendar, href: "/lms-home/tutor/scheduling" },
   { label: "Pending Assignments", icon: UserCheck, href: "/lms-home/tutor/pending-assignments" },
   { label: "Classroom", icon: Users, href: "/lms-home/tutor/classroom" },
+  { label: "Reports Due", icon: FileUser, href: "/lms-home/tutor/reports-due" },
   { label: "My Hours", icon: Hourglass, href: "/lms-home/tutor/hours" },
   { label: "Student Progress", icon: Target, href: "/lms-home/tutor/student-progress" },
   { label: "Assignments", icon: BookOpen, href: "/lms-home/tutor/assignments" },

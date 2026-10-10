@@ -4,9 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ToastError, ToastSuccess } from "@/components/ui/custom/toast";
-import { useUser } from "@/contexts/user-context";
 import { formatScheduleDateTime } from "@/lib/datetime";
-import { AdminPermission } from "@/types/admin-permission";
 import { DeleteRecordingAction, ListRecordingsAction } from "@/server/live-class";
 import type { RecordingListItem } from "@/types/live-class";
 import RecordingPlayerDialog from "@/components/live-class/RecordingPlayerDialog";
@@ -22,8 +20,6 @@ const STATUS_LABEL: Record<string, string> = {
 // Recordings of in-app classes the signed-in admin/HOD is allowed to oversee (the server narrows the list to their scope and permission), with
 // the attendance log of each class. Deleting removes the video file for good; the class record, report and hours stay.
 export default function AdminRecordingsPage() {
-  const { hasPermission } = useUser();
-  const canDelete = hasPermission(AdminPermission.DELETE_CLASS_RECORDINGS);
   const [items, setItems] = useState<RecordingListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -96,7 +92,7 @@ export default function AdminRecordingsPage() {
                       <Button size="sm" variant="outline" onClick={() => setLogFor(item)}>
                         Who joined
                       </Button>
-                      {item.status === "READY" && canDelete && (
+                      {item.status === "READY" && item.canDelete && (
                         <Button size="sm" variant="outline" className="text-red-600" onClick={() => remove(item)}>
                           Delete
                         </Button>

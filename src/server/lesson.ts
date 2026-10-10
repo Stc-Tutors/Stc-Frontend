@@ -118,6 +118,36 @@ export interface ClockOutField {
   label: string;
   required: boolean;
   isActive: boolean;
+  // How the answer is given: a 1..max rating, one of `options`, or free text when absent.
+  kind?: "rating" | "choice";
+  max?: number;
+  options?: string[];
+}
+
+// A finished class whose post-lesson report is still missing (GET /lessons/mine/reports-due).
+export interface ReportDueLesson {
+  id: string;
+  title: string;
+  status: string;
+  scheduledDate: string;
+  course?: { id?: string; title: string };
+}
+
+export async function GetReportsDueAction(): Promise<[ApiResponse<ReportDueLesson[]> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: "/lessons/mine/reports-due",
+    request: { method: "GET", headers: { "Content-Type": "application/json" } },
+  });
+  return [res ? ((await res.json()) as ApiResponse<ReportDueLesson[]>) : null, error];
+}
+
+// Files the report for a class that has already closed.
+export async function SubmitLateReportAction(id: string, report: Record<string, string>): Promise<[ApiResponse<Lesson> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: `/lessons/${id}/session-report`,
+    request: { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(report) },
+  });
+  return [res ? ((await res.json()) as ApiResponse<Lesson>) : null, error];
 }
 
 export async function GetClockOutFormFieldsAction(): Promise<[ApiResponse<ClockOutField[]> | null, string | null]> {

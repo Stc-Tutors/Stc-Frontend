@@ -288,4 +288,6 @@ export interface RecordingListItem {
   status?: string;
   scope?: string;
   expiresAt?: string;
+  // Whether the signed-in staff member may permanently delete this recording (server-decided).
+  canDelete?: boolean;
 }

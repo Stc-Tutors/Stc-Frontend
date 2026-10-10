@@ -8,6 +8,7 @@ export enum HodPermission {
   REVIEW_TUTOR_APPLICATIONS = "REVIEW_TUTOR_APPLICATIONS",
   MANAGE_UNASSIGNED_QUEUE = "MANAGE_UNASSIGNED_QUEUE",
   VIEW_SCHEDULE = "VIEW_SCHEDULE",
+  DELETE_RECORDINGS = "DELETE_RECORDINGS",
 }
 
 export const HOD_PERMISSION_LABELS: Record<HodPermission, string> = {
@@ -16,6 +17,7 @@ export const HOD_PERMISSION_LABELS: Record<HodPermission, string> = {
   [HodPermission.REVIEW_TUTOR_APPLICATIONS]: "Review tutor applications",
   [HodPermission.MANAGE_UNASSIGNED_QUEUE]: "Manage the Unassigned Enrollments queue",
   [HodPermission.VIEW_SCHEDULE]: "View the schedule of my tutors and observe their classes",
+  [HodPermission.DELETE_RECORDINGS]: "Permanently delete class recordings in this scope",
 };
 
 // The free-text tutor-application vocabulary - only meaningful for
