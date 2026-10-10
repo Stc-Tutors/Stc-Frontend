@@ -265,3 +265,27 @@ export interface FeedbackOverview {
   };
   items: OverviewFeedbackItem[];
 }
+
+// GET /live-classes/:lessonId/log - see stcbe's LiveClassService.getClassLog.
+export interface ClassLog {
+  lesson: { id: string; title: string; scheduledDate: string; durationMinutes: number; status: string };
+  roomStartedAt: string | null;
+  roomFinishedAt: string | null;
+  tutorClockedInAt: string | null;
+  endedAt: string | null;
+  timeline: { userId: string; name?: string; role: PresenceRole; joinedAt: string; leftAt: string | null; stillConnected: boolean; minutes: number }[];
+  people: { userId: string; name?: string; role: PresenceRole; firstJoinedAt: string; lastLeftAt: string | null; totalMinutes: number; sessions: number; dropOffs: number }[];
+}
+
+// One row of the staff recordings library (GET /live-classes/recordings).
+export interface RecordingListItem {
+  id: string;
+  title: string;
+  scheduledDate: string;
+  durationMinutes: number;
+  courseTitle: string;
+  tutorName: string;
+  status?: string;
+  scope?: string;
+  expiresAt?: string;
+}

@@ -40,6 +40,8 @@ export enum AdminPermission {
   // in the admin's scope, and only once every enrolled child has parental consent.
   TOGGLE_CLASS_RECORDING = "TOGGLE_CLASS_RECORDING",
   DELETE_CLASS_RECORDINGS = "DELETE_CLASS_RECORDINGS",
+  // Watch class recordings and read a class's attendance log (only for classes in scope).
+  VIEW_CLASS_RECORDINGS = "VIEW_CLASS_RECORDINGS",
   // Grant/revoke a direct-messaging override between two specific non-admin
   // users - see TutorMessagingPermissionService.
   MANAGE_MESSAGING_PERMISSIONS = "MANAGE_MESSAGING_PERMISSIONS",

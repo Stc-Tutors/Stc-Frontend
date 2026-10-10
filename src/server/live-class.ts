@@ -5,6 +5,8 @@ import type { Lesson } from "@/types/lesson";
 import type {
   BreakoutStatus,
   ChildConsent,
+  ClassLog,
+  RecordingListItem,
   JoinResponse,
   LessonDeliveryMode,
   RecordingReadiness,
@@ -124,4 +126,12 @@ export async function RoamBreakoutAction(lessonId: string, roomId: string): Resu
 
 export async function EndBreakoutAction(lessonId: string): Result<null> {
   return call(`/live-classes/${lessonId}/breakout/end`, "POST");
+}
+
+export async function GetClassLogAction(lessonId: string): Result<ClassLog> {
+  return call(`/live-classes/${lessonId}/log`);
+}
+
+export async function ListRecordingsAction(): Result<RecordingListItem[]> {
+  return call("/live-classes/recordings");
 }
