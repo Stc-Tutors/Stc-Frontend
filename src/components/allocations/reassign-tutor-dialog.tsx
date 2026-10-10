@@ -11,13 +11,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ReassignSubjectTutorAction } from "@/server/allocation-hub";
-import { ListTutorAllocationsAction } from "@/server/tutor-allocation";
-import { GetUsersAction } from "@/server/admin";
+import { ReassignSubjectTutorAction, SearchEligibleTutorsAction } from "@/server/allocation-hub";
 import { SubjectEnrollment } from "@/types/allocation-hub";
-import { TutorAllocation } from "@/types/tutor-allocation";
-import { User, UserRole } from "@/types/user";
-import { isSubjectAllocatedToTutor } from "@/lib/tutor-allocation";
+import { User } from "@/types/user";
 
 interface Props {
   enrollment: SubjectEnrollment | null;
@@ -25,40 +21,46 @@ interface Props {
   onReassigned: () => void;
 }
 
-// Subject-first "move this student to a different tutor" - the counterpart
-// to UnassignedQueueDetailDialog's initial assignment, for an enrollment
-// that already has one. Eligible tutors come from TutorAllocation only, the
-// same rule the backend enforces (isSubjectAllocatedToTutor) - no Course is
-// ever picked or shown here.
+// Subject-first "move this student to a different tutor" - the counterpart to UnassignedQueueDetailDialog's initial assignment, for an
+// enrollment that already has one. Who is eligible is worked out ON THE SERVER (active, approved and vetted, and allocated to this subject -
+// including when the allocation was made on a parent category of the subject). This dialog used to guess in the browser from a simplified
+// copy of that rule, which left out the category case, so a tutor who really was allocated (Grace Afolabi for Physics) never appeared.
 export default function ReassignTutorDialog({ enrollment, onOpenChange, onReassigned }: Props) {
   const [tutors, setTutors] = useState<User[]>([]);
-  const [allocationsByTutor, setAllocationsByTutor] = useState<Map<string, TutorAllocation>>(new Map());
+  const [search, setSearch] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [selectedTutorId, setSelectedTutorId] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     setSelectedTutorId("");
-    if (!enrollment) return;
-    setIsLoading(true);
-    Promise.all([GetUsersAction({ role: UserRole.TUTOR, limit: 1000, assignable: true }), ListTutorAllocationsAction()]).then(
-      ([[usersRes], [allocationsRes]]) => {
-        setTutors(usersRes?.data ?? []);
-        setAllocationsByTutor(new Map((allocationsRes?.data ?? []).map((a) => [a.tutor, a])));
-        setIsLoading(false);
-      }
-    );
+    setSearch("");
   }, [enrollment]);
+
+  useEffect(() => {
+    if (!enrollment) return;
+    let stale = false;
+    setIsLoading(true);
+    const timer = setTimeout(async () => {
+      const [res, error] = await SearchEligibleTutorsAction(enrollment.id, search.trim() || undefined);
+      if (stale) return;
+      if (error) toast.error(error);
+      setTutors(res?.data ?? []);
+      setIsLoading(false);
+    }, 250);
+    return () => {
+      stale = true;
+      clearTimeout(timer);
+    };
+  }, [enrollment, search]);
 
   if (!enrollment) return null;
 
   const currentCourseEnrollment = typeof enrollment.courseEnrollment === "object" ? enrollment.courseEnrollment : undefined;
   const currentCourse = currentCourseEnrollment && typeof currentCourseEnrollment.course === "object" ? currentCourseEnrollment.course : undefined;
-  const currentTutorId = currentCourse ? (typeof currentCourse.tutor === "string" ? currentCourse.tutor : currentCourse.tutor?.id) : undefined;
+  const currentTutorId = currentCourse ? (typeof currentCourse.tutor === "string" ? currentCourse.tutor : (currentCourse.tutor as { id?: string } | undefined)?.id) : undefined;
 
-  const eligibleTutors = tutors.filter(
-    (t) => t.id !== currentTutorId && isSubjectAllocatedToTutor(allocationsByTutor.get(t.id) ?? null, enrollment)
-  );
+  const eligibleTutors = tutors.filter((t) => t.id !== currentTutorId);
 
   const handleReassign = async () => {
     if (!selectedTutorId) return;
@@ -78,19 +80,27 @@ export default function ReassignTutorDialog({ enrollment, onOpenChange, onReassi
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>
-            Reassign {(enrollment.student?.fullName ?? "Removed student")} — {enrollment.subject}
+            Reassign {enrollment.student?.fullName ?? "Removed student"} - {enrollment.subject}
           </DialogTitle>
           <DialogDescription>
-            Pick a different tutor already allocated to teach this subject. Blocked only by a real schedule clash -
-            not by capacity or anything else.
+            Pick a different tutor allocated to teach this subject. Blocked only by a real schedule clash - not by capacity or anything else.
           </DialogDescription>
         </DialogHeader>
+
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search by name or email..."
+          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+        />
 
         {isLoading ? (
           <p className="text-sm text-gray-500">Loading eligible tutors...</p>
         ) : eligibleTutors.length === 0 ? (
           <p className="text-sm text-gray-500">
-            No other tutor is currently allocated to teach &quot;{enrollment.subject}&quot;.
+            {search.trim()
+              ? "No eligible tutor matches that search."
+              : `No other tutor can take "${enrollment.subject}" right now. A tutor appears here once they are active, fully approved and vetted, and allocated to this subject in Tutor Allocation.`}
           </p>
         ) : (
           <div className="space-y-1 max-h-64 overflow-y-auto">
