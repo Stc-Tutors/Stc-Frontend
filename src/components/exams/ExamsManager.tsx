@@ -28,9 +28,11 @@ export default function ExamsManager({ basePath }: { basePath: string }) {
   const [creating, setCreating] = useState(false);
 
   const load = useCallback(async () => {
-    const [[statusRes], [listRes, error]] = await Promise.all([GetExamStatusAction(), GetExamsAction()]);
-    setConfigured(statusRes?.data?.configured ?? false);
+    const [[statusRes, statusError], [listRes, error]] = await Promise.all([GetExamStatusAction(), GetExamsAction()]);
+    // Only call it "not connected" when the backend actually said so - a failed status call (permissions, backend down) is not that.
+    setConfigured(statusRes?.data ? statusRes.data.configured : true);
     setIsStaff(statusRes?.data?.isStaff ?? false);
+    if (statusError) ToastError(statusError);
     if (error) ToastError(error);
     setExams(listRes?.data ?? []);
     setIsLoading(false);
