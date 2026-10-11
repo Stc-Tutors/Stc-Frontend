@@ -6,7 +6,8 @@ import { GetMyExamsAction, LaunchExamAction } from "@/server/exam";
 import { ExamLaunchMode, MyExam } from "@/types/exam";
 import { Button } from "@/components/ui/button";
 import { ToastError } from "@/components/ui/custom/toast";
-import MockExamsSection from "@/components/exams/MockExamsSection";
+import Link from "next/link";
+import { useUser } from "@/contexts/user-context";
 
 function statusLabel(seat: MyExam["seat"]): { text: string; className: string } {
   if (seat.status === "SUBMITTED") return { text: "Submitted", className: "bg-green-100 text-green-700" };
@@ -17,6 +18,7 @@ function statusLabel(seat: MyExam["seat"]): { text: string; className: string } 
 // Tests a student or parent can sit through STC Exams, shared by both areas (the backend scopes everything to the logged-in family).
 // A parent sees one row per child. Each test opens either in a new browser tab or in a frame inside this page, as the admin chose.
 export default function MyExamsView() {
+  const { user } = useUser();
   const [exams, setExams] = useState<MyExam[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [busyKey, setBusyKey] = useState<string | null>(null);
@@ -115,7 +117,12 @@ export default function MyExamsView() {
         </ul>
       )}
 
-      <MockExamsSection />
+      <p className="border-t pt-4 text-sm text-gray-600">
+        Looking for practice tests?{" "}
+        <Link href={`/lms-home/${user?.role === "PARENT" ? "parent" : "student"}/mock-exams`} className="text-blue-600 hover:underline">
+          Open Mock Exams
+        </Link>
+      </p>
 
       {frame && (
         <div className="fixed inset-0 z-50 bg-black/70 flex flex-col">

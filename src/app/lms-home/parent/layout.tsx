@@ -57,6 +57,7 @@ const sidebarLinks = [
   { label: "Resources", icon: FolderOpen, href: "/lms-home/parent/resources" },
   { label: "Video Courses", icon: PlayCircle, href: "/lms-home/parent/video-courses" },
   { label: "Exams", icon: ClipboardList, href: "/lms-home/parent/exams" },
+  { label: "Mock Exams", icon: GraduationCap, href: "/lms-home/parent/mock-exams" },
   { label: "Assessment", icon: CalendarDays, href: "/lms-home/parent/assessment" },
   { label: "Messages", icon: MessageSquare, href: "/lms-home/parent/messages" },
   { label: "Analytics", icon: BarChart2, href: "/lms-home/parent/analytics" },
