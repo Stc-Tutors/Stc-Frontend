@@ -154,6 +154,7 @@ export default function Footer() {
             Privacy Policy
           </Link>
         </p>
+        <p className="mt-1">Powered by STATCOMM TC LIMITED</p>
       </div>
     </footer>
   );
