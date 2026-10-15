@@ -311,10 +311,13 @@ export async function OffboardTutorAction(
 // Tutors who may be given THIS subject (fully approved, active, allocated to it), searched by name on the server.
 export async function SearchEligibleTutorsAction(
   subjectEnrollmentId: string,
-  search?: string
+  search?: string,
+  // Availability / profile filters - see components/tutor-filters.
+  tutorFilters?: Record<string, string>
 ): Promise<[ApiResponse<User[]> | null, string | null]> {
+  const query = new URLSearchParams({ ...(search ? { search } : {}), ...(tutorFilters ?? {}) }).toString();
   const [res, error] = await fetchAPI({
-    url: `/allocation-hub/subject-enrollments/${subjectEnrollmentId}/eligible-tutors${search ? `?search=${encodeURIComponent(search)}` : ""}`,
+    url: `/allocation-hub/subject-enrollments/${subjectEnrollmentId}/eligible-tutors${query ? `?${query}` : ""}`,
     request: { method: "GET", headers: { "Content-Type": "application/json" } },
   });
   const resData = res ? ((await res.json()) as ApiResponse<User[]>) : null;

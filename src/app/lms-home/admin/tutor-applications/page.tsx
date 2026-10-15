@@ -20,6 +20,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import FullApplicationDetails from "@/components/tutor-applications/full-application-details";
 import ResourcePreviewDialog from "@/components/resources/ResourcePreviewDialog";
+import { TutorFilterBar, emptyTutorFilters, tutorFiltersToParams, type TutorFilterValues } from "@/components/tutor-filters/tutor-filter-bar";
 
 export default function TutorApplicationsPage() {
   const router = useRouter();
@@ -38,10 +39,11 @@ export default function TutorApplicationsPage() {
   const [preview, setPreview] = useState<{ title: string; url: string } | null>(null);
   const [moreInfoNotes, setMoreInfoNotes] = useState<Record<string, string>>({});
   const [expandedFor, setExpandedFor] = useState<string | null>(null);
+  const [filters, setFilters] = useState<TutorFilterValues>(emptyTutorFilters());
 
   const load = async () => {
     setIsLoading(true);
-    const [res] = await GetTutorApplicationsAction(status);
+    const [res] = await GetTutorApplicationsAction(status, tutorFiltersToParams(filters));
     setApplications(res?.data ?? []);
     setIsLoading(false);
   };
@@ -49,7 +51,7 @@ export default function TutorApplicationsPage() {
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status]);
+  }, [status, filters]);
 
   const handleApprove = async (id: string) => {
     const [, error] = await ApproveTutorApplicationAction(id);
@@ -116,6 +118,8 @@ export default function TutorApplicationsPage() {
             ))}
         </select>
       </div>
+
+      <TutorFilterBar value={filters} onChange={setFilters} showDates />
 
       {message && <p className="text-sm text-blue-600 mb-4">{message}</p>}
 

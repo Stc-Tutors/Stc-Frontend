@@ -26,10 +26,12 @@ import {
 import { Message } from "@/types/message";
 
 export async function GetTutorApplicationsAction(
-  status?: TutorApplicationStatus
+  status?: TutorApplicationStatus,
+  filters?: Record<string, string>
 ): Promise<[ApiResponse<TutorApplication[]> | null, string | null]> {
+  const query = new URLSearchParams({ ...(status ? { status } : {}), ...(filters ?? {}) }).toString();
   const [res, error] = await fetchAPI({
-    url: `/tutor-applications${status ? `?status=${status}` : ""}`,
+    url: `/tutor-applications${query ? `?${query}` : ""}`,
     request: { method: "GET", headers: { "Content-Type": "application/json" } },
   });
 

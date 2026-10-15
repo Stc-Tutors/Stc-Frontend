@@ -1,5 +1,6 @@
 "use client";
 
+import { TutorFilterBar, emptyTutorFilters, tutorFiltersToParams, type TutorFilterValues } from "@/components/tutor-filters/tutor-filter-bar";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -37,6 +38,7 @@ export default function UnassignedQueueDetailDialog({ enrollment, onOpenChange, 
   const [suggestionsError, setSuggestionsError] = useState<string | null>(null);
 
   const [manualSearch, setManualSearch] = useState("");
+  const [manualFilters, setManualFilters] = useState<TutorFilterValues>(emptyTutorFilters());
   const [manualResults, setManualResults] = useState<User[] | null>(null);
   const [isSearchingManually, setIsSearchingManually] = useState(false);
   const [showManualSearch, setShowManualSearch] = useState(false);
@@ -77,7 +79,7 @@ export default function UnassignedQueueDetailDialog({ enrollment, onOpenChange, 
     setIsSearchingManually(true);
     // Filtered on the server (approved + vetted + allocated to this subject) so the search covers every eligible tutor, not just the
     // first few on the platform.
-    const [res, error] = await SearchEligibleTutorsAction(enrollment.id, manualSearch.trim() || undefined);
+    const [res, error] = await SearchEligibleTutorsAction(enrollment.id, manualSearch.trim() || undefined, tutorFiltersToParams({ ...manualFilters, q: "" }));
     if (error) {
       toast.error(error);
       setManualResults(null);
@@ -182,6 +184,7 @@ export default function UnassignedQueueDetailDialog({ enrollment, onOpenChange, 
               </button>
               {showManualSearch && (
                 <div className="mt-2 space-y-2">
+                  <TutorFilterBar value={manualFilters} onChange={setManualFilters} hideSearch hideSort />
                   <div className="flex gap-2">
                     <input
                       value={manualSearch}

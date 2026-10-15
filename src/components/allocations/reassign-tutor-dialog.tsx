@@ -1,5 +1,6 @@
 "use client";
 
+import { TutorFilterBar, emptyTutorFilters, tutorFiltersToParams, type TutorFilterValues } from "@/components/tutor-filters/tutor-filter-bar";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -28,6 +29,7 @@ interface Props {
 export default function ReassignTutorDialog({ enrollment, onOpenChange, onReassigned }: Props) {
   const [tutors, setTutors] = useState<User[]>([]);
   const [search, setSearch] = useState("");
+  const [filters, setFilters] = useState<TutorFilterValues>(emptyTutorFilters());
   const [isLoading, setIsLoading] = useState(false);
   const [selectedTutorId, setSelectedTutorId] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -37,6 +39,7 @@ export default function ReassignTutorDialog({ enrollment, onOpenChange, onReassi
   useEffect(() => {
     setSelectedTutorId("");
     setSearch("");
+    setFilters(emptyTutorFilters());
   }, [enrollment]);
 
   useEffect(() => {
@@ -44,7 +47,7 @@ export default function ReassignTutorDialog({ enrollment, onOpenChange, onReassi
     let stale = false;
     setIsLoading(true);
     const timer = setTimeout(async () => {
-      const [res, error] = await SearchEligibleTutorsAction(enrollment.id, search.trim() || undefined);
+      const [res, error] = await SearchEligibleTutorsAction(enrollment.id, search.trim() || undefined, tutorFiltersToParams({ ...filters, q: "" }));
       if (stale) return;
       if (error) toast.error(error);
       setTutors(res?.data ?? []);
@@ -62,7 +65,7 @@ export default function ReassignTutorDialog({ enrollment, onOpenChange, onReassi
       stale = true;
       clearTimeout(timer);
     };
-  }, [enrollment, search]);
+  }, [enrollment, search, filters]);
 
   if (!enrollment) return null;
 
@@ -103,6 +106,7 @@ export default function ReassignTutorDialog({ enrollment, onOpenChange, onReassi
           placeholder="Search by name or email..."
           className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
         />
+        <TutorFilterBar value={filters} onChange={setFilters} hideSearch hideSort />
 
         {explain && (
           <p className="rounded-md bg-gray-50 px-3 py-2 text-xs text-gray-600">

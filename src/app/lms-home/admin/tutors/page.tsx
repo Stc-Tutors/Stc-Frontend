@@ -20,6 +20,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { GetUsersAction } from "@/server/admin";
+import { TutorFilterBar, emptyTutorFilters, tutorFiltersToParams, type TutorFilterValues } from "@/components/tutor-filters/tutor-filter-bar";
 import { User, UserRole } from "@/types/user";
 
 export default function AdminTutorsPage() {
@@ -27,18 +28,19 @@ export default function AdminTutorsPage() {
   const [tutors, setTutors] = useState<User[]>([]);
   const [search, setSearch] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [filters, setFilters] = useState<TutorFilterValues>(emptyTutorFilters());
 
-  const load = async (searchTerm?: string) => {
+  const load = async (searchTerm?: string, tutorFilters: TutorFilterValues = filters) => {
     setIsLoading(true);
-    const [res] = await GetUsersAction({ role: UserRole.TUTOR, search: searchTerm });
+    const [res] = await GetUsersAction({ role: UserRole.TUTOR, search: searchTerm, limit: 1000 }, tutorFiltersToParams({ ...tutorFilters, q: "" }));
     setTutors(res?.data ?? []);
     setIsLoading(false);
   };
 
   useEffect(() => {
-    load();
+    load(search, filters);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [filters]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,6 +50,8 @@ export default function AdminTutorsPage() {
   return (
     <div className="bg-white shadow rounded-2xl p-6">
       <h1 className="text-2xl font-bold mb-6">Tutors</h1>
+
+      <TutorFilterBar value={filters} onChange={setFilters} hideSearch />
 
       <form onSubmit={handleSearchSubmit} className="relative max-w-xs mb-4">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
