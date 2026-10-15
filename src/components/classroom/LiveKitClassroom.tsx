@@ -24,6 +24,7 @@ import {
   ShieldAlert,
   Video as VideoIcon,
 } from "lucide-react";
+import ClockOutDialog from "@/components/tutorDashboard/ClockOutDialog";
 import { Button } from "@/components/ui/button";
 import { ToastError } from "@/components/ui/custom/toast";
 import { useUser } from "@/contexts/user-context";
@@ -155,6 +156,14 @@ export default function LiveKitClassroom({ lessonId, onExit }: LiveKitClassroomP
   const [error, setError] = useState<string | null>(null);
   const [choices, setChoices] = useState<LocalUserChoices | null>(null);
   const [ending, setEnding] = useState(false);
+  // Prompts the tutor's post-lesson report right after they end the class -
+  // ClockOutLessonAction both files it and marks the session COMPLETED
+  // (closing the room again is harmless/idempotent if it's already closed).
+  // Without this, "End class for everyone" only closed the room: the lesson
+  // stayed SCHEDULED forever until the tutor separately visited Reports Due,
+  // which the reminder job would eventually chase them about anyway - this
+  // just surfaces it right at the natural moment instead.
+  const [showReport, setShowReport] = useState(false);
   // The video room stays connected underneath (audio keeps playing) while the
   // whiteboard is open - this only toggles which one is VISIBLE, never
   // unmounts <LiveKitRoom>, so switching tabs never drops the call.
@@ -245,7 +254,8 @@ export default function LiveKitClassroom({ lessonId, onExit }: LiveKitClassroomP
     setEnding(true);
     const [, err] = await EndLiveClassAction(lessonId);
     setEnding(false);
-    if (err) ToastError(err);
+    if (err) return ToastError(err);
+    setShowReport(true);
   };
 
   // The tutor (or an observing admin/HOD) dropping in on a group - this
@@ -293,28 +303,36 @@ export default function LiveKitClassroom({ lessonId, onExit }: LiveKitClassroomP
 
   if (phase === "left" || phase === "ended") {
     return (
-      <div className="flex flex-col items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 py-16 text-center">
-        <PhoneOff className="h-8 w-8 text-gray-400" />
-        <p className="text-sm text-gray-700">
-          {phase === "ended" ? "This class has ended." : "You left the class."}
-        </p>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={onExit}>
-            Back to my schedule
-          </Button>
-          {phase === "left" && (
-            <Button
-              onClick={() => {
-                setChoices(null);
-                void requestJoin();
-              }}
-            >
-              <DoorOpen className="mr-2 h-4 w-4" />
-              Rejoin
+      <>
+        <div className="flex flex-col items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 py-16 text-center">
+          <PhoneOff className="h-8 w-8 text-gray-400" />
+          <p className="text-sm text-gray-700">
+            {phase === "ended" ? "This class has ended." : "You left the class."}
+          </p>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={onExit}>
+              Back to my schedule
             </Button>
-          )}
+            {phase === "left" && (
+              <Button
+                onClick={() => {
+                  setChoices(null);
+                  void requestJoin();
+                }}
+              >
+                <DoorOpen className="mr-2 h-4 w-4" />
+                Rejoin
+              </Button>
+            )}
+          </div>
         </div>
-      </div>
+        <ClockOutDialog
+          lessonId={showReport ? lessonId : null}
+          onClose={() => setShowReport(false)}
+          onClockedOut={() => setShowReport(false)}
+          title={join?.lesson.title}
+        />
+      </>
     );
   }
 
@@ -473,6 +491,15 @@ export default function LiveKitClassroom({ lessonId, onExit }: LiveKitClassroomP
           </Button>
         )}
       </div>
+
+      {isTutor && (
+        <ClockOutDialog
+          lessonId={showReport ? lessonId : null}
+          onClose={() => setShowReport(false)}
+          onClockedOut={() => setShowReport(false)}
+          title={join.lesson.title}
+        />
+      )}
     </div>
   );
 }
