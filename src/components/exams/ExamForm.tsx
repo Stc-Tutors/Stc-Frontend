@@ -151,6 +151,12 @@ export default function ExamForm({
             </label>
           ))}
         </div>
+        {values.launchMode === ExamLaunchMode.EMBEDDED && (
+          <p className="text-xs text-amber-700 mt-2">
+            Embedded only works once STC Exams has approved this site&apos;s address for embedding (their &quot;Embedded in your platform&quot; feature). Until then
+            the test shows a blank frame - learners can still press &quot;Open in a new tab&quot;, but &quot;New tab&quot; here is the safe choice.
+          </p>
+        )}
         {values.launchMode === ExamLaunchMode.EMBEDDED && anyProctoring && (
           <p className="text-xs text-amber-700 mt-2">
             Browsers are stricter about camera, microphone and full screen inside a frame. For monitored tests, opening in a new tab

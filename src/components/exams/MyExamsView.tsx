@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ClipboardCheck, X } from "lucide-react";
 import { GetMyExamsAction, LaunchExamAction } from "@/server/exam";
 import { ExamLaunchMode, MyExam } from "@/types/exam";
@@ -22,7 +22,10 @@ export default function MyExamsView() {
   const [exams, setExams] = useState<MyExam[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [busyKey, setBusyKey] = useState<string | null>(null);
-  const [frame, setFrame] = useState<{ url: string; title: string } | null>(null);
+  const [frame, setFrame] = useState<{ url: string; title: string; assessmentId: string; learnerKey: string } | null>(null);
+  // Shown when the frame is still blank after a few seconds - a browser gives the page no event when a site refuses to be framed.
+  const [showFrameHelp, setShowFrameHelp] = useState(false);
+  const helpTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const load = useCallback(async () => {
     const [res, error] = await GetMyExamsAction();
@@ -48,7 +51,10 @@ export default function MyExamsView() {
       return;
     }
     if (res.data.launchMode === ExamLaunchMode.EMBEDDED) {
-      setFrame({ url: res.data.launchUrl, title: res.data.title });
+      setShowFrameHelp(false);
+      if (helpTimer.current) clearTimeout(helpTimer.current);
+      helpTimer.current = setTimeout(() => setShowFrameHelp(true), 8000);
+      setFrame({ url: res.data.launchUrl, title: res.data.title, assessmentId: exam.assessment.id, learnerKey: exam.learner.key });
     } else if (tab) {
       tab.opener = null;
       tab.location.href = res.data.launchUrl;
@@ -59,9 +65,31 @@ export default function MyExamsView() {
   };
 
   const closeFrame = () => {
+    if (helpTimer.current) clearTimeout(helpTimer.current);
+    setShowFrameHelp(false);
     setFrame(null);
     // The result may already have arrived while they were in the frame.
     load();
+  };
+
+  // The frame's link was single-use and is spent, so this asks for a fresh one and opens it in its own tab - the reliable way to sit a
+  // test when the exam site will not show inside this page (or for a monitored test that needs camera / full screen).
+  const openFrameInTab = async () => {
+    if (!frame) return;
+    const tab = window.open("", "_blank");
+    const [res, error] = await LaunchExamAction(frame.assessmentId, frame.learnerKey);
+    if (error || !res?.data) {
+      tab?.close();
+      ToastError(error ?? "Could not open this exam");
+      return;
+    }
+    closeFrame();
+    if (tab) {
+      tab.opener = null;
+      tab.location.href = res.data.launchUrl;
+    } else {
+      window.location.assign(res.data.launchUrl);
+    }
   };
 
   return (
@@ -128,10 +156,21 @@ export default function MyExamsView() {
         <div className="fixed inset-0 z-50 bg-black/70 flex flex-col">
           <div className="flex items-center justify-between bg-white px-4 py-2">
             <p className="font-medium truncate">{frame.title}</p>
-            <Button variant="outline" size="sm" onClick={closeFrame}>
-              <X className="h-4 w-4 mr-1" /> Close
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={openFrameInTab}>
+                Open in a new tab
+              </Button>
+              <Button variant="outline" size="sm" onClick={closeFrame}>
+                <X className="h-4 w-4 mr-1" /> Close
+              </Button>
+            </div>
           </div>
+          {showFrameHelp && (
+            <p className="bg-amber-50 text-amber-900 text-sm px-4 py-2">
+              Still blank? Some browsers or school settings stop the test showing inside this page. Press <strong>Open in a new tab</strong> to take it there
+              instead - it works the same.
+            </p>
+          )}
           {/* `allow` is what lets a proctored test use the camera, microphone, screen share and full screen inside a frame. */}
           <iframe
             src={frame.url}
