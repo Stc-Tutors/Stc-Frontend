@@ -8,7 +8,6 @@ import {
   ParticipantTile,
   PreJoin,
   RoomAudioRenderer,
-  VideoConference,
   useTracks,
   type LocalUserChoices,
 } from "@livekit/components-react";
@@ -33,10 +32,12 @@ import { EndLiveClassAction, JoinLiveClassAction, RoamBreakoutAction } from "@/s
 import type { JoinInfo } from "@/types/live-class";
 import AnnotatedScreenShare from "./AnnotatedScreenShare";
 import BreakoutPanel from "./BreakoutPanel";
+import ClassroomVideoLayout from "./ClassroomVideoLayout";
 import { BackgroundBlurToggle, useNoiseSuppression } from "./LocalMediaEffects";
 import ReactionsBar from "./ReactionsBar";
 import ReportIssueButton from "./ReportIssueButton";
 import SelfConnectionQuality from "./SelfConnectionQuality";
+import ThumbnailStrip from "./ThumbnailStrip";
 import WaitingRoomPanel from "./WaitingRoomPanel";
 import WhiteboardPanel from "./WhiteboardPanel";
 
@@ -394,11 +395,17 @@ export default function LiveKitClassroom({ lessonId, onExit }: LiveKitClassroomP
         onError={(e) => ToastError(e.message || "Something went wrong in the classroom")}
         style={{ height: "100%" }}
       >
-        {isObserverView ? <ObserverView /> : <VideoConference />}
+        {isObserverView ? <ObserverView /> : <ClassroomVideoLayout />}
         <RoomAudioRenderer />
         {!isObserverView && (
           <RoomExtras lessonId={lessonId} lessonTitle={join.lesson.title} isTutor={isTutor} isMainRoom={isMainRoom} onVisit={visitRoom} />
         )}
+        {/* Everyone's still visible as small thumbnails while the whiteboard
+            takes over the main view - same idea as Zoom/Meet's own
+            thumbnails during a presentation. Needs to live inside
+            <LiveKitRoom> for room context; its z-index (30) puts it above
+            the whiteboard overlay below, which is a sibling of this room. */}
+        {whiteboardOpen && !isObserverView && <ThumbnailStrip />}
       </LiveKitRoom>
 
       {/* Overlaid on top of (never replacing) <LiveKitRoom> above, so toggling

@@ -13,6 +13,7 @@
     "@capacitor/push-notifications": "^7.0.7",
     "@excalidraw/excalidraw": "^0.18.1",
     "@hookform/resolvers": "^5.0.1",
+    "@livekit/components-core": "^0.12.15",
     "@livekit/components-react": "^2.9.24",
     "@livekit/components-styles": "^1.2.0",
     "@livekit/krisp-noise-filter": "^0.4.5",
