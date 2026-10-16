@@ -4,7 +4,13 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import './Testimonials.css';
 import { GetTestimonialsAction } from '@/server/content';
-import { Testimonial } from '@/types/content';
+import { usePageSection } from '@/hooks/use-page-section';
+import { PageSectionKey, Testimonial, TestimonialsIntroContent } from '@/types/content';
+
+const DEFAULT_TESTIMONIALS_INTRO: TestimonialsIntroContent = {
+  title: "Testimonials",
+  subtitle: "What our customers say",
+};
 
 // Shown until real testimonials load (or if none are configured yet) - the
 // site's original hardcoded copy, now just the fallback rather than the
@@ -34,6 +40,7 @@ const DEFAULT_TESTIMONIALS: Testimonial[] = [
 ];
 
 const Testimonials = () => {
+  const intro = usePageSection(PageSectionKey.TESTIMONIALS_INTRO, DEFAULT_TESTIMONIALS_INTRO);
   const [testimonials, setTestimonials] = useState<Testimonial[]>(DEFAULT_TESTIMONIALS);
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -56,8 +63,8 @@ const Testimonials = () => {
       <div className="Testimonialcontainer">
         {/* Centered Header */}
         <div className="Testimonialheader">
-          <h2 className="Testimonialtitle">Testimonials</h2>
-          <p className="Testimonialsubtitle">What our customers say</p>
+          <h2 className="Testimonialtitle">{intro.title}</h2>
+          <p className="Testimonialsubtitle">{intro.subtitle}</p>
         </div>
 
         {/* Carousel */}

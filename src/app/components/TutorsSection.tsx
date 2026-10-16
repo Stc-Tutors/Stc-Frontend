@@ -6,7 +6,8 @@ import './TutorsSection.css';
 
 import { useRouter } from 'next/navigation';
 import { GetFeaturedTutorsAction } from '@/server/content';
-import { FeaturedTutor } from '@/types/content';
+import { usePageSection } from '@/hooks/use-page-section';
+import { FeaturedTutor, PageSectionKey, TutorsSectionContent } from '@/types/content';
 
 interface DisplayTutor {
   id: string;
@@ -17,17 +18,13 @@ interface DisplayTutor {
   rating: number;
 }
 
-// Shown until real featured tutors load (or if an admin hasn't opted any
-// tutor into the public homepage yet - see TutorProfileService.
-// setFeaturedOnHomepage) - same "fallback to today's copy" pattern as every
-// other CMS-driven homepage section, not fabricated data pretending to be real.
-const DEFAULT_TUTORS: DisplayTutor[] = [
-  { id: "default-1", name: "Dr. Sarah Johnson", subject: "Mathematics", image: "/image/tutor4.jpg", experience: "10+ years experience", rating: 4.9 },
-  { id: "default-2", name: "Prof. Michael Chen", subject: "Physics", image: "/image/tutor1.jpg", experience: "8 years experience", rating: 4.8 },
-  { id: "default-3", name: "Ms. Emily Wilson", subject: "English Literature", image: "/image/tutor2.jpg", experience: "5 years experience", rating: 4.7 },
-  { id: "default-4", name: "Mr. David Kim", subject: "Chemistry", image: "/image/tutor3.jpg", experience: "7 years experience", rating: 4.8 },
-  { id: "default-5", name: "Dr. Lisa Rodriguez", subject: "Biology", image: "/image/tutor1.jpg", experience: "9 years experience", rating: 4.9 },
-];
+const DEFAULT_TUTORS_SECTION: TutorsSectionContent = {
+  eyebrow: "Building a Network of 1000+ Carefully Vetted Tutors",
+  heading: "Get expert tutoring from qualified educators",
+  body: "We’re curating a strong pool of dedicated, qualified educators, each selected through a rigorous screening process to ensure high-quality, student-focused learning experiences.",
+  buttonText: "Find Tutor",
+  buttonLink: "/lms-home/student/dashboard",
+};
 
 function toDisplayTutor(t: FeaturedTutor): DisplayTutor {
   const user = typeof t.tutor === "object" ? t.tutor : null;
@@ -44,7 +41,9 @@ function toDisplayTutor(t: FeaturedTutor): DisplayTutor {
 }
 
 const TutorsSection = () => {
-  const [tutors, setTutors] = useState<DisplayTutor[]>(DEFAULT_TUTORS);
+  const content = usePageSection(PageSectionKey.TUTORS_SECTION, DEFAULT_TUTORS_SECTION);
+  // Only real tutors an admin has marked "show on homepage" - the carousel stays hidden until there is at least one.
+  const [tutors, setTutors] = useState<DisplayTutor[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const carouselRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -82,21 +81,19 @@ const TutorsSection = () => {
           className="content"
         >
           <div className="textContent">
-            <p className="bigheading">Building a Network of 1000+ Carefully Vetted Tutors</p>
-            <h1 className="heading">Get expert tutoring from qualified educators</h1>
-            <p className="subheading">
-              We’re curating a strong pool of dedicated, qualified educators, each selected through a rigorous screening
-              process to ensure high-quality, student-focused learning experiences.
-            </p>
+            <p className="bigheading">{content.eyebrow}</p>
+            <h1 className="heading">{content.heading}</h1>
+            <p className="subheading">{content.body}</p>
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="tutorcta" onClick={() => router.push("/lms-home/student/dashboard")}
+              className="tutorcta" onClick={() => router.push(content.buttonLink)}
             >
-              Find Tutor
+              {content.buttonText}
             </motion.button>
           </div>
 
+          {tutors.length > 0 && (
           <div className="carouselContainer">
             <div
               ref={carouselRef}
@@ -166,6 +163,7 @@ const TutorsSection = () => {
               ))}
             </div>
           </div>
+          )}
         </motion.div>
       </div>
     </section>

@@ -1,6 +1,7 @@
 "use client";
 import { usePageSection } from "@/hooks/use-page-section";
 import { AboutApproachContent, PageSectionKey } from "@/types/content";
+import { SiteIcon } from "@/lib/site-icon";
 
 const DEFAULT_APPROACH: AboutApproachContent = {
   approachTitle: "Our Approach",
@@ -28,7 +29,10 @@ const Approach = () => {
       <div className="container mx-auto px-6 md:px-12 lg:px-20">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="bg-white p-8 rounded-lg shadow-md">
-            <h3 className="text-lg font-semibold text-orange-600">Our Values and Approach</h3>
+            <h3 className="text-lg font-semibold text-orange-600 flex items-center gap-2">
+              {content.approachIcon && <SiteIcon value={content.approachIcon} size={22} />}
+              Our Values and Approach
+            </h3>
             <h2 className="text-2xl font-bold text-gray-900 mt-2">{content.approachTitle}</h2>
             <ul className="list-disc pl-4">
               {content.approachItems.map((item, i) => (
@@ -38,7 +42,10 @@ const Approach = () => {
           </div>
 
           <div className="bg-white p-8 rounded-lg shadow-md">
-            <h3 className="text-lg font-semibold text-orange-600">{content.whyChooseTitle}</h3>
+            <h3 className="text-lg font-semibold text-orange-600 flex items-center gap-2">
+              {content.whyChooseIcon && <SiteIcon value={content.whyChooseIcon} size={22} />}
+              {content.whyChooseTitle}
+            </h3>
             <ul className="list-disc pl-5">
               {content.whyChooseItems.map((item, i) => (
                 <li key={i}>{item}</li>

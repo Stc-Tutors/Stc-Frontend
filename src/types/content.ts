@@ -17,6 +17,12 @@ export enum PageSectionKey {
   CAREERS_INTRO = "CAREERS_INTRO",
   CAREERS_TEASER = "CAREERS_TEASER",
   SUPPORT_CONTACTS = "SUPPORT_CONTACTS",
+  TUTORS_SECTION = "TUTORS_SECTION",
+  TESTIMONIALS_INTRO = "TESTIMONIALS_INTRO",
+  FAQ_HOME = "FAQ_HOME",
+  FAQ_SERVICES = "FAQ_SERVICES",
+  FAQ_CONTACT = "FAQ_CONTACT",
+  FAQ_CAREERS = "FAQ_CAREERS",
 }
 
 export interface PageSection {
@@ -49,6 +55,8 @@ export interface FooterLink {
 export interface FooterSocialLink {
   platform: string;
   url: string;
+  // An icon id from the Site Content icon list, a picture link, or an emoji. Blank = the platform's own icon when it has one.
+  icon?: string;
 }
 
 // The logo isn't part of this: it comes from the tenant's own branding
@@ -74,6 +82,16 @@ export interface FooterContent {
   partners: FooterPartner[];
   loginText: string;
   loginLink: string;
+  // Small wording around the links; each falls back to the site default when blank.
+  registerText?: string;
+  dashboardText?: string;
+  logoutText?: string;
+  companyHeading?: string;
+  partnersHeading?: string;
+  rightsText?: string;
+  termsText?: string;
+  privacyText?: string;
+  poweredByText?: string;
 }
 
 export interface HeadSeoContent {
@@ -105,6 +123,40 @@ export interface CTAContent {
   subtext: string;
   overallGrade?: string;
   grades: CTAGrade[];
+  // The contact form on the right.
+  namePlaceholder?: string;
+  emailPlaceholder?: string;
+  subjectPlaceholder?: string;
+  messagePlaceholder?: string;
+  submitText?: string;
+  successText?: string;
+}
+
+// The text beside the tutor carousel on the homepage (the tutors shown are the ones flagged "show on homepage").
+export interface TutorsSectionContent {
+  eyebrow: string;
+  heading: string;
+  body: string;
+  buttonText: string;
+  buttonLink: string;
+}
+
+export interface FaqItem {
+  question: string;
+  // Rich text (the same formatting the other page text supports).
+  answer: string;
+}
+
+// A "Frequently asked questions" block. Nothing is shown on the page until at least one question has been added.
+export interface FaqContent {
+  heading: string;
+  intro?: string;
+  items: FaqItem[];
+}
+
+export interface TestimonialsIntroContent {
+  title: string;
+  subtitle: string;
 }
 
 export interface CommunityContent {
@@ -133,6 +185,9 @@ export interface AboutMissionContent {
   missionBody: string;
   visionTitle: string;
   visionBody: string;
+  // Icons shown beside the "Our Mission" / "Our Vision" headings (icon id, picture link or emoji).
+  missionIcon?: string;
+  visionIcon?: string;
 }
 
 export interface AboutApproachContent {
@@ -140,6 +195,8 @@ export interface AboutApproachContent {
   approachItems: string[];
   whyChooseTitle: string;
   whyChooseItems: string[];
+  approachIcon?: string;
+  whyChooseIcon?: string;
 }
 
 export interface ServicesIntroFeature {
@@ -157,6 +214,7 @@ export interface ServicesIntroContent {
 export interface ContactSocialLink {
   platform: string;
   url: string;
+  icon?: string;
 }
 
 export interface ContactInfoContent {
@@ -224,6 +282,8 @@ export interface ServicePage {
   whoFor?: string[];
   howItWorks: ServiceHowItWorksStep[];
   testimonials: ServiceTestimonial[];
+  // Hidden on the page when empty.
+  faqs?: FaqItem[];
   ctaLabel?: string;
   // Copy for the closing CTA banner, distinct from the hero CTA (ctaLabel).
   // Falls back to a generic closing line when unset.

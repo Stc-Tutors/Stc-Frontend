@@ -19,6 +19,7 @@ import { GetJobOpeningsAction } from "@/server/content";
 import { CareersIntroContent, JobEmploymentType, JobOpening, PageSectionKey } from "@/types/content";
 import { sanitizeRichText } from "@/lib/sanitize-html";
 import CareerApplicationForm from "./CareerApplicationForm";
+import PageFaq from "@/components/faq-section";
 
 // Purely decorative - a quick visual read of the platform before the text
 // sections below, same spirit as the emoji/trophy chrome on CTA.tsx.
@@ -244,6 +245,8 @@ export default function CareersPage() {
           </div>
         )}
       </div>
+
+      <PageFaq sectionKey={PageSectionKey.FAQ_CAREERS} />
 
       {applyingTo && <CareerApplicationForm opening={applyingTo} onClose={() => setApplyingTo(null)} />}
     </main>

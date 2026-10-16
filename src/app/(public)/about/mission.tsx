@@ -2,6 +2,7 @@
 import { usePageSection } from "@/hooks/use-page-section";
 import { AboutMissionContent, PageSectionKey } from "@/types/content";
 import { sanitizeRichText } from "@/lib/sanitize-html";
+import { SiteIcon } from "@/lib/site-icon";
 
 const DEFAULT_MISSION: AboutMissionContent = {
   missionTitle: "We bridge the gap between students and educators",
@@ -20,13 +21,19 @@ const MissionVision = () => {
       <div className="container mx-auto px-6 md:px-12 lg:px-20">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="bg-white p-8 rounded-lg shadow-md">
-            <h3 className="text-lg font-semibold text-orange-600">Our Mission</h3>
+            <h3 className="text-lg font-semibold text-orange-600 flex items-center gap-2">
+              {content.missionIcon && <SiteIcon value={content.missionIcon} size={22} />}
+              Our Mission
+            </h3>
             <h2 className="text-2xl font-bold text-gray-900 mt-2">{content.missionTitle}</h2>
             <p className="mt-4 text-gray-700" dangerouslySetInnerHTML={{ __html: sanitizeRichText(content.missionBody) }} />
           </div>
 
           <div className="bg-white p-8 rounded-lg shadow-md">
-            <h3 className="text-lg font-semibold text-orange-600">Our Vision</h3>
+            <h3 className="text-lg font-semibold text-orange-600 flex items-center gap-2">
+              {content.visionIcon && <SiteIcon value={content.visionIcon} size={22} />}
+              Our Vision
+            </h3>
             <h2 className="text-2xl font-bold text-gray-900 mt-2">{content.visionTitle}</h2>
             <p className="mt-4 text-gray-700" dangerouslySetInnerHTML={{ __html: sanitizeRichText(content.visionBody) }} />
           </div>

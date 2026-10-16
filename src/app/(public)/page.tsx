@@ -7,6 +7,8 @@ import Testimonials from '../components/Testimonials';
 import CTA from '../components/CTA';
 import CareersTeaser from '../components/CareersTeaser';
 import Footer from '../components/Footer';
+import PageFaq from '@/components/faq-section';
+import { PageSectionKey } from '@/types/content';
 
 export default function HomePage() {
   return (
@@ -18,6 +20,7 @@ export default function HomePage() {
         <TutorsSection />
         <Features />
         <Testimonials />
+        <PageFaq sectionKey={PageSectionKey.FAQ_HOME} />
         <CareersTeaser />
         <CTA />
       </main>

@@ -2,20 +2,12 @@
 import { Mail, Phone, MapPin, Clock } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { FaWhatsapp, FaInstagram, FaFacebook, FaLinkedin, FaTiktok, FaGlobe } from "react-icons/fa";
 import { usePageSection } from "@/hooks/use-page-section";
 import { PageSectionKey } from "@/types/content";
 import { DEFAULT_CONTACT } from "@/constants/default-contact";
 import { SendContactMessageAction } from "@/server/contact";
+import { SiteIcon } from "@/lib/site-icon";
 
-
-const SOCIAL_ICON: Record<string, typeof FaGlobe> = {
-  whatsapp: FaWhatsapp,
-  instagram: FaInstagram,
-  facebook: FaFacebook,
-  linkedin: FaLinkedin,
-  tiktok: FaTiktok,
-};
 
 const Contact = () => {
   const content = usePageSection(PageSectionKey.CONTACT_INFO, DEFAULT_CONTACT);
@@ -129,7 +121,6 @@ const Contact = () => {
              {/* Social Links */}
       <div className="flex gap-4 mt-6">
         {content.socialLinks.map((social) => {
-          const Icon = SOCIAL_ICON[social.platform.toLowerCase()] ?? FaGlobe;
           return (
             <motion.a
               key={social.platform + social.url}
@@ -141,7 +132,7 @@ const Contact = () => {
               whileHover={{ y: -2 }}
               whileTap={{ scale: 0.95 }}
             >
-              <Icon size={20} />
+              <SiteIcon value={social.icon || social.platform} size={20} fallback="globe" />
             </motion.a>
           );
         })}

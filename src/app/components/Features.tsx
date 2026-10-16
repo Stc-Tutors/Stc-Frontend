@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import './Features.css';
 import { usePageSection } from '@/hooks/use-page-section';
 import { FeaturesContent, PageSectionKey } from '@/types/content';
+import { SiteIcon } from '@/lib/site-icon';
 
 const DEFAULT_FEATURES: FeaturesContent = {
   title: "Want to know how?",
@@ -54,7 +55,7 @@ const Features = () => {
               className="stepCard"
             >
               <div className="stepNumber">{index + 1}</div>
-              <div className="stepIcon">{step.icon}</div>
+              <div className="stepIcon"><SiteIcon value={step.icon} size={36} /></div>
               <h3 className="stepTitle">{step.title}</h3>
               <p className="stepDescription">{step.description}</p>
             </motion.div>

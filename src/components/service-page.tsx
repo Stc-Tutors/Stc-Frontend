@@ -11,6 +11,8 @@ import { GetServiceBySlugAction } from "@/server/service-catalog";
 import { ServiceCatalogStatus } from "@/types/service-catalog";
 import { ServiceContent } from "@/types/content";
 import { sanitizeRichText } from "@/lib/sanitize-html";
+import { SiteIcon } from "@/lib/site-icon";
+import { FaqBlock } from "@/components/faq-section";
 
 // Hero/closing CTA, swapped in when `content.ctaHref` is set - for
 // sales-motion services (e.g. B2B) where RegisterCTA's individual-student
@@ -74,6 +76,7 @@ export function mergeWithDefaults(defaults: ServiceContent, fetched: Partial<Ser
     whoFor: fetched.whoFor?.length ? fetched.whoFor : defaults.whoFor,
     howItWorks: fetched.howItWorks?.length ? fetched.howItWorks : defaults.howItWorks,
     testimonials: fetched.testimonials?.length ? fetched.testimonials : defaults.testimonials,
+    faqs: fetched.faqs?.length ? fetched.faqs : defaults.faqs,
     ctaLabel: fetched.ctaLabel || defaults.ctaLabel,
     secondaryCtaLabel: fetched.secondaryCtaLabel || defaults.secondaryCtaLabel,
     // Template-only fields the CMS record never carries (see ServiceContent)
@@ -239,7 +242,11 @@ export default function ServicePage({
           <div className="flex flex-wrap justify-center gap-6">
             {content.keyFeatures.map((f, i) => (
               <div key={i} className="w-40 sm:w-48 md:w-56 text-center p-4 border rounded-lg">
-                {f.icon && <div className="text-4xl mb-2">{f.icon}</div>}
+                {f.icon && (
+                  <div className="mb-2 flex justify-center text-[#38b6ff]">
+                    <SiteIcon value={f.icon} size={40} />
+                  </div>
+                )}
                 <h3 className="font-medium">{f.title}</h3>
                 {f.description && <p className="text-sm text-gray-600 mt-1">{f.description}</p>}
               </div>
@@ -349,6 +356,9 @@ export default function ServicePage({
           </div>
         </section>
       )}
+
+      {/* FAQs - hidden until the service has at least one */}
+      <FaqBlock heading="Frequently asked questions" items={content.faqs ?? []} className="mb-12" />
 
       {/* Closing CTA banner - visually distinct from the hero, different copy */}
       <section className="mb-12">

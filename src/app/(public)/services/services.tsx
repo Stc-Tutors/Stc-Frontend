@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { usePageSection } from '@/hooks/use-page-section';
 import { PageSectionKey, ServicesIntroContent } from '@/types/content';
 import { sanitizeRichText } from '@/lib/sanitize-html';
+import { SiteIcon } from '@/lib/site-icon';
 
 const DEFAULT_SERVICES_INTRO: ServicesIntroContent = {
   heading: "We are Your Complete Learning Solution to Education, Skills & Development",
@@ -42,7 +43,7 @@ const ServicesSection = () => {
             <ul className="space-y-4">
               {content.features.map((service, index) => (
                 <li key={index} className="flex items-center gap-3">
-                  <span className="text-[#38b6ff] text-xl">{service.icon}</span>
+                  <span className="text-[#38b6ff] text-xl"><SiteIcon value={service.icon} size={22} /></span>
                   <span className="text-gray-700">{service.text}</span>
                 </li>
               ))}

@@ -6,6 +6,7 @@ import { ROUTES, lmsDashboardPath } from "@/config/routes";
 import { usePageSection } from "@/hooks/use-page-section";
 import { useUser } from "@/contexts/user-context";
 import { FooterContent, PageSectionKey } from "@/types/content";
+import { SiteIcon } from "@/lib/site-icon";
 
 const DEFAULT_FOOTER: FooterContent = {
   copyrightName: "STC Tutors",
@@ -28,6 +29,15 @@ const DEFAULT_FOOTER: FooterContent = {
   ],
   loginText: "Login",
   loginLink: "/auth/login",
+  registerText: "Get Started",
+  dashboardText: "Dashboard",
+  logoutText: "Log out",
+  companyHeading: "Company",
+  partnersHeading: "Partners",
+  rightsText: "All rights reserved.",
+  termsText: "Terms & Conditions",
+  privacyText: "Privacy Policy",
+  poweredByText: "Powered by STATCOMM TC LIMITED",
 };
 
 const SOCIAL_ICON: Record<string, { Icon: typeof FaGlobe; bg: string; hoverBg: string }> = {
@@ -49,7 +59,6 @@ export default function Footer() {
         <div className="flex space-x-3">
           {content.socialLinks.map((social) => {
             const icon = SOCIAL_ICON[social.platform.toLowerCase()] ?? { Icon: FaGlobe, bg: "bg-blue-600", hoverBg: "hover:bg-blue-500" };
-            const { Icon } = icon;
             return (
               <a
                 key={social.platform + social.url}
@@ -58,7 +67,7 @@ export default function Footer() {
                 rel="noopener noreferrer"
                 className={`w-8 h-8 flex items-center justify-center rounded-full ${icon.bg} ${icon.hoverBg} cursor-pointer`}
               >
-                <Icon size={16} />
+                <SiteIcon value={social.icon || social.platform} size={16} fallback="globe" />
               </a>
             );
           })}
@@ -80,12 +89,12 @@ export default function Footer() {
             <>
               <Link href={lmsDashboardPath(user.role)}>
                 <span className="bg-white text-[#38b6ff] px-3 py-1.5 rounded-md text-sm hover:bg-blue-100 transition">
-                  Dashboard
+                  {content.dashboardText}
                 </span>
               </Link>
               <button type="button" onClick={logout}>
                 <span className="border border-white px-3 py-1.5 rounded-md text-sm hover:bg-white/10 transition">
-                  Log out
+                  {content.logoutText}
                 </span>
               </button>
             </>
@@ -96,7 +105,7 @@ export default function Footer() {
               </Link>
               <Link href={ROUTES.AUTH.REGISTER}>
                 <span className="bg-white text-[#38b6ff] px-3 py-1.5 rounded-md text-sm hover:bg-blue-100 transition">
-                  Get Started
+                  {content.registerText}
                 </span>
               </Link>
             </>
@@ -109,7 +118,7 @@ export default function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {/* Company Column */}
           <div>
-            <h2 className="text-sm font-semibold mb-2 border-b border-white/20 pb-1">Company</h2>
+            <h2 className="text-sm font-semibold mb-2 border-b border-white/20 pb-1">{content.companyHeading}</h2>
             <ul className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
               {content.companyLinks.map((item) => (
                 <li key={item.label}>
@@ -127,7 +136,7 @@ export default function Footer() {
           {/* Partners Section */}
           {content.partners.length > 0 && (
             <div>
-              <h2 className="text-sm font-semibold mb-2 border-b border-white/20 pb-1">Partners</h2>
+              <h2 className="text-sm font-semibold mb-2 border-b border-white/20 pb-1">{content.partnersHeading}</h2>
               <div className="flex flex-wrap items-center gap-3">
                 {content.partners.map((partner) => (
                   <a key={partner.name} href={partner.url} target="_blank" rel="noopener noreferrer">
@@ -144,17 +153,17 @@ export default function Footer() {
       {/* Copyright Section */}
       <div className="mt-3 pt-2 border-t border-white/20 text-center text-sm text-blue-950">
         <p>
-          © {new Date().getFullYear()} {content.copyrightName}. All rights reserved.
+          © {new Date().getFullYear()} {content.copyrightName}. {content.rightsText}
         </p>
         <p className="mt-1 flex items-center justify-center gap-4">
           <Link href="/terms" className="underline-offset-2 hover:underline">
-            Terms &amp; Conditions
+            {content.termsText}
           </Link>
           <Link href="/privacy" className="underline-offset-2 hover:underline">
-            Privacy Policy
+            {content.privacyText}
           </Link>
         </p>
-        <p className="mt-1">Powered by STATCOMM TC LIMITED</p>
+        {content.poweredByText && <p className="mt-1">{content.poweredByText}</p>}
       </div>
     </footer>
   );
