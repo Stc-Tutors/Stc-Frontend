@@ -25,6 +25,10 @@ export interface Payment {
   // this field, only _id -> id). Used to resume a PENDING payment via
   // https://checkout.paystack.com/{accessCode}.
   accessCode: string;
+  // Which gateway took the payment (absent = Paystack, from before Flutterwave) and, for Flutterwave, the hosted
+  // checkout link an unfinished payment resumes from - see lib/checkout.ts.
+  gateway?: "paystack" | "flutterwave";
+  authorizationUrl?: string;
 }
 
 export interface PaymentRequest {

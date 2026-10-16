@@ -31,6 +31,7 @@ import { APPLY_COUPON_EVENT } from "@/lib/campaign-promo";
 import { WhatsAppLink } from "./WhatsAppButtons";
 import { trackMetaEvent } from "@/lib/meta-pixel";
 import { LocalPriceNote, LocalFirstPrice } from "@/components/local-price-note";
+import { createCheckout } from "@/lib/checkout";
 
 interface FormState {
   parentFirstName: string;
@@ -354,8 +355,7 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
     }
 
     setStep("Opening secure payment...");
-    const { default: PaystackPop } = await import("@paystack/inline-js");
-    const popup = new PaystackPop();
+    const popup = await createCheckout((payment as PaymentRequest), { returnTo: ROUTES.LMS.PARENT.PAYMENT_HISTORY });
     popup.resumeTransaction((payment as PaymentRequest).access_code, {
       onSuccess: async () => {
         const { VerifyPaymentAction } = await import("@/server/payment");

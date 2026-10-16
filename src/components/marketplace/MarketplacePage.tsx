@@ -26,6 +26,7 @@ import { InitiatePaymentAction, VerifyPaymentAction } from "@/server/payment";
 import { RedeemPaymentBypassTokenAction } from "@/server/enrollment";
 import PaymentConsentModal from "@/components/payment-consent-modal";
 import { LocalPriceNote, LocalFirstPrice } from "@/components/local-price-note";
+import { createCheckout } from "@/lib/checkout";
 
 // Lets a parent (or a self-registered student, who is effectively their own
 // parent - see stcbe's isParentRegisteredChild) add a new course/service to
@@ -181,8 +182,7 @@ export default function MarketplacePage() {
         // checkout after enrollment-flow.tsx's saveEnrollment (see
         // handleNext there) rather than a raw redirect, so the parent gets
         // the same in-app Paystack popup everywhere in this app.
-        const { default: PaystackPop } = await import("@paystack/inline-js");
-        const popup = new PaystackPop();
+        const popup = await createCheckout(payRes.data, { returnTo: paymentsPath });
         popup.resumeTransaction(payRes.data.access_code, {
           onSuccess: async () => {
             // Don't rely solely on Paystack's webhook reaching the backend -

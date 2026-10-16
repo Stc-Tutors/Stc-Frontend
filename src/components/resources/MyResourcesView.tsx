@@ -7,6 +7,7 @@ import { VerifyPaymentAction } from "@/server/payment";
 import { CourseResource } from "@/types/resource";
 import ResourcesTabs from "@/components/resources/ResourcesTabs";
 import { ToastError, ToastSuccess } from "@/components/ui/custom/toast";
+import { createCheckout } from "@/lib/checkout";
 
 // Every resource visible to the current student/parent across all three
 // target modes (course/subject/students) at once - see stcbe's
@@ -38,8 +39,7 @@ export default function MyResourcesView() {
       ToastError(error || "Could not start payment");
       return;
     }
-    const { default: PaystackPop } = await import("@paystack/inline-js");
-    const popup = new PaystackPop();
+    const popup = await createCheckout(res.data);
     popup.resumeTransaction(res.data.access_code, {
       onSuccess: async () => {
         const [, verifyError] = await VerifyPaymentAction(res.data!.reference);

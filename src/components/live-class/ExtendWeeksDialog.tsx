@@ -12,6 +12,7 @@ import { formatMoney } from "@/lib/money";
 import { VerifyPaymentAction } from "@/server/payment";
 import { ExtendScheduleAction, GetExtensionQuoteAction, type ExtensionQuote } from "@/server/course-enrollment";
 import { LocalFirstPrice } from "@/components/local-price-note";
+import { createCheckout } from "@/lib/checkout";
 
 const REFRESH_TAGS = ["hours", "lessons", "payments", "enrollments", "wallet"];
 
@@ -70,8 +71,7 @@ export default function ExtendWeeksDialog({ studentId, courseId, subject }: { st
       finish();
       return;
     }
-    const { default: PaystackPop } = await import("@paystack/inline-js");
-    const popup = new PaystackPop();
+    const popup = await createCheckout(payment);
     popup.resumeTransaction(payment.access_code, {
       onSuccess: async () => {
         const [, verifyError] = await VerifyPaymentAction(payment.reference);

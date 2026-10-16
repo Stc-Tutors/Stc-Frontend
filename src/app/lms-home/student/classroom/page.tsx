@@ -18,6 +18,7 @@ import NextClassBanner from "@/components/classroom/NextClassBanner";
 import ResourcesTabs from "@/components/resources/ResourcesTabs";
 import ResourcePreviewDialog from "@/components/resources/ResourcePreviewDialog";
 import { ToastError, ToastSuccess } from "@/components/ui/custom/toast";
+import { createCheckout } from "@/lib/checkout";
 
 export default function ClassroomPage() {
   const router = useRouter();
@@ -82,8 +83,7 @@ export default function ClassroomPage() {
       ToastError(error || "Could not start payment");
       return;
     }
-    const { default: PaystackPop } = await import("@paystack/inline-js");
-    const popup = new PaystackPop();
+    const popup = await createCheckout(res.data);
     popup.resumeTransaction(res.data.access_code, {
       onSuccess: async () => {
         const [, verifyError] = await VerifyPaymentAction(res.data!.reference);

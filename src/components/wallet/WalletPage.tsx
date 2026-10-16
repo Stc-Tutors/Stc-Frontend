@@ -31,6 +31,7 @@ import {
   type StudentPenaltyCharge,
 } from "@/types/penalty";
 import { LocalPriceNote } from "@/components/local-price-note";
+import { createCheckout } from "@/lib/checkout";
 
 // How long to keep asking Paystack whether a payment that hasn't settled yet
 // (bank transfer / USSD confirm after the popup closes) has gone through.
@@ -109,8 +110,7 @@ export default function WalletPage() {
         ToastError(error || "Couldn't start the top-up");
         return;
       }
-      const { default: PaystackPop } = await import("@paystack/inline-js");
-      const popup = new PaystackPop();
+      const popup = await createCheckout(res.data);
       popup.resumeTransaction(res.data.access_code, {
         onSuccess: () => {
           setTopUpAmount("");

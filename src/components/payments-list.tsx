@@ -16,6 +16,7 @@ import { Payment, PaymentStatus } from "@/types/payment";
 import { unwrap, useCachedQuery } from "@/lib/client-cache";
 import { ToastError, ToastSuccess } from "@/components/ui/custom/toast";
 import { LocalPriceNote } from "@/components/local-price-note";
+import { createCheckout } from "@/lib/checkout";
 
 const MONTH_LABELS = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
@@ -64,8 +65,7 @@ export default function PaymentsList({ variant }: PaymentsListProps) {
   // exactly the gap that leaves a paid enrollment stuck showing "Pending".
   const completePayment = async (payment: Payment) => {
     setPayingId(payment.id);
-    const { default: PaystackPop } = await import("@paystack/inline-js");
-    const popup = new PaystackPop();
+    const popup = await createCheckout(payment);
     popup.resumeTransaction(payment.accessCode, {
       onSuccess: async () => {
         const [res, verifyError] = await VerifyPaymentAction(payment.reference);

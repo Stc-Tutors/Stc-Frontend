@@ -19,6 +19,7 @@ import { EnrollmentStatus } from "@/types/student";
 import { VerifyPaymentAction } from "@/server/payment";
 import { SetRecordingConsentAction } from "@/server/live-class";
 import PaymentConsentModal from "./payment-consent-modal";
+import { createCheckout } from "@/lib/checkout";
 
 const steps = [
   { id: 1, title: "Service Selection", component: ServiceSelection },
@@ -254,8 +255,7 @@ export default function EnrollmentFlow({ forcedUserType, dashboardPath, paymentH
         }
 
         const payment = result.data.payment;
-        const { default: PaystackPop } = await import("@paystack/inline-js");
-        const popup = new PaystackPop();
+        const popup = await createCheckout(payment, { returnTo: paymentHistoryPath || ROUTES.DASHBOARD.PAYMENT_HISTORY });
         popup.resumeTransaction(payment.access_code, {
           onSuccess: async () => {
             // Paystack's own popup reporting success doesn't mean our

@@ -20,6 +20,7 @@ import { UserRole } from "@/types/user";
 import { ToastError, ToastSuccess } from "@/components/ui/custom/toast";
 import { rememberResidence } from "@/lib/display-currency";
 import { LocalFirstPrice } from "@/components/local-price-note";
+import { createCheckout } from "@/lib/checkout";
 
 export default function CompleteProfileForm({ studentId, dashboardPath }: { studentId: string; dashboardPath: string }) {
   const router = useRouter();
@@ -117,8 +118,7 @@ export default function CompleteProfileForm({ studentId, dashboardPath }: { stud
 
     // A full registration where the admin required payment - same checkout
     // flow as finishing the self-service wizard (enrollment-flow.tsx).
-    const { default: PaystackPop } = await import("@paystack/inline-js");
-    const popup = new PaystackPop();
+    const popup = await createCheckout(payment, { returnTo: dashboardPath });
     popup.resumeTransaction(payment.access_code, {
       onSuccess: async () => {
         const [, verifyError] = await VerifyPaymentAction(payment.reference);

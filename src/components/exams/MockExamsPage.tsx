@@ -15,6 +15,7 @@ import { VerifyPaymentAction } from "@/server/payment";
 import { mockCoinBalance } from "@/lib/mock-exam-display";
 import { formatMoney } from "@/lib/money";
 import type { MockAttempt, MockExamSubjects, MyMockExam, MyMockLearner } from "@/types/exam-mock";
+import { createCheckout } from "@/lib/checkout";
 
 // The student/parent Mock Exams page (same page for both - the backend scopes everything to the family). Mock exams are switched on per
 // student by an admin; a child without it sees a plain "not switched on" note. A parent picks a child first.
@@ -107,8 +108,7 @@ export default function MockExamsPage() {
       setBusy(null);
     };
     if (res.data.fullyCoveredByWallet) return finish();
-    const { default: PaystackPop } = await import("@paystack/inline-js");
-    new PaystackPop().resumeTransaction(res.data.access_code, {
+    (await createCheckout(res.data)).resumeTransaction(res.data.access_code, {
       onSuccess: async () => {
         const [, verifyError] = await VerifyPaymentAction(res.data!.reference);
         if (verifyError) {

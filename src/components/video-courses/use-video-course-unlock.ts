@@ -6,6 +6,7 @@ import { VerifyPaymentAction } from "@/server/payment";
 import { ToastError, ToastSuccess } from "@/components/ui/custom/toast";
 import { useUser } from "@/contexts/user-context";
 import { UserRole } from "@/types/user";
+import { createCheckout } from "@/lib/checkout";
 
 // Shared by the recommended-cards panel and the "My Video Courses" page: which
 // courses this family has unlocked, and the Paystack popup to unlock another.
@@ -36,8 +37,7 @@ export function useVideoCourseUnlock() {
         setBusyId(null);
         return;
       }
-      const { default: PaystackPop } = await import("@paystack/inline-js");
-      const popup = new PaystackPop();
+      const popup = await createCheckout(res.data);
       popup.resumeTransaction(res.data.access_code, {
         onSuccess: async () => {
           const [, verifyError] = await VerifyPaymentAction(res.data!.reference);
