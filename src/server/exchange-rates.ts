@@ -15,6 +15,9 @@ export interface ExchangeRatesData {
   // Where the visitor is, from their IP (null when unknown) - used until they say where they live.
   viewerCountry?: string | null;
   viewerIso?: string | null;
+  // What can be charged right now, and the currency the visitor's IP suggests - see the backend's public controller.
+  collectibleCurrencies?: string[];
+  viewerCurrency?: string | null;
 }
 
 // Display-only estimate rates - nothing is ever charged from these.

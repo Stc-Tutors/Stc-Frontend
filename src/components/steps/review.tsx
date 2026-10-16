@@ -69,6 +69,8 @@ export default function EnrollmentReview({ onNext, errors }: StepProps) {
 
   // const totalCost = enrollmentData.totalCost || calculateCost();
   const totalCost = enrollmentData.totalCost ?? 0;
+  // The currency the total is in (the picked price's currency) - absent means naira.
+  const costCurrency = enrollmentData.totalCostCurrency;
   const billingWeeks = serviceDetails?.billingWeeks || 4;
 // console.log("✅ Review Page - Total Cost:", totalCost, "Service Type:", serviceDetails?.serviceType);
 
@@ -426,8 +428,8 @@ export default function EnrollmentReview({ onNext, errors }: StepProps) {
                     <div className="flex justify-between text-sm">
                       <span>Weekly cost:</span>
                       <span className="text-right">
-                        <LocalFirstPrice amount={totalCost / billingWeeks} country={childInfo?.countryOfResidence}>
-                          {formatMoney(totalCost / billingWeeks)}
+                        <LocalFirstPrice amount={totalCost / billingWeeks} currency={costCurrency} country={childInfo?.countryOfResidence}>
+                          {formatMoney(totalCost / billingWeeks, costCurrency)}
                         </LocalFirstPrice>
                       </span>
                     </div>
@@ -437,8 +439,8 @@ export default function EnrollmentReview({ onNext, errors }: StepProps) {
                 <div className="flex justify-between font-semibold text-lg">
                   <span>{!showWeeklyBreakdown ? "Total:" : `Total (${billingWeeks} week${billingWeeks === 1 ? "" : "s"}):`}</span>
                   <span className="text-green-600 text-right">
-                    <LocalFirstPrice amount={totalCost} country={childInfo?.countryOfResidence}>
-                      {formatMoney(totalCost)}
+                    <LocalFirstPrice amount={totalCost} currency={costCurrency} country={childInfo?.countryOfResidence}>
+                      {formatMoney(totalCost, costCurrency)}
                     </LocalFirstPrice>
                   </span>
                 </div>
@@ -635,7 +637,7 @@ export default function EnrollmentReview({ onNext, errors }: StepProps) {
               <p className="text-sm text-green-600">Click "Save & Continue" to proceed to secure payment</p>
             </div>
             <div className="text-right">
-              <p className="text-2xl font-bold text-green-800"><LocalFirstPrice amount={totalCost} country={childInfo?.countryOfResidence} explain>{formatMoney(totalCost)}</LocalFirstPrice></p>
+              <p className="text-2xl font-bold text-green-800"><LocalFirstPrice amount={totalCost} currency={costCurrency} country={childInfo?.countryOfResidence} explain>{formatMoney(totalCost, costCurrency)}</LocalFirstPrice></p>
               {showWeeklyBreakdown && (
                 <p className="text-sm text-green-600">
                   for {billingWeeks} week{billingWeeks === 1 ? "" : "s"}

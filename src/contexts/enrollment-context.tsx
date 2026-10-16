@@ -9,6 +9,8 @@ import {
   UpdateDraftEnrollmentAction,
 } from "@/server/enrollment";
 import { GetServicePricingAction } from "@/server/service-pricing";
+import { GetExchangeRatesAction, type ExchangeRatesData } from "@/server/exchange-rates";
+import { currencyForCountry } from "@/lib/display-currency";
 import { GetServicesAction } from "@/server/service-catalog";
 import { ServicePricing } from "@/types/service-pricing";
 import { IService, CustomFieldResponses, ArchitecturalPath } from "@/types/service-catalog";
@@ -142,6 +144,8 @@ export type EnrollmentData = {
   serviceDetails: ServiceDetails;
   schedule: Schedule[];
   totalCost: number;
+  // The currency totalCost is in (the currency of the price that was picked) - absent = naira.
+  totalCostCurrency?: string;
   status: "draft" | "pending_payment" | "paid" | "active";
   // The full IService picked in Service Selection - later steps branch on
   // its architecturalPath/flowRequirements rather than hardcoding per-slug
@@ -189,7 +193,9 @@ type EnrollmentContextType = {
   isLoading: boolean;
   currentStep: number;
   setCurrentStep: (step: number) => void;
-  setTotalCost: (amount: number) => void;
+  setTotalCost: (amount: number, currency?: string) => void;
+  // The currency the picked prices are in (see pickPrice) - what totalCost is denominated in.
+  getCostCurrency: (schedule?: Schedule[], serviceDetails?: PricingDetails) => string;
   setEnrollmentData: React.Dispatch<React.SetStateAction<Partial<EnrollmentData>>>;
   pricing: ServicePricing[];
 };
@@ -202,9 +208,16 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
   const [currentStep, setCurrentStep] = useState(1);
   const [pricing, setPricing] = useState<ServicePricing[]>([]);
 
+  // Which currencies can be charged, and any Super Admin currency assignments - to work out which price point a
+  // quote will use (see preferredCurrency).
+  const [exchange, setExchange] = useState<ExchangeRatesData | null>(null);
+
   useEffect(() => {
     GetServicePricingAction().then(([res]) => {
       if (res?.data) setPricing(res.data);
+    });
+    GetExchangeRatesAction().then(([res]) => {
+      if (res?.data) setExchange(res.data);
     });
   }, []);
 
@@ -253,7 +266,7 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
     // that state update above hasn't committed yet, so reading it back here would
     // compute cost off the *previous* schedule (always one edit behind).
     const totalCost = calculateCost(schedule);
-    setTotalCost(totalCost);
+    setTotalCost(totalCost, getCostCurrency(schedule));
   };
 
   // A pricing row now carries a price per currency (ServicePricing.prices -
@@ -264,9 +277,27 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
   // at payment time (StudentService.enroll never trusts this value) - so
   // "prefer NGN, else whatever's first" is a reasonable display default
   // rather than something that needs real currency-detection here.
-  const pickPrice = (row: ServicePricing | undefined): { ratePerHour?: number; flatRate?: number } | undefined => {
+  // The currency a quote will be priced in - mirrors the server (PricingService.resolvePreferredCurrency): the
+  // Super Admin's assignment for where the family lives, else that country's own currency, else the one their IP
+  // suggests; and anything the payment gateways can't collect yet is charged in naira.
+  const preferredCurrency = (): string => {
+    const residence = enrollmentData.childInfo?.countryOfResidence?.trim();
+    const assigned = residence ? exchange?.countryCurrencies?.[residence]?.payCurrency : undefined;
+    const byCountry = residence
+      ? residence.toUpperCase() === "NG" || residence.toLowerCase() === "nigeria"
+        ? "NGN"
+        : currencyForCountry(residence)
+      : undefined;
+    const wanted = assigned ?? byCountry ?? exchange?.viewerCurrency ?? "NGN";
+    return exchange?.collectibleCurrencies?.includes(wanted) ? wanted : "NGN";
+  };
+
+  // The row's price in that currency, else its first - exactly what the server charges (ServicePricingRepository.pickPrice).
+  // It used to prefer naira always, so a row priced only in pounds was read as that many NAIRA.
+  const pickPrice = (row: ServicePricing | undefined): ServicePricing["prices"][number] | undefined => {
     if (!row || row.prices.length === 0) return undefined;
-    return row.prices.find((p) => p.currency === "NGN") ?? row.prices[0];
+    const wanted = preferredCurrency();
+    return row.prices.find((p) => p.currency === wanted) ?? row.prices[0];
   };
 
   // Every priced combination is its own explicit row (see stcbe's
@@ -457,6 +488,19 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
       const price = pickPrice(priceRowForResident(candidates, name, serviceDetails));
       return !!price && price.flatRate == null;
     });
+  };
+
+  // The currency totalCost is in: that of the first priced subject's price point (the server refuses subjects priced
+  // in different currencies), else the currency a quote would use.
+  const getCostCurrency = (scheduleOverride?: Schedule[], serviceDetailsOverride?: PricingDetails): string => {
+    const serviceDetails = { ...enrollmentData.serviceDetails, ...serviceDetailsOverride };
+    const schedule = scheduleOverride ?? enrollmentData.schedule;
+    const candidates = pricing.filter((p) => p.serviceType === serviceDetails.serviceType);
+    for (const subject of schedule ?? []) {
+      const price = pickPrice(priceRowForResident(candidates, subject.subject, serviceDetails));
+      if (price) return price.currency;
+    }
+    return preferredCurrency();
   };
 
   const getUnpricedSubjects = (scheduleOverride?: Schedule[], serviceDetailsOverride?: PricingDetails): string[] => {
@@ -663,10 +707,11 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enrollmentData.childInfo, enrollmentData.serviceDetails, enrollmentData.schedule, enrollmentData.customFieldResponses]);
 
-  const setTotalCost = (amount: number) => {
+  const setTotalCost = (amount: number, currency?: string) => {
     setEnrollmentData(prev => ({
       ...prev,
       totalCost: amount,
+      ...(currency ? { totalCostCurrency: currency } : {}),
     }));
   };
 
@@ -682,6 +727,7 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
         calculateCost,
         getUnpricedSubjects,
         getHourlyPricedSubjects,
+        getCostCurrency,
         saveEnrollment,
         loadEnrollment,
         isLoading,

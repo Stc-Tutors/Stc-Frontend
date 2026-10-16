@@ -19,6 +19,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { LocalFirstPrice } from "@/components/local-price-note";
+import { formatMoney } from "@/lib/money";
 import CurriculumDrilldown,{ CurriculumPath } from "@/components/curriculum-drilldown";
 import RecommendedVideoCourses from "@/components/recommended-video-courses";
 import { CurriculumNode, CurriculumServiceType } from "@/types/curriculum";
@@ -67,7 +68,7 @@ const durationOptions = [
 const STAGE = "student-registration:subjects-schedule" as const;
 
 export default function SubjectsSchedule({ onNext, errors, forcedUserType }: StepProps) {
-  const { enrollmentData, updateServiceDetails, updateSchedule, calculateCost, getUnpricedSubjects, getHourlyPricedSubjects, setTotalCost, updateCustomFieldResponse, setEnrollmentData } = useEnrollment();
+  const { enrollmentData, updateServiceDetails, updateSchedule, calculateCost, getUnpricedSubjects, getHourlyPricedSubjects, getCostCurrency, setTotalCost, updateCustomFieldResponse, setEnrollmentData } = useEnrollment();
   const [totalCost, setLocalTotalCost] = useState(enrollmentData.totalCost || 0);
 
   const selectedService = enrollmentData.selectedService;
@@ -574,9 +575,10 @@ export default function SubjectsSchedule({ onNext, errors, forcedUserType }: Ste
   // committed by the time this effect runs in the same pass.
   useEffect(() => {
     const computedCost = isPathC ? chosenCoursesTotal : calculateCost(schedule, pricingDetails);
+    const computedCurrency = isPathC ? chosenCourses[0]?.currency ?? "NGN" : getCostCurrency(schedule, pricingDetails);
 
     setLocalTotalCost(computedCost);
-    setTotalCost(computedCost);
+    setTotalCost(computedCost, computedCurrency);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     schedule,
@@ -741,7 +743,10 @@ export default function SubjectsSchedule({ onNext, errors, forcedUserType }: Ste
             ? []
             : schedule;
         updateSchedule(submittedSchedule);
-        setTotalCost(isPathC ? chosenCoursesTotal : calculateCost(schedule, pricingDetails));
+        setTotalCost(
+          isPathC ? chosenCoursesTotal : calculateCost(schedule, pricingDetails),
+          isPathC ? chosenCourses[0]?.currency ?? "NGN" : getCostCurrency(schedule, pricingDetails)
+        );
       }
 
       onNext(stepErrors);
@@ -1684,8 +1689,8 @@ export default function SubjectsSchedule({ onNext, errors, forcedUserType }: Ste
               {totalCost > 0 ? (
                 <>
                   <p className="text-2xl font-bold text-green-600">
-                    <LocalFirstPrice amount={totalCost} country={enrollmentData.childInfo?.countryOfResidence} explain>
-                    ₦{totalCost.toLocaleString()}
+                    <LocalFirstPrice amount={totalCost} currency={enrollmentData.totalCostCurrency} country={enrollmentData.childInfo?.countryOfResidence} explain>
+                    {formatMoney(totalCost, enrollmentData.totalCostCurrency)}
                     {isPathC || !hasHourlySubject ? "" : ` / ${serviceData.billingWeeks} week${serviceData.billingWeeks === 1 ? "" : "s"}`}
                     </LocalFirstPrice>
                   </p>
