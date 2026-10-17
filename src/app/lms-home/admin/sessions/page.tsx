@@ -28,12 +28,14 @@ import {
   GetRescheduleNoticeSettingsAction,
   UpdateRescheduleNoticeSettingsAction,
 } from "@/server/lesson";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { formatScheduleDateTime } from "@/lib/datetime";
 import { formatMoney } from "@/lib/money";
 import {
   Lesson,
   LessonCourseRef,
   LessonStatus,
+  SESSION_REPORT_FIELD_LABELS,
   RescheduleNoticeSettings,
   RescheduleRequest,
   RescheduleRequestStatus,
@@ -48,6 +50,8 @@ import { hasJoinableClass } from "@/lib/class-join-window";
 import LessonDeliveryControls from "@/components/live-class/LessonDeliveryControls";
 
 type Filter = "upcoming" | "pending" | "cancelled";
+
+const hasReport = (lesson: Lesson) => Object.values(lesson.sessionReport ?? {}).some((v) => typeof v === "string" && v.trim());
 
 export default function AdminSessionsPage() {
   const { user, hasPermission, hodAssignment } = useUser();
@@ -90,6 +94,7 @@ export default function AdminSessionsPage() {
   // Which lesson's cancellation reason prompt is currently open.
   const [cancellingLessonId, setCancellingLessonId] = useState<string | null>(null);
   const [cancelReason, setCancelReason] = useState("");
+  const [reportTarget, setReportTarget] = useState<Lesson | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
 
   // So the "Urgent"/"Late notice" badges below can show the actual
@@ -362,6 +367,7 @@ export default function AdminSessionsPage() {
               <TableHead>Tutor</TableHead>
               <TableHead>Date</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Report</TableHead>
               {filter === "upcoming" && <TableHead>Meeting Link</TableHead>}
               {filter === "upcoming" && <TableHead>Delivery</TableHead>}
               <TableHead className="text-right">Action</TableHead>
@@ -379,6 +385,17 @@ export default function AdminSessionsPage() {
                     <span className={`text-xs px-2 py-1 rounded-full ${lesson.status === LessonStatus.CANCELLED ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"}`}>
                       {lesson.status}
                     </span>
+                  </TableCell>
+                  <TableCell>
+                    {hasReport(lesson) ? (
+                      <button onClick={() => setReportTarget(lesson)} className="text-blue-600 hover:underline text-xs">
+                        View report
+                      </button>
+                    ) : lesson.status === LessonStatus.COMPLETED ? (
+                      <span className="text-xs text-amber-600">Not filed</span>
+                    ) : (
+                      <span className="text-xs text-gray-400">-</span>
+                    )}
                   </TableCell>
                   {filter === "upcoming" && (
                     <TableCell>
@@ -459,7 +476,7 @@ export default function AdminSessionsPage() {
                 </TableRow>
                 {cancellingLessonId === lesson.id && (
                   <TableRow>
-                    <TableCell colSpan={filter === "upcoming" ? 8 : 6} className="bg-red-50">
+                    <TableCell colSpan={filter === "upcoming" ? 9 : 7} className="bg-red-50">
                       <div className="flex items-center gap-2 py-1">
                         <Input
                           value={cancelReason}
@@ -493,6 +510,25 @@ export default function AdminSessionsPage() {
           </TableBody>
         </Table>
       )}
+
+      <Dialog open={!!reportTarget} onOpenChange={(open) => !open && setReportTarget(null)}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{reportTarget ? courseTitle(reportTarget.course) : "Session report"}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 text-sm">
+            {Object.entries(reportTarget?.sessionReport ?? {}).map(
+              ([key, value]) =>
+                value && (
+                  <div key={key}>
+                    <p className="text-xs font-medium text-gray-500 mb-0.5">{SESSION_REPORT_FIELD_LABELS[key] ?? key}</p>
+                    <p className="text-gray-900 whitespace-pre-wrap">{value}</p>
+                  </div>
+                )
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

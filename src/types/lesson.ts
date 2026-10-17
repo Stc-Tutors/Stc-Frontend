@@ -25,8 +25,21 @@ export interface LessonCourseEnrollmentRef {
   student: string | { id: string; fullName: string };
 }
 
+export const SESSION_REPORT_FIELD_LABELS: Record<string, string> = {
+  topicsCovered: "Topics Covered",
+  studentUnderstanding: "Student's understanding (1-5)",
+  homeworkAssigned: "Homework Assigned",
+  studentEngagement: "Student Engagement",
+  sessionIssue: "Issues during the class",
+  challengesFaced: "Challenges Faced",
+  nextSessionFocus: "Focus For Next Session",
+  additionalNotes: "Additional Notes (admins only)",
+};
+
 export interface Lesson {
   id: string;
+  // The tutor's post-lesson report, once filed (admin and family views).
+  sessionReport?: Partial<Record<string, string>>;
   course: string | LessonCourseRef;
   courseEnrollment?: string | LessonCourseEnrollmentRef;
   // Admin schedule/session lists only: for a shared group class (no courseEnrollment), the names of the students in it.

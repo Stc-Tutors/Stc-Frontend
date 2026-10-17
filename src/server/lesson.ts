@@ -130,6 +130,8 @@ export interface ReportDueLesson {
   title: string;
   status: string;
   scheduledDate: string;
+  // Absent when the tutor never clocked in - such a class is reported without a clock-out.
+  actualStartTime?: string;
   course?: { id?: string; title: string };
 }
 

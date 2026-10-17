@@ -45,7 +45,8 @@ export type SessionFlag =
   | "OVERRAN_CAPPED"
   | "TUTOR_OVERLAP"
   | "IMPLAUSIBLE_DURATION"
-  | "AUTO_CLOSED";
+  | "AUTO_CLOSED"
+  | "REPORT_WITHOUT_CLOCK";
 
 // Plain-language versions of the fraud/quality checks, for an admin reviewing
 // a session or a tutor understanding why a session was held.
@@ -60,6 +61,7 @@ export const SESSION_FLAG_LABELS: Record<SessionFlag, string> = {
   TUTOR_OVERLAP: "Overlaps another of the tutor's sessions",
   IMPLAUSIBLE_DURATION: "Too short to be a real class",
   AUTO_CLOSED: "Closed automatically - nobody clocked out",
+  REPORT_WITHOUT_CLOCK: "Report filed, but the class was never clocked in or out",
 };
 
 export const SESSION_TRUST_LABELS: Record<SessionTrust, string> = {

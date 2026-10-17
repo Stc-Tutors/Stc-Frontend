@@ -62,7 +62,7 @@ export default function ReportsDuePage() {
 
       <ClockOutDialog
         lessonId={filing?.id ?? null}
-        lateReport={filing?.status === "COMPLETED"}
+        lateReport={filing?.status === "COMPLETED" || !filing?.actualStartTime}
         title={filing ? (filing.course?.title ?? filing.title) : undefined}
         onClose={() => setFiling(null)}
         onClockedOut={() => {
