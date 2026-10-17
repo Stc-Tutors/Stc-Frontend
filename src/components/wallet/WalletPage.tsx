@@ -32,6 +32,9 @@ import {
 } from "@/types/penalty";
 import { LocalPriceNote } from "@/components/local-price-note";
 import { createCheckout } from "@/lib/checkout";
+import { GetExchangeRatesAction, type ExchangeRatesData } from "@/server/exchange-rates";
+import { resolvePayCurrency } from "@/lib/pay-currency";
+import { getRememberedResidence } from "@/lib/display-currency";
 
 // How long to keep asking Paystack whether a payment that hasn't settled yet
 // (bank transfer / USSD confirm after the popup closes) has gone through.
@@ -67,6 +70,19 @@ export default function WalletPage() {
   }, [error]);
 
   const primaryBalance = balances[0];
+
+  // A wallet balance is held per currency and never converts into another - so a top-up is made in the currency the
+  // family pays in (by default the one their country is charged in), chosen from what the payment gateways collect.
+  const [exchange, setExchange] = useState<ExchangeRatesData | null>(null);
+  useEffect(() => {
+    GetExchangeRatesAction().then(([res]) => {
+      if (res?.data) setExchange(res.data);
+    });
+  }, []);
+  const [topUpCurrency, setTopUpCurrency] = useState("");
+  const collectibleCurrencies = exchange?.collectibleCurrencies?.length ? exchange.collectibleCurrencies : ["NGN"];
+  const payCurrency =
+    topUpCurrency || (exchange ? resolvePayCurrency(exchange, getRememberedResidence()) : primaryBalance?.currency ?? "NGN");
 
   // Paystack's own popup reporting success isn't the same as the wallet having
   // been credited: the server confirms with Paystack and only then credits. That
@@ -105,7 +121,7 @@ export default function WalletPage() {
     }
     setIsToppingUp(true);
     try {
-      const [res, error] = await TopUpWalletAction(amount, primaryBalance?.currency ?? "NGN");
+      const [res, error] = await TopUpWalletAction(amount, payCurrency);
       if (error || !res?.data) {
         ToastError(error || "Couldn't start the top-up");
         return;
@@ -169,6 +185,20 @@ export default function WalletPage() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-col sm:flex-row gap-2 max-w-md">
+            {collectibleCurrencies.length > 1 && (
+              <select
+                value={payCurrency}
+                onChange={(e) => setTopUpCurrency(e.target.value)}
+                aria-label="Currency to top up in"
+                className="border border-input rounded-md px-3 py-2 text-sm bg-background"
+              >
+                {collectibleCurrencies.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            )}
             <Input
               type="number"
               min={1}
@@ -184,9 +214,8 @@ export default function WalletPage() {
                 <AlertDialogHeader>
                   <AlertDialogTitle>Confirm wallet top-up</AlertDialogTitle>
                   <AlertDialogDescription>
-                    You&apos;ll be taken to Paystack to add{" "}
-                    {formatMoney(Number(topUpAmount) || 0, primaryBalance?.currency ?? "NGN")} to your wallet
-                    balance.
+                    You&apos;ll be taken to our secure checkout to add{" "}
+                    {formatMoney(Number(topUpAmount) || 0, payCurrency)} to your {payCurrency} wallet balance.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -196,6 +225,10 @@ export default function WalletPage() {
               </AlertDialogContent>
             </AlertDialog>
           </div>
+          <p className="text-xs text-gray-500 mt-3">
+            Each currency has its own balance. A balance can only pay a price in the same currency - it is never converted
+            - so top up in the currency you pay in.
+          </p>
         </CardContent>
       </Card>
 

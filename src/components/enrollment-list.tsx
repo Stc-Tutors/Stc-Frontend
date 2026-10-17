@@ -42,6 +42,7 @@ import { SUBJECT_ENROLLMENT_STATUS_LABELS, SubjectEnrollment, SubjectEnrollmentS
 import { ToastError, ToastSuccess } from "@/components/ui/custom/toast"
 import { groupStudentsByChild, type ChildGroup } from "@/contexts/selected-student-context"
 import { hasServiceToPay } from "@/lib/enrollment-payable"
+import { formatMoney } from "@/lib/money"
 
 interface EnrollmentListProps {
   // "mine" = the logged-in user's own enrollments (student self-registered);
@@ -471,7 +472,7 @@ export default function EnrollmentList({ source, basePath }: EnrollmentListProps
                                 {hasServiceToPay(student) ? (
                                   <>
                                     <div className="flex items-center text-lg font-bold text-gray-900">
-                                      ₦{(student.serviceDetails?.totalCost ?? 0).toLocaleString()}
+                                      {formatMoney(student.serviceDetails?.totalCost ?? 0, student.serviceDetails?.totalCostCurrency)}
                                     </div>
                                     <p className="text-sm text-gray-500">total cost</p>
                                   </>

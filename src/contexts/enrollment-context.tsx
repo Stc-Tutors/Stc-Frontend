@@ -10,7 +10,7 @@ import {
 } from "@/server/enrollment";
 import { GetServicePricingAction } from "@/server/service-pricing";
 import { GetExchangeRatesAction, type ExchangeRatesData } from "@/server/exchange-rates";
-import { currencyForCountry } from "@/lib/display-currency";
+import { resolvePayCurrency } from "@/lib/pay-currency";
 import { GetServicesAction } from "@/server/service-catalog";
 import { ServicePricing } from "@/types/service-pricing";
 import { IService, CustomFieldResponses, ArchitecturalPath } from "@/types/service-catalog";
@@ -277,20 +277,8 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
   // at payment time (StudentService.enroll never trusts this value) - so
   // "prefer NGN, else whatever's first" is a reasonable display default
   // rather than something that needs real currency-detection here.
-  // The currency a quote will be priced in - mirrors the server (PricingService.resolvePreferredCurrency): the
-  // Super Admin's assignment for where the family lives, else that country's own currency, else the one their IP
-  // suggests; and anything the payment gateways can't collect yet is charged in naira.
-  const preferredCurrency = (): string => {
-    const residence = enrollmentData.childInfo?.countryOfResidence?.trim();
-    const assigned = residence ? exchange?.countryCurrencies?.[residence]?.payCurrency : undefined;
-    const byCountry = residence
-      ? residence.toUpperCase() === "NG" || residence.toLowerCase() === "nigeria"
-        ? "NGN"
-        : currencyForCountry(residence)
-      : undefined;
-    const wanted = assigned ?? byCountry ?? exchange?.viewerCurrency ?? "NGN";
-    return exchange?.collectibleCurrencies?.includes(wanted) ? wanted : "NGN";
-  };
+  // The currency a quote will be priced in - see lib/pay-currency.ts (mirrors the server).
+  const preferredCurrency = (): string => resolvePayCurrency(exchange, enrollmentData.childInfo?.countryOfResidence);
 
   // The row's price in that currency, else its first - exactly what the server charges (ServicePricingRepository.pickPrice).
   // It used to prefer naira always, so a row priced only in pounds was read as that many NAIRA.

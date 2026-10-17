@@ -61,5 +61,7 @@ export interface SpendingSummary {
   totalSpent: number;
   currency: string;
   byMonth: { month: string; total: number }[];
+  // Anything paid in a currency other than `currency` (the main one) - amounts in different currencies aren't added.
+  otherTotals?: { currency: string; total: number }[];
   byChild: { studentId: string | null; studentName: string; total: number }[];
 }

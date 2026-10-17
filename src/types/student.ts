@@ -88,6 +88,8 @@ export interface IServiceDetails {
   classGroupId?: string;
   examPreparationDetails?: IExamPreparationDetails;
   totalCost: number;
+  // The currency totalCost is in (absent on older records = naira).
+  totalCostCurrency?: string;
   billingWeeks?: number;
 }
 

@@ -48,6 +48,11 @@ export default function BillingSummaryPanel({ studentId }: BillingSummaryPanelPr
                 </p>
                 <LocalPriceNote variant="short" amount={summary.totalSpent} currency={summary.currency} className="block text-xs text-gray-500" />
                 <p className="text-sm text-gray-500">Total spent, all-time</p>
+                {!!summary.otherTotals?.length && (
+                  <p className="text-xs text-gray-500">
+                    Also paid: {summary.otherTotals.map((t) => formatMoney(t.total, t.currency)).join(" · ")}
+                  </p>
+                )}
               </div>
               {selectedChildSpend && (
                 <div>

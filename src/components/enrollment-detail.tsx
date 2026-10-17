@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { formatMoney } from "@/lib/money";
 import { useRouter, useParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -419,7 +420,7 @@ export default function EnrollmentDetail({ basePath }: EnrollmentDetailProps) {
                     <div>
                       <span className="text-gray-600">Total Cost:</span>
                       <p className="font-medium text-gray-900 text-lg flex items-center">
-                        ₦{(student.serviceDetails?.totalCost ?? 0).toLocaleString()}
+                        {formatMoney(student.serviceDetails?.totalCost ?? 0, student.serviceDetails?.totalCostCurrency)}
                       </p>
                     </div>
                   </div>
