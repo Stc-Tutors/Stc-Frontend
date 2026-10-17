@@ -30,6 +30,12 @@
   even receives a not-included identity's audio/video - their media never
   reaches this page, let alone the recording, rather than being merely hidden
   after the fact.
+
+  Layout: whenever a screen share is live, it takes the large main area and
+  every camera becomes a small strip tile alongside it (same idea as Google
+  Meet's "presenting" view) - with no screen share, cameras fall back to an
+  even grid. Every tile uses object-fit: contain, never cover, so a face or a
+  slide is always shown in full rather than cropped to fill its box.
 -->
 <html lang="en">
   <head>
@@ -37,13 +43,40 @@
     <title>Class recording</title>
     <style>
       html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: #0b0b0f; overflow: hidden; }
-      #grid {
-        display: grid;
+      #root {
+        display: flex;
+        flex-direction: row;
         width: 100%;
         height: 100%;
         gap: 4px;
         padding: 4px;
         box-sizing: border-box;
+      }
+      #plainGrid {
+        display: grid;
+        grid-auto-rows: 1fr;
+        width: 100%;
+        height: 100%;
+        gap: 4px;
+        box-sizing: border-box;
+      }
+      #main {
+        flex: 1 1 auto;
+        min-width: 0;
+        display: flex;
+      }
+      #main .tile { flex: 1 1 auto; }
+      #strip {
+        flex: 0 0 220px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        overflow-y: hidden;
+      }
+      #strip .tile {
+        flex: 0 0 auto;
+        width: 100%;
+        aspect-ratio: 4 / 3;
       }
       .tile {
         position: relative;
@@ -57,7 +90,10 @@
       .tile video {
         width: 100%;
         height: 100%;
-        object-fit: cover;
+        /* contain, never cover: a cropped face or a slide with its edges cut
+           off is exactly the problem this replaced - nothing here is ever
+           cut off, at most letterboxed. */
+        object-fit: contain;
       }
       .tile .name {
         position: absolute;
@@ -79,7 +115,11 @@
     </style>
   </head>
   <body>
-    <div id="grid"></div>
+    <div id="root">
+      <div id="plainGrid"></div>
+      <div id="main"></div>
+      <div id="strip"></div>
+    </div>
     <div id="empty">Waiting for the class to begin&hellip;</div>
 
     <!-- Vendored, not a CDN import: this app's CSP only allows scripts from
@@ -93,6 +133,7 @@
         var LK = window.LivekitClient;
         var Room = LK.Room;
         var RoomEvent = LK.RoomEvent;
+        var TrackSource = LK.Track.Source;
 
         var params = new URLSearchParams(window.location.search);
         var url = params.get("url");
@@ -117,41 +158,69 @@
           shouldInclude = function (identity) { return identity === onlyIdentity; };
         }
 
-        var grid = document.getElementById("grid");
+        var plainGrid = document.getElementById("plainGrid");
+        var main = document.getElementById("main");
+        var strip = document.getElementById("strip");
         var empty = document.getElementById("empty");
-        var tiles = new Map(); // identity -> tile element
-        var tileCounts = new Map(); // identity -> number of attached media elements
+        // Keyed by "identity:source" (not just identity) so a tutor who is
+        // both on camera AND screen-sharing gets two separate tiles instead
+        // of both videos landing in one box.
+        var tiles = new Map(); // key -> { el, identity, source, mediaCount }
 
+        function keyFor(identity, source) { return identity + ":" + source; }
+
+        // Re-parents every current tile into the right container and shows
+        // only that container - called whenever a tile is added, removed, or
+        // a screen share starts/stops, so the layout is always derived fresh
+        // from exactly what's live right now.
         function relayout() {
-          var n = tiles.size;
-          empty.style.display = n === 0 ? "flex" : "none";
-          var cols = Math.max(1, Math.ceil(Math.sqrt(n)));
-          grid.style.gridTemplateColumns = "repeat(" + cols + ", 1fr)";
+          empty.style.display = tiles.size === 0 ? "flex" : "none";
+
+          var screenEls = [];
+          var cameraEls = [];
+          tiles.forEach(function (t) {
+            (t.source === TrackSource.ScreenShare ? screenEls : cameraEls).push(t.el);
+          });
+
+          if (screenEls.length > 0) {
+            plainGrid.style.display = "none";
+            main.style.display = "flex";
+            strip.style.display = cameraEls.length > 0 ? "flex" : "none";
+            screenEls.forEach(function (el) { main.appendChild(el); });
+            cameraEls.forEach(function (el) { strip.appendChild(el); });
+          } else {
+            main.style.display = "none";
+            strip.style.display = "none";
+            plainGrid.style.display = "grid";
+            var n = cameraEls.length;
+            var cols = Math.max(1, Math.ceil(Math.sqrt(n)));
+            plainGrid.style.gridTemplateColumns = "repeat(" + cols + ", 1fr)";
+            cameraEls.forEach(function (el) { plainGrid.appendChild(el); });
+          }
         }
 
-        function tileFor(participant) {
-          var existing = tiles.get(participant.identity);
+        function tileFor(participant, source) {
+          var key = keyFor(participant.identity, source);
+          var existing = tiles.get(key);
           if (existing) return existing;
           var tile = document.createElement("div");
           tile.className = "tile";
           var label = document.createElement("div");
           label.className = "name";
-          label.textContent = participant.name || participant.identity;
+          label.textContent =
+            (participant.name || participant.identity) + (source === TrackSource.ScreenShare ? " - screen" : "");
           tile.appendChild(label);
-          grid.appendChild(tile);
-          tiles.set(participant.identity, tile);
-          tileCounts.set(participant.identity, 0);
+          var entry = { el: tile, identity: participant.identity, source: source, mediaCount: 0 };
+          tiles.set(key, entry);
           relayout();
-          return tile;
+          return entry;
         }
 
-        function removeTileIfEmpty(identity) {
-          var count = tileCounts.get(identity) || 0;
-          if (count > 0) return;
-          var tile = tiles.get(identity);
-          if (tile) tile.remove();
-          tiles.delete(identity);
-          tileCounts.delete(identity);
+        function removeTileIfEmpty(key) {
+          var entry = tiles.get(key);
+          if (!entry || entry.mediaCount > 0) return;
+          entry.el.remove();
+          tiles.delete(key);
           relayout();
         }
 
@@ -169,26 +238,32 @@
           publication.setSubscribed(true);
         });
 
-        room.on(RoomEvent.TrackSubscribed, function (track, _publication, participant) {
+        room.on(RoomEvent.TrackSubscribed, function (track, publication, participant) {
           if (!shouldInclude(participant.identity)) return; // belt-and-braces; should never subscribe in the first place
-          var tile = tileFor(participant);
+          var source = publication.source;
+          var entry = tileFor(participant, source);
           var el = track.attach();
-          tile.appendChild(el);
-          tileCounts.set(participant.identity, (tileCounts.get(participant.identity) || 0) + 1);
+          entry.el.appendChild(el);
+          entry.mediaCount += 1;
         });
 
-        room.on(RoomEvent.TrackUnsubscribed, function (track, _publication, participant) {
+        room.on(RoomEvent.TrackUnsubscribed, function (track, publication, participant) {
           track.detach().forEach(function (el) { el.remove(); });
-          tileCounts.set(participant.identity, Math.max(0, (tileCounts.get(participant.identity) || 1) - 1));
-          removeTileIfEmpty(participant.identity);
+          var key = keyFor(participant.identity, publication.source);
+          var entry = tiles.get(key);
+          if (entry) entry.mediaCount = Math.max(0, entry.mediaCount - 1);
+          removeTileIfEmpty(key);
         });
 
         room.on(RoomEvent.ParticipantDisconnected, function (participant) {
-          var tile = tiles.get(participant.identity);
-          if (tile) tile.remove();
-          tiles.delete(participant.identity);
-          tileCounts.delete(participant.identity);
-          relayout();
+          var changed = false;
+          tiles.forEach(function (entry, key) {
+            if (entry.identity !== participant.identity) return;
+            entry.el.remove();
+            tiles.delete(key);
+            changed = true;
+          });
+          if (changed) relayout();
         });
 
         // LiveKit's custom-template contract: the page logs this literal string

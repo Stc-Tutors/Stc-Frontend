@@ -89,9 +89,11 @@ export default function AdminRecordingsPage() {
                           Watch
                         </Button>
                       )}
-                      <Button size="sm" variant="outline" onClick={() => setLogFor(item)}>
-                        Who joined
-                      </Button>
+                      {item.canViewLog && (
+                        <Button size="sm" variant="outline" onClick={() => setLogFor(item)}>
+                          Who joined
+                        </Button>
+                      )}
                       {item.status === "READY" && item.canDelete && (
                         <Button size="sm" variant="outline" className="text-red-600" onClick={() => remove(item)}>
                           Delete
