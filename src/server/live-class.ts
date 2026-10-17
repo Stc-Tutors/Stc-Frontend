@@ -75,6 +75,13 @@ export async function GetRecordingPlaybackAction(lessonId: string): Result<{ url
   return call(`/live-classes/${lessonId}/recording/playback`);
 }
 
+// null data (not an error) means there's no caption track yet - pending,
+// failed, or captioning isn't configured at all. The player just shows no CC
+// button in that case.
+export async function GetRecordingCaptionsAction(lessonId: string): Result<{ url: string; expiresInSeconds: number } | null> {
+  return call(`/live-classes/${lessonId}/recording/captions`);
+}
+
 export async function DeleteRecordingAction(lessonId: string): Result<Lesson> {
   return call(`/live-classes/${lessonId}/recording`, "DELETE");
 }

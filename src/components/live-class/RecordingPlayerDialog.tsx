@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { GetRecordingPlaybackAction } from "@/server/live-class";
+import { GetRecordingCaptionsAction, GetRecordingPlaybackAction } from "@/server/live-class";
 
 interface RecordingPlayerDialogProps {
   lessonId: string | null;
@@ -20,6 +20,10 @@ export default function RecordingPlayerDialog({ lessonId, title, onClose }: Reco
   // to another recording never briefly shows the previous one - and nothing is
   // reset synchronously inside the effect.
   const [result, setResult] = useState<{ lessonId: string; url?: string; error?: string } | null>(null);
+  // Fetched separately and allowed to fail/come back empty silently - a
+  // missing caption track is never an error, the video just plays without a
+  // CC button.
+  const [captionsUrl, setCaptionsUrl] = useState<{ lessonId: string; url: string | null } | null>(null);
 
   useEffect(() => {
     if (!lessonId) return;
@@ -31,6 +35,11 @@ export default function RecordingPlayerDialog({ lessonId, title, onClose }: Reco
         err || !res?.data ? { lessonId, error: err || "This recording isn't available" } : { lessonId, url: res.data.url }
       );
     })();
+    (async () => {
+      const [res] = await GetRecordingCaptionsAction(lessonId);
+      if (cancelled) return;
+      setCaptionsUrl({ lessonId, url: res?.data?.url ?? null });
+    })();
     return () => {
       cancelled = true;
     };
@@ -39,6 +48,7 @@ export default function RecordingPlayerDialog({ lessonId, title, onClose }: Reco
   const current = result && result.lessonId === lessonId ? result : null;
   const url = current?.url ?? null;
   const error = current?.error ?? null;
+  const captions = captionsUrl && captionsUrl.lessonId === lessonId ? captionsUrl.url : null;
 
   return (
     <Dialog open={!!lessonId} onOpenChange={(open) => !open && onClose()}>
@@ -61,7 +71,9 @@ export default function RecordingPlayerDialog({ lessonId, title, onClose }: Reco
             disablePictureInPicture
             onContextMenu={(e) => e.preventDefault()}
             className="w-full rounded-md bg-black"
-          />
+          >
+            {captions && <track kind="captions" src={captions} srcLang="en" label="English" default />}
+          </video>
         )}
       </DialogContent>
     </Dialog>
