@@ -2,7 +2,7 @@
 
 import fetchAPI, { type ApiResponse } from "@/lib/fetch";
 import { UploadedFile } from "@/lib/cloudinary-upload";
-import { Assignment } from "@/types/assignment";
+import { Assignment, AssignmentProgressDetail, AssignmentWithProgress } from "@/types/assignment";
 
 export async function GetCourseAssignmentsAction(
   courseId: string
@@ -84,5 +84,28 @@ export async function RejectAssignmentAction(
   });
 
   const resData = res ? ((await res.json()) as ApiResponse<Assignment>) : null;
+  return [resData, error];
+}
+
+export async function GetAllAssignmentsForAdminAction(filters: {
+  q?: string;
+  status?: string;
+  state?: string;
+}): Promise<[ApiResponse<AssignmentWithProgress[]> | null, string | null]> {
+  const query = new URLSearchParams(Object.entries(filters).filter(([, v]) => !!v) as [string, string][]).toString();
+  const [res, error] = await fetchAPI({
+    url: `/assignments/admin/all${query ? `?${query}` : ""}`,
+    request: { method: "GET", headers: { "Content-Type": "application/json" } },
+  });
+  const resData = res ? ((await res.json()) as ApiResponse<AssignmentWithProgress[]>) : null;
+  return [resData, error];
+}
+
+export async function GetAssignmentProgressForAdminAction(id: string): Promise<[ApiResponse<AssignmentProgressDetail> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: `/assignments/admin/${id}/progress`,
+    request: { method: "GET", headers: { "Content-Type": "application/json" } },
+  });
+  const resData = res ? ((await res.json()) as ApiResponse<AssignmentProgressDetail>) : null;
   return [resData, error];
 }

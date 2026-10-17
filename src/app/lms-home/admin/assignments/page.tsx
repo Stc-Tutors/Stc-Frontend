@@ -19,8 +19,41 @@ import {
 } from "@/server/assignment";
 import { Assignment, AssignmentCourseRef } from "@/types/assignment";
 import ResourcePreviewDialog from "@/components/resources/ResourcePreviewDialog";
+import { AssignmentTracker } from "@/components/assignments/assignment-tracker";
+
+// Two views of the same assignments: the approval queue, and everything (approved included) with deadlines and who has handed in.
+function ViewSwitch({ view, onChange }: { view: "queue" | "all"; onChange: (v: "queue" | "all") => void }) {
+  const tab = (value: "queue" | "all", label: string) => (
+    <button
+      type="button"
+      onClick={() => onChange(value)}
+      className={`rounded-md px-3 py-1.5 text-sm ${view === value ? "bg-gray-900 text-white" : "border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"}`}
+    >
+      {label}
+    </button>
+  );
+  return (
+    <div className="mb-4 flex gap-2">
+      {tab("queue", "Awaiting approval")}
+      {tab("all", "All assignments")}
+    </div>
+  );
+}
 
 export default function AdminAssignmentsPage() {
+  const [view, setView] = useState<"queue" | "all">("queue");
+  return (
+    <div className="bg-white shadow rounded-2xl p-6">
+      <div className="mb-4 flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Assignments</h1>
+      </div>
+      <ViewSwitch view={view} onChange={setView} />
+      {view === "queue" ? <PendingAssignmentsQueue /> : <AssignmentTracker />}
+    </div>
+  );
+}
+
+function PendingAssignmentsQueue() {
   const [rows, setRows] = useState<Assignment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
@@ -57,10 +90,7 @@ export default function AdminAssignmentsPage() {
     typeof createdBy === "string" ? createdBy : `${createdBy.firstName} ${createdBy.lastName}`;
 
   return (
-    <div className="bg-white shadow rounded-2xl p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Assignment Approvals</h1>
-      </div>
+    <div>
       <p className="text-xs text-gray-500 mb-4">
         Tutors without an assignment auto-approve grant (set by a super admin on their profile) have their
         assignments held here until an admin approves them - students can't see a pending assignment.

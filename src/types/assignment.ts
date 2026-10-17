@@ -35,3 +35,33 @@ export interface Assignment {
   rejectionReason?: string;
   createdAt: string;
 }
+
+// GET /assignments/admin/all - every assignment at any approval stage, with how many of the students it was set for have handed it in.
+export interface AssignmentProgress {
+  expected: number;
+  submitted: number;
+  late: number;
+  graded: number;
+  notSubmitted: number;
+}
+
+export interface AssignmentWithProgress extends Omit<Assignment, "course"> {
+  course: string | (AssignmentCourseRef & { tutor?: string | { id: string; firstName: string; lastName: string } });
+  progress: AssignmentProgress;
+  pastDue: boolean;
+}
+
+export interface AssignmentStudentProgress {
+  studentId: string;
+  fullName: string;
+  state: "NOT_SUBMITTED" | "SUBMITTED" | "LATE" | "GRADED";
+  submittedAt: string | null;
+  score: number | null;
+}
+
+// GET /assignments/admin/:id/progress
+export interface AssignmentProgressDetail {
+  dueDate: string;
+  maxScore: number;
+  students: AssignmentStudentProgress[];
+}
