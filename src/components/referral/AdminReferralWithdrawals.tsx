@@ -149,7 +149,7 @@ export default function AdminReferralWithdrawals() {
                 {withdrawals.map((w) => (
                   <TableRow key={w.id}>
                     <TableCell>{userLabel(w.user)}</TableCell>
-                    <TableCell>{formatMoney(w.amount)}</TableCell>
+                    <TableCell>{formatMoney(w.amount, w.currency)}</TableCell>
                     <TableCell>{formatDate(w.createdAt)}</TableCell>
                     <TableCell className={`font-medium ${STATUS_COLORS[w.status]}`}>{w.status}</TableCell>
                     <TableCell className="text-right">

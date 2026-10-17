@@ -11,6 +11,7 @@ export enum WalletTransactionReason {
   PAYMENT_APPLIED = "PAYMENT_APPLIED",
   REVERSAL = "REVERSAL",
   PENALTY_APPEAL_GRANTED = "PENALTY_APPEAL_GRANTED",
+  REFERRAL_COMMISSION = "REFERRAL_COMMISSION",
 }
 
 export const WALLET_TRANSACTION_REASON_LABELS: Record<WalletTransactionReason, string> = {
@@ -21,6 +22,7 @@ export const WALLET_TRANSACTION_REASON_LABELS: Record<WalletTransactionReason, s
   [WalletTransactionReason.PAYMENT_APPLIED]: "Applied to a payment",
   [WalletTransactionReason.REVERSAL]: "Reversal",
   [WalletTransactionReason.PENALTY_APPEAL_GRANTED]: "Penalty appeal granted",
+  [WalletTransactionReason.REFERRAL_COMMISSION]: "Referral commission",
 };
 
 export interface WalletBalance {

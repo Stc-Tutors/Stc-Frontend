@@ -36,6 +36,19 @@ export async function ApplyReferralCodeAction(code: string): Promise<[ApiRespons
   return [resData, error];
 }
 
+// Parent/student only - moves available commission into their wallet, in the same currency.
+export async function TransferReferralToWalletAction(
+  currency: string
+): Promise<[ApiResponse<{ amount: number; currency: string }> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: "/referrals/transfer-to-wallet",
+    request: { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ currency }) },
+  });
+
+  const resData = res ? ((await res.json()) as ApiResponse<{ amount: number; currency: string }>) : null;
+  return [resData, error];
+}
+
 export async function GetMyReferralBalanceAction(): Promise<[ApiResponse<ReferralBalance> | null, string | null]> {
   const [res, error] = await fetchAPI({
     url: "/referrals/balance",

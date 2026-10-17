@@ -29,6 +29,7 @@ import {
   ListReferralBanksAction,
   SetReferralBankDetailsAction,
   RequestReferralWithdrawalAction,
+  TransferReferralToWalletAction,
 } from "@/server/referral";
 import {
   ReferralBalance,
@@ -40,6 +41,8 @@ import {
   ReferralSettings,
 } from "@/types/referral";
 import { LocalPriceNote } from "@/components/local-price-note";
+import { useUser } from "@/contexts/user-context";
+import { UserRole } from "@/types/user";
 
 const STATUS_COLORS: Record<ReferralPayoutRequestStatus, string> = {
   [ReferralPayoutRequestStatus.PENDING]: "text-orange-500",
@@ -63,6 +66,11 @@ export default function ReferAndEarn() {
   const [accountNumber, setAccountNumber] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isRequesting, setIsRequesting] = useState(false);
+  // Which currency is being moved into the wallet right now.
+  const [transferring, setTransferring] = useState<string | null>(null);
+  const { user } = useUser();
+  // Only parents and students have a wallet.
+  const canUseWallet = user?.role === UserRole.STUDENT || user?.role === UserRole.PARENT;
 
   const load = async () => {
     const [linkRes, linkError] = await GetMyReferralLinkAction();
@@ -88,6 +96,18 @@ export default function ReferAndEarn() {
     load();
     ListReferralBanksAction().then(([res]) => setBanks(res?.data ?? []));
   }, []);
+
+  const handleMoveToWallet = async (currency: string) => {
+    setTransferring(currency);
+    const [res, error] = await TransferReferralToWalletAction(currency);
+    setTransferring(null);
+    if (error || !res?.data) {
+      ToastError(error || "Couldn't move your commission to the wallet");
+      return;
+    }
+    ToastSuccess(`${formatMoney(res.data.amount, res.data.currency)} moved to your wallet`);
+    await load();
+  };
 
   const handleCopyLink = async () => {
     await navigator.clipboard.writeText(link);
@@ -164,6 +184,36 @@ export default function ReferAndEarn() {
           color="bg-blue-100 text-blue-600"
         />
       </div>
+
+      {balance && ((balance.pendingBalance ?? 0) > 0 || (balance.otherBalances ?? []).some((b) => b.pending > 0)) && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Your available commission</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {[{ currency: "NGN", pending: balance.pendingBalance ?? 0 }, ...(balance.otherBalances ?? []).map((b) => ({ currency: b.currency, pending: b.pending }))]
+              .filter((b) => b.pending > 0)
+              .map((b) => (
+                <div key={b.currency} className="flex items-center justify-between gap-3 text-sm">
+                  <span>
+                    <b>{formatMoney(b.pending, b.currency)}</b>
+                    {b.currency !== "NGN" && <span className="text-gray-500"> - can&apos;t be withdrawn to a bank yet</span>}
+                  </span>
+                  {canUseWallet && (
+                    <Button size="sm" variant="outline" disabled={transferring !== null} onClick={() => handleMoveToWallet(b.currency)}>
+                      {transferring === b.currency ? "Moving..." : "Move to wallet"}
+                    </Button>
+                  )}
+                </div>
+              ))}
+            {canUseWallet && (
+              <p className="text-xs text-gray-500">
+                Commission moved to your wallet stays in the same currency and is applied automatically to your next payment in it.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Referral link */}
@@ -307,9 +357,9 @@ export default function ReferAndEarn() {
                   {earnings.map((e) => (
                     <tr key={e.id} className="border-b text-sm">
                       <td className="py-2 px-4">{formatDate(e.createdAt)}</td>
-                      <td className="py-2 px-4">{formatMoney(e.amount)}</td>
+                      <td className="py-2 px-4">{formatMoney(e.amount, e.currency)}</td>
                       <td className="py-2 px-4">{e.percentage}%</td>
-                      <td className="py-2 px-4">{e.status}</td>
+                      <td className="py-2 px-4">{e.status === "TRANSFERRED" ? "Moved to wallet" : e.status}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -344,7 +394,7 @@ export default function ReferAndEarn() {
                   {withdrawals.map((w) => (
                     <tr key={w.id} className="border-b text-sm">
                       <td className="py-2 px-4">{formatDate(w.createdAt)}</td>
-                      <td className="py-2 px-4">{formatMoney(w.amount)}</td>
+                      <td className="py-2 px-4">{formatMoney(w.amount, w.currency)}</td>
                       <td className="py-2 px-4">{w.paidAt ? formatDate(w.paidAt) : "—"}</td>
                       <td className={`py-2 px-4 font-medium ${STATUS_COLORS[w.status]}`}>{w.status}</td>
                     </tr>

@@ -2,6 +2,8 @@ export enum ReferralEarningStatus {
   PENDING = "PENDING",
   LOCKED = "LOCKED",
   WITHDRAWN = "WITHDRAWN",
+  // Moved into the referrer's wallet.
+  TRANSFERRED = "TRANSFERRED",
 }
 
 export enum ReferralPayoutRequestStatus {
@@ -63,6 +65,8 @@ export interface ReferralBalance {
   lockedBalance: number;
   withdrawnTotal: number;
   hasPendingRequest: boolean;
+  // Commission earned in a currency other than naira (pendingBalance etc. above are naira) - not added into them.
+  otherBalances?: { currency: string; pending: number; locked: number; withdrawn: number }[];
 }
 
 export interface ReferralBank {

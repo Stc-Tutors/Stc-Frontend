@@ -18,6 +18,7 @@ import { IService } from "@/types/service-catalog";
 import { useNodePaths } from "@/hooks/use-node-paths";
 import { CurriculumNode, CurriculumNodeType } from "@/types/curriculum";
 import CurriculumTreeBrowser from "@/components/curriculum-tree-browser";
+import { CurrencyWarning } from "@/components/currency-warning";
 
 // Same management screen as Stc-SuperAdmin's service-pricing page (same
 // component even, CurriculumTreeBrowser), ported here so an ADMIN with the
@@ -75,6 +76,7 @@ function PriceRowsEditor({
               </option>
             ))}
           </select>
+          <CurrencyWarning currency={row.currency} compact />
           {flatOnly ? (
             <span className="border border-gray-200 bg-gray-50 rounded-md px-2 py-1.5 text-sm text-gray-600" title="A course has one price, however many hours it runs">
               Flat rate
