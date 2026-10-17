@@ -13,6 +13,7 @@ import { PayoutRequest, PayoutRequestStatus } from "@/types/payout";
 import { EnrollmentStatus, Student } from "@/types/student";
 import { useUser } from "@/contexts/user-context";
 import { AdminPermission } from "@/types/admin-permission";
+import { MoneyByCurrency, RevenueCurrencySelect } from "@/components/adminDashboard/RevenueCurrency";
 
 function quarterLabel(dateStr: string) {
   const d = new Date(dateStr);
@@ -29,6 +30,14 @@ export default function AdminFinancePage() {
   const [pendingStudents, setPendingStudents] = useState<Student[]>([]);
   const [tutorNames, setTutorNames] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(true);
+  // Which currency the revenue chart, expenses and quarterly profit are in - currencies are never added together.
+  const [currency, setCurrency] = useState("NGN");
+
+  // Revenue follows the chosen currency on its own, without reloading payouts and students.
+  useEffect(() => {
+    if (!canViewFinancialReports) return;
+    GetRevenueReportAction(currency).then(([res]) => setRevenue(res?.data ?? []));
+  }, [currency, canViewFinancialReports]);
 
   useEffect(() => {
     if (!canViewFinancialReports) {
@@ -36,9 +45,6 @@ export default function AdminFinancePage() {
       return;
     }
     const load = async () => {
-      const [revenueRes] = await GetRevenueReportAction();
-      setRevenue(revenueRes?.data ?? []);
-
       const [payoutsRes] = await ListAllPayoutRequestsAction(PayoutRequestStatus.PAID);
       const payoutRows = payoutsRes?.data ?? [];
       setPayouts(payoutRows);
@@ -75,6 +81,9 @@ export default function AdminFinancePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canViewFinancialReports]);
 
+  // Only payouts in the chosen currency count against its revenue (payouts are naira bank transfers today).
+  const payoutsInCurrency = payouts.filter((p) => (p.currency || "NGN") === currency);
+
   const quarterlyProfit = (() => {
     const buckets = new Map<string, { revenue: number; expenses: number }>();
     const ensure = (key: string) => {
@@ -82,7 +91,7 @@ export default function AdminFinancePage() {
       return buckets.get(key)!;
     };
     for (const point of revenue) ensure(quarterLabel(point.date)).revenue += point.total;
-    for (const p of payouts) {
+    for (const p of payoutsInCurrency) {
       if (p.paidAt) ensure(quarterLabel(p.paidAt)).expenses += p.amount;
     }
     return Array.from(buckets.entries())
@@ -91,7 +100,7 @@ export default function AdminFinancePage() {
       .map(([label, b]) => ({ label, profit: b.revenue - b.expenses }));
   })();
 
-  const totalExpenses = payouts.reduce((sum, p) => sum + p.amount, 0);
+  const totalExpenses = payoutsInCurrency.reduce((sum, p) => sum + p.amount, 0);
 
   if (!canViewFinancialReports) {
     return (
@@ -107,15 +116,19 @@ export default function AdminFinancePage() {
 
   return (
     <div className="space-y-6">
+      <MoneyByCurrency />
       <div className="bg-white rounded-2xl shadow p-6">
-        <h1 className="text-xl font-bold mb-1">Balance Analytics</h1>
+        <div className="flex flex-wrap items-start justify-between gap-2 mb-1">
+          <h1 className="text-xl font-bold">Balance Analytics ({currency})</h1>
+          <RevenueCurrencySelect value={currency} onChange={setCurrency} />
+        </div>
         <p className="text-sm text-gray-500 mb-4">Revenue collected over time</p>
         <ResponsiveContainer width="100%" height={260}>
           <AreaChart data={revenue}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} />
             <XAxis dataKey="date" tick={{ fontSize: 10 }} />
-            <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => formatMoneyCompact(v)} />
-            <Tooltip formatter={(v: number) => [formatMoney(v), "Revenue"]} />
+            <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => formatMoneyCompact(v, currency)} />
+            <Tooltip formatter={(v: number) => [formatMoney(v, currency), "Revenue"]} />
             <Area type="monotone" dataKey="total" stroke="#3b82f6" fill="#bfdbfe" strokeWidth={2} />
           </AreaChart>
         </ResponsiveContainer>
@@ -151,10 +164,10 @@ export default function AdminFinancePage() {
         </div>
 
         <div className="bg-white rounded-2xl shadow p-6">
-          <h2 className="font-semibold mb-4">School Expenses (Tutor Payouts)</h2>
-          <p className="text-2xl font-bold mb-3">{formatMoney(totalExpenses)}</p>
-          {payouts.length === 0 ? (
-            <p className="text-sm text-gray-500">No payouts made yet.</p>
+          <h2 className="font-semibold mb-4">School Expenses (Tutor Payouts, {currency})</h2>
+          <p className="text-2xl font-bold mb-3">{formatMoney(totalExpenses, currency)}</p>
+          {payoutsInCurrency.length === 0 ? (
+            <p className="text-sm text-gray-500">No payouts made in {currency} yet.</p>
           ) : (
             <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -166,11 +179,11 @@ export default function AdminFinancePage() {
                 </tr>
               </thead>
               <tbody>
-                {payouts.slice(0, 8).map((p) => (
+                {payoutsInCurrency.slice(0, 8).map((p) => (
                   <tr key={p.id} className="border-b last:border-none">
                     <td className="py-2">{tutorNames[p.tutor] ?? "..."}</td>
                     <td>{p.paidAt ? formatDate(p.paidAt) : "—"}</td>
-                    <td>{formatMoney(p.amount)}</td>
+                    <td>{formatMoney(p.amount, p.currency)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -181,14 +194,14 @@ export default function AdminFinancePage() {
       </div>
 
       <div className="bg-white rounded-2xl shadow p-6">
-        <h2 className="font-semibold mb-4">Quarterly Profit Report</h2>
+        <h2 className="font-semibold mb-4">Quarterly Profit Report ({currency})</h2>
         {quarterlyProfit.length === 0 ? (
           <p className="text-sm text-gray-500">Not enough data yet.</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {quarterlyProfit.map((q) => (
               <div key={q.label} className="border rounded-lg p-4 text-center">
-                <p className="text-xl font-bold text-gray-900">{formatMoney(q.profit)}</p>
+                <p className="text-xl font-bold text-gray-900">{formatMoney(q.profit, currency)}</p>
                 <p className="text-xs text-gray-500">{q.label} Net Profit</p>
               </div>
             ))}

@@ -5,23 +5,29 @@ import { formatMoney, formatMoneyCompact } from "@/lib/money";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { GetRevenueReportAction } from "@/server/admin";
 import { RevenuePoint } from "@/types/admin";
+import { RevenueCurrencySelect } from "@/components/adminDashboard/RevenueCurrency";
 
 export default function AdminFinanceChart() {
   const [data, setData] = useState<RevenuePoint[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  // Which currency the chart is in - never mixed.
+  const [currency, setCurrency] = useState("NGN");
 
   useEffect(() => {
     const load = async () => {
-      const [res] = await GetRevenueReportAction();
+      const [res] = await GetRevenueReportAction(currency);
       setData(res?.data ?? []);
       setIsLoading(false);
     };
     load();
-  }, []);
+  }, [currency]);
 
   return (
     <div className="bg-white p-4 rounded-lg shadow-sm">
-      <h3 className="font-semibold text-gray-800 mb-3">School Finance</h3>
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+        <h3 className="font-semibold text-gray-800">School Finance ({currency})</h3>
+        <RevenueCurrencySelect value={currency} onChange={setCurrency} />
+      </div>
       {isLoading ? (
         <p className="text-sm text-gray-500">Loading...</p>
       ) : data.length === 0 ? (
@@ -31,8 +37,8 @@ export default function AdminFinanceChart() {
           <AreaChart data={data}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} />
             <XAxis dataKey="date" tick={{ fontSize: 10 }} />
-            <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => formatMoneyCompact(v)} />
-            <Tooltip formatter={(v: number) => [formatMoney(v), "Revenue"]} />
+            <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => formatMoneyCompact(v, currency)} />
+            <Tooltip formatter={(v: number) => [formatMoney(v, currency), "Revenue"]} />
             <Area type="monotone" dataKey="total" stroke="#22c55e" fill="#bbf7d0" strokeWidth={2} />
           </AreaChart>
         </ResponsiveContainer>

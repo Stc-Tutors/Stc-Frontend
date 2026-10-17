@@ -4,7 +4,8 @@ import WidgetBoundary from "@/components/shared/WidgetBoundary";
 import InlineLoader from "@/components/shared/InlineLoader";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Users, GraduationCap, Star, Activity } from "lucide-react";
+import { Users, GraduationCap, Star, Activity, Wallet } from "lucide-react";
+import { formatMoney } from "@/lib/money";
 import { GetAdminOverviewAction, GetTutorPerformanceReportAction } from "@/server/admin";
 import { AdminOverview } from "@/types/admin";
 import SchoolPerformanceChart from "@/components/adminDashboard/SchoolPerformanceChart";
@@ -102,6 +103,18 @@ export default function AdminDashboardPage() {
       bgColor: "bg-amber-100",
     },
     { title: "Active Enrollments", value: activeSessions, icon: Activity, iconColor: "text-green-500", bgColor: "bg-green-100" },
+    // Revenue this month in every currency, each on its own (only for admins who can see finance - otherwise the list is empty).
+    ...(overview?.revenueMTDByCurrency?.length
+      ? [
+          {
+            title: "Revenue this month",
+            value: overview.revenueMTDByCurrency.map((r) => formatMoney(r.total, r.currency)).join(" · "),
+            icon: Wallet,
+            iconColor: "text-emerald-500",
+            bgColor: "bg-emerald-100",
+          },
+        ]
+      : []),
   ];
 
   return (

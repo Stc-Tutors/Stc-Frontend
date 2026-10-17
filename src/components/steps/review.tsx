@@ -159,7 +159,7 @@ export default function EnrollmentReview({ onNext, errors }: StepProps) {
     const [res, error] = await ValidateCouponAction(code, totalCost);
     setIsCheckingCoupon(false);
     setCouponMessage(
-      error || `Coupon valid - ${formatMoney(res?.data?.discountAmount)} off, new total ${formatMoney(res?.data?.discountedAmount)}`
+      error || `Coupon valid - ${formatMoney(res?.data?.discountAmount, costCurrency)} off, new total ${formatMoney(res?.data?.discountedAmount, costCurrency)}`
     );
   };
 

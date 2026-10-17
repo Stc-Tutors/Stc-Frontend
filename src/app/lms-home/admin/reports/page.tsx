@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import InlineLoader from "@/components/shared/InlineLoader";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { RevenueCurrencySelect } from "@/components/adminDashboard/RevenueCurrency";
+import { formatMoney, formatMoneyCompact } from "@/lib/money";
 import { GetRevenueReportAction, GetAdminOverviewAction, GetCourseCompletionReportAction, GetTutorPerformanceReportAction, ListStudentsForAdminAction } from "@/server/admin";
 import {
   GetAttendanceReportAction,
@@ -46,6 +48,13 @@ export default function AdminReportsPage() {
   const [rescheduleRate, setRescheduleRate] = useState<RescheduleRateStat[]>([]);
   const [payoutTurnaround, setPayoutTurnaround] = useState<PayoutTurnaroundReport | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  // Which currency the revenue chart is in - never mixed.
+  const [revenueCurrency, setRevenueCurrency] = useState("NGN");
+
+  useEffect(() => {
+    if (!canViewFinancialReports) return;
+    GetRevenueReportAction(revenueCurrency).then(([res]) => setRevenue(res?.data ?? []));
+  }, [revenueCurrency, canViewFinancialReports]);
 
   useEffect(() => {
     const load = async () => {
@@ -59,7 +68,6 @@ export default function AdminReportsPage() {
         GetRescheduleRateReportAction().then(([res]) => setRescheduleRate(res?.data ?? [])),
       ];
       if (canViewFinancialReports) {
-        calls.push(GetRevenueReportAction().then(([res]) => setRevenue(res?.data ?? [])));
         calls.push(GetPayoutTurnaroundReportAction().then(([res]) => setPayoutTurnaround(res?.data ?? null)));
       }
       await Promise.all(calls);
@@ -82,7 +90,10 @@ export default function AdminReportsPage() {
 
       {canViewFinancialReports && (
         <div className="bg-white rounded-2xl shadow p-6">
-          <h2 className="text-lg font-semibold mb-4">Revenue Over Time (Completed Payments)</h2>
+          <div className="flex flex-wrap items-start justify-between gap-2 mb-4">
+            <h2 className="text-lg font-semibold">Revenue Over Time (Completed Payments, {revenueCurrency})</h2>
+            <RevenueCurrencySelect value={revenueCurrency} onChange={setRevenueCurrency} />
+          </div>
           {revenue.length === 0 ? (
             <p className="text-sm text-gray-500">No completed payments recorded yet.</p>
           ) : (
@@ -90,8 +101,8 @@ export default function AdminReportsPage() {
               <LineChart data={revenue}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip />
+                <YAxis tickFormatter={(v: number) => formatMoneyCompact(v, revenueCurrency)} />
+                <Tooltip formatter={(v: number) => formatMoney(v, revenueCurrency)} />
                 <Line type="monotone" dataKey="total" stroke="#2563eb" strokeWidth={2} />
               </LineChart>
             </ResponsiveContainer>

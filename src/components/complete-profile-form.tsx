@@ -204,7 +204,7 @@ export default function CompleteProfileForm({ studentId, dashboardPath }: { stud
             {requiresPayment && !!serviceDetails.totalCost && (
               <p>
                 <span className="font-medium">Cost:</span>{" "}
-                <LocalFirstPrice amount={serviceDetails.totalCost} country={countryOfResidence}>{formatMoney(serviceDetails.totalCost)}</LocalFirstPrice>
+                <LocalFirstPrice amount={serviceDetails.totalCost} currency={serviceDetails.totalCostCurrency} country={countryOfResidence}>{formatMoney(serviceDetails.totalCost, serviceDetails.totalCostCurrency)}</LocalFirstPrice>
               </p>
             )}
             {schedule && schedule.length > 0 && (

@@ -3,6 +3,25 @@ export interface AdminOverview {
   enrollmentsByStatus: Record<string, number>;
   coursesByStatus: Record<string, number>;
   revenueMTD: number;
+  // Revenue this month in EVERY currency (revenueMTD is the naira figure). Empty without the financial-reports permission.
+  revenueMTDByCurrency?: { currency: string; total: number }[];
+}
+
+// Revenue collected, paid out and the net - for one currency. Currencies are never added together.
+export interface CurrencyBalance {
+  currency: string;
+  revenue: number;
+  paidOut: number;
+  balance: number;
+}
+
+export interface FinanceOverview {
+  enrolledStudents: number;
+  teachers: number;
+  // The naira figure; balances has every currency.
+  walletBalance: number;
+  balances?: CurrencyBalance[];
+  activeSessions: number;
 }
 
 export interface RevenuePoint {

@@ -2,7 +2,7 @@
 
 import fetchAPI, { type ApiResponse } from "@/lib/fetch";
 import { User, UserRole, UserStatus } from "@/types/user";
-import { AdminOverview, CourseCompletionStat, RevenuePoint, TutorPerformanceStat } from "@/types/admin";
+import { AdminOverview, CourseCompletionStat, FinanceOverview, RevenuePoint, TutorPerformanceStat } from "@/types/admin";
 import { AcademicSummary, GroupedStudent, ParentEnrollmentSummary, Student } from "@/types/student";
 
 export async function CreateUserAction(data: {
@@ -109,9 +109,10 @@ export async function GetAdminOverviewAction(): Promise<[ApiResponse<AdminOvervi
   return [resData, error];
 }
 
-export async function GetRevenueReportAction(): Promise<[ApiResponse<RevenuePoint[]> | null, string | null]> {
+// Revenue by day for ONE currency (naira unless another is asked for).
+export async function GetRevenueReportAction(currency?: string): Promise<[ApiResponse<RevenuePoint[]> | null, string | null]> {
   const [res, error] = await fetchAPI({
-    url: "/admin/reports/revenue",
+    url: `/admin/reports/revenue${currency ? `?currency=${encodeURIComponent(currency)}` : ""}`,
     request: {
       method: "GET",
       headers: { "Content-Type": "application/json" },
@@ -119,6 +120,17 @@ export async function GetRevenueReportAction(): Promise<[ApiResponse<RevenuePoin
   });
 
   const resData = res ? ((await res.json()) as ApiResponse<RevenuePoint[]>) : null;
+  return [resData, error];
+}
+
+// Revenue collected, paid out and net per currency - needs the financial-reports permission.
+export async function GetFinanceOverviewAction(): Promise<[ApiResponse<FinanceOverview> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: "/admin/reports/finance-overview",
+    request: { method: "GET", headers: { "Content-Type": "application/json" } },
+  });
+
+  const resData = res ? ((await res.json()) as ApiResponse<FinanceOverview>) : null;
   return [resData, error];
 }
 
