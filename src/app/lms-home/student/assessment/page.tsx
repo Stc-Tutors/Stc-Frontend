@@ -79,6 +79,9 @@ export default function AssessmentPage() {
         <h2 className="text-lg font-semibold text-gray-800">Assignments</h2>
       </div>
 
+      {/* Five columns need room: on a phone the table scrolls sideways instead of squeezing every column. */}
+      <div className="overflow-x-auto">
+      <div className="min-w-[640px]">
       <div className="grid grid-cols-5 font-semibold text-sm text-gray-600 py-2 border-b">
         <div>Course</div>
         <div>Assignment</div>
@@ -126,6 +129,8 @@ export default function AssessmentPage() {
           ))}
         </div>
       )}
+      </div>
+      </div>
     </div>
   );
 }

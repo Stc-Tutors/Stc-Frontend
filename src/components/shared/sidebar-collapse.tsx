@@ -37,7 +37,7 @@ export function DesktopSidebarToggle({ collapsed, onToggle }: { collapsed: boole
       onClick={onToggle}
       aria-label={collapsed ? "Open sidebar" : "Close sidebar"}
       title={collapsed ? "Open sidebar" : "Close sidebar"}
-      className="hidden md:block p-2 rounded-md hover:bg-blue-100 transition shrink-0 mr-2"
+      className="hidden lg:block p-2 rounded-md hover:bg-blue-100 transition shrink-0 mr-2"
     >
       <Icon className="w-5 h-5 text-gray-700" />
     </button>

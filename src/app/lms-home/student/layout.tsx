@@ -181,24 +181,24 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
       {/* Mobile backdrop: tap outside the drawer to close it */}
       {isSidebarOpen && (
         <div
-          className="md:hidden fixed inset-0 bg-black/40 z-30"
+          className="lg:hidden fixed inset-0 bg-black/40 z-30"
           onClick={() => setIsSidebarOpen(false)}
           aria-hidden="true"
         />
       )}
       <aside
-        className={`fixed md:static top-0 left-0 h-full w-64 bg-white border-r shadow-md z-40 overflow-y-auto transform transition-transform duration-300 ease-in-out
-        ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0 ${sidebarCollapsed ? "md:hidden" : "md:flex"} flex-col justify-between`}
+        className={`fixed lg:static top-0 left-0 h-full w-64 bg-white border-r shadow-md z-40 overflow-y-auto transform transition-transform duration-300 ease-in-out
+        ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0 ${sidebarCollapsed ? "lg:hidden" : "lg:flex"} flex-col justify-between`}
       >
         
-          <div className={`flex items-center justify-between p-4 border-b ${isSidebarOpen ? "pl-[4.5rem]" : ""} md:pl-4`}>
+          <div className={`flex items-center justify-between p-4 border-b ${isSidebarOpen ? "pl-[4.5rem]" : ""} lg:pl-4`}>
             <Link href="/">
             <BrandLogo width={120} height={40} className="object-contain" />
             </Link>
 
             <button
             onClick={() => setIsSidebarOpen(false)}
-            className="md:hidden text-gray-500 hover:text-blue-600 text-3xl font-bold">
+            className="lg:hidden text-gray-500 hover:text-blue-600 text-3xl font-bold">
                 &times;
                 </button>
                 </div>
@@ -261,14 +261,14 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
           <DesktopSidebarToggle collapsed={sidebarCollapsed} onToggle={toggleSidebarCollapsed} />
           <button
             aria-label={isSidebarOpen ? "Close menu" : "Open menu"}
-            className="md:hidden relative z-50 mr-2 sm:mr-4 p-2 rounded-md hover:bg-blue-100 transition shrink-0"
+            className="lg:hidden relative z-50 mr-2 sm:mr-4 p-2 rounded-md hover:bg-blue-100 transition shrink-0"
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
           >
             <Menu className="w-6 h-6 text-gray-700" />
           </button>
 
           {/* SearchBar */}
-          <div className="relative w-full max-w-xs min-w-0 hidden sm:block">
+          <div className="relative w-full max-w-xs min-w-0 hidden md:block">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
               type="text"
@@ -352,7 +352,7 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
 //   return (
 //     <>
 //       {/* Mobile View: Sidebar only */}
-//       <div className="md:hidden h-screen w-full bg-white overflow-y-auto">
+//       <div className="lg:hidden h-screen w-full bg-white overflow-y-auto">
 //         <div className="p-6 border-b">
 //           <Image src="/image/logo_black.png" alt="STC Logo" width={120} height={40} />
 //         </div>
@@ -376,7 +376,7 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
 //       </div>
 
 //       {/* Desktop View */}
-//       <div className="hidden md:flex h-screen">
+//       <div className="hidden lg:flex h-screen">
 //         {/* Sidebar */}
 //         <aside className="w-64 bg-white border-r shadow-md flex flex-col justify-between">
 //           <div>

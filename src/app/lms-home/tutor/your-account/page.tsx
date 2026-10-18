@@ -171,7 +171,7 @@ export default function DashboardPage() {
       {message && <p className="text-sm text-blue-600">{message}</p>}
 
       {/* Top Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5 gap-6">
         <StatCard
           title="Current Balance"
           value={formatMoney(balance?.currentBalance ?? 0, balance?.currency)}
