@@ -18,7 +18,8 @@ export default function ReportsDuePage() {
   const load = useCallback(async () => {
     const [res, err] = await GetReportsDueAction();
     setError(err);
-    setItems(res?.data ?? []);
+    // Tolerate a record that only carries `_id`.
+    setItems((res?.data ?? []).map((l) => ({ ...l, id: l.id ?? (l as unknown as { _id: string })._id })));
     setLoading(false);
   }, []);
 
