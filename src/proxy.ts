@@ -92,6 +92,10 @@ const publicPaths = [
   // session cookie, so without this entry it would be bounced to /auth/login
   // before the file ever loads, and every recording would fail.
   "/egress",
+  // The browser-push service worker: the browser fetches it on its own, so it must open without the login redirect.
+  "/sw.js",
+  // The app downloads page is public.
+  "/downloads",
 ];
 
 async function getRoleFromToken(token: string): Promise<UserRole | null> {

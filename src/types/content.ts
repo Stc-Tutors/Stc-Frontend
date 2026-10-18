@@ -23,6 +23,7 @@ export enum PageSectionKey {
   FAQ_SERVICES = "FAQ_SERVICES",
   FAQ_CONTACT = "FAQ_CONTACT",
   FAQ_CAREERS = "FAQ_CAREERS",
+  DOWNLOADS = "DOWNLOADS",
 }
 
 export interface PageSection {
@@ -139,6 +140,18 @@ export interface TutorsSectionContent {
   body: string;
   buttonText: string;
   buttonLink: string;
+}
+
+// The public /downloads page. A blank link shows that app as "coming soon".
+export interface DownloadsContent {
+  heading: string;
+  intro: string;
+  androidUrl: string;
+  androidVersion?: string;
+  androidNote?: string;
+  windowsUrl: string;
+  windowsVersion?: string;
+  windowsNote?: string;
 }
 
 export interface FaqItem {

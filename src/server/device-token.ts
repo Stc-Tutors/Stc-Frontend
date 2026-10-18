@@ -21,6 +21,15 @@ export async function RegisterDeviceTokenAction(
   return [resData, error];
 }
 
+// The public half of the browser-push key; null until the server has browser push configured.
+export async function GetWebPushKeyAction(): Promise<[ApiResponse<{ publicKey: string | null }> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: "/device-tokens/web-push-key",
+    request: { method: "GET", headers: { "Content-Type": "application/json" } },
+  });
+  return [res ? ((await res.json()) as ApiResponse<{ publicKey: string | null }>) : null, error];
+}
+
 export async function UnregisterDeviceTokenAction(token: string): Promise<[ApiResponse<null> | null, string | null]> {
   const [res, error] = await fetchAPI({
     url: `/device-tokens/${token}`,

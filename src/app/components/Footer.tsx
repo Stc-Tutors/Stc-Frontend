@@ -162,6 +162,9 @@ export default function Footer() {
           <Link href="/privacy" className="underline-offset-2 hover:underline">
             {content.privacyText}
           </Link>
+          <Link href="/downloads" className="underline-offset-2 hover:underline">
+            Download the app
+          </Link>
         </p>
         {content.poweredByText && <p className="mt-1">{content.poweredByText}</p>}
       </div>
