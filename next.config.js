@@ -43,11 +43,14 @@ function livekitHost(scheme) {
   }
 }
 
+const isDev = process.env.NODE_ENV !== "production";
+
 function contentSecurityPolicy() {
   const api = apiOrigins();
   const directives = {
     "default-src": ["'self'"],
-    "script-src": ["'self'", "'unsafe-inline'", "https://js.paystack.co", "https://connect.facebook.net"],
+    // 'unsafe-eval' only in dev: React Refresh needs it; a production build does not.
+    "script-src": ["'self'", "'unsafe-inline'", ...(isDev ? ["'unsafe-eval'"] : []), "https://js.paystack.co", "https://connect.facebook.net"],
     "style-src": ["'self'", "'unsafe-inline'"],
     "img-src": [
       "'self'",
@@ -59,11 +62,13 @@ function contentSecurityPolicy() {
       "https://*.googleusercontent.com",
       "https://www.facebook.com",
     ],
-    "font-src": ["'self'", "data:"],
+    // esm.sh: the whiteboard (Excalidraw) loads its handwriting fonts from there unless self-hosted.
+    "font-src": ["'self'", "data:", "https://esm.sh"],
     "connect-src": [
       "'self'",
       api.http,
       api.ws,
+      "https://esm.sh",
       "https://api.paystack.co",
       "https://checkout.paystack.com",
       "https://api.cloudinary.com",
@@ -145,10 +150,9 @@ const nextConfig = {
           { key: "X-Frame-Options", value: "SAMEORIGIN" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "Permissions-Policy", value: `camera=(self "${examsOrigin}"), microphone=(self "${examsOrigin}"), display-capture=(self "${examsOrigin}"), fullscreen=(self "${examsOrigin}"), geolocation=()` },
-          // Enforced: only the directives that no third-party host can break (no framing by other sites, no <object>, no <base>
-          // tricks, forms post to this origin). The full host allowlist below stays Report-Only until production reports are clean.
-          { key: "Content-Security-Policy", value: "object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'" },
-          { key: "Content-Security-Policy-Report-Only", value: contentSecurityPolicy() },
+          // Enforced (the full host allowlist). If a legitimate third-party host is blocked, the browser console and
+          // /api/csp-report name the directive and host to add in contentSecurityPolicy() above.
+          { key: "Content-Security-Policy", value: contentSecurityPolicy() },
         ],
       },
     ];
