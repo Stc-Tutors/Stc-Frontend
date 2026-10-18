@@ -76,8 +76,9 @@ export async function GetSessionBootstrapAction(): Promise<SessionBootstrapResul
 
   const [permissions, hod, restrictions, students] = await Promise.all([
     GetMyPermissionsAction(),
-    // A 404 (no assignment) is the normal case, not an error.
-    GetMyHodAssignmentAction(),
+    // A 404 (no assignment) is the normal case, not an error. Family accounts are never HODs, so they skip the call (it answered
+    // 403 on every page load for every student and parent).
+    isLmsRole ? Promise.resolve([null, null] as const) : GetMyHodAssignmentAction(),
     isLmsRole ? GetMyRestrictionsAction() : Promise.resolve(null),
     isLmsRole ? GetMyStudentsAction() : Promise.resolve(null),
   ]);

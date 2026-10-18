@@ -84,9 +84,11 @@ function contentSecurityPolicy() {
       "https://docs.google.com",
       "https://meet.google.com",
       "https://www.youtube.com",
+      // The resource preview dialog frames uploaded PDFs/documents straight from Cloudinary.
+      "https://res.cloudinary.com",
       examsOrigin,
     ],
-    "media-src": ["'self'", "https:", "blob:"],
+    "media-src": ["'self'", "https:", "blob:", "data:"],
     "worker-src": ["'self'", "blob:"],
     "object-src": ["'none'"],
     "base-uri": ["'self'"],
@@ -143,6 +145,9 @@ const nextConfig = {
           { key: "X-Frame-Options", value: "SAMEORIGIN" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "Permissions-Policy", value: `camera=(self "${examsOrigin}"), microphone=(self "${examsOrigin}"), display-capture=(self "${examsOrigin}"), fullscreen=(self "${examsOrigin}"), geolocation=()` },
+          // Enforced: only the directives that no third-party host can break (no framing by other sites, no <object>, no <base>
+          // tricks, forms post to this origin). The full host allowlist below stays Report-Only until production reports are clean.
+          { key: "Content-Security-Policy", value: "object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'" },
           { key: "Content-Security-Policy-Report-Only", value: contentSecurityPolicy() },
         ],
       },

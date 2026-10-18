@@ -76,6 +76,9 @@ const publicPaths = [
   "/program",
   "/blog",
   "/careers",
+  // Crawlers fetch these with no session; without them they were bounced to the login page.
+  "/robots.txt",
+  "/sitemap.xml",
   // A parent confirming their 16-17 year old's account (emailed link). Outside /auth so a signed-in parent is not bounced away.
   "/guardian-consent",
   // Token-link pages for people who never have an account: an external

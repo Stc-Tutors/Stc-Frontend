@@ -13,6 +13,8 @@ import DisplayPrefsScript from "@/components/shared/display-prefs-script";
 
 
 export const metadata = {
+  // Lets pages declare relative canonical/OG URLs.
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://www.stctutors.com"),
   title: "STC Tutors",
   description: "Personalized online tutoring platform",
 };
