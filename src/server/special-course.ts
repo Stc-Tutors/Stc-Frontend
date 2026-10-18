@@ -29,7 +29,7 @@ export async function GetSpecialCourseByTokenAction(
 
 export async function RegisterForSpecialCourseAction(
   token: string,
-  data: { firstName: string; lastName: string; email: string; password: string; phone?: string }
+  data: { firstName: string; lastName: string; email: string; password: string; phone?: string; dateOfBirth: string }
 ): Promise<[ApiResponse<{ userId: string; requiresPayment?: boolean }> | null, string | null]> {
   const [res, error] = await fetchAPI({
     url: `/public/special-courses/${token}/register`,

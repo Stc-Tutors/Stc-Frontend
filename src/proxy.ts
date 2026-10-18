@@ -76,6 +76,8 @@ const publicPaths = [
   "/program",
   "/blog",
   "/careers",
+  // A parent confirming their 16-17 year old's account (emailed link). Outside /auth so a signed-in parent is not bounced away.
+  "/guardian-consent",
   // Token-link pages for people who never have an account: an external
   // referee opening the reference-check email (/reference/<application>/<slot>
   // ?token=...) and anyone opening a Special Course's shared registration

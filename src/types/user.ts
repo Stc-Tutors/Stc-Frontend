@@ -84,4 +84,7 @@ export interface IUserSignup {
   // Referrer's User id, carried over from the `ref` query param on a
   // referral link (e.g. /auth/register?ref=<referrer id>).
   ref?: string;
+  // STUDENT signups: drives the under-16 / 16-17 / 18+ rules on the server.
+  dateOfBirth?: string;
+  parentEmail?: string;
 }

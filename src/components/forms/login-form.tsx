@@ -5,7 +5,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
-import { ResendVerificationAction, SigninAction } from "@/server/auth";
+import { GuardianConsentResendAction, ResendVerificationAction, SigninAction } from "@/server/auth";
 import { ToastError, ToastSuccess } from "../ui/custom/toast";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
@@ -49,7 +49,11 @@ export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const service = searchParams.get("service");
+  // Only ever a path on this site (e.g. back to a parent-confirmation link).
+  const nextParam = searchParams.get("next");
+  const next = nextParam && nextParam.startsWith("/") && !nextParam.startsWith("//") ? nextParam : null;
   const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
+  const [consentPendingEmail, setConsentPendingEmail] = useState<string | null>(null);
   const [isResending, setIsResending] = useState(false);
   const [loginMethod, setLoginMethod] = useState<"email" | "studentId">("email");
 
@@ -65,6 +69,7 @@ export default function LoginForm() {
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     setUnverifiedEmail(null);
+    setConsentPendingEmail(null);
     const [res, error] = await SigninAction(
       loginMethod === "studentId"
         ? { studentId: data.identifier, password: data.password }
@@ -95,13 +100,16 @@ export default function LoginForm() {
       const role = res.data.user.role;
       const canEnroll = role === UserRole.STUDENT || role === UserRole.PARENT;
       router.push(
-        service && canEnroll ? `/dashboard/enroll?service=${service}` : ROLE_DASHBOARD[role] ?? ROUTES.DASHBOARD.HOME
+        next ? next : service && canEnroll ? `/dashboard/enroll?service=${service}` : ROLE_DASHBOARD[role] ?? ROUTES.DASHBOARD.HOME
       );
     }
     if (error) {
       if (error === "EMAIL_NOT_VERIFIED") {
         setUnverifiedEmail(data.identifier);
         ToastError("Please verify your email before logging in.");
+      } else if (error === "PARENT_CONSENT_PENDING") {
+        setConsentPendingEmail(data.identifier);
+        ToastError("Your parent or guardian still needs to confirm your account. Check that the email we sent them, or send it again below.");
       } else if (error === "ACCOUNT_PENDING_APPROVAL") {
         ToastError("Your tutor application is still under review. We'll email you once it's decided.");
       } else if (error === "ACCOUNT_SUSPENDED") {
@@ -123,6 +131,15 @@ export default function LoginForm() {
     if (!unverifiedEmail) return;
     setIsResending(true);
     const [res, error] = await ResendVerificationAction(unverifiedEmail);
+    setIsResending(false);
+    if (res) ToastSuccess(res.message);
+    if (error) ToastError(error);
+  };
+
+  const handleResendConsent = async () => {
+    if (!consentPendingEmail) return;
+    setIsResending(true);
+    const [res, error] = await GuardianConsentResendAction(consentPendingEmail);
     setIsResending(false);
     if (res) ToastSuccess(res.message);
     if (error) ToastError(error);
@@ -201,6 +218,20 @@ export default function LoginForm() {
               className="underline underline-offset-4 font-medium disabled:opacity-50"
             >
               {isResending ? "Sending..." : "Resend email"}
+            </button>
+          </div>
+        )}
+
+        {consentPendingEmail && (
+          <div className="text-sm bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-md p-3 flex items-center justify-between gap-2">
+            <span>Waiting for your parent or guardian to confirm your account.</span>
+            <button
+              type="button"
+              onClick={handleResendConsent}
+              disabled={isResending}
+              className="underline underline-offset-4 font-medium disabled:opacity-50"
+            >
+              {isResending ? "Sending..." : "Send the link again"}
             </button>
           </div>
         )}

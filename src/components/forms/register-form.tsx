@@ -29,8 +29,10 @@ const formSchema = z.object({
   phone: z.string().min(10, { message: "Phone number must be at least 10 digits" }),
   role: z.enum([UserRole.PARENT, UserRole.STUDENT]),
   referralCode: z.string().optional(),
+  dateOfBirth: z.string().optional(),
+  parentEmail: z.string().optional(),
   confirmPassword: z.string().min(1, { message: "Confirm password is required" })
-}).superRefine(({ confirmPassword, password }, ctx) => {
+}).superRefine(({ confirmPassword, password, role, dateOfBirth, parentEmail, email }, ctx) => {
   if (confirmPassword !== password) {
     ctx.addIssue({
       code: 'custom',
@@ -38,13 +40,45 @@ const formSchema = z.object({
       path: ['confirmPassword'],
     });
   }
+  // Same rules the server enforces: under 16 a parent registers the child; 16-17 needs a parent's email to confirm; 18+ is free.
+  if (role === UserRole.STUDENT) {
+    const age = ageFromDob(dateOfBirth);
+    if (age === null) {
+      ctx.addIssue({ code: 'custom', message: 'Please enter your date of birth', path: ['dateOfBirth'] });
+    } else if (age < 16) {
+      ctx.addIssue({ code: 'custom', message: UNDER_16_MESSAGE, path: ['dateOfBirth'] });
+    } else if (age < 18) {
+      const parent = (parentEmail ?? '').trim();
+      if (!z.string().email().safeParse(parent).success) {
+        ctx.addIssue({ code: 'custom', message: "Enter your parent or guardian's email address", path: ['parentEmail'] });
+      } else if (parent.toLowerCase() === email.trim().toLowerCase()) {
+        ctx.addIssue({ code: 'custom', message: "This must be different from your own email", path: ['parentEmail'] });
+      }
+    }
+  }
 });
+
+const UNDER_16_MESSAGE =
+  "Children under 16 can't create their own account. Please ask a parent or guardian to register as a Parent and add you.";
+
+function ageFromDob(value?: string): number | null {
+  if (!value) return null;
+  const dob = new Date(value);
+  if (Number.isNaN(dob.getTime())) return null;
+  const now = new Date();
+  let age = now.getFullYear() - dob.getFullYear();
+  if (now.getMonth() < dob.getMonth() || (now.getMonth() === dob.getMonth() && now.getDate() < dob.getDate())) age -= 1;
+  return age;
+}
 
 export default function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const service = searchParams.get("service");
   const ref = searchParams.get("ref");
+  // Set when a parent arrives from a "confirm my child's account" email: they must register as a Parent, then come back to that link.
+  const nextParam = searchParams.get("next");
+  const next = nextParam && nextParam.startsWith("/") && !nextParam.startsWith("//") ? nextParam : null;
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -56,16 +90,29 @@ export default function RegisterForm() {
       confirmPassword: "",
       role: UserRole.PARENT,
       referralCode: ref ?? "",
+      dateOfBirth: "",
+      parentEmail: "",
     },
   });
+  const role = form.watch("role");
+  const dobAge = ageFromDob(form.watch("dateOfBirth"));
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
-    const { referralCode, ...rest } = data;
-    const [res, error] = await RegisterAction(referralCode ? { ...rest, ref: referralCode } : rest);
+    const { referralCode, dateOfBirth, parentEmail, ...rest } = data;
+    const studentFields =
+      data.role === UserRole.STUDENT
+        ? { dateOfBirth, ...(dobAge !== null && dobAge < 18 ? { parentEmail: parentEmail?.trim() } : {}) }
+        : {};
+    const [res, error] = await RegisterAction({ ...rest, ...studentFields, ...(referralCode ? { ref: referralCode } : {}) });
 
     if (res) {
       ToastSuccess(res.message);
-      router.push(service ? `${ROUTES.AUTH.LOGIN}?service=${service}` : ROUTES.AUTH.LOGIN);
+      const params = new URLSearchParams();
+      if (service) params.set("service", service);
+      if (next) params.set("next", next);
+      if (next) params.set("email", data.email);
+      const query = params.toString();
+      router.push(query ? `${ROUTES.AUTH.LOGIN}?${query}` : ROUTES.AUTH.LOGIN);
     }
     if (error) {
       // A duplicate-email attempt left them nowhere to go before - now
@@ -142,7 +189,7 @@ export default function RegisterForm() {
             )}
           />
 
-          <FormField
+          {!next && <FormField
             control={form.control}
             name="role"
             render={({ field }) => (
@@ -167,7 +214,48 @@ export default function RegisterForm() {
                 <FormMessage />
               </FormItem>
             )}
-          />
+          />}
+
+          {role === UserRole.STUDENT && (
+            <>
+              <FormField
+                control={form.control}
+                name="dateOfBirth"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Date of birth</FormLabel>
+                    <FormControl>
+                      <Input {...field} type="date" max={new Date().toISOString().slice(0, 10)} />
+                    </FormControl>
+                    {dobAge !== null && dobAge < 16 && (
+                      <p className="text-sm text-red-600">{UNDER_16_MESSAGE}</p>
+                    )}
+                    {dobAge !== null && dobAge >= 16 && dobAge < 18 && (
+                      <p className="text-sm text-gray-600">
+                        You&apos;re under 18, so a parent or guardian needs to confirm your account before you can use it.
+                      </p>
+                    )}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              {dobAge !== null && dobAge >= 16 && dobAge < 18 && (
+                <FormField
+                  control={form.control}
+                  name="parentEmail"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Parent or guardian&apos;s email</FormLabel>
+                      <FormControl>
+                        <Input {...field} type="email" placeholder="We'll email them a link to confirm your account" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+            </>
+          )}
 
           <FormField
             control={form.control}

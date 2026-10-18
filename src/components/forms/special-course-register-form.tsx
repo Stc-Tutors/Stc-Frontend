@@ -21,10 +21,25 @@ const formSchema = z
     lastName: z.string().min(1, { message: "Last name is required" }),
     email: z.string().email({ message: "Invalid email address" }),
     phone: z.string().optional(),
+    dateOfBirth: z.string().min(1, { message: "Date of birth is required" }),
     password: passwordSchema,
     confirmPassword: z.string().min(1, { message: "Confirm password is required" }),
   })
-  .superRefine(({ confirmPassword, password }, ctx) => {
+  .superRefine(({ confirmPassword, password, dateOfBirth }, ctx) => {
+    // This link makes an account with no parent behind it, so it is for adults only (the server enforces the same).
+    const dob = new Date(dateOfBirth);
+    if (!Number.isNaN(dob.getTime())) {
+      const now = new Date();
+      let age = now.getFullYear() - dob.getFullYear();
+      if (now.getMonth() < dob.getMonth() || (now.getMonth() === dob.getMonth() && now.getDate() < dob.getDate())) age -= 1;
+      if (age < 18) {
+        ctx.addIssue({
+          code: "custom",
+          message: "This link is for students aged 18 and over. If you are under 18, ask a parent or guardian to register and enrol you.",
+          path: ["dateOfBirth"],
+        });
+      }
+    }
     if (confirmPassword !== password) {
       ctx.addIssue({ code: "custom", message: "The passwords do not match", path: ["confirmPassword"] });
     }
@@ -35,7 +50,7 @@ export default function SpecialCourseRegisterForm({ token }: { token: string }) 
   const [requiresPayment, setRequiresPayment] = useState(false);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: { firstName: "", lastName: "", email: "", phone: "", password: "", confirmPassword: "" },
+    defaultValues: { firstName: "", lastName: "", email: "", phone: "", dateOfBirth: "", password: "", confirmPassword: "" },
   });
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
@@ -106,6 +121,20 @@ export default function SpecialCourseRegisterForm({ token }: { token: string }) 
                 <FormLabel>Email</FormLabel>
                 <FormControl>
                   <Input {...field} type="email" placeholder="Enter your email" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="dateOfBirth"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Date of birth</FormLabel>
+                <FormControl>
+                  <Input {...field} type="date" max={new Date().toISOString().slice(0, 10)} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

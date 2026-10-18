@@ -47,12 +47,18 @@ function PaymentReturn() {
       return;
     }
 
-    VerifyPaymentAction(reference).then(([res, error]) => {
-      if (error) finish(error);
-      else if (res?.data?.status === "COMPLETED") finish("Payment successful. Taking you back...");
-      else if (res?.data?.status === "FAILED") finish("The payment didn't go through. You can try again from your payment history.");
-      else finish("Payment received. It will show as paid as soon as it's confirmed.");
-    });
+    // The gateway can redirect back a moment before it confirms the charge, so a still-pending answer is re-checked a few times
+    // before giving up (the payments list also refreshes on its own once the server confirms it).
+    const check = (attempt: number) => {
+      VerifyPaymentAction(reference).then(([res, error]) => {
+        if (error) finish(error);
+        else if (res?.data?.status === "COMPLETED") finish("Payment successful. Taking you back...");
+        else if (res?.data?.status === "FAILED") finish("The payment didn't go through. You can try again from your payment history.");
+        else if (attempt < 4) window.setTimeout(() => check(attempt + 1), 3000);
+        else finish("Payment received. It will show as paid as soon as it's confirmed.");
+      });
+    };
+    check(0);
   }, [params, router]);
 
   return (

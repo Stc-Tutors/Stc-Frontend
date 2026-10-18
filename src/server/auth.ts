@@ -245,3 +245,37 @@ export async function ResendVerificationAction(
 
   return [resData, error];
 }
+
+// A 16-17 year old's parent confirming the account (see stcbe GuardianConsentService).
+export async function GuardianConsentPreviewAction(
+  token: string
+): Promise<[ApiResponse<{ childName: string; parentEmail: string; expiresAt: string }> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: `/auth/guardian-consent/${encodeURIComponent(token)}`,
+    request: { method: "GET", headers: { "Content-Type": "application/json" } },
+  });
+  const resData = res ? ((await res.json()) as ApiResponse<{ childName: string; parentEmail: string; expiresAt: string }>) : null;
+  return [resData, error];
+}
+
+export async function GuardianConsentConfirmAction(data: {
+  token: string;
+  relationship: string;
+  accept: boolean;
+}): Promise<[ApiResponse<null> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: "/auth/guardian-consent/confirm",
+    request: { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) },
+  });
+  const resData = res ? ((await res.json()) as ApiResponse<null>) : null;
+  return [resData, error];
+}
+
+export async function GuardianConsentResendAction(email: string): Promise<[ApiResponse<null> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: "/auth/guardian-consent/resend",
+    request: { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }) },
+  });
+  const resData = res ? ((await res.json()) as ApiResponse<null>) : null;
+  return [resData, error];
+}
