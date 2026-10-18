@@ -143,6 +143,28 @@ export async function GetReportsDueAction(): Promise<[ApiResponse<ReportDueLesso
   return [res ? ((await res.json()) as ApiResponse<ReportDueLesson[]>) : null, error];
 }
 
+// What earlier tutors of the same subject wrote about each child in this course (never other subjects).
+export interface StudentReportHistory {
+  studentId: string;
+  studentName: string;
+  reports: {
+    lessonId: string;
+    scheduledDate: string;
+    courseTitle: string;
+    tutorName: string;
+    fromThisCourse: boolean;
+    report: { key: string; label: string; value: string }[];
+  }[];
+}
+
+export async function GetStudentReportHistoryAction(courseId: string): Promise<[ApiResponse<StudentReportHistory[]> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: `/lessons/course/${courseId}/student-reports`,
+    request: { method: "GET", headers: { "Content-Type": "application/json" } },
+  });
+  return [res ? ((await res.json()) as ApiResponse<StudentReportHistory[]>) : null, error];
+}
+
 // Files the report for a class that has already closed.
 export async function SubmitLateReportAction(id: string, report: Record<string, string>): Promise<[ApiResponse<Lesson> | null, string | null]> {
   const [res, error] = await fetchAPI({

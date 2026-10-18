@@ -38,6 +38,7 @@ import { CourseEnrollment } from "@/types/course-enrollment";
 import { CourseRatingSummary } from "@/types/session-feedback";
 import { CourseResource, ResourceType } from "@/types/resource";
 import ResourcePreviewDialog from "@/components/resources/ResourcePreviewDialog";
+import StudentReportHistoryPanel from "@/components/tutorDashboard/StudentReportHistoryPanel";
 
 export default function TutorCourseDetailPage() {
   const { id } = useParams();
@@ -269,6 +270,8 @@ export default function TutorCourseDetailPage() {
           </div>
         </div>
       )}
+
+      <StudentReportHistoryPanel courseId={String(id)} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-2xl shadow p-6">

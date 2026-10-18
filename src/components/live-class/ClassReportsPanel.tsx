@@ -194,6 +194,12 @@ export default function ClassReportsPanel() {
                 </div>
               </div>
 
+              {report.tutorReportFiled === false && (
+                <p className="rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                  Your tutor&apos;s report for this class isn&apos;t in yet. You can still tell us how it went below.
+                </p>
+              )}
+
               {report.report.length > 0 && (
                 <dl className="grid gap-3 sm:grid-cols-2">
                   {report.report.map((field) => (

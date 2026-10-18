@@ -236,6 +236,8 @@ export interface ClassReport {
   myFeedback: { rating: number; tags: string[]; comment?: string } | null;
   canRate: boolean;
   recordingAvailable: boolean;
+  // False while the tutor's own report for this class is still missing - the class can be rated anyway.
+  tutorReportFiled?: boolean;
 }
 
 export interface FeedbackInternalNote {
