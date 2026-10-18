@@ -4,6 +4,8 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import DisplayControls from "@/components/shared/display-controls";
+import TutorReferencesBanner from "@/components/tutor-references-banner";
+import { referencesLocked } from "@/lib/tutor-references";
 import { DesktopSidebarToggle, useSidebarCollapsed } from "@/components/shared/sidebar-collapse";
 import "keen-slider/keen-slider.min.css";
 import { GetMyTutorProfileAction } from "@/server/tutor-profile";
@@ -120,7 +122,8 @@ const TOUR_TARGETS: Record<string, string> = {
 const ONBOARDING_PATH = "/lms-home/tutor/onboarding";
 const VETTING_PATH = "/lms-home/tutor/vetting";
 // Account basics stay reachable while onboarding/vetting is pending: profile (incl. change password), notifications, support.
-const GATE_ALLOWED_PATHS = ["/lms-home/tutor/profile", "/lms-home/tutor/notification", "/lms-home/tutor/your-account", "/lms-home/tutor/complaints"];
+const REFERENCES_PATH = "/lms-home/tutor/references";
+const GATE_ALLOWED_PATHS = ["/lms-home/tutor/profile", "/lms-home/tutor/notification", "/lms-home/tutor/your-account", "/lms-home/tutor/complaints", REFERENCES_PATH];
 const isGateAllowed = (path: string) => GATE_ALLOWED_PATHS.some((p) => path.startsWith(p));
 
 export default function LMSLayout({ children }: { children: React.ReactNode }) {
@@ -155,6 +158,11 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
     if (pathname === VETTING_PATH || isGateAllowed(pathname)) return;
     (async () => {
       const [res] = await GetMyTutorApplicationAction();
+      // Past the references deadline with a referee still silent: only the references page (and account basics) open until they are in.
+      if (referencesLocked(res?.data)) {
+        router.replace(REFERENCES_PATH);
+        return;
+      }
       if (
         res?.data?.status === TutorApplicationStatus.APPROVED_PENDING_VETTING ||
         res?.data?.status === TutorApplicationStatus.VETTING_SUBMITTED
@@ -353,7 +361,10 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto p-3 sm:p-6">{children}</main>
+        <main className="flex-1 overflow-y-auto p-3 sm:p-6">
+          <TutorReferencesBanner />
+          {children}
+        </main>
       </div>
     </div>
   );

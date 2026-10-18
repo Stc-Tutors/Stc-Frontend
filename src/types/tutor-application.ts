@@ -256,6 +256,8 @@ export interface TutorApplication {
   reference2Contact?: string;
   reference2ConsentToContact?: boolean;
   reference2Response?: ReferenceResponse;
+  // Set at approval when a referee hadn't replied yet: the date by which every reference must be in, or the dashboard locks.
+  referenceDeadline?: string;
 
   // Step 5: Technical Readiness
   devices?: string[];

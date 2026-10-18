@@ -54,6 +54,20 @@ export default function TutorApplicationsPage() {
   }, [status, filters]);
 
   const handleApprove = async (id: string) => {
+    const target = applications.find((a) => a.id === id);
+    if (target) {
+    // An application can be approved while a referee is still silent - the tutor then has 7 days to get every reference in or their
+    // dashboard locks. Make sure the reviewer knows that is what they are choosing.
+    const waiting = [
+      target.reference1Contact && !target.reference1Response ? target.reference1Name || "Reference 1" : null,
+      target.reference2Contact && !target.reference2Response ? target.reference2Name || "Reference 2" : null,
+    ].filter(Boolean);
+    if (waiting.length > 0 && !window.confirm(`${waiting.join(" and ")} ${waiting.length === 1 ? "hasn't" : "haven't"} sent a reference yet.
+
+You can still approve. The tutor then has 7 days to get every reference in, or their dashboard is locked until they do.
+
+Approve anyway?`)) return;
+    }
     const [, error] = await ApproveTutorApplicationAction(id);
     setMessage(error || "Application approved");
     load();

@@ -354,6 +354,26 @@ export async function GetMyTutorApplicationAction(): Promise<[ApiResponse<TutorA
   return [resData, error];
 }
 
+// An approved tutor chasing or replacing one of their own referees.
+export async function ResendMyReferenceAction(slot: 1 | 2): Promise<[ApiResponse<null> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: `/tutor-applications/mine/references/${slot}/resend`,
+    request: { method: "POST", headers: { "Content-Type": "application/json" } },
+  });
+  return [res ? ((await res.json()) as ApiResponse<null>) : null, error];
+}
+
+export async function ReplaceMyReferenceAction(
+  slot: 1 | 2,
+  data: { name: string; relationship?: string; contact: string }
+): Promise<[ApiResponse<TutorApplication> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: `/tutor-applications/mine/references/${slot}`,
+    request: { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) },
+  });
+  return [res ? ((await res.json()) as ApiResponse<TutorApplication>) : null, error];
+}
+
 // Post-approval Vetting Questionnaire - real login required (application is
 // already APPROVED_PENDING_VETTING). Submitting flips it to APPROVED.
 export async function SubmitVettingQuestionnaireAction(
