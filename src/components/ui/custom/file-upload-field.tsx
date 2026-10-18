@@ -72,7 +72,7 @@ export default function FileUploadField({ id, folder, value, onChange, limits, e
         )}
         <input id={id} type="file" accept={accept} onChange={handleFileChange} className="hidden" />
       </div>
-      <p className="text-xs text-gray-400">
+      <p className="text-xs text-gray-500">
         {limits.allowedFormats.join(", ")} - up to {limits.maxSizeMB}MB
       </p>
       {uploadError && <p className="text-red-600 text-sm">{uploadError}</p>}

@@ -7,7 +7,7 @@ export default function NotificationPage() {
   const router = useRouter();
 
   return (
-    <div className="min-h-screen bg-gray-100 relative">
+    <div className="min-h-screen bg-gray-50 relative">
       <button
         onClick={() => router.push("/lms-home/student/dashboard")}
         className="flex items-center text-gray-700 mb-4 hover:text-blue-500"

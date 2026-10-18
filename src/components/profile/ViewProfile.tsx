@@ -321,7 +321,7 @@ export default function ViewProfile({ userId }: { userId: string }) {
                         <StarRating rating={review.rating} />
                       </div>
                       {review.comment && <p className="text-sm text-gray-600 mt-1">{review.comment}</p>}
-                      <ReportDialog entityType={ReportedEntityType.SESSION_FEEDBACK} entityId={review.id} className="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-red-600 mt-1" />
+                      <ReportDialog entityType={ReportedEntityType.SESSION_FEEDBACK} entityId={review.id} className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-red-600 mt-1" />
                     </li>
                   );
                 })}

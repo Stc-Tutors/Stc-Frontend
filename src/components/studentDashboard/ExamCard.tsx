@@ -26,7 +26,7 @@ export default function ExamCard({
       </div>
       <div className="text-sm text-gray-600 w-1/3 text-center">
         <p>{date}</p>
-        <p className="text-xs text-gray-400">{day}</p>
+        <p className="text-xs text-gray-500">{day}</p>
       </div>
       <div className="text-sm text-gray-600 w-1/4 text-center">{time}</div>
       <div className="text-sm text-gray-600 w-1/4 text-right">{location}</div>

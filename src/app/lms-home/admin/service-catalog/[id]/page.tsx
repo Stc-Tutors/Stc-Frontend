@@ -230,7 +230,7 @@ function ServiceWorkspacePageInner() {
                 <option value={SelectionMode.SINGLE}>One only</option>
                 <option value={SelectionMode.MULTIPLE}>One or more</option>
               </select>
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-gray-500">
                 {isCohort
                   ? "Cohort-based services join a single class group, so a student can only pick one."
                   : "Applies to the last stage of the tree - e.g. Exam Preparation lets a student tick several subjects, Tech for Kids just one course. Enforced on the registration form and by the server."}
@@ -268,7 +268,7 @@ function ServiceWorkspacePageInner() {
                 <div className="border border-gray-200 rounded-md px-3 py-2 text-sm text-gray-500 bg-gray-50 font-mono">
                   {service.slug}
                 </div>
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-gray-500">
                   Locked after creation - pricing, courses, and the curriculum tree already reference this value.
                 </p>
               </div>
@@ -301,7 +301,7 @@ function ServiceWorkspacePageInner() {
                 </select>
                 {/* The path is easy to misread as a service "type". It isn't - it only picks
                     how the registration form finds subjects and how the price is worked out. */}
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-gray-500">
                   Only sets how the form finds subjects and how price is worked out: the two taxonomy paths use the
                   fixed Country → Curriculum/Exam drill-down with per-subject pricing; Course Module follows this
                   service&apos;s own Flow Tree and prices per course. Use Course Module for any new service.

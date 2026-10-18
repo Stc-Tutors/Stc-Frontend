@@ -132,7 +132,7 @@ export default function TutorProfileEditsPage() {
                   <p className="font-semibold text-gray-900">
                     {typeof tutor === "string" ? tutor : `${tutor.firstName} ${tutor.lastName}`}
                   </p>
-                  <span className="text-xs text-gray-400">{formatDate(req.submittedAt)}</span>
+                  <span className="text-xs text-gray-500">{formatDate(req.submittedAt)}</span>
                 </div>
 
                 {/* Only the fields that actually differ from the live profile are listed, each as before -> after. */}

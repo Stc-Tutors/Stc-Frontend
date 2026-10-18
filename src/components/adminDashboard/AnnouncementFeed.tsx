@@ -23,7 +23,7 @@ export default function AnnouncementFeed() {
       {isLoading ? (
         <p className="text-sm text-gray-500">Loading...</p>
       ) : items.length === 0 ? (
-        <p className="text-sm text-gray-400">No announcements yet.</p>
+        <p className="text-sm text-gray-500">No announcements yet.</p>
       ) : (
         <ul className="space-y-2">
           {items.map((n) => (

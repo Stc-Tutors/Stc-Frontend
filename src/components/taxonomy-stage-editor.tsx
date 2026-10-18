@@ -68,7 +68,7 @@ export function TaxonomyStageEditor({
       </div>
 
       {value.length === 0 ? (
-        <p className="text-sm text-gray-400 border border-dashed border-gray-200 rounded-md px-3 py-4 text-center">
+        <p className="text-sm text-gray-500 border border-dashed border-gray-200 rounded-md px-3 py-4 text-center">
           No stages configured - this service has no curriculum tree.
         </p>
       ) : (
@@ -77,7 +77,7 @@ export function TaxonomyStageEditor({
             const isLast = i === value.length - 1;
             return (
               <div key={i} className="flex items-start gap-2 border border-gray-200 rounded-md p-3">
-                <div className="text-xs font-mono text-gray-400 w-6 pt-2">{i}</div>
+                <div className="text-xs font-mono text-gray-500 w-6 pt-2">{i}</div>
                 <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-2">
                   <div className="space-y-1">
                     <Label className="text-xs text-gray-500">Node type</Label>
@@ -127,7 +127,7 @@ export function TaxonomyStageEditor({
                     type="button"
                     onClick={() => moveStage(i, -1)}
                     disabled={i === 0}
-                    className="text-gray-400 hover:text-gray-700 disabled:opacity-30"
+                    className="text-gray-500 hover:text-gray-700 disabled:opacity-30"
                     title="Move up"
                   >
                     <ArrowUp className="size-3.5" />
@@ -136,7 +136,7 @@ export function TaxonomyStageEditor({
                     type="button"
                     onClick={() => moveStage(i, 1)}
                     disabled={isLast}
-                    className="text-gray-400 hover:text-gray-700 disabled:opacity-30"
+                    className="text-gray-500 hover:text-gray-700 disabled:opacity-30"
                     title="Move down"
                   >
                     <ArrowDown className="size-3.5" />

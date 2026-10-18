@@ -143,7 +143,7 @@ export default function AdminFinancePage() {
             <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-xs text-gray-400 border-b">
+                <tr className="text-left text-xs text-gray-500 border-b">
                   <th className="py-2">Student</th>
                   <th>Parent</th>
                   <th>Status</th>
@@ -172,7 +172,7 @@ export default function AdminFinancePage() {
             <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-xs text-gray-400 border-b">
+                <tr className="text-left text-xs text-gray-500 border-b">
                   <th className="py-2">Tutor</th>
                   <th>Date</th>
                   <th>Amount</th>

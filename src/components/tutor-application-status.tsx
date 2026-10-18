@@ -122,7 +122,7 @@ export default function TutorApplicationStatusView() {
   if (isLoading) {
     return (
       <div className="flex justify-center py-12">
-        <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+        <Loader2 className="h-6 w-6 animate-spin text-gray-500" />
       </div>
     );
   }
@@ -205,7 +205,7 @@ export default function TutorApplicationStatusView() {
             {messages.map((m) => (
               <div key={m.id} className="text-sm border rounded-md p-2">
                 <p>{m.body}</p>
-                <p className="text-xs text-gray-400 mt-1">{formatDateTime(m.createdAt)}</p>
+                <p className="text-xs text-gray-500 mt-1">{formatDateTime(m.createdAt)}</p>
               </div>
             ))}
           </div>

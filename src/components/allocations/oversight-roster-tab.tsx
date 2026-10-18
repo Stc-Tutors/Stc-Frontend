@@ -97,6 +97,7 @@ export default function OversightRosterTab({ jumpToken }: { jumpToken: number })
         <div>
           <label className="text-xs font-medium text-gray-600 mb-1 block">Admin (STC_ADMIN / TUTOR_ADMIN)</label>
           <select
+            aria-label="Admin"
             value={adminId}
             onChange={(e) => setAdminId(e.target.value)}
             className="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm"
@@ -121,7 +122,7 @@ export default function OversightRosterTab({ jumpToken }: { jumpToken: number })
       </div>
 
       {!adminId ? (
-        <p className="text-sm text-gray-400 border border-dashed border-gray-200 rounded-lg p-6 text-center">
+        <p className="text-sm text-gray-500 border border-dashed border-gray-200 rounded-lg p-6 text-center">
           Pick an admin to see their current oversight roster and assign more subjects to them.
         </p>
       ) : (

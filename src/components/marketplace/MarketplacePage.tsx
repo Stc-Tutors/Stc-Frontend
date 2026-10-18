@@ -225,7 +225,7 @@ export default function MarketplacePage() {
     return (
       <Card>
         <CardContent className="p-8 text-center space-y-3">
-          <ShoppingBag className="w-10 h-10 mx-auto text-gray-400" />
+          <ShoppingBag className="w-10 h-10 mx-auto text-gray-500" />
           <p className="text-gray-600">
             {isSelfRegisteredStudent
               ? "Complete your first enrollment before browsing more services to add."
@@ -391,7 +391,7 @@ export default function MarketplacePage() {
                 {quoteLoading ? (
                   <div className="flex flex-col items-end gap-1">
                     <Skeleton className="h-6 w-24" />
-                    <p className="text-xs text-gray-400 flex items-center gap-1">
+                    <p className="text-xs text-gray-500 flex items-center gap-1">
                       <Loader2 className="w-3 h-3 animate-spin" /> Fetching live quote...
                     </p>
                   </div>

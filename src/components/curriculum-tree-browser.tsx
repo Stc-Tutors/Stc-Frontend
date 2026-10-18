@@ -387,8 +387,8 @@ export default function CurriculumTreeBrowser({
                         }`}
                       >
                         {node.name}
-                        <span className="ml-2 text-xs text-gray-400">{TYPE_LABELS[node.type]}</span>
-                        {isExam && node.fullName && <span className="ml-2 text-xs text-gray-400">— {node.fullName}</span>}
+                        <span className="ml-2 text-xs text-gray-500">{TYPE_LABELS[node.type]}</span>
+                        {isExam && node.fullName && <span className="ml-2 text-xs text-gray-500">— {node.fullName}</span>}
                       </button>
                       {selectable && (
                         <button onClick={() => drillInto(node)} className="text-xs text-gray-500 hover:underline whitespace-nowrap">
@@ -439,6 +439,7 @@ export default function CurriculumTreeBrowser({
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
           {typeOptions.length > 1 ? (
             <select
+              aria-label="New type"
               value={newType}
               onChange={(e) => setNewType(e.target.value as CurriculumNodeType)}
               className="border border-gray-300 rounded-md px-3 py-2 text-sm"
@@ -496,7 +497,7 @@ export default function CurriculumTreeBrowser({
               onChange={(e) => setNewRequiredSubjects(e.target.value)}
               className="border border-gray-300 rounded-md px-2 py-1 text-sm"
             />
-            <p className="text-xs text-gray-400 md:col-span-2">
+            <p className="text-xs text-gray-500 md:col-span-2">
               Course combinations can be added after creating the exam, via Edit.
             </p>
           </div>

@@ -75,7 +75,7 @@ function AnnouncementsOverlayInner() {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {active && (
-              <button onClick={() => setActive(null)} className="text-gray-400 hover:text-gray-700" aria-label="Back to list">
+              <button onClick={() => setActive(null)} className="text-gray-500 hover:text-gray-700" aria-label="Back to list">
                 <ArrowLeft className="size-4" />
               </button>
             )}
@@ -86,7 +86,7 @@ function AnnouncementsOverlayInner() {
         <div className="flex-1 overflow-y-auto -mx-6 px-6">
           {active ? (
             <div className="space-y-3">
-              <p className="text-xs text-gray-400">{formatDateTime(active.createdAt)}</p>
+              <p className="text-xs text-gray-500">{formatDateTime(active.createdAt)}</p>
               <p className="text-sm text-gray-800 whitespace-pre-wrap">{active.body}</p>
               {active.link && (
                 <a href={active.link} className="text-sm text-blue-600 hover:underline inline-block">
@@ -108,7 +108,7 @@ function AnnouncementsOverlayInner() {
                 >
                   <p className="font-medium text-sm text-gray-900">{a.title}</p>
                   <p className="text-xs text-gray-500 truncate">{a.body}</p>
-                  <p className="text-[11px] text-gray-400 mt-0.5">{formatDateTime(a.createdAt)}</p>
+                  <p className="text-[11px] text-gray-500 mt-0.5">{formatDateTime(a.createdAt)}</p>
                 </button>
               ))}
             </div>

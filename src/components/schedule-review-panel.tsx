@@ -199,6 +199,7 @@ export default function ScheduleReviewPanel({ student, onChanged }: { student: S
           <div className="border-t border-gray-100 pt-3 space-y-2">
             {availableSubjects.length > 0 ? (
               <select
+                aria-label="Subject"
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
                 className="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm"

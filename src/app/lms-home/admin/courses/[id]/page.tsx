@@ -121,7 +121,7 @@ export default function AdminCourseDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         <div className="lg:col-span-2 border rounded-lg p-4">
           <h3 className="font-semibold text-gray-800 mb-1">Daily Activity</h3>
-          <p className="text-xs text-gray-400 mb-3">New enrollments and attendance marked, last 14 days</p>
+          <p className="text-xs text-gray-500 mb-3">New enrollments and attendance marked, last 14 days</p>
           {dailyActivity.length === 0 ? (
             <p className="text-sm text-gray-500">No activity in this window yet.</p>
           ) : (

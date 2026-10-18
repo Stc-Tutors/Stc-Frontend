@@ -244,7 +244,7 @@ export default async function CampaignLandingPage({ params }: { params: Params }
                   <details key={i} className="group p-4">
                     <summary className="cursor-pointer list-none flex items-center justify-between gap-2 font-medium text-gray-900">
                       {faq.question}
-                      <span className="text-gray-400 group-open:rotate-45 transition-transform">+</span>
+                      <span className="text-gray-500 group-open:rotate-45 transition-transform">+</span>
                     </summary>
                     <p className="mt-2 text-sm text-gray-600">{faq.answer}</p>
                   </details>

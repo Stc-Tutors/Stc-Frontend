@@ -210,13 +210,13 @@ export default function TutorCourseDetailPage() {
               {completionRate}%
             </div>
           </div>
-          <p className="text-xs text-gray-400">Based on lessons completed</p>
+          <p className="text-xs text-gray-500">Based on lessons completed</p>
 
           {ratingSummary && (
             <div className="w-full border-t mt-3 pt-3 space-y-1.5">
               <div className="flex items-center justify-center gap-1 text-sm font-medium text-gray-800">
                 <Star className="w-4 h-4 fill-amber-400 text-amber-400" /> {ratingSummary.averageRating || "-"}
-                <span className="text-xs text-gray-400 font-normal">({ratingSummary.totalRatings} reviews)</span>
+                <span className="text-xs text-gray-500 font-normal">({ratingSummary.totalRatings} reviews)</span>
               </div>
               {(["5", "4", "3", "2", "1"] as const).map((star) => {
                 const count = ratingSummary.breakdown[star] ?? 0;
@@ -299,7 +299,7 @@ export default function TutorCourseDetailPage() {
               ))
             )}
           </div>
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-gray-500">
             Lessons are scheduled automatically once an admin allocates you to a student, including the meeting link.
           </p>
         </div>
@@ -400,6 +400,7 @@ export default function TutorCourseDetailPage() {
           <Input placeholder="Resource title (e.g. Formula Sheet)" value={resourceTitle} onChange={(e) => setResourceTitle(e.target.value)} />
           <Input placeholder="File URL" value={resourceUrl} onChange={(e) => setResourceUrl(e.target.value)} />
           <select
+            aria-label="Resource type"
             value={resourceType}
             onChange={(e) => setResourceType(e.target.value as ResourceType)}
             className="border border-gray-300 rounded-md px-2 text-sm"

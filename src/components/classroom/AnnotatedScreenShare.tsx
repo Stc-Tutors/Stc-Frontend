@@ -245,7 +245,7 @@ export default function AnnotatedScreenShare() {
         onPointerUp={endStroke}
         onPointerLeave={endStroke}
       />
-      <p className="px-2 py-1 text-[11px] text-gray-400">Draw directly on your shared screen - everyone sees it live.</p>
+      <p className="px-2 py-1 text-[11px] text-gray-500">Draw directly on your shared screen - everyone sees it live.</p>
     </div>
   );
 }

@@ -181,7 +181,7 @@ export default function ReferAndEarn() {
           value={formatMoney(balance?.withdrawnTotal ?? 0)}
           note={<LocalPriceNote variant="short" amount={balance?.withdrawnTotal ?? 0} className="block text-xs text-gray-500" />}
           icon={Wallet}
-          color="bg-blue-100 text-blue-600"
+          color="bg-blue-100 text-blue-700"
         />
       </div>
 
@@ -225,7 +225,7 @@ export default function ReferAndEarn() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex gap-2">
-              <Input readOnly value={link} className="flex-1" />
+              <Input aria-label="Your referral link" readOnly value={link} className="flex-1" />
               <Button onClick={handleCopyLink} disabled={!link}>
                 <Copy className="w-4 h-4 mr-2" /> Copy
               </Button>
@@ -240,7 +240,7 @@ export default function ReferAndEarn() {
                 Or share your referral code - for telling someone by phone or text instead of sending a link
               </p>
               <div className="flex gap-2">
-                <Input readOnly value={code} className="flex-1 font-mono" />
+                <Input aria-label="Your referral code" readOnly value={code} className="flex-1 font-mono" />
                 <Button variant="outline" onClick={handleCopyCode} disabled={!code}>
                   <Copy className="w-4 h-4 mr-2" /> Copy
                 </Button>
@@ -273,6 +273,7 @@ export default function ReferAndEarn() {
                   <div className="space-y-2">
                     <p className="text-sm text-gray-600">Add your bank details to receive withdrawals.</p>
                     <select
+                      aria-label="Bank"
                       value={bankCode}
                       onChange={(e) => setBankCode(e.target.value)}
                       className="w-full border rounded-md p-2 text-sm"

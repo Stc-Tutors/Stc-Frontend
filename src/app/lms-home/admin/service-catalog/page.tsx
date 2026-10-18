@@ -233,7 +233,7 @@ export default function ServiceCatalogPage() {
 
       <div className="flex items-center gap-2 text-sm">
         <label className="text-gray-500">Status</label>
-        <select
+        <select aria-label="Status"
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as ServiceCatalogStatus | "")}
           className="border border-gray-300 rounded-md px-3 py-2 text-sm"
@@ -271,7 +271,7 @@ export default function ServiceCatalogPage() {
                   !slugIsValid && form.slug ? "border-red-400" : "border-gray-300"
                 }`}
               />
-              <p className={`text-xs ${!slugIsValid && form.slug ? "text-red-600" : "text-gray-400"}`}>
+              <p className={`text-xs ${!slugIsValid && form.slug ? "text-red-600" : "text-gray-500"}`}>
                 {editingId
                   ? "Locked after creation - pricing, courses, class groups, and the curriculum tree already reference this value."
                   : !slugIsValid && form.slug
@@ -299,7 +299,7 @@ export default function ServiceCatalogPage() {
             </div>
             <div className="space-y-1">
               <label className="text-xs text-gray-500">Architectural path</label>
-              <select
+              <select aria-label="Architectural path"
                 value={form.architecturalPath}
                 onChange={(e) => setForm((p) => ({ ...p, architecturalPath: e.target.value as ArchitecturalPath }))}
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
@@ -313,7 +313,7 @@ export default function ServiceCatalogPage() {
             </div>
             <div className="space-y-1">
               <label className="text-xs text-gray-500">Status</label>
-              <select
+              <select aria-label="Status"
                 value={form.status}
                 onChange={(e) => setForm((p) => ({ ...p, status: e.target.value as ServiceCatalogStatus }))}
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"

@@ -66,6 +66,7 @@ function PriceRowsEditor({
       {rows.map((row, i) => (
         <div key={i} className="flex items-center gap-2">
           <select
+            aria-label="Currency"
             value={row.currency}
             onChange={(e) => update(i, { currency: e.target.value as CurrencyCode })}
             className="border border-gray-300 rounded-md px-2 py-1.5 text-sm"
@@ -83,6 +84,7 @@ function PriceRowsEditor({
             </span>
           ) : (
             <select
+              aria-label="Rate field"
               value={row.rateField}
               onChange={(e) => update(i, { rateField: e.target.value as DraftPrice["rateField"] })}
               className="border border-gray-300 rounded-md px-2 py-1.5 text-sm"
@@ -277,6 +279,7 @@ export default function ServicePricingPage() {
         <h2 className="font-semibold text-gray-900">Add pricing row</h2>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           <select
+            aria-label="Service type"
             value={serviceType}
             onChange={(e) => setServiceType(e.target.value)}
             className="border border-gray-300 rounded-md px-3 py-2 text-sm"
@@ -293,6 +296,7 @@ export default function ServicePricingPage() {
               <input placeholder="Subject (optional)" value={subject} onChange={(e) => setSubject(e.target.value)} className="border border-gray-300 rounded-md px-3 py-2 text-sm" />
               <input placeholder="Country (optional)" value={country} onChange={(e) => setCountry(e.target.value)} className="border border-gray-300 rounded-md px-3 py-2 text-sm" />
               <select
+                aria-label="Residence country"
                 value={residenceCountry}
                 onChange={(e) => setResidenceCountry(e.target.value)}
                 className="border border-gray-300 rounded-md px-3 py-2 text-sm"
@@ -308,6 +312,7 @@ export default function ServicePricingPage() {
             </>
           )}
           <select
+            aria-label="Course"
             value={courseId}
             onChange={(e) => {
               setCourseId(e.target.value);
@@ -413,7 +418,7 @@ export default function ServicePricingPage() {
                     )}
                   </td>
                   <td className="p-3">
-                    <button onClick={() => handleToggleActive(row)} className={row.isActive ? "text-green-600" : "text-gray-400"}>
+                    <button onClick={() => handleToggleActive(row)} className={row.isActive ? "text-green-600" : "text-gray-500"}>
                       {row.isActive ? "Yes" : "No"}
                     </button>
                   </td>

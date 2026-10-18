@@ -126,7 +126,7 @@ export default function TutorOnboardingPage() {
           {isSaving ? "Saving..." : "Save and go to my dashboard"}
         </Button>
 
-        <p className="text-xs text-gray-400 text-center">
+        <p className="text-xs text-gray-500 text-center">
           You can refine your bio, qualifications, and availability afterward in Profile Details.
         </p>
       </div>

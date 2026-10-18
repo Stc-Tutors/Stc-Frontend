@@ -303,7 +303,7 @@ export default function MessagesPanel({ initialConversationId }: { initialConver
                   <div className="relative shrink-0">
                     <Avatar className="size-9">
                       <AvatarImage src={row.contact.avatarUrl} alt={row.contact.firstName} />
-                      <AvatarFallback className="bg-blue-100 text-blue-600">
+                      <AvatarFallback className="bg-blue-100 text-blue-700">
                         {row.contact.firstName?.[0]}
                         {row.contact.lastName?.[0]}
                       </AvatarFallback>
@@ -333,7 +333,7 @@ export default function MessagesPanel({ initialConversationId }: { initialConver
       {/* Thread */}
       <div className={`${selectedContact ? "flex" : "hidden sm:flex"} flex-1 flex-col min-w-0`}>
         {!selectedContact ? (
-          <div className="flex-1 flex items-center justify-center text-gray-400 text-sm">
+          <div className="flex-1 flex items-center justify-center text-gray-500 text-sm">
             Select someone to start chatting
           </div>
         ) : (
@@ -357,7 +357,7 @@ export default function MessagesPanel({ initialConversationId }: { initialConver
               <div className="relative shrink-0">
                 <Avatar className="size-9">
                   <AvatarImage src={selectedContact.avatarUrl} alt={selectedContact.firstName} />
-                  <AvatarFallback className="bg-blue-100 text-blue-600">
+                  <AvatarFallback className="bg-blue-100 text-blue-700">
                     {selectedContact.firstName?.[0]}
                     {selectedContact.lastName?.[0]}
                   </AvatarFallback>
@@ -368,7 +368,7 @@ export default function MessagesPanel({ initialConversationId }: { initialConver
                 <h3 className="font-semibold text-gray-900 leading-tight truncate">
                   {selectedContact.firstName} {selectedContact.lastName}
                 </h3>
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-gray-500">
                   {selectedContact.online ? "Online" : ROLE_LABELS[selectedContact.role] ?? selectedContact.role}
                 </p>
               </div>
@@ -381,7 +381,7 @@ export default function MessagesPanel({ initialConversationId }: { initialConver
             ) : (
               <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-1.5">
                 {messages.length === 0 ? (
-                  <p className="text-sm text-gray-400">No messages yet - say hello.</p>
+                  <p className="text-sm text-gray-500">No messages yet - say hello.</p>
                 ) : (
                   messages.map((m) => {
                     const isMine = m.sender === user?.id;
@@ -397,7 +397,7 @@ export default function MessagesPanel({ initialConversationId }: { initialConver
                         >
                           {m.body}
                         </div>
-                        <p className={`flex items-center gap-1 text-[11px] mt-1 text-gray-400 ${isMine ? "justify-end" : ""}`}>
+                        <p className={`flex items-center gap-1 text-[11px] mt-1 text-gray-500 ${isMine ? "justify-end" : ""}`}>
                           {new Date(m.createdAt).toLocaleString([], {
                             month: "short",
                             day: "numeric",
@@ -407,7 +407,7 @@ export default function MessagesPanel({ initialConversationId }: { initialConver
                           {isMine && <MessageStatusTicks message={m} otherParticipantIds={[selectedContact.id]} />}
                         </p>
                         {!isMine && (
-                          <ReportDialog entityType={ReportedEntityType.MESSAGE} entityId={m.id} className="text-[11px] text-gray-400 hover:text-red-600" />
+                          <ReportDialog entityType={ReportedEntityType.MESSAGE} entityId={m.id} className="text-[11px] text-gray-500 hover:text-red-600" />
                         )}
                       </div>
                     );
@@ -426,7 +426,7 @@ export default function MessagesPanel({ initialConversationId }: { initialConver
                 placeholder={
                   conversationId ? `Message ${selectedContact.firstName}...` : "Unable to message this person"
                 }
-                className="flex-1 border rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-400"
+                className="flex-1 border rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
               />
               <button
                 onClick={handleSend}

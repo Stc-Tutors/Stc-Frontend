@@ -22,7 +22,7 @@ const MIN_RESPONSE_LENGTH = 200;
 function CharCount({ value }: { value: string }) {
   const remaining = MIN_RESPONSE_LENGTH - value.trim().length;
   if (remaining <= 0) return null;
-  return <p className="text-xs text-gray-400">{remaining} more character{remaining === 1 ? "" : "s"} needed</p>;
+  return <p className="text-xs text-gray-500">{remaining} more character{remaining === 1 ? "" : "s"} needed</p>;
 }
 
 export default function FinalEvaluationStep({ onNext, errors }: StepProps) {

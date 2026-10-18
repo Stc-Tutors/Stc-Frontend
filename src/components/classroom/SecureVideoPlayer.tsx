@@ -60,7 +60,7 @@ export default function SecureVideoPlayer({ url }: SecureVideoPlayerProps) {
           </video>
         )}
       </div>
-      <p className="flex items-center gap-1.5 text-xs text-gray-400 px-1 py-2">
+      <p className="flex items-center gap-1.5 text-xs text-gray-500 px-1 py-2">
         <ShieldAlert className="w-3.5 h-3.5" />
         View-only - downloading and screen capture of this recording are not permitted.
       </p>

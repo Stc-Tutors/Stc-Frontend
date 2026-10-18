@@ -147,7 +147,7 @@ export default function MyExamsView() {
 
       <p className="border-t pt-4 text-sm text-gray-600">
         Looking for practice tests?{" "}
-        <Link href={`/lms-home/${user?.role === "PARENT" ? "parent" : "student"}/mock-exams`} className="text-blue-600 hover:underline">
+        <Link href={`/lms-home/${user?.role === "PARENT" ? "parent" : "student"}/mock-exams`} className="text-blue-600 underline">
           Open Mock Exams
         </Link>
       </p>

@@ -69,7 +69,7 @@ export default function DualPaneTransferList({
       <div className="border border-gray-200 rounded-lg overflow-hidden">
         <div className="px-3 py-2 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
           <h4 className="text-sm font-semibold text-gray-900">
-            {leftTitle} <span className="text-gray-400 font-normal">({leftItems.length})</span>
+            {leftTitle} <span className="text-gray-500 font-normal">({leftItems.length})</span>
           </h4>
           <div className="flex gap-2 text-xs">
             <button type="button" onClick={selectAllShown} className="text-blue-600 hover:underline">
@@ -82,13 +82,13 @@ export default function DualPaneTransferList({
         </div>
         <div className="p-2 border-b border-gray-100">
           <div className="relative">
-            <Search className="absolute left-2 top-1/2 -translate-y-1/2 size-3.5 text-gray-400" />
+            <Search className="absolute left-2 top-1/2 -translate-y-1/2 size-3.5 text-gray-500" />
             <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={searchPlaceholder} className="pl-7 h-8 text-sm" />
           </div>
         </div>
         <div className="max-h-80 overflow-y-auto divide-y divide-gray-100">
-          {isLoading && <p className="p-4 text-xs text-gray-400">Loading...</p>}
-          {!isLoading && filteredLeft.length === 0 && <p className="p-4 text-xs text-gray-400">Nothing to show.</p>}
+          {isLoading && <p className="p-4 text-xs text-gray-500">Loading...</p>}
+          {!isLoading && filteredLeft.length === 0 && <p className="p-4 text-xs text-gray-500">Nothing to show.</p>}
           {!isLoading &&
             filteredLeft.map((item) => (
               <label key={item.id} className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 cursor-pointer">
@@ -108,18 +108,18 @@ export default function DualPaneTransferList({
           <ChevronsRight className="size-4" />
           {isTransferring ? "Assigning..." : transferLabel}
         </Button>
-        <span className="text-xs text-gray-400">{selectedIds.length} selected</span>
+        <span className="text-xs text-gray-500">{selectedIds.length} selected</span>
       </div>
 
       {/* Right pane */}
       <div className="border border-gray-200 rounded-lg overflow-hidden">
         <div className="px-3 py-2 border-b border-gray-200 bg-gray-50">
           <h4 className="text-sm font-semibold text-gray-900">
-            {rightTitle} <span className="text-gray-400 font-normal">({rightItems.length})</span>
+            {rightTitle} <span className="text-gray-500 font-normal">({rightItems.length})</span>
           </h4>
         </div>
         <div className="max-h-80 overflow-y-auto divide-y divide-gray-100">
-          {rightItems.length === 0 && <p className="p-4 text-xs text-gray-400">Nothing assigned yet.</p>}
+          {rightItems.length === 0 && <p className="p-4 text-xs text-gray-500">Nothing assigned yet.</p>}
           {rightItems.map((item) => (
             <div key={item.id} className="px-3 py-2 text-sm">
               <div className="text-gray-900 truncate">{item.primary}</div>

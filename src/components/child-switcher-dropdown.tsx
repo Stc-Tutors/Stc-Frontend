@@ -42,14 +42,14 @@ export function ChildSwitcherDropdown() {
         <Button variant="ghost" className="flex items-center space-x-2 h-auto p-2">
           <Avatar className="w-7 h-7">
             <AvatarImage src={selectedStudent?.photoUrl || undefined} alt={selectedStudent?.fullName} />
-            <AvatarFallback className="bg-blue-100 text-blue-600 text-xs">
+            <AvatarFallback className="bg-blue-100 text-blue-700 text-xs">
               {selectedStudent ? getInitials(selectedStudent.fullName) : <Users className="w-4 h-4" />}
             </AvatarFallback>
           </Avatar>
           <span className="hidden md:block text-sm font-medium text-gray-900 max-w-[120px] truncate">
             {selectedStudent?.fullName ?? "All Children"}
           </span>
-          <ChevronDown className="w-4 h-4 text-gray-400" />
+          <ChevronDown className="w-4 h-4 text-gray-500" />
         </Button>
       </DropdownMenuTrigger>
 
@@ -61,7 +61,7 @@ export function ChildSwitcherDropdown() {
           onClick={() => setSelectedId(ALL_CHILDREN_ID)}
           data-active={isAllSelected}
         >
-          <div className="w-5 h-5 mr-2 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
+          <div className="w-5 h-5 mr-2 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center">
             <Users className="w-3 h-3" />
           </div>
           <span className={isAllSelected ? "font-medium" : ""}>All Children</span>
@@ -74,7 +74,7 @@ export function ChildSwitcherDropdown() {
               <DropdownMenuItem className="cursor-pointer" onClick={() => setSelectedId(child.key)} data-active={isChildActive}>
                 <Avatar className="w-5 h-5 mr-2">
                   <AvatarImage src={child.photoUrl || undefined} alt={child.fullName} />
-                  <AvatarFallback className="bg-blue-100 text-blue-600 text-[10px]">
+                  <AvatarFallback className="bg-blue-100 text-blue-700 text-[10px]">
                     {getInitials(child.fullName)}
                   </AvatarFallback>
                 </Avatar>

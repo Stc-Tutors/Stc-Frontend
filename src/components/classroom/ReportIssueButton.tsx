@@ -76,6 +76,7 @@ export default function ReportIssueButton({ lessonId, lessonTitle }: ReportIssue
             <div>
               <label className="mb-1 block text-xs font-medium text-gray-600">What kind of issue?</label>
               <select
+                aria-label="Category"
                 value={category}
                 onChange={(e) => setCategory(e.target.value as ComplaintCategory)}
                 className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"

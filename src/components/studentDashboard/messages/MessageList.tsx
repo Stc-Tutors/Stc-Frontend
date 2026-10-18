@@ -16,7 +16,7 @@ export default function MessageList({ messages, onSelect }: MessageListProps) {
         >
           <div className="font-semibold">{msg.sender}</div>
           <div className="text-sm text-gray-600">{msg.subject}</div>
-          <div className="text-xs text-gray-400">{msg.preview}</div>
+          <div className="text-xs text-gray-500">{msg.preview}</div>
         </li>
       ))}
     </ul>

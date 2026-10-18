@@ -132,7 +132,7 @@ export default function TeachingRosterTab({
         {!fixedTutorId && (
           <div>
             <label className="text-xs font-medium text-gray-600 mb-1 block">Tutor</label>
-            <select
+            <select aria-label="Tutor"
               value={tutorId}
               onChange={(e) => setTutorId(e.target.value)}
               className="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm"
@@ -149,6 +149,7 @@ export default function TeachingRosterTab({
         <div>
           <label className="text-xs font-medium text-gray-600 mb-1 block">Subject/Course this tutor is allocated to teach</label>
           <select
+            aria-label="Subject"
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
             disabled={!tutorId}
@@ -173,7 +174,7 @@ export default function TeachingRosterTab({
       )}
 
       {!subject ? (
-        <p className="text-sm text-gray-400 border border-dashed border-gray-200 rounded-lg p-6 text-center">
+        <p className="text-sm text-gray-500 border border-dashed border-gray-200 rounded-lg p-6 text-center">
           Pick a tutor and subject to see paid-but-unassigned enrollments for that subject.
         </p>
       ) : (

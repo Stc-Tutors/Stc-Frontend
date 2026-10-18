@@ -132,7 +132,7 @@ export default function MessagingPermissionsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-gray-500 block">Person A</label>
-            <select
+            <select aria-label="Person A"
               value={tutorRole}
               onChange={(e) => {
                 setTutorRole(e.target.value as UserRole);
@@ -150,7 +150,7 @@ export default function MessagingPermissionsPage() {
           </div>
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-gray-500 block">Person B</label>
-            <select
+            <select aria-label="Person B"
               value={counterpartRole}
               onChange={(e) => {
                 setCounterpartRole(e.target.value as UserRole);
@@ -189,12 +189,12 @@ export default function MessagingPermissionsPage() {
                 <span className="font-medium text-gray-900">
                   {g.tutorUser ? `${g.tutorUser.firstName} ${g.tutorUser.lastName}` : g.tutor}
                 </span>
-                <span className="text-gray-400"> ({g.tutorUser ? ROLE_LABELS[g.tutorUser.role] : "?"}) </span>
-                <span className="text-gray-400">&harr;</span>{" "}
+                <span className="text-gray-500"> ({g.tutorUser ? ROLE_LABELS[g.tutorUser.role] : "?"}) </span>
+                <span className="text-gray-500">&harr;</span>{" "}
                 <span className="font-medium text-gray-900">
                   {g.counterpartUser ? `${g.counterpartUser.firstName} ${g.counterpartUser.lastName}` : g.counterpart}
                 </span>
-                <span className="text-gray-400"> ({g.counterpartUser ? ROLE_LABELS[g.counterpartUser.role] : "?"})</span>
+                <span className="text-gray-500"> ({g.counterpartUser ? ROLE_LABELS[g.counterpartUser.role] : "?"})</span>
               </div>
               <AlertDialog>
                 <AlertDialogTrigger asChild>

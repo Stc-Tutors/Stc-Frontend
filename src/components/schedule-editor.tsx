@@ -105,6 +105,7 @@ export default function ScheduleEditor({ student, onChanged }: { student: Studen
                 <div className="flex items-center gap-2">
                   {subjects.length > 0 ? (
                     <select
+                      aria-label="Subject"
                       value={row.subject}
                       onChange={(e) => update(i, { subject: e.target.value })}
                       className="flex-1 border border-gray-300 rounded-md px-2 py-1.5 text-sm"

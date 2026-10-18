@@ -84,7 +84,7 @@ export default function DownloadReport() {
         <DropdownMenuTrigger asChild>
           <Button
             disabled={isLoading}
-            className="mt-4 w-full flex items-center justify-center gap-2 bg-sky-500 text-white px-4 py-2 rounded-md hover:bg-sky-600"
+            className="mt-4 w-full flex items-center justify-center gap-2 bg-sky-700 text-white px-4 py-2 rounded-md hover:bg-sky-800"
           >
             <Download className="w-4 h-4" />
             {isLoading ? "Preparing..." : "Download Report"}

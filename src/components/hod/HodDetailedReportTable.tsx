@@ -101,7 +101,7 @@ export function HodDetailedReportTable() {
       cell: (r) => (
         <div>
           <p className="text-gray-900">{r.courseTitle}</p>
-          {r.subject !== r.courseTitle && <p className="text-xs text-gray-400">{r.subject}</p>}
+          {r.subject !== r.courseTitle && <p className="text-xs text-gray-500">{r.subject}</p>}
         </div>
       ),
     },
@@ -121,7 +121,7 @@ export function HodDetailedReportTable() {
       cell: (r) => (
         <div>
           <p className="text-gray-900">{pct(r.attendanceRate)}</p>
-          <p className="text-xs text-gray-400">{r.attendanceRecordCount} session(s) logged</p>
+          <p className="text-xs text-gray-500">{r.attendanceRecordCount} session(s) logged</p>
         </div>
       ),
     },
@@ -130,7 +130,7 @@ export function HodDetailedReportTable() {
       cell: (r) => (
         <div>
           <p className="text-gray-900">{pct(r.academicPerformance)}</p>
-          <p className="text-xs text-gray-400">{r.gradedAssignmentCount} graded assignment(s)</p>
+          <p className="text-xs text-gray-500">{r.gradedAssignmentCount} graded assignment(s)</p>
         </div>
       ),
     },

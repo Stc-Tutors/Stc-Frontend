@@ -114,6 +114,7 @@ export default function AdminUsersPage() {
               onChange={(e) => setNewConfirmPassword(e.target.value)}
             />
             <select
+              aria-label="New role"
               value={newRole}
               onChange={(e) => setNewRole(e.target.value as UserRole)}
               className="border rounded-md px-3 py-2 text-sm col-span-2"
@@ -137,6 +138,7 @@ export default function AdminUsersPage() {
           className="max-w-xs"
         />
         <select
+          aria-label="Role"
           value={role}
           onChange={(e) => setRole(e.target.value)}
           className="border rounded-md px-3 py-2 text-sm"

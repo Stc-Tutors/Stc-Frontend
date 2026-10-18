@@ -167,7 +167,7 @@ export default function EnrollmentDetail({ basePath }: EnrollmentDetailProps) {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center space-x-4">
               <Avatar className="w-16 h-16">
-                <AvatarFallback className="bg-blue-100 text-blue-600 text-xl font-semibold">
+                <AvatarFallback className="bg-blue-100 text-blue-700 text-xl font-semibold">
                   {getInitials(student.fullName)}
                 </AvatarFallback>
               </Avatar>
@@ -549,21 +549,21 @@ export default function EnrollmentDetail({ basePath }: EnrollmentDetailProps) {
                         <p className="font-medium text-gray-900">Parent Email</p>
                         <p className="text-sm text-gray-600">{student.parentEmail}</p>
                       </div>
-                      <Mail className="w-5 h-5 text-gray-400" />
+                      <Mail className="w-5 h-5 text-gray-500" />
                     </div>
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <div>
                         <p className="font-medium text-gray-900">Parent Phone</p>
                         <p className="text-sm text-gray-600">{student.parentPhone}</p>
                       </div>
-                      <Phone className="w-5 h-5 text-gray-400" />
+                      <Phone className="w-5 h-5 text-gray-500" />
                     </div>
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <div>
                         <p className="font-medium text-gray-900">Student Phone</p>
                         <p className="text-sm text-gray-600">{student.phone}</p>
                       </div>
-                      <Phone className="w-5 h-5 text-gray-400" />
+                      <Phone className="w-5 h-5 text-gray-500" />
                     </div>
                   </div>
                 </CardContent>
@@ -583,14 +583,14 @@ export default function EnrollmentDetail({ basePath }: EnrollmentDetailProps) {
                         <p className="font-medium text-gray-900">Country of Residence</p>
                         <p className="text-sm text-gray-600">{student.countryOfResidence}</p>
                       </div>
-                      <Globe className="w-5 h-5 text-gray-400" />
+                      <Globe className="w-5 h-5 text-gray-500" />
                     </div>
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <div>
                         <p className="font-medium text-gray-900">Primary Language</p>
                         <p className="text-sm text-gray-600">{student.primaryLanguage}</p>
                       </div>
-                      <Languages className="w-5 h-5 text-gray-400" />
+                      <Languages className="w-5 h-5 text-gray-500" />
                     </div>
                   </div>
                 </CardContent>

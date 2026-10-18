@@ -244,7 +244,7 @@ export default function StudentAttendancePage() {
                   <tr key={r.lessonId} className="border-b text-sm">
                     <td className="py-2 pr-4">{formatDate(r.date)}</td>
                     <td className="py-2 pr-4">{r.courseTitle}</td>
-                    <td className={`py-2 pr-4 font-medium ${r.status ? STATUS_COLORS[r.status] : "text-gray-400"}`}>
+                    <td className={`py-2 pr-4 font-medium ${r.status ? STATUS_COLORS[r.status] : "text-gray-500"}`}>
                       {r.status ?? "—"}
                     </td>
                     <td className="py-2 pr-4">{r.clockIn ?? "—"}</td>

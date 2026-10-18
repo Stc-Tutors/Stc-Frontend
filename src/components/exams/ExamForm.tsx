@@ -108,14 +108,14 @@ export default function ExamForm({
         </div>
         <div>
           <label className="text-sm font-medium">How learners open it</label>
-          <select className={field} value={values.launchMode} onChange={(e) => set("launchMode", e.target.value as ExamLaunchMode)}>
+          <select aria-label="How learners open it" className={field} value={values.launchMode} onChange={(e) => set("launchMode", e.target.value as ExamLaunchMode)}>
             <option value={ExamLaunchMode.NEW_TAB}>New tab (most reliable for camera / full screen)</option>
             <option value={ExamLaunchMode.EMBEDDED}>Inside this site (embedded)</option>
           </select>
         </div>
         <div>
           <label className="text-sm font-medium">Who sits it</label>
-          <select className={field} value={values.audienceType} onChange={(e) => set("audienceType", e.target.value as ExamAudienceType)}>
+          <select aria-label="Who sits it" className={field} value={values.audienceType} onChange={(e) => set("audienceType", e.target.value as ExamAudienceType)}>
             <option value={ExamAudienceType.ASSIGNED}>People I assign</option>
             <option value={ExamAudienceType.COURSE}>Everyone enrolled in chosen courses</option>
           </select>

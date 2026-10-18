@@ -35,7 +35,7 @@ export default function ParentHeader() {
 
         <div className="flex flex-wrap items-center gap-3 mt-4">
           {isLoading ? (
-            <span className="text-sm text-gray-400">Loading students...</span>
+            <span className="text-sm text-gray-500">Loading students...</span>
           ) : childGroups.length === 0 ? (
             <span className="text-sm text-gray-500">No children linked to your account yet.</span>
           ) : (

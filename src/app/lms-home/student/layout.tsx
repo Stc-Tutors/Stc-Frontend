@@ -176,7 +176,7 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
   return (
     <AccessRestrictionGate role="STUDENT">
     <SelectedStudentProvider>
-    <div className="flex h-dvh overflow-hidden bg-gray-100 relative">
+    <div className="flex h-dvh overflow-hidden bg-gray-50 relative">
       {/* Sidebar */}
       {/* Mobile backdrop: tap outside the drawer to close it */}
       {isSidebarOpen && (
@@ -214,7 +214,7 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
             data-tour={TOUR_TARGETS[label]}
             className={`flex items-center justify-between px-4 py-2 rounded-lg transition-transform duration-200 ${
                 pathname === href
-                ? "bg-blue-100 text-gray-500 hover:text-[#0a7ac2] font-medium -translate-x-1"
+                ? "bg-blue-100 text-gray-700 hover:text-[#0a7ac2] font-medium -translate-x-1"
                 : "text-gray-700 hover:bg-blue-100 hover:text-[#0a7ac2] hover:translate-x-3"}`}>
                     <div className="flex items-center gap-3">
                         <Icon className="w-5 h-5" />
@@ -269,7 +269,7 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
 
           {/* SearchBar */}
           <div className="relative w-full max-w-xs min-w-0 hidden md:block">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
             <input
               type="text"
               id="search"
@@ -390,7 +390,7 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
 //                   href={href}
 //                   className={`flex items-center justify-between px-4 py-2 rounded-lg transition-transform duration-200 ${
 //                     pathname === href
-//                       ? "bg-blue-100 text-blue-600 font-medium -translate-x-1"
+//                       ? "bg-blue-100 text-blue-700 font-medium -translate-x-1"
 //                       : "text-gray-700 hover:bg-gray-100"
 //                   }`}
 //                 >
@@ -423,7 +423,7 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
 //           <header className="h-16 bg-white shadow-sm px-6 flex items-center justify-between">
 //             {/* SearchBar */}
 //             <div className="relative w-full max-w-xs">
-//               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+//               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
 //               <input
 //                 type="text"
 //                 placeholder="Search..."

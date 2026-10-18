@@ -14,7 +14,7 @@ const STATUS_ICON: Record<AttendanceStatus, React.ReactNode> = {
   [AttendanceStatus.PRESENT]: <CheckCircle className="w-4 h-4 text-green-600" />,
   [AttendanceStatus.ABSENT]: <XCircle className="w-4 h-4 text-red-500" />,
   [AttendanceStatus.LATE]: <Clock className="w-4 h-4 text-yellow-500" />,
-  [AttendanceStatus.EXCUSED]: <MinusCircle className="w-4 h-4 text-gray-400" />,
+  [AttendanceStatus.EXCUSED]: <MinusCircle className="w-4 h-4 text-gray-500" />,
 };
 
 export default function AttendanceRecord({ studentId }: AttendanceRecordProps) {

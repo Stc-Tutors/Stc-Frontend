@@ -70,7 +70,7 @@ export default function NotificationList() {
       <p className="text-gray-500 mb-4">You have {unreadCount} unread notification(s)</p>
 
       <div className="flex gap-3 mb-6">
-        <select
+        <select aria-label="Filter by type"
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value)}
           className="border border-gray-300 rounded-md px-3 py-2 text-sm"
@@ -82,7 +82,7 @@ export default function NotificationList() {
             </option>
           ))}
         </select>
-        <select
+        <select aria-label="Filter by read status"
           value={readFilter}
           onChange={(e) => setReadFilter(e.target.value)}
           className="border border-gray-300 rounded-md px-3 py-2 text-sm"
@@ -112,7 +112,7 @@ export default function NotificationList() {
                 <UserCircle className="text-blue-500" />
                 <div>
                   <p className="font-semibold text-gray-800">
-                    {n.title} <span className="text-gray-400 text-sm">({formatDateTime(n.createdAt)})</span>
+                    {n.title} <span className="text-gray-500 text-sm">({formatDateTime(n.createdAt)})</span>
                   </p>
                   <p className="text-sm text-gray-600">{n.body}</p>
                 </div>

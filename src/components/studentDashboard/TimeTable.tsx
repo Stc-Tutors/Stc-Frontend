@@ -17,7 +17,7 @@ interface Row {
 }
 
 const DAY_COLORS = [
-  "bg-blue-100 text-blue-600 border-l-4 border-blue-400",
+  "bg-blue-100 text-blue-700 border-l-4 border-blue-400",
   "bg-green-100 text-green-600 border-l-4 border-green-400",
   "bg-yellow-100 text-yellow-600 border-l-4 border-yellow-400",
   "bg-red-100 text-red-600 border-l-4 border-red-400",

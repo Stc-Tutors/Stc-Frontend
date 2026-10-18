@@ -58,7 +58,7 @@ export function ScheduleViewControls({
           {t.label} ({counts[t.key]})
         </button>
       ))}
-      <span className="text-xs text-gray-400">
+      <span className="text-xs text-gray-500">
         {view === "upcoming" ? "Soonest first" : view === "past" ? "Most recent first" : "Upcoming first, then past"}
       </span>
     </div>

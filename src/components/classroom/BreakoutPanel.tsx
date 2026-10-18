@@ -101,7 +101,7 @@ export default function BreakoutPanel({ lessonId, onVisit }: BreakoutPanelProps)
               <li key={room.id} className="flex items-center justify-between gap-2 rounded-md px-1 py-1 text-sm">
                 <span className="truncate text-gray-800">
                   {room.label}
-                  <span className="ml-1 text-xs text-gray-400">({room.participantIds.length})</span>
+                  <span className="ml-1 text-xs text-gray-500">({room.participantIds.length})</span>
                 </span>
                 <Button size="sm" variant="outline" className="h-6 px-2 text-xs" onClick={() => onVisit(room.id, room.label)}>
                   Visit
@@ -114,7 +114,7 @@ export default function BreakoutPanel({ lessonId, onVisit }: BreakoutPanelProps)
         <>
           <p className="mb-1.5 flex items-center justify-between px-1 text-xs font-semibold text-gray-700">
             Start breakout rooms
-            <button type="button" onClick={() => setFormOpen(false)} className="text-gray-400 hover:text-gray-600">
+            <button type="button" onClick={() => setFormOpen(false)} className="text-gray-500 hover:text-gray-600">
               <X className="h-3.5 w-3.5" />
             </button>
           </p>
@@ -150,7 +150,7 @@ export default function BreakoutPanel({ lessonId, onVisit }: BreakoutPanelProps)
               </label>
             ) : (
               <div className="max-h-40 space-y-1 overflow-y-auto">
-                {learners.length === 0 && <p className="text-xs text-gray-400">Nobody else is in the class yet.</p>}
+                {learners.length === 0 && <p className="text-xs text-gray-500">Nobody else is in the class yet.</p>}
                 {learners.map((p) => (
                   <div key={p.identity} className="flex items-center justify-between gap-2 text-xs">
                     <span className="truncate text-gray-700">{p.name || "A participant"}</span>

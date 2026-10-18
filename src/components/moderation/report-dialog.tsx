@@ -58,7 +58,7 @@ export function ReportDialog({
       <DialogTrigger asChild>
         <button
           type="button"
-          className={className ?? "inline-flex items-center gap-1 text-xs text-gray-400 hover:text-red-600"}
+          className={className ?? "inline-flex items-center gap-1 text-xs text-gray-500 hover:text-red-600"}
         >
           <Flag className="w-3 h-3" /> {label}
         </button>

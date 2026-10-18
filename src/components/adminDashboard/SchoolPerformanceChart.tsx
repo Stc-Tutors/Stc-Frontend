@@ -20,7 +20,7 @@ export default function SchoolPerformanceChart() {
   return (
     <div className="bg-white p-4 rounded-lg shadow-sm">
       <h3 className="font-semibold text-gray-800 mb-3">School Performance</h3>
-      <p className="text-xs text-gray-400 mb-2">Completion rate by course</p>
+      <p className="text-xs text-gray-500 mb-2">Completion rate by course</p>
       {isLoading ? (
         <p className="text-sm text-gray-500">Loading...</p>
       ) : data.length === 0 ? (

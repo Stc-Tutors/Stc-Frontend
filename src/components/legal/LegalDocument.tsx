@@ -47,7 +47,7 @@ export default function LegalDocument({
                 <p key={index}>{paragraph}</p>
               ))}
               {section.items && (
-                <ul className="list-disc space-y-2 pl-6 marker:text-gray-400">
+                <ul className="list-disc space-y-2 pl-6 marker:text-gray-500">
                   {section.items.map((item, index) => (
                     <li key={index}>{item}</li>
                   ))}

@@ -116,6 +116,7 @@ Approve anyway?`)) return;
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Tutor Applications</h1>
         <select
+          aria-label="Status"
           value={status}
           onChange={(e) => setStatus(e.target.value as TutorApplicationStatus)}
           className="border rounded-md px-3 py-2 text-sm"
@@ -169,7 +170,7 @@ Approve anyway?`)) return;
                       </p>
                     </div>
                   </div>
-                  <span className="text-xs text-gray-400">{formatDate(app.createdAt)}</span>
+                  <span className="text-xs text-gray-500">{formatDate(app.createdAt)}</span>
                 </div>
 
                 <div className="text-sm text-gray-700 space-y-1">
@@ -271,7 +272,7 @@ Approve anyway?`)) return;
                             onCheckedChange={() => toggleMoreInfoField(app.id, field.id)}
                           />
                           <span>
-                            {field.label} <span className="text-gray-400">({field.stepTitle})</span>
+                            {field.label} <span className="text-gray-500">({field.stepTitle})</span>
                           </span>
                         </label>
                       ))}

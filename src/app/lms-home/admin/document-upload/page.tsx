@@ -78,6 +78,7 @@ export default function AdminDocumentUploadPage() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Document Upload</h1>
         <select
+          aria-label="Filter"
           value={filter}
           onChange={(e) => setFilter(e.target.value as TutorApplicationStatus)}
           className="border rounded-md px-3 py-2 text-sm"

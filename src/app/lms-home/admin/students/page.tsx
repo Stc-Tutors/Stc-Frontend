@@ -34,7 +34,7 @@ const STATUS_COLORS: Record<string, string> = {
 // wizard drafts" without opening the profile.
 function EnrollmentBadges({ statusCounts }: { statusCounts: GroupedStudent["statusCounts"] }) {
   const entries = Object.entries(statusCounts).filter(([, count]) => (count ?? 0) > 0);
-  if (entries.length === 0) return <span className="text-gray-400">—</span>;
+  if (entries.length === 0) return <span className="text-gray-500">—</span>;
   return (
     <div className="flex flex-wrap gap-1 max-w-[220px]">
       {entries.map(([status, count]) => (
@@ -95,7 +95,7 @@ function AdminStudentsPageInner() {
       </div>
 
       <form onSubmit={handleSearchSubmit} className="relative max-w-xs mb-4">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
         <Input
           placeholder="Search students..."
           value={search}
@@ -151,7 +151,7 @@ function AdminStudentsPageInner() {
                   </div>
                 </TableCell>
                 <TableCell className="text-right">
-                  <ChevronRight className="h-4 w-4 text-gray-400 inline-block" />
+                  <ChevronRight className="h-4 w-4 text-gray-500 inline-block" />
                 </TableCell>
               </TableRow>
             ))}

@@ -87,6 +87,7 @@ export default function AdminRescheduleRequestsPage() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Reschedule &amp; Cancellation Requests</h1>
         <select
+          aria-label="Status filter"
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as RescheduleRequestStatus | "")}
           className="border rounded-md px-3 py-2 text-sm"

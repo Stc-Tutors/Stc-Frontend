@@ -67,7 +67,7 @@ export default function ContactUsWidget() {
         <div className="mb-2 w-60 rounded-xl border border-gray-200 bg-white p-2 shadow-lg" role="dialog" aria-label="Contact us">
           <div className="flex items-center justify-between px-3 pb-1 pt-1">
             <p className="text-sm font-semibold text-gray-900">Contact us</p>
-            <button onClick={() => setOpen(false)} aria-label="Close" className="text-gray-400 hover:text-gray-600">
+            <button onClick={() => setOpen(false)} aria-label="Close" className="text-gray-500 hover:text-gray-600">
               <X className="h-4 w-4" />
             </button>
           </div>

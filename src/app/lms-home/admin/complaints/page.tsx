@@ -149,6 +149,7 @@ export default function AdminComplaintsPage() {
 
       <div className="flex flex-wrap gap-3 mb-4">
         <select
+          aria-label="Status filter"
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
           className="border rounded-md px-3 py-2 text-sm"
@@ -161,6 +162,7 @@ export default function AdminComplaintsPage() {
           ))}
         </select>
         <select
+          aria-label="Category filter"
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}
           className="border rounded-md px-3 py-2 text-sm"
@@ -246,6 +248,7 @@ export default function AdminComplaintsPage() {
                 <h3 className="text-sm font-medium mb-2">Assign</h3>
                 <div className="flex flex-wrap gap-2 mb-2">
                   <select
+                    aria-label="Assignee role"
                     value={assigneeRole}
                     onChange={(e) => {
                       setAssigneeRole(e.target.value as UserRole);
@@ -283,6 +286,7 @@ export default function AdminComplaintsPage() {
                 <h3 className="text-sm font-medium mb-2">Resolve</h3>
                 <div className="flex flex-wrap gap-2 items-start">
                   <select
+                    aria-label="Resolution status"
                     value={resolutionStatus}
                     onChange={(e) =>
                       setResolutionStatus(e.target.value as ComplaintStatus.RESOLVED | ComplaintStatus.DISMISSED)
@@ -307,7 +311,7 @@ export default function AdminComplaintsPage() {
           )}
 
           {!canManageComplaints && (
-            <p className="text-xs text-gray-400 border-t pt-4">
+            <p className="text-xs text-gray-500 border-t pt-4">
               You don&apos;t have permission to assign or resolve complaints.
             </p>
           )}

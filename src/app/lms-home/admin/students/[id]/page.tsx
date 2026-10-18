@@ -189,7 +189,7 @@ export default function AdminStudentDetailPage() {
             <div className="bg-white border rounded-lg p-4">
               <h3 className="font-semibold mb-2">Announcements</h3>
               {announcements.length === 0 ? (
-                <p className="text-sm text-gray-400">No announcements yet.</p>
+                <p className="text-sm text-gray-500">No announcements yet.</p>
               ) : (
                 <ul className="space-y-1 text-sm text-gray-600">
                   {announcements.map((a, i) => (

@@ -79,7 +79,7 @@ export default function AdminUserDetailPage() {
           </h1>
           <p className="text-gray-500">{user.email || "Hidden"}</p>
           {user.joinedDate && (
-            <p className="text-xs text-gray-400">Joined {formatDate(user.joinedDate)}</p>
+            <p className="text-xs text-gray-500">Joined {formatDate(user.joinedDate)}</p>
           )}
         </div>
       </div>
@@ -90,6 +90,7 @@ export default function AdminUserDetailPage() {
         <div>
           <p className="text-sm font-medium text-gray-700 mb-1">Role</p>
           <select
+            aria-label="Role"
             value={user.role}
             onChange={(e) => handleRoleChange(e.target.value as UserRole)}
             className="border rounded-md px-3 py-2 text-sm w-full"

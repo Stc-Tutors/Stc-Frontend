@@ -63,6 +63,7 @@ export default function HodTutorsPage() {
         </div>
         <div className="flex items-center gap-2">
           <select
+            aria-label="Status"
             value={status}
             onChange={(e) => setStatus(e.target.value as UserStatus | "")}
             className="border rounded-md px-3 py-2 text-sm"

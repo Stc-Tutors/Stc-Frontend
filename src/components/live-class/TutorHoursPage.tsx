@@ -52,7 +52,7 @@ function SessionRow({ session }: { session: TutorSessionLine }) {
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold">{formatMinutes(session.billableMinutes)}</span>
           {session.billableMinutes < session.scheduledMinutes && (
-            <span className="text-xs text-gray-400">of {formatMinutes(session.scheduledMinutes)}</span>
+            <span className="text-xs text-gray-500">of {formatMinutes(session.scheduledMinutes)}</span>
           )}
           <Badge variant={review.variant}>{review.label}</Badge>
         </div>

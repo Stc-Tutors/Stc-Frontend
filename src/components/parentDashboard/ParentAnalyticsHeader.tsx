@@ -92,6 +92,7 @@ export default function ParentAnalyticsHeader({ onStudentChange }: ParentAnalyti
       <div className="mt-6 flex flex-wrap items-center gap-4">
         <div className="relative">
           <select
+            aria-label="Child"
             value={selectedId}
             onChange={(e) => handleSelect(e.target.value)}
             disabled={students.length === 0}
@@ -110,7 +111,7 @@ export default function ParentAnalyticsHeader({ onStudentChange }: ParentAnalyti
         {selected && (
           <p className="text-gray-600 text-sm">
             {selected.serviceDetails?.ageLevel}
-            <span className="mx-2 text-gray-400">•</span>
+            <span className="mx-2 text-gray-500">•</span>
             {selected.serviceDetails?.selectedSubjects?.join(", ")}
           </p>
         )}

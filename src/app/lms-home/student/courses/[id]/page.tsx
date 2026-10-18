@@ -44,7 +44,7 @@ export default function CourseDetailPage() {
         <p className="text-sm text-gray-500">
           {course.category} &middot; {course.language}
         </p>
-        <ReportDialog entityType={ReportedEntityType.COURSE} entityId={course.id} label="Report this course" className="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-red-600 mt-2" />
+        <ReportDialog entityType={ReportedEntityType.COURSE} entityId={course.id} label="Report this course" className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-red-600 mt-2" />
       </div>
 
       <div className="mb-10 bg-white rounded-lg shadow-md overflow-hidden">
@@ -70,7 +70,7 @@ export default function CourseDetailPage() {
                 {course.curriculumOutline.map((item, i) => (
                   <li key={i}>
                     {item.title}
-                    {item.description && <span className="text-gray-400"> — {item.description}</span>}
+                    {item.description && <span className="text-gray-500"> — {item.description}</span>}
                   </li>
                 ))}
               </ol>

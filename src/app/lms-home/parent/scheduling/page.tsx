@@ -351,7 +351,7 @@ export default function ParentSchedulePage() {
                               ? "bg-green-100 text-green-600"
                               : lesson.status === LessonStatus.CANCELLED
                               ? "bg-red-100 text-red-600"
-                              : "bg-blue-100 text-blue-600"
+                              : "bg-blue-100 text-blue-700"
                           }`}
                         >
                           {lesson.status}
@@ -379,7 +379,7 @@ export default function ParentSchedulePage() {
                         )}
                         {canReportTutorNoShow(lesson) &&
                           (reportedLessonIds.has(lesson.id) ? (
-                            <span className="text-gray-400 text-xs">Reported - under review</span>
+                            <span className="text-gray-500 text-xs">Reported - under review</span>
                           ) : (
                             <button
                               className="text-amber-600 hover:underline"

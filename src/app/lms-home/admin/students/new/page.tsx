@@ -103,7 +103,7 @@ export default function AddNewStudentPage() {
           </div>
           <div>
             <Label className="mb-1 block">Date of Birth</Label>
-            <Input type="date" value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} />
+            <Input aria-label="Date of birth" type="date" value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} />
           </div>
         </div>
 
@@ -114,7 +114,7 @@ export default function AddNewStudentPage() {
           </div>
           <div>
             <Label className="mb-1 block">Admission Date</Label>
-            <Input type="date" value={admissionDate} onChange={(e) => setAdmissionDate(e.target.value)} />
+            <Input aria-label="Admission date" type="date" value={admissionDate} onChange={(e) => setAdmissionDate(e.target.value)} />
           </div>
         </div>
 
@@ -122,6 +122,7 @@ export default function AddNewStudentPage() {
           <div>
             <Label className="mb-1 block">Country of Residence</Label>
             <select
+              aria-label="Country of residence"
               value={countryOfResidence}
               onChange={(e) => setCountryOfResidence(e.target.value)}
               className="border border-gray-300 rounded-md px-3 py-2 text-sm w-full"
@@ -135,6 +136,7 @@ export default function AddNewStudentPage() {
           <div>
             <Label className="mb-1 block">Primary Language</Label>
             <select
+              aria-label="Primary language"
               value={primaryLanguage}
               onChange={(e) => setPrimaryLanguage(e.target.value)}
               className="border border-gray-300 rounded-md px-3 py-2 text-sm w-full"

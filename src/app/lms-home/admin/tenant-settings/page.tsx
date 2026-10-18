@@ -96,7 +96,7 @@ export default function TenantSettingsPage() {
         <>
           <div className="bg-white shadow rounded-2xl p-6 space-y-3">
             <h2 className="font-semibold text-gray-900">{tenant.name}</h2>
-            <p className="text-xs text-gray-400">{tenant.slug}</p>
+            <p className="text-xs text-gray-500">{tenant.slug}</p>
           </div>
 
           <div className="bg-white shadow rounded-2xl p-6 space-y-3">
@@ -108,7 +108,7 @@ export default function TenantSettingsPage() {
               onChange={(e) => setOriginsText(e.target.value)}
               className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm font-mono"
             />
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-gray-500">
               One domain per line - visitors on any of these will see your own branding and content.
             </p>
             <button

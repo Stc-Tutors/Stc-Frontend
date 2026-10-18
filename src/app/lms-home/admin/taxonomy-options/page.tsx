@@ -166,7 +166,7 @@ export default function TaxonomyOptionsPage() {
           <button
             key={k}
             onClick={() => setKind(k)}
-            className={`pb-3 border-b-2 ${kind === k ? "border-blue-600 text-blue-600 font-medium" : "border-transparent text-gray-400"}`}
+            className={`pb-3 border-b-2 ${kind === k ? "border-blue-600 text-blue-600 font-medium" : "border-transparent text-gray-500"}`}
           >
             {TAXONOMY_OPTION_KIND_LABELS[k]}
           </button>
@@ -247,7 +247,7 @@ export default function TaxonomyOptionsPage() {
                   <td className="p-3">{o.label}</td>
                   <td className="p-3">{o.order}</td>
                   <td className="p-3">
-                    <button onClick={() => handleToggleActive(o)} className={o.isActive ? "text-green-600" : "text-gray-400"}>
+                    <button onClick={() => handleToggleActive(o)} className={o.isActive ? "text-green-600" : "text-gray-500"}>
                       {o.isActive ? "Yes" : "No"}
                     </button>
                   </td>

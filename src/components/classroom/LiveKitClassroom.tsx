@@ -134,7 +134,7 @@ function WaitingScreen({ lessonId, onAdmitted, onExit }: { lessonId: string; onA
 
   return (
     <div className="flex flex-col items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 py-16 text-center">
-      <Clock className="h-8 w-8 text-gray-400" />
+      <Clock className="h-8 w-8 text-gray-500" />
       {denied ? (
         <p className="max-w-sm text-sm text-gray-700">
           The tutor hasn&apos;t let you in yet. You can try again, or come back closer to the class start time.
@@ -305,7 +305,7 @@ export default function LiveKitClassroom({ lessonId, onExit }: LiveKitClassroomP
     return (
       <>
         <div className="flex flex-col items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 py-16 text-center">
-          <PhoneOff className="h-8 w-8 text-gray-400" />
+          <PhoneOff className="h-8 w-8 text-gray-500" />
           <p className="text-sm text-gray-700">
             {phase === "ended" ? "This class has ended." : "You left the class."}
           </p>

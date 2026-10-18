@@ -93,8 +93,8 @@ function StudentsPageInner() {
               >
                 <div className="absolute top-2 right-2">
                   <DropdownMenu>
-                    <DropdownMenuTrigger>
-                      <MoreHorizontal className="h-5 w-5 cursor-pointer text-gray-400 hover:text-gray-700" />
+                    <DropdownMenuTrigger aria-label="Row actions">
+                      <MoreHorizontal className="h-5 w-5 cursor-pointer text-gray-500 hover:text-gray-700" />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onClick={() => router.push(`/lms-home/tutor/student-list/${student.id}`)}>
@@ -122,9 +122,9 @@ function StudentsPageInner() {
                       {subject}
                     </span>
                   ))}
-                  {!student.taughtSubjects?.length && <span className="text-xs text-gray-400">No subject on record</span>}
+                  {!student.taughtSubjects?.length && <span className="text-xs text-gray-500">No subject on record</span>}
                 </div>
-                <p className="text-xs text-gray-400">{student.serviceDetails?.ageLevel}</p>
+                <p className="text-xs text-gray-500">{student.serviceDetails?.ageLevel}</p>
                 <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-50 text-blue-600">
                   {student.enrollmentStatus}
                 </span>

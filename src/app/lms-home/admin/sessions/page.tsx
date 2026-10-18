@@ -224,6 +224,7 @@ export default function AdminSessionsPage() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Sessions</h1>
         <select
+          aria-label="Filter"
           value={filter}
           onChange={(e) => setFilter(e.target.value as Filter)}
           className="border rounded-md px-3 py-2 text-sm"
@@ -394,7 +395,7 @@ export default function AdminSessionsPage() {
                     ) : lesson.status === LessonStatus.COMPLETED ? (
                       <span className="text-xs text-amber-600">Not filed</span>
                     ) : (
-                      <span className="text-xs text-gray-400">-</span>
+                      <span className="text-xs text-gray-500">-</span>
                     )}
                   </TableCell>
                   {filter === "upcoming" && (
@@ -418,7 +419,7 @@ export default function AdminSessionsPage() {
                         <div className="flex items-center gap-2 text-xs">
                           <span className="text-gray-500 truncate max-w-[10rem]">{lesson.meetingUrl || "Not set"}</span>
                           {canManageMeetingLinks && (
-                            <button onClick={() => startEditLink(lesson)} title="Edit meeting link" className="text-gray-400 hover:text-blue-600">
+                            <button onClick={() => startEditLink(lesson)} title="Edit meeting link" className="text-gray-500 hover:text-blue-600">
                               <Pencil className="w-3.5 h-3.5" />
                             </button>
                           )}
@@ -466,7 +467,7 @@ export default function AdminSessionsPage() {
                             setCancelReason("");
                           }}
                           title="Cancel class"
-                          className="text-gray-400 hover:text-red-600"
+                          className="text-gray-500 hover:text-red-600"
                         >
                           <Ban className="w-3.5 h-3.5" />
                         </button>
@@ -645,6 +646,7 @@ function SurchargeSettingsPanel() {
       </p>
       <div className="flex flex-wrap items-center gap-2">
         <select
+          aria-label="Type"
           value={settings.type}
           onChange={(e) => setSettings({ ...settings, type: e.target.value as RescheduleSurchargeType })}
           className="border border-gray-300 rounded-md px-2 py-1 text-xs max-w-[10rem]"

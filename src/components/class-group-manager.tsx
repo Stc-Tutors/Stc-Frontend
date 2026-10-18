@@ -214,6 +214,7 @@ export function ClassGroupManager({ serviceType, hideHeading }: { serviceType?: 
               <div className="border border-gray-200 rounded-md px-3 py-2 text-sm text-gray-500 bg-gray-50 font-mono">{form.serviceType}</div>
             ) : (
               <select
+                aria-label="Service type"
                 value={form.serviceType}
                 onChange={(e) => setForm((p) => ({ ...p, serviceType: e.target.value }))}
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
@@ -240,7 +241,7 @@ export function ClassGroupManager({ serviceType, hideHeading }: { serviceType?: 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <div className="space-y-1">
                 <label className="text-xs text-gray-500">Course (optional, Path C cohorts only)</label>
-                <select
+                <select aria-label="Course (optional, Path C cohorts only)"
                   value={form.course}
                   onChange={(e) => setForm((p) => ({ ...p, course: e.target.value }))}
                   className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
@@ -258,7 +259,7 @@ export function ClassGroupManager({ serviceType, hideHeading }: { serviceType?: 
                   onChange={(e) => setForm((p) => ({ ...p, subject: e.target.value }))}
                   className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
                 />
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-gray-500">
                   For a flow tree item with no course behind it, type the item&apos;s name exactly as it appears in the
                   tree - that&apos;s how students are matched to this group.
                 </p>

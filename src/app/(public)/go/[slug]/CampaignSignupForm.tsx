@@ -730,7 +730,7 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
           <div className={`space-y-2 ${flagged.has("choice") ? "rounded-md ring-2 ring-red-500 ring-offset-2 p-2" : ""}`}>
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
               {flowTreePath.length > 0 && (
-                <span className="block normal-case text-gray-400 mb-1 font-normal">
+                <span className="block normal-case text-gray-500 mb-1 font-normal">
                   {flowTreePath.map((n) => n.name).join(" > ")}
                 </span>
               )}
@@ -796,7 +796,7 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
       <div className="text-center">
         <WhatsAppLink pageName={cohortName} />
       </div>
-      <p className="text-xs text-gray-400 text-center">
+      <p className="text-xs text-gray-500 text-center">
         Creates your STC Tutors account{needsCourseChoice ? ", then a quick course pick, " : " and takes you straight "}
         to secure payment. We&apos;ll also email you a link to verify your address - no need to click it before paying.
       </p>

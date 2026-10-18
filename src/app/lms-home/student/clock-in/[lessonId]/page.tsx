@@ -97,7 +97,7 @@ function ClockInPageInner() {
             {lesson ? `${lesson.title}${courseTitle ? ` — ${courseTitle}` : ""}` : "Confirm your presence for this lesson"}
           </p>
           {lesson && (
-            <p className="text-xs text-gray-400 mt-1">{formatDateTime(lesson.scheduledDate)}</p>
+            <p className="text-xs text-gray-500 mt-1">{formatDateTime(lesson.scheduledDate)}</p>
           )}
         </div>
 
@@ -117,6 +117,7 @@ function ClockInPageInner() {
               <div className="space-y-2">
                 <Label>Which student is this for?</Label>
                 <select
+                  aria-label="Student"
                   value={studentId}
                   onChange={(e) => setStudentId(e.target.value)}
                   className="w-full border rounded-md p-2 text-sm"

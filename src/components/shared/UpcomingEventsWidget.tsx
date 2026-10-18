@@ -39,9 +39,9 @@ export default function UpcomingEventsWidget() {
         <h3 className="text-sm font-semibold text-gray-800">Upcoming Events</h3>
       </div>
       {isLoading ? (
-        <p className="text-xs text-gray-400">Loading...</p>
+        <p className="text-xs text-gray-500">Loading...</p>
       ) : events.length === 0 ? (
-        <p className="text-xs text-gray-400">Nothing scheduled in the next two weeks.</p>
+        <p className="text-xs text-gray-500">Nothing scheduled in the next two weeks.</p>
       ) : (
         <ul className="space-y-2.5">
           {events.map((e) => (
@@ -49,7 +49,7 @@ export default function UpcomingEventsWidget() {
               <span className={`mt-1 size-1.5 rounded-full shrink-0 ${CATEGORY_COLORS[e.category]}`} />
               <div className="min-w-0">
                 <p className="text-gray-800 font-medium truncate">{e.title}</p>
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-gray-500">
                   {new Date(e.startDate).toLocaleDateString(undefined, { month: "short", day: "numeric" })} ·{" "}
                   {new Date(e.startDate).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                   {e.location ? ` · ${e.location}` : ""}

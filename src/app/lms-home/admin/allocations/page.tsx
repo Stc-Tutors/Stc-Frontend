@@ -86,6 +86,7 @@ export default function AllocationsPage() {
 
       <div className="space-y-4">
         <select
+          aria-label="View"
           value={tab}
           onChange={(e) => setTab(e.target.value as Tab)}
           className="max-w-xs border border-gray-300 rounded-md px-2 py-1.5 text-sm"

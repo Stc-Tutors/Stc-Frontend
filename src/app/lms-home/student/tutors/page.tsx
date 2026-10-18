@@ -76,7 +76,7 @@ export default function StudentTutorsPage() {
 
       {rows.length === 0 ? (
         <div className="bg-white rounded-lg shadow-sm p-8 text-center text-gray-500">
-          <GraduationCap className="w-10 h-10 mx-auto text-gray-400 mb-3" />
+          <GraduationCap className="w-10 h-10 mx-auto text-gray-500 mb-3" />
           No tutors assigned yet - this fills in once you&apos;re enrolled in a course with a tutor.
         </div>
       ) : (
@@ -86,7 +86,7 @@ export default function StudentTutorsPage() {
               <div className="flex items-center gap-3">
                 <Avatar className="h-12 w-12">
                   <AvatarImage src={row.avatarUrl} alt={row.name} />
-                  <AvatarFallback className="bg-blue-100 text-blue-600">{row.name[0]}</AvatarFallback>
+                  <AvatarFallback className="bg-blue-100 text-blue-700">{row.name[0]}</AvatarFallback>
                 </Avatar>
                 <h2 className="font-semibold text-gray-900">{row.name}</h2>
               </div>

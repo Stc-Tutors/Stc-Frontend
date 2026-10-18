@@ -72,14 +72,14 @@ export function RegistrationFlowPreview({
         registration form.
       </p>
       {steps.length === 0 ? (
-        <p className="text-sm text-gray-400 border border-dashed border-gray-200 rounded-md px-3 py-4 text-center">
+        <p className="text-sm text-gray-500 border border-dashed border-gray-200 rounded-md px-3 py-4 text-center">
           No choices configured yet.
         </p>
       ) : (
         <ol className="space-y-1.5">
           {steps.map((step, i) => (
             <li key={`${step.label}-${i}`} className="flex items-baseline gap-3 text-sm">
-              <span className="w-5 shrink-0 text-right font-mono text-xs text-gray-400">{i + 1}</span>
+              <span className="w-5 shrink-0 text-right font-mono text-xs text-gray-500">{i + 1}</span>
               <span className="font-medium text-gray-900">{step.label}</span>
               <span className="text-xs text-gray-500">{step.rule}</span>
             </li>

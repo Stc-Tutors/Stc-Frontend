@@ -73,8 +73,8 @@ export default function AdminAuditLogPage() {
           onChange={(e) => setAction(e.target.value)}
           className="max-w-[12rem]"
         />
-        <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="max-w-[10rem]" />
-        <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="max-w-[10rem]" />
+        <Input aria-label="From date" type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="max-w-[10rem]" />
+        <Input aria-label="To date" type="date" value={to} onChange={(e) => setTo(e.target.value)} className="max-w-[10rem]" />
         <Button onClick={handleFilter}>Filter</Button>
       </div>
 

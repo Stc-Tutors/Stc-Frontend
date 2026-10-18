@@ -28,7 +28,7 @@ export default function ComposeMessage({ onCancel }: ComposeMessageProps) {
 
       {/* Recipient Dropdown */}
       <label className="block mb-2 font-semibold">Recipient</label>
-      <select
+      <select aria-label="Recipient"
         value={recipient}
         onChange={(e) => setRecipient(e.target.value)}
         required
@@ -65,7 +65,7 @@ export default function ComposeMessage({ onCancel }: ComposeMessageProps) {
       <div className="flex gap-3">
         <button
           type="submit"
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-600"
         >
           Send
         </button>

@@ -113,7 +113,7 @@ export default function ParentMiddleSection() {
                   <Bell className="w-5 h-5 text-blue-500 mt-0.5" />
                   <div>
                     <p className="text-sm text-gray-700">{n.body}</p>
-                    <p className="text-xs text-gray-400 mt-1">{formatDateTime(n.createdAt)}</p>
+                    <p className="text-xs text-gray-500 mt-1">{formatDateTime(n.createdAt)}</p>
                   </div>
                 </div>
               ))

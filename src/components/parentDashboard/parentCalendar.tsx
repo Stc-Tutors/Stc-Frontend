@@ -90,10 +90,10 @@ export default function ParentCalendar() {
           </CardTitle>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={handlePrevMonth} className="p-1 rounded hover:bg-gray-200">
+          <button aria-label="Previous month" onClick={handlePrevMonth} className="p-1 rounded hover:bg-gray-200">
             <ChevronLeft className="w-4 h-4" />
           </button>
-          <button onClick={handleNextMonth} className="p-1 rounded hover:bg-gray-200">
+          <button aria-label="Next month" onClick={handleNextMonth} className="p-1 rounded hover:bg-gray-200">
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>
@@ -142,9 +142,9 @@ export default function ParentCalendar() {
           <div className="mt-4 border-t pt-3">
             <p className="text-sm text-gray-600 mb-2 font-medium">{selectedDate.toDateString()}</p>
             {isLoading ? (
-              <p className="text-xs text-gray-400">Loading...</p>
+              <p className="text-xs text-gray-500">Loading...</p>
             ) : selectedDayLessons.length === 0 ? (
-              <p className="text-xs text-gray-400">No classes on this day.</p>
+              <p className="text-xs text-gray-500">No classes on this day.</p>
             ) : (
               <ul className="space-y-1">
                 {selectedDayLessons.map(({ lesson, course }) => (

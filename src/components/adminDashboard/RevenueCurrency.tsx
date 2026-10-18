@@ -62,7 +62,7 @@ export function MoneyByCurrency() {
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="text-left text-xs text-gray-400 border-b">
+            <tr className="text-left text-xs text-gray-500 border-b">
               <th className="py-2">Currency</th>
               <th>Revenue collected</th>
               <th>Paid out</th>

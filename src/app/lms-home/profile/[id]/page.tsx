@@ -9,7 +9,7 @@ export default function UserProfileByIdPage() {
   const router = useRouter();
 
   return (
-    <section className="bg-gray-100 min-h-screen p-6">
+    <section className="bg-gray-50 min-h-screen p-6">
       <button
         onClick={() => router.back()}
         className="flex items-center text-gray-700 mb-4 hover:text-blue-500"

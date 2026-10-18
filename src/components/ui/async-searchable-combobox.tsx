@@ -1,4 +1,5 @@
 "use client";
+import { useComboboxName } from "@/lib/use-combobox-name";
 
 import { useEffect, useState } from "react";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
@@ -24,6 +25,7 @@ interface Props {
 // large to preload (e.g. the tutor directory) - queries onSearch as the user
 // types instead of filtering a fixed options array client-side.
 export function AsyncSearchableCombobox({ value, selectedLabel, onChange, onSearch, placeholder }: Props) {
+  const nameRef = useComboboxName<HTMLButtonElement>("Search");
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [options, setOptions] = useState<AsyncOption[]>([]);
@@ -53,7 +55,7 @@ export function AsyncSearchableCombobox({ value, selectedLabel, onChange, onSear
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="outline" role="combobox" aria-expanded={open} className="w-full justify-between">
+        <Button ref={nameRef} variant="outline" role="combobox" aria-expanded={open} className="w-full justify-between">
           {value ? selectedLabel || value : placeholder || "Search..."}
           <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
         </Button>

@@ -84,7 +84,7 @@ export default function AvatarUpload({ url, name, onChange }: Props) {
           />
         </div>
       </div>
-      <p className="text-xs text-gray-400">JPG or PNG, up to {AVATAR_MAX_SIZE_KB}KB</p>
+      <p className="text-xs text-gray-500">JPG or PNG, up to {AVATAR_MAX_SIZE_KB}KB</p>
       {error && <p className="text-red-600 text-sm">{error}</p>}
     </div>
   );

@@ -1,4 +1,5 @@
 "use client";
+import { useComboboxName } from "@/lib/use-combobox-name";
 import {
   Command,
   CommandEmpty,
@@ -25,6 +26,7 @@ interface Props {
 }
 
 export function SearchableCombobox({ options, value, onChange, placeholder }: Props) {
+  const nameRef = useComboboxName<HTMLButtonElement>("Select an option");
   const [open, setOpen] = useState(false);
   const selectedLabel = options.find((opt) => opt.value === value)?.label;
 
@@ -32,6 +34,7 @@ export function SearchableCombobox({ options, value, onChange, placeholder }: Pr
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
+          ref={nameRef}
           variant="outline"
           role="combobox"
           aria-expanded={open}

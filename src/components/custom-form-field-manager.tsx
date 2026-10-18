@@ -203,6 +203,7 @@ export function CustomFormFieldManager({ serviceType, hideHeading }: { serviceTy
                 <div className="border border-gray-200 rounded-md px-3 py-2 text-sm text-gray-500 bg-gray-50 font-mono">{form.serviceType || "All services"}</div>
               ) : (
                 <select
+                  aria-label="Service type"
                   value={form.serviceType}
                   onChange={(e) => setForm((p) => ({ ...p, serviceType: e.target.value }))}
                   className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
@@ -223,6 +224,7 @@ export function CustomFormFieldManager({ serviceType, hideHeading }: { serviceTy
                 <div className="border border-gray-200 rounded-md px-3 py-2 text-sm text-gray-500 bg-gray-50">{CUSTOM_FORM_FIELD_TYPE_LABELS[form.fieldType]}</div>
               ) : (
                 <select
+                  aria-label="Field type"
                   value={form.fieldType}
                   onChange={(e) => setForm((p) => ({ ...p, fieldType: e.target.value as CustomFormFieldType }))}
                   className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
@@ -336,12 +338,12 @@ export function CustomFormFieldManager({ serviceType, hideHeading }: { serviceTy
                         {f.required ? (
                           <span className="text-xs rounded-full px-2 py-0.5 bg-amber-100 text-amber-700">Required</span>
                         ) : (
-                          <span className="text-xs text-gray-400">Optional</span>
+                          <span className="text-xs text-gray-500">Optional</span>
                         )}
                       </td>
                       <td className="p-3 font-mono text-xs">{f.serviceType || "All services"}</td>
                       <td className="p-3">
-                        <button onClick={() => handleToggleActive(f)} className={f.isActive ? "text-green-600" : "text-gray-400"}>
+                        <button onClick={() => handleToggleActive(f)} className={f.isActive ? "text-green-600" : "text-gray-500"}>
                           {f.isActive ? "Yes" : "No"}
                         </button>
                       </td>

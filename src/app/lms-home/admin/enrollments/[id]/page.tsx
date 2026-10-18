@@ -117,6 +117,7 @@ export default function AdminEnrollmentDetailPage() {
       <div className="mb-6">
         <p className="text-sm font-medium text-gray-700 mb-1">Enrollment status</p>
         <select
+          aria-label="Enrollment status"
           value={student.enrollmentStatus}
           onChange={(e) => handleStatusChange(e.target.value as EnrollmentStatus)}
           disabled={!canEditStatus}

@@ -59,7 +59,7 @@ function ChildrenTab() {
               <div className="flex items-center gap-3">
                 <Avatar className="w-10 h-10">
                   <AvatarImage src={child.photoUrl || undefined} alt={child.fullName} />
-                  <AvatarFallback className="bg-blue-100 text-blue-600">{getInitials(child.fullName)}</AvatarFallback>
+                  <AvatarFallback className="bg-blue-100 text-blue-700">{getInitials(child.fullName)}</AvatarFallback>
                 </Avatar>
                 <div>
                   <p className="font-medium text-gray-900">{child.fullName}</p>
@@ -69,7 +69,7 @@ function ChildrenTab() {
                   </p>
                 </div>
               </div>
-              {hasProfile && <ChevronRight className="w-4 h-4 text-gray-400" />}
+              {hasProfile && <ChevronRight className="w-4 h-4 text-gray-500" />}
             </CardContent>
           </Card>
         );
@@ -84,7 +84,7 @@ export default function ParentProfilePage() {
   const tab = searchParams.get("tab") === "children" ? "children" : "profile";
 
   return (
-    <section className="bg-gray-100 min-h-screen p-6">
+    <section className="bg-gray-50 min-h-screen p-6">
       <button
         onClick={() => router.push("/lms-home/parent/dashboard")}
         className="flex items-center text-gray-700 mb-4 hover:text-blue-500"

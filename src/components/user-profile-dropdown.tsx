@@ -38,7 +38,7 @@ export function UserProfileDropdown() {
         <Button variant="ghost" className="flex items-center space-x-3 h-auto p-2">
           <Avatar className="w-8 h-8">
             <AvatarImage src={user?.profilePicture || undefined} alt={`${user.firstName} ${user.lastName}`} />
-            <AvatarFallback className="bg-blue-100 text-blue-600">
+            <AvatarFallback className="bg-blue-100 text-blue-700">
               {getInitials(user.firstName, user.lastName)}
             </AvatarFallback>
           </Avatar>
@@ -55,7 +55,7 @@ export function UserProfileDropdown() {
               )}
             </div>
           </div>
-          <ChevronDown className="w-4 h-4 text-gray-400" />
+          <ChevronDown className="w-4 h-4 text-gray-500" />
         </Button>
       </DropdownMenuTrigger>
 

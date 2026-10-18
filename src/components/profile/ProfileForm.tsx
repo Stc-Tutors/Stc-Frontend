@@ -95,7 +95,7 @@ export default function ProfileForm() {
           {user?.email && <p className="text-gray-500 text-sm">{user.email}</p>}
           {/* A student registered by a parent has no email - their login is this ID. */}
           {user?.studentId && <p className="text-gray-500 text-sm">Student ID: {user.studentId}</p>}
-          {joinedOn && <p className="text-gray-400 text-xs mt-1">Member since {joinedOn}</p>}
+          {joinedOn && <p className="text-gray-500 text-xs mt-1">Member since {joinedOn}</p>}
         </div>
       </div>
 

@@ -170,7 +170,7 @@ export default function AvailabilityStep({ onNext, errors }: StepProps) {
                         </Button>
                       </div>
                     ))}
-                    {daySlots.length === 0 && <p className="text-xs text-gray-400">No availability set for {day}</p>}
+                    {daySlots.length === 0 && <p className="text-xs text-gray-500">No availability set for {day}</p>}
                   </div>
                 );
               })}

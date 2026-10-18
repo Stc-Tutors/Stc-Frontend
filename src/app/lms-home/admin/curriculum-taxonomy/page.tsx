@@ -65,7 +65,7 @@ export default function CurriculumTaxonomyPage() {
                 key={s.slug}
                 onClick={() => setSelectedSlug(s.slug)}
                 className={`pb-3 border-b-2 ${
-                  selectedSlug === s.slug ? "border-blue-600 text-blue-600 font-medium" : "border-transparent text-gray-400"
+                  selectedSlug === s.slug ? "border-blue-600 text-blue-600 font-medium" : "border-transparent text-gray-500"
                 }`}
               >
                 {s.serviceName}

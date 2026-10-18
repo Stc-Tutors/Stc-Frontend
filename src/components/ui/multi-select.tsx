@@ -1,4 +1,5 @@
 "use client";
+import { useComboboxName } from "@/lib/use-combobox-name";
 import {
   Command,
   CommandEmpty,
@@ -24,6 +25,7 @@ interface Props {
 // (e.g. "subjects taught") - keeps the stored values limited to a known,
 // trackable option set instead of arbitrary typed text.
 export function MultiSelect({ options, value, onChange, placeholder }: Props) {
+  const nameRef = useComboboxName<HTMLButtonElement>("Select options");
   const [open, setOpen] = useState(false);
 
   const toggle = (option: string) => {
@@ -34,6 +36,7 @@ export function MultiSelect({ options, value, onChange, placeholder }: Props) {
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
+          ref={nameRef}
           variant="outline"
           role="combobox"
           aria-expanded={open}

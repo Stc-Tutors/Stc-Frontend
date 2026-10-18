@@ -112,7 +112,7 @@ function AccountCard({ account }: { account: HoursAccountSummary }) {
                     <span className="text-xs text-gray-600">
                       {formatMinutes(line.billableMinutes)}
                       {line.billableMinutes < line.scheduledMinutes && (
-                        <span className="text-gray-400"> of {formatMinutes(line.scheduledMinutes)}</span>
+                        <span className="text-gray-500"> of {formatMinutes(line.scheduledMinutes)}</span>
                       )}
                     </span>
                     <Badge variant={STATE_LABEL[line.state].variant}>{STATE_LABEL[line.state].label}</Badge>

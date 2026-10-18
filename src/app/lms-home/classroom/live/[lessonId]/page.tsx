@@ -94,7 +94,7 @@ export default function LiveClassroomPage() {
               <LiveKitClassroom lessonId={lesson.id} onExit={() => router.back()} />
             ) : (
               <div className="bg-gray-50 border border-dashed border-gray-300 rounded-lg py-16 flex flex-col items-center gap-3 text-center">
-                <Clock className="w-8 h-8 text-gray-400" />
+                <Clock className="w-8 h-8 text-gray-500" />
                 {joinWindow?.hasEnded ? (
                   <p className="text-sm text-gray-500">This class session has ended.</p>
                 ) : (
@@ -120,7 +120,7 @@ export default function LiveClassroomPage() {
               <LiveClassRedirect meetingUrl={lesson.meetingUrl} />
             ) : (
               <div className="bg-gray-50 border border-dashed border-gray-300 rounded-lg py-16 flex flex-col items-center gap-3 text-center">
-                <Clock className="w-8 h-8 text-gray-400" />
+                <Clock className="w-8 h-8 text-gray-500" />
                 {joinWindow?.hasEnded ? (
                   <p className="text-sm text-gray-500">This class session has ended.</p>
                 ) : (

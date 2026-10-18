@@ -117,7 +117,7 @@ function CheckDropdown({ label, options, value, onChange }: { label: string; opt
             )}
             <div className="max-h-56 overflow-y-auto">
               {shown.length === 0 ? (
-                <p className="px-2 py-1 text-sm text-gray-400">Nothing to choose from yet.</p>
+                <p className="px-2 py-1 text-sm text-gray-500">Nothing to choose from yet.</p>
               ) : (
                 shown.map((o) => (
                   <label key={o.value} className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-sm hover:bg-gray-50">
@@ -179,7 +179,7 @@ export function TutorFilterBar({ value, onChange, showDates, hideSearch, hideSor
       <div className="flex flex-wrap items-center gap-2">
         {!hideSearch && (
           <div className="relative min-w-[200px] max-w-sm flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
             <input value={qDraft} onChange={(e) => setQDraft(e.target.value)} placeholder={searchPlaceholder ?? "Search name or email..."} className="w-full rounded-md border py-2 pl-9 pr-3 text-sm" />
           </div>
         )}
@@ -229,7 +229,7 @@ export function TutorFilterBar({ value, onChange, showDates, hideSearch, hideSor
                 <input type="time" value={value.availableTo} onChange={(e) => set("availableTo", e.target.value)} className="w-full rounded-md border px-2 py-1.5" />
               </label>
             </div>
-            <p className="mt-1 text-xs text-gray-400">Pick several days to find tutors free on all of them; add a time window to require it fits inside their open hours.</p>
+            <p className="mt-1 text-xs text-gray-500">Pick several days to find tutors free on all of them; add a time window to require it fits inside their open hours.</p>
           </div>
 
           <div>

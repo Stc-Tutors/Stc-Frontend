@@ -113,7 +113,7 @@ export default function AdminParentDetailPage() {
         <div className="border rounded-lg p-4">
           <h3 className="font-semibold text-gray-800 mb-3">Children</h3>
           {children.length === 0 ? (
-            <p className="text-sm text-gray-400">No linked students yet.</p>
+            <p className="text-sm text-gray-500">No linked students yet.</p>
           ) : (
             <ul className="divide-y">
               {children.map((child) => (

@@ -82,13 +82,13 @@ export default function YourStudents() {
                       ))}
                     </div>
                   ) : (
-                    <span className="text-xs text-gray-400">No subject on record</span>
+                    <span className="text-xs text-gray-500">No subject on record</span>
                   )}
                 </TableCell>
                 <TableCell>{student.enrollmentStatus}</TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>
-                    <DropdownMenuTrigger>
+                    <DropdownMenuTrigger aria-label="Row actions">
                       <MoreHorizontal className="h-5 w-5 cursor-pointer" />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">

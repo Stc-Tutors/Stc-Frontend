@@ -197,7 +197,7 @@ export default function OnboardingTour() {
         <CardContent className="px-5">
           <p className="text-sm text-gray-600 leading-relaxed">{step.content}</p>
           <Progress value={((stepIndex + 1) / steps.length) * 100} className="mt-4 h-1.5" />
-          <p className="mt-1.5 text-xs text-gray-400">
+          <p className="mt-1.5 text-xs text-gray-500">
             Step {stepIndex + 1} of {steps.length}
           </p>
         </CardContent>

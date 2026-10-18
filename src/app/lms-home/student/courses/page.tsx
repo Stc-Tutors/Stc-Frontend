@@ -62,7 +62,7 @@ export default function Home() {
           <h2 className="text-2xl font-bold">My Courses</h2>
 
           <Link href="/lms-home/student/courses/list">
-          <button className="bg-blue-500 text-white hover:text-gray-800 px-4 py-2 rounded cursor-pointer">
+          <button className="bg-blue-600 text-white hover:text-gray-800 px-4 py-2 rounded cursor-pointer">
             Browse Courses
             </button>
             </Link>

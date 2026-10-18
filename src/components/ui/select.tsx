@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useComboboxName } from "@/lib/use-combobox-name"
 import * as SelectPrimitive from "@radix-ui/react-select"
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react"
 
@@ -32,8 +33,10 @@ function SelectTrigger({
 }: React.ComponentProps<typeof SelectPrimitive.Trigger> & {
   size?: "sm" | "default"
 }) {
+  const nameRef = useComboboxName<HTMLButtonElement>()
   return (
     <SelectPrimitive.Trigger
+      ref={nameRef}
       data-slot="select-trigger"
       data-size={size}
       className={cn(

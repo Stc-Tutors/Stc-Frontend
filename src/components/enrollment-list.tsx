@@ -320,7 +320,7 @@ export default function EnrollmentList({ source, basePath }: EnrollmentListProps
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4" />
                   <Input
                     placeholder="Search by student or parent name..."
                     value={searchTerm}
@@ -368,7 +368,7 @@ export default function EnrollmentList({ source, basePath }: EnrollmentListProps
           {childGroups.length === 0 ? (
             <Card>
               <CardContent className="p-12 text-center">
-                <GraduationCap className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <GraduationCap className="w-16 h-16 text-gray-500 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">No enrollments found</h3>
                 <p className="text-gray-500 mb-6">
                   {searchTerm || statusFilter !== "all" || serviceTypeFilter !== "all"
@@ -395,7 +395,7 @@ export default function EnrollmentList({ source, basePath }: EnrollmentListProps
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                       <div className="flex items-center space-x-4">
                         <Avatar className="w-14 h-14">
-                          <AvatarFallback className="bg-blue-100 text-blue-600 text-lg font-semibold">
+                          <AvatarFallback className="bg-blue-100 text-blue-700 text-lg font-semibold">
                             {getInitials(child.fullName)}
                           </AvatarFallback>
                         </Avatar>

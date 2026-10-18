@@ -106,6 +106,7 @@ export default function AdminReferralWithdrawals() {
           <div>
             <label className="text-sm text-gray-500 block mb-1">Commission percentage</label>
             <Input
+              aria-label="Commission percentage"
               type="number"
               min={0}
               max={100}
@@ -118,7 +119,7 @@ export default function AdminReferralWithdrawals() {
             {isSavingSettings ? "Saving..." : "Save"}
           </Button>
           {settings?.updatedAt && (
-            <p className="text-xs text-gray-400 mb-2">
+            <p className="text-xs text-gray-500 mb-2">
               Last updated {formatDateTime(settings.updatedAt)}
             </p>
           )}
@@ -188,7 +189,7 @@ export default function AdminReferralWithdrawals() {
                           </div>
                         )
                       ) : (
-                        <span className="text-xs text-gray-400">
+                        <span className="text-xs text-gray-500">
                           {w.rejectionReason ? `Reason: ${w.rejectionReason}` : "—"}
                         </span>
                       )}

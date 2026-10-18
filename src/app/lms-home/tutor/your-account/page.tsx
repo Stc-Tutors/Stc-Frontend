@@ -185,7 +185,7 @@ export default function DashboardPage() {
           title="Confirmed Rates"
           value={rates.filter((r) => r.ratePerHour != null || r.flatRate != null).length}
           icon={TrendingUp}
-          color="bg-blue-100 text-blue-600"
+          color="bg-blue-100 text-blue-700"
         />
         <StatCard title="This Month" value={formatMoney(thisMonthPaid)} icon={CreditCard} color="bg-green-100 text-green-600" />
       </div>
@@ -291,6 +291,7 @@ export default function DashboardPage() {
                   <div className="space-y-2">
                     <p className="text-sm text-gray-600">Add your bank details to receive payouts.</p>
                     <select
+                      aria-label="Bank"
                       value={bankCode}
                       onChange={(e) => setBankCode(e.target.value)}
                       className="w-full border rounded-md p-2 text-sm"
@@ -452,7 +453,7 @@ function TransactionHistory({
         </tbody>
       </table>
       {lastPaid && (
-        <p className="text-xs text-gray-400 px-4 py-2">
+        <p className="text-xs text-gray-500 px-4 py-2">
           Last paid {formatMoney(lastPaid.amount)} on {lastPaid.paidAt ? formatDate(lastPaid.paidAt) : "—"}
         </p>
       )}

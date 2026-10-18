@@ -114,7 +114,7 @@ export default function ParentAssessmentPage() {
                     row.submission?.status === "GRADED"
                       ? "bg-green-100 text-green-600"
                       : row.submission
-                      ? "bg-blue-100 text-blue-600"
+                      ? "bg-blue-100 text-blue-700"
                       : "bg-orange-100 text-orange-600"
                   }`}
                 >

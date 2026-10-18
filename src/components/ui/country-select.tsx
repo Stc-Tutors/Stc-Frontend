@@ -1,4 +1,5 @@
 "use client"
+import { useComboboxName } from "@/lib/use-combobox-name";
 
 import * as React from "react"
 import { Check, ChevronDown } from "lucide-react"
@@ -38,13 +39,14 @@ interface CountrySelectProps {
 }
 
 export function CountrySelect({ value, onChange }: CountrySelectProps) {
+  const nameRef = useComboboxName<HTMLButtonElement>("Select country");
   const [open, setOpen] = React.useState(false)
   const selected = countries.find((c) => c.name === value)
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="outline" role="combobox" className="w-full justify-between">
+        <Button ref={nameRef} variant="outline" role="combobox" className="w-full justify-between">
           {selected ? (
             <span className="flex items-center gap-2">
               <span className="text-xl">{selected.flag}</span>

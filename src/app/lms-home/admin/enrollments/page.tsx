@@ -55,7 +55,7 @@ export default function AdminEnrollmentsPage() {
                 <TableCell>{s.fullName}</TableCell>
                 <TableCell>
                   {s.parentName || "-"}
-                  {s.parentEmail && <span className="block text-xs text-gray-400">{s.parentEmail}</span>}
+                  {s.parentEmail && <span className="block text-xs text-gray-500">{s.parentEmail}</span>}
                 </TableCell>
                 <TableCell>{s.serviceDetails?.selectedSubjects?.join(", ")}</TableCell>
                 <TableCell>{s.enrollmentStatus}</TableCell>

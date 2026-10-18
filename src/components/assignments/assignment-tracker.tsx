@@ -135,9 +135,9 @@ export function AssignmentTracker() {
                     </td>
                     <td className="p-3 whitespace-nowrap">
                       {a.status !== "APPROVED" ? (
-                        <span className="text-gray-400">-</span>
+                        <span className="text-gray-500">-</span>
                       ) : a.progress.expected === 0 ? (
-                        <span className="text-gray-400">No students yet</span>
+                        <span className="text-gray-500">No students yet</span>
                       ) : (
                         <>
                           <span className="font-medium">

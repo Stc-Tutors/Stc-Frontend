@@ -145,7 +145,7 @@ export default function ClassroomPage() {
             {/**************** COURSE SELECTOR ****************/}
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-1">Course</label>
-              <select
+              <select aria-label="Course"
                 value={selectedCourseId ?? ""}
                 onChange={(e) => setSelectedCourseId(e.target.value)}
                 className="border border-gray-300 rounded-md p-2 text-sm w-full max-w-sm"
@@ -187,7 +187,7 @@ export default function ClassroomPage() {
                           ? "bg-green-100 text-green-600"
                           : selectedLesson.status === LessonStatus.CANCELLED
                           ? "bg-red-100 text-red-600"
-                          : "bg-blue-100 text-blue-600"
+                          : "bg-blue-100 text-blue-700"
                       }`}
                     >
                       {selectedLesson.status}
@@ -256,7 +256,7 @@ export default function ClassroomPage() {
                       }`}
                     >
                       <span>{lesson.recordingUrl ? "▶" : "○"} {lesson.title}</span>
-                      <span className="text-xs text-gray-400">{lesson.durationMinutes}min</span>
+                      <span className="text-xs text-gray-500">{lesson.durationMinutes}min</span>
                     </li>
                   ))}
                 </ul>

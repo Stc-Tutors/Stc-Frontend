@@ -54,7 +54,7 @@ export default function AdminTutorsPage() {
       <TutorFilterBar value={filters} onChange={setFilters} hideSearch />
 
       <form onSubmit={handleSearchSubmit} className="relative max-w-xs mb-4">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
         <Input
           placeholder="Search tutors..."
           value={search}
@@ -97,7 +97,7 @@ export default function AdminTutorsPage() {
                 </TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>
-                    <DropdownMenuTrigger>
+                    <DropdownMenuTrigger aria-label="Row actions">
                       <MoreHorizontal className="h-5 w-5 cursor-pointer" />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">

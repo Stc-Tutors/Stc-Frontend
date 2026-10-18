@@ -61,7 +61,7 @@ export default function LessonProgress() {
       {/* Legend */}
       <div className="flex justify-center gap-4 text-sm flex-wrap">
         {courseNames.length === 0 ? (
-          <span className="text-gray-400 text-xs">No courses yet</span>
+          <span className="text-gray-500 text-xs">No courses yet</span>
         ) : (
           courseNames.map((name, i) => (
             <div key={name} className="flex items-center gap-1 text-gray-700">
@@ -83,9 +83,9 @@ export default function LessonProgress() {
         </div>
         <ul className="space-y-1 text-sm text-gray-600">
           {isLoading ? (
-            <li className="text-gray-400">Loading...</li>
+            <li className="text-gray-500">Loading...</li>
           ) : visibleAnnouncements.length === 0 ? (
-            <li className="text-gray-400">No announcements yet.</li>
+            <li className="text-gray-500">No announcements yet.</li>
           ) : (
             visibleAnnouncements.map((item, i) => (
               <li key={i} className="border-b pb-1 last:border-none">{item}</li>

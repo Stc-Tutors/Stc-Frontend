@@ -63,7 +63,7 @@ export default function SpecialCourseRegisterPage() {
         <div className="text-sm text-gray-600 space-y-1">
           <p>{course.description}</p>
           {course.tutor && (
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-gray-500">
               Taught by {course.tutor.firstName} {course.tutor.lastName}
             </p>
           )}
@@ -145,6 +145,7 @@ function ExistingUserEnroll({ token, user }: { token: string; user: User }) {
       </p>
       {user.role === UserRole.PARENT && linkedStudents.length > 1 && (
         <select
+          aria-label="Selected student"
           value={selectedStudentId}
           onChange={(e) => setSelectedStudentId(e.target.value)}
           className="border border-gray-300 rounded-md px-3 py-2 text-sm w-full"

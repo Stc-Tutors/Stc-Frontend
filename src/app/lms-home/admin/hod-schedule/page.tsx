@@ -73,7 +73,7 @@ export default function HodSchedulePage() {
         </a>
       );
     }
-    return <span className="text-xs text-gray-400">No class link yet</span>;
+    return <span className="text-xs text-gray-500">No class link yet</span>;
   };
 
   return (

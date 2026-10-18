@@ -78,6 +78,7 @@ export default function AdminAnnouncementsPage() {
             <Input placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
             <Textarea rows={4} placeholder="Message body" value={body} onChange={(e) => setBody(e.target.value)} />
             <select
+              aria-label="Audience"
               value={audience}
               onChange={(e) => setAudience(e.target.value as AnnouncementAudience)}
               className="border rounded-md px-3 py-2 text-sm w-full"

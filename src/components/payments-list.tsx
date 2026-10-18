@@ -174,7 +174,7 @@ export default function PaymentsList({ variant }: PaymentsListProps) {
 
           {!isLoading && !error && payments.length === 0 && (
             <div className="text-center py-10 space-y-2">
-              <CreditCard className="w-10 h-10 mx-auto text-gray-400" />
+              <CreditCard className="w-10 h-10 mx-auto text-gray-500" />
               <p className="text-sm text-gray-500">No payments yet.</p>
             </div>
           )}

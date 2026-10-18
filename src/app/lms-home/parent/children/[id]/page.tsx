@@ -223,7 +223,7 @@ export default function ChildProfilePage() {
                     <Copy className="w-4 h-4" />
                   </Button>
                 </div>
-                <p className="text-xs text-gray-400">This is what your child types in instead of an email to log in.</p>
+                <p className="text-xs text-gray-500">This is what your child types in instead of an email to log in.</p>
               </div>
               <Button type="button" variant="outline" onClick={openResetDialog} className="flex items-center gap-2">
                 <KeyRound className="w-4 h-4" />
@@ -323,7 +323,7 @@ export default function ChildProfilePage() {
                 <p className="font-medium">{formatDate(child.admissionDate)}</p>
               </div>
             )}
-            <p className="text-xs text-gray-400 md:col-span-2">Set by an administrator - contact support to change these.</p>
+            <p className="text-xs text-gray-500 md:col-span-2">Set by an administrator - contact support to change these.</p>
           </CardContent>
         </Card>
       )}

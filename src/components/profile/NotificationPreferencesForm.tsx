@@ -50,7 +50,7 @@ export default function NotificationPreferencesForm() {
           className="size-4"
         />
         Email me about unread messages
-        {isSaving && <Loader2 className="size-4 animate-spin text-gray-400" />}
+        {isSaving && <Loader2 className="size-4 animate-spin text-gray-500" />}
       </label>
     </section>
   );

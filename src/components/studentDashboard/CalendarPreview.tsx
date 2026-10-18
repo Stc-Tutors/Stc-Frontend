@@ -100,13 +100,13 @@ export default function CalendarPreview() {
           {currentDate.toLocaleString("default", { month: "long" })} {year}
         </h3>
         <div className="flex gap-2">
-          <button
+          <button aria-label="Previous month"
             onClick={() => handleMonthChange(-1)}
             className="p-1.5 rounded hover:bg-gray-100 transition"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
-          <button
+          <button aria-label="Next month"
             onClick={() => handleMonthChange(1)}
             className="p-1.5 rounded hover:bg-gray-100 transition"
           >
@@ -116,7 +116,7 @@ export default function CalendarPreview() {
       </div>
 
       {/* Days header */}
-      <div className="grid grid-cols-7 text-xs text-gray-400 mb-2">
+      <div className="grid grid-cols-7 text-xs text-gray-500 mb-2">
         {days.map((d) => (
           <div key={d} className="text-center font-medium">
             {d}
@@ -134,9 +134,9 @@ export default function CalendarPreview() {
                 className={`relative w-7 h-7 flex items-center justify-center rounded-full cursor-pointer transition
                   ${
                     isSelected(dateObj)
-                      ? "bg-blue-500 text-white"
+                      ? "bg-blue-600 text-white"
                       : isToday(dateObj)
-                      ? "bg-blue-100 text-blue-600"
+                      ? "bg-blue-100 text-blue-700"
                       : "text-gray-800 hover:bg-gray-100"
                   }`}
               >
@@ -159,9 +159,9 @@ export default function CalendarPreview() {
             <span className="font-medium">{selectedDate.toDateString()}</span>
           </p>
           {isLoading ? (
-            <p className="text-xs text-gray-400">Loading...</p>
+            <p className="text-xs text-gray-500">Loading...</p>
           ) : selectedDayLessons.length === 0 ? (
-            <p className="text-xs text-gray-400">No classes on this day.</p>
+            <p className="text-xs text-gray-500">No classes on this day.</p>
           ) : (
             <ul className="space-y-1">
               {selectedDayLessons.map(({ lesson, course }) => (

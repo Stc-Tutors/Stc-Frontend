@@ -139,7 +139,7 @@ export default function AdminReportsPage() {
 
         <div className="bg-white rounded-2xl shadow p-6">
           <h2 className="text-lg font-semibold mb-1">Missed & rescheduled classes</h2>
-          <p className="text-xs text-gray-400 mb-3">Cancelled sessions and reschedule requests, per tutor</p>
+          <p className="text-xs text-gray-500 mb-3">Cancelled sessions and reschedule requests, per tutor</p>
           {rescheduleRate.length === 0 && missedClasses === 0 ? (
             <p className="text-sm text-gray-500">No data.</p>
           ) : (
@@ -223,7 +223,7 @@ export default function AdminReportsPage() {
 
         <div className="bg-white rounded-2xl shadow p-6">
           <h2 className="text-lg font-semibold mb-1">Student Retention</h2>
-          <p className="text-xs text-gray-400 mb-3">% of students enrolled 30+ days ago still active</p>
+          <p className="text-xs text-gray-500 mb-3">% of students enrolled 30+ days ago still active</p>
           {!retention ? (
             <p className="text-sm text-gray-500">No data.</p>
           ) : (
@@ -238,7 +238,7 @@ export default function AdminReportsPage() {
 
         <div className="bg-white rounded-2xl shadow p-6">
           <h2 className="text-lg font-semibold mb-1">Course Completion Rate</h2>
-          <p className="text-xs text-gray-400 mb-3">Completed vs total course enrollments</p>
+          <p className="text-xs text-gray-500 mb-3">Completed vs total course enrollments</p>
           <div className="space-y-2 max-h-80 overflow-y-auto">
             {completion.length === 0 ? (
               <p className="text-sm text-gray-500">No data.</p>
@@ -258,7 +258,7 @@ export default function AdminReportsPage() {
         {canViewFinancialReports && (
           <div className="bg-white rounded-2xl shadow p-6">
             <h2 className="text-lg font-semibold mb-1">Payout Turnaround</h2>
-            <p className="text-xs text-gray-400 mb-3">Average time from payout request to payment</p>
+            <p className="text-xs text-gray-500 mb-3">Average time from payout request to payment</p>
             <p className="text-2xl font-semibold text-gray-900">
               {payoutTurnaround?.averageHours != null ? `${payoutTurnaround.averageHours}h` : "-"}
             </p>
@@ -304,7 +304,7 @@ function StudentProgressLookup() {
   return (
     <div className="bg-white rounded-2xl shadow p-6">
       <h2 className="text-lg font-semibold mb-1">Student Progress Lookup</h2>
-      <p className="text-xs text-gray-400 mb-4">Search a student to see their individual attendance and assignment performance.</p>
+      <p className="text-xs text-gray-500 mb-4">Search a student to see their individual attendance and assignment performance.</p>
       <div className="relative max-w-md mb-4">
         <Input
           placeholder="Search students by name..."

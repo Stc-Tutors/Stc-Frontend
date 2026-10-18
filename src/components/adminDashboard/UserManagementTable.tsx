@@ -59,7 +59,7 @@ export default function UserManagementTable() {
           <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-left text-xs text-gray-400 border-b">
+              <tr className="text-left text-xs text-gray-500 border-b">
                 <th className="py-2">Name</th>
                 <th>Grade</th>
                 <th>Parent Name</th>
@@ -99,7 +99,7 @@ export default function UserManagementTable() {
         <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="text-left text-xs text-gray-400 border-b">
+            <tr className="text-left text-xs text-gray-500 border-b">
               <th className="py-2">Name</th>
               <th>Rating</th>
               <th>Hours</th>

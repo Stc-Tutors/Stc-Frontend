@@ -237,7 +237,7 @@ export default function CurriculumDrilldown({ serviceType, onSubjectsResolved, o
     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
       <div className="space-y-1">
         <label className="text-xs font-medium text-gray-600">Country</label>
-        <select className={selectClass} value={country?.id ?? ""} onChange={(e) => handleCountry(e.target.value)}>
+        <select aria-label="Country" className={selectClass} value={country?.id ?? ""} onChange={(e) => handleCountry(e.target.value)}>
           <option value="">Select country</option>
           {countries.map((c) => (
             <option key={c.id} value={c.id}>
@@ -289,7 +289,7 @@ export default function CurriculumDrilldown({ serviceType, onSubjectsResolved, o
         </div>
       )}
 
-      {isLoading && <p className="text-xs text-gray-400 col-span-full">Loading...</p>}
+      {isLoading && <p className="text-xs text-gray-500 col-span-full">Loading...</p>}
     </div>
   );
 }

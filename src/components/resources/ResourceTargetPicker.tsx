@@ -84,6 +84,7 @@ export default function ResourceTargetPicker({ courses, fetchStudents, fetchServ
 
       {value.mode === "course" && (
         <select
+          aria-label="Course"
           value={value.course}
           onChange={(e) => onChange({ ...value, course: e.target.value })}
           className="border border-gray-300 rounded-md p-2 text-sm w-full"
@@ -102,6 +103,7 @@ export default function ResourceTargetPicker({ courses, fetchStudents, fetchServ
           {fetchServices ? (
             <>
               <select
+                aria-label="Service type"
                 value={value.serviceType}
                 onChange={(e) => onChange({ ...value, serviceType: e.target.value })}
                 className="border border-gray-300 rounded-md p-2 text-sm w-full"
@@ -143,9 +145,9 @@ export default function ResourceTargetPicker({ courses, fetchStudents, fetchServ
         <div className="space-y-1">
           <p className="text-xs text-gray-500">Only these students will see this resource.</p>
           {isLoadingStudents ? (
-            <p className="text-xs text-gray-400">Loading students...</p>
+            <p className="text-xs text-gray-500">Loading students...</p>
           ) : students.length === 0 ? (
-            <p className="text-xs text-gray-400">No students found.</p>
+            <p className="text-xs text-gray-500">No students found.</p>
           ) : (
             <div className="max-h-32 overflow-y-auto border border-gray-300 rounded-md divide-y">
               {students.map((s) => (

@@ -42,7 +42,7 @@ export default async function BlogPostPage({ params }: { params: Params }) {
       )}
 
       <h1 className="text-3xl font-bold text-gray-900 mt-6">{post.title}</h1>
-      <p className="text-sm text-gray-400 mt-2">
+      <p className="text-sm text-gray-500 mt-2">
         {post.author && <>{post.author} · </>}
         {post.publishedAt && formatDate(post.publishedAt)}
       </p>

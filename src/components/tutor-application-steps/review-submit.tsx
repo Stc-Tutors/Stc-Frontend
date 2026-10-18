@@ -65,7 +65,7 @@ export default function ReviewSubmitStep() {
             </CardHeader>
             <CardContent>
               {rendered.every((r) => r.value === null) ? (
-                <p className="text-sm text-gray-400">Nothing entered yet.</p>
+                <p className="text-sm text-gray-500">Nothing entered yet.</p>
               ) : (
                 <dl>
                   {rendered.map(({ entry, value }) => (

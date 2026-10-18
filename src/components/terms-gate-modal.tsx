@@ -76,7 +76,7 @@ export default function TermsGateModal() {
           className="flex-1 overflow-y-auto px-6 py-4 whitespace-pre-wrap text-sm text-gray-700 leading-relaxed"
         >
           {content === null ? (
-            <div className="flex items-center justify-center py-12 text-gray-400">
+            <div className="flex items-center justify-center py-12 text-gray-500">
               <Loader2 className="w-5 h-5 animate-spin mr-2" />
               Loading...
             </div>
@@ -86,7 +86,7 @@ export default function TermsGateModal() {
         </div>
 
         <div className="px-6 py-4 border-t flex items-center justify-between gap-4">
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-gray-500">
             {canAgree ? "You've reached the end." : "Scroll to the bottom to continue."}
           </p>
           <button

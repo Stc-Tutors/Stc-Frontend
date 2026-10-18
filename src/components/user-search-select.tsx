@@ -1,4 +1,5 @@
 "use client";
+import { useComboboxName } from "@/lib/use-combobox-name";
 
 import { useEffect, useState } from "react";
 import { Check, ChevronDown, X } from "lucide-react";
@@ -28,6 +29,7 @@ interface Props {
 // /users?role=&search= - replaces admins having to type a raw Mongo user ID
 // by hand to link an enrollment to an account.
 export function UserSearchSelect({ role, value, onChange, placeholder, assignableOnly }: Props) {
+  const nameRef = useComboboxName<HTMLButtonElement>("Search for a user");
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [users, setUsers] = useState<User[]>([]);
@@ -62,7 +64,7 @@ export function UserSearchSelect({ role, value, onChange, placeholder, assignabl
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="outline" role="combobox" aria-expanded={open} className="w-full justify-between">
+        <Button ref={nameRef} variant="outline" role="combobox" aria-expanded={open} className="w-full justify-between">
           {selected ? (
             <span className="flex items-center gap-2 truncate">
               {selected.firstName} {selected.lastName}
