@@ -359,8 +359,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 data-tour={TOUR_TARGETS[label]}
                 className={`flex items-center justify-between px-4 py-2 rounded-lg transition-transform duration-200 ${
                   pathname === href
-                    ? "bg-blue-100 text-gray-500 hover:text-[#38b6ff] font-medium -translate-x-1"
-                    : "text-gray-700 hover:bg-blue-100 hover:text-[#38b6ff] hover:translate-x-3"
+                    ? "bg-blue-100 text-gray-500 hover:text-[#0a7ac2] font-medium -translate-x-1"
+                    : "text-gray-700 hover:bg-blue-100 hover:text-[#0a7ac2] hover:translate-x-3"
                 }`}
               >
                 <div className="flex items-center gap-3">
@@ -373,11 +373,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </nav>
 
         <div className="p-4 border-t space-y-4">
-          <Link href="/lms-home/admin/messages" className="flex items-center gap-3 text-gray-600 hover:text-[#38b6ff] hover:translate-x-3">
+          <Link href="/lms-home/admin/messages" className="flex items-center gap-3 text-gray-600 hover:text-[#0a7ac2] hover:translate-x-3">
             <Headphones className="w-5 h-5" />
             Support
           </Link>
-          <LogoutButton className="flex items-center gap-3 text-gray-600 hover:text-[#38b6ff] hover:translate-x-3">
+          <LogoutButton className="flex items-center gap-3 text-gray-600 hover:text-[#0a7ac2] hover:translate-x-3">
             <LogOut className="w-5 h-5" />
             Logout
           </LogoutButton>

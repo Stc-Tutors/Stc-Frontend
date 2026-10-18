@@ -21,7 +21,7 @@ const MissionVision = () => {
       <div className="container mx-auto px-6 md:px-12 lg:px-20">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="bg-white p-8 rounded-lg shadow-md">
-            <h3 className="text-lg font-semibold text-orange-600 flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-orange-700 flex items-center gap-2">
               {content.missionIcon && <SiteIcon value={content.missionIcon} size={22} />}
               Our Mission
             </h3>
@@ -30,7 +30,7 @@ const MissionVision = () => {
           </div>
 
           <div className="bg-white p-8 rounded-lg shadow-md">
-            <h3 className="text-lg font-semibold text-orange-600 flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-orange-700 flex items-center gap-2">
               {content.visionIcon && <SiteIcon value={content.visionIcon} size={22} />}
               Our Vision
             </h3>

@@ -10,7 +10,7 @@
   --accent-blue: #3b5bdb;
   /* Adjust if needed */
   --white: #ffffff;
-  --color-primary: #38b6ff;
+  --color-primary: #0a7ac2; /* was #38b6ff: white text on it was 2.25:1, below the 4.5:1 WCAG AA minimum */
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.141 0.005 285.823);
@@ -18,7 +18,7 @@
   --card-foreground: oklch(0.141 0.005 285.823);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.141 0.005 285.823);
-  --primary: oklch(0.623 0.214 259.815);
+  --primary: oklch(0.546 0.245 262.881);
   --primary-foreground: oklch(0.97 0.014 254.604);
   --secondary: oklch(0.967 0.001 286.375);
   --secondary-foreground: oklch(0.21 0.006 285.885);

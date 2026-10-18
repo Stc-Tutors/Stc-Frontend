@@ -6,7 +6,7 @@ const CallToAction = () => {
 
   return (
     <section className="py-10 px-4 mb-10">
-      <div className="max-w-2xl mx-auto text-center bg-[#38b6ff] text-white rounded-xl p-8 shadow-lg">
+      <div className="max-w-2xl mx-auto text-center bg-[#0a7ac2] text-white rounded-xl p-8 shadow-lg">
         <h2 className="text-3xl font-bold mb-4">Ready to Join the STC Community?</h2>
         <p className="mb-6 text-lg">Take the first step toward quality virtual learning with vetted tutors.</p>
         <button

@@ -20,7 +20,7 @@ function Card({ icon, title, url, version, note }: { icon: React.ReactNode; titl
   return (
     <div className="flex flex-col rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
       <div className="flex items-center gap-3">
-        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#38b6ff]/10 text-[#38b6ff]">{icon}</div>
+        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#38b6ff]/10 text-[#0a7ac2]">{icon}</div>
         <div>
           <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
           {version && <p className="text-xs text-gray-500">Version {version}</p>}
@@ -32,12 +32,12 @@ function Card({ icon, title, url, version, note }: { icon: React.ReactNode; titl
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-5 inline-flex items-center justify-center gap-2 rounded-lg bg-[#38b6ff] px-4 py-3 font-medium text-white hover:bg-[#1c9ae0]"
+          className="mt-5 inline-flex items-center justify-center gap-2 rounded-lg bg-[#0a7ac2] px-4 py-3 font-medium text-white hover:bg-[#1c9ae0]"
         >
           <Download className="h-5 w-5" aria-hidden="true" /> Download
         </a>
       ) : (
-        <span className="mt-5 inline-flex cursor-not-allowed items-center justify-center rounded-lg bg-gray-100 px-4 py-3 font-medium text-gray-500">Coming soon</span>
+        <span className="mt-5 inline-flex cursor-not-allowed items-center justify-center rounded-lg bg-gray-100 px-4 py-3 font-medium text-gray-700">Coming soon</span>
       )}
     </div>
   );

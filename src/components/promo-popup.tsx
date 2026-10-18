@@ -103,7 +103,7 @@ export default function PromoPopup() {
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={close}
-                  className="rounded-lg bg-[#38b6ff] px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+                  className="rounded-lg bg-[#0a7ac2] px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
                 >
                   {promo.ctaLabel || "Learn more"}
                 </a>
@@ -111,7 +111,7 @@ export default function PromoPopup() {
                 <Link
                   href={promo.link}
                   onClick={close}
-                  className="rounded-lg bg-[#38b6ff] px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+                  className="rounded-lg bg-[#0a7ac2] px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
                 >
                   {promo.ctaLabel || "Learn more"}
                 </Link>

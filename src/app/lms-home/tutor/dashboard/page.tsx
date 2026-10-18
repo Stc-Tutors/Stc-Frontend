@@ -21,7 +21,7 @@ export default function TutorDashboardPage() {
     <TutorProfileIncompleteBanner />
 
     {/* Welcome Section */}
-    <section className="bg-[#38b6ff] p-6 rounded-lg shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+    <section className="bg-[#0a7ac2] p-6 rounded-lg shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
       <div className="flex-1">
         <h2 className="text-xl font-bold text-white">Welcome to your dashboard{user ? `, ${user.firstName}` : ""}!</h2>
         <p className="text-lg text-white mt-8">

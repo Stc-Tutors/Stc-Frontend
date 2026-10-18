@@ -18,7 +18,7 @@ const CareersTeaser = () => {
   const content = usePageSection(PageSectionKey.CAREERS_TEASER, DEFAULT_CAREERS_TEASER);
 
   return (
-    <section className="py-16 px-8 bg-[#38b6ff]">
+    <section className="py-16 px-8 bg-[#0a7ac2]">
       <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-10">
         {content.imageUrl && (
           <div className="flex-1">
@@ -33,11 +33,11 @@ const CareersTeaser = () => {
         )}
         <div className="flex-1 text-white text-center md:text-left">
           <h2 className="text-3xl font-bold mb-3">{content.heading}</h2>
-          <p className="text-white/90 mb-6 max-w-md mx-auto md:mx-0">{content.body}</p>
+          <p className="text-white mb-6 max-w-md mx-auto md:mx-0">{content.body}</p>
           <div className="flex flex-wrap gap-4 justify-center md:justify-start">
             <Link
               href={content.buttonLink}
-              className="inline-block bg-white text-[#38b6ff] px-6 py-3 rounded-md font-semibold hover:bg-blue-100 transition"
+              className="inline-block bg-white text-[#0a7ac2] px-6 py-3 rounded-md font-semibold hover:bg-blue-100 transition"
             >
               {content.buttonText}
             </Link>

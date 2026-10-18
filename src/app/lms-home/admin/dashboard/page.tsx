@@ -55,7 +55,7 @@ export default function AdminDashboardPage() {
   if (!isAdminViewer) {
     return (
       <div className="space-y-6">
-        <section className="bg-[#38b6ff] p-6 rounded-lg shadow-sm">
+        <section className="bg-[#0a7ac2] p-6 rounded-lg shadow-sm">
           <h2 className="text-xl font-bold text-white">HOD Overview</h2>
           <p className="text-white mt-1">Where to act on your Head of Department responsibilities.</p>
         </section>
@@ -119,7 +119,7 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="space-y-6">
-      <section className="bg-[#38b6ff] p-6 rounded-lg shadow-sm">
+      <section className="bg-[#0a7ac2] p-6 rounded-lg shadow-sm">
         <h2 className="text-xl font-bold text-white">Admin Overview</h2>
         <p className="text-white mt-1">Platform-wide users, courses, enrollments and revenue at a glance.</p>
       </section>

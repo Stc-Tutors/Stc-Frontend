@@ -52,7 +52,7 @@ export default function Footer() {
   const { user, logout } = useUser();
 
   return (
-    <footer className="bg-[#38b6ff] text-white p-5">
+    <footer className="bg-[#0a7ac2] text-white p-5">
       {/* Top Section: Social Icons, Logo, Login/Signup */}
       <div className="flex flex-col md:flex-row justify-between items-center gap-3 mb-3">
         {/* Social Icons */}
@@ -65,6 +65,7 @@ export default function Footer() {
                 href={social.url}
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label={`${social.platform} (opens in a new tab)`}
                 className={`w-8 h-8 flex items-center justify-center rounded-full ${icon.bg} ${icon.hoverBg} cursor-pointer`}
               >
                 <SiteIcon value={social.icon || social.platform} size={16} fallback="globe" />
@@ -88,7 +89,7 @@ export default function Footer() {
           {user ? (
             <>
               <Link href={lmsDashboardPath(user.role)}>
-                <span className="bg-white text-[#38b6ff] px-3 py-1.5 rounded-md text-sm hover:bg-blue-100 transition">
+                <span className="bg-white text-[#0a7ac2] px-3 py-1.5 rounded-md text-sm hover:bg-blue-100 transition">
                   {content.dashboardText}
                 </span>
               </Link>
@@ -104,7 +105,7 @@ export default function Footer() {
                 {content.loginText}
               </Link>
               <Link href={ROUTES.AUTH.REGISTER}>
-                <span className="bg-white text-[#38b6ff] px-3 py-1.5 rounded-md text-sm hover:bg-blue-100 transition">
+                <span className="bg-white text-[#0a7ac2] px-3 py-1.5 rounded-md text-sm hover:bg-blue-100 transition">
                   {content.registerText}
                 </span>
               </Link>
@@ -151,7 +152,7 @@ export default function Footer() {
       </div>
 
       {/* Copyright Section */}
-      <div className="mt-3 pt-2 border-t border-white/20 text-center text-sm text-blue-950">
+      <div className="mt-3 pt-2 border-t border-white/20 text-center text-sm text-white">
         <p>
           © {new Date().getFullYear()} {content.copyrightName}. {content.rightsText}
         </p>

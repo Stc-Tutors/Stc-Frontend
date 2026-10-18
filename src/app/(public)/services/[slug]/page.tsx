@@ -37,7 +37,7 @@ export default function ServiceCatchAllPage() {
     return (
       <main className="flex flex-col items-center justify-center py-24 px-6 text-center min-h-[50vh]">
         <h1 className="text-4xl font-bold text-gray-900 mb-3">{service.serviceName}</h1>
-        <p className="text-2xl font-semibold text-[#38b6ff] mb-4">Coming Soon</p>
+        <p className="text-2xl font-semibold text-[#0a7ac2] mb-4">Coming Soon</p>
         <p className="text-gray-600 max-w-md mb-8">
           We&apos;re still putting the finishing touches on this program. Check back soon, or explore our other
           services in the meantime.
@@ -51,7 +51,7 @@ export default function ServiceCatchAllPage() {
           </button>
           <button
             onClick={() => router.push("/services")}
-            className="bg-[#38b6ff] text-white px-6 py-3 rounded-lg hover:bg-[#1c2574] transition"
+            className="bg-[#0a7ac2] text-white px-6 py-3 rounded-lg hover:bg-[#1c2574] transition"
           >
             Browse Services
           </button>

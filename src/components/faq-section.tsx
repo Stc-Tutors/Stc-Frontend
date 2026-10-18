@@ -30,7 +30,7 @@ export function FaqBlock({ heading, intro, items, className }: { heading: string
             <details key={i} className="group p-4">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-medium text-gray-900">
                 {item.question}
-                <span aria-hidden className="text-[#38b6ff] transition-transform group-open:rotate-45 text-xl leading-none">+</span>
+                <span aria-hidden className="text-[#0a7ac2] transition-transform group-open:rotate-45 text-xl leading-none">+</span>
               </summary>
               <div className="mt-3 text-gray-700" dangerouslySetInnerHTML={{ __html: sanitizeRichText(item.answer) }} />
             </details>

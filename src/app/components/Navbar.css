@@ -50,7 +50,7 @@
 }
 
 .link {
-  color: var(--primary-blue);
+  color: #ffffff;
   text-decoration: none;
   font-weight: 500;
   font-size: 1rem;
@@ -60,7 +60,7 @@
 }
 
 .link:hover {
-  color: grey;
+  color: #ffffff;
 }
 
 .link::after {
@@ -70,7 +70,7 @@
   left: 0;
   width: 0;
   height: 2px;
-  background: grey;
+  background: #ffffff;
   transition: width 0.3s ease;
 }
 
@@ -79,7 +79,7 @@
 }
 
 .active {
-  color: grey !important;
+  color: #ffffff !important;
   font-weight: 600;
 }
 
@@ -189,7 +189,7 @@
 
 .mobileLink:hover {
   /* color: var(--primary-blue); */
-  color: grey;
+  color: #ffffff;
   font-weight: 600;
 }
 

@@ -245,7 +245,7 @@ export default function CareerApplicationForm({ opening, onClose }: { opening: J
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-[#38b6ff] text-white px-6 py-3 rounded-md hover:bg-indigo-700 transition disabled:opacity-60"
+              className="w-full bg-[#0a7ac2] text-white px-6 py-3 rounded-md hover:bg-indigo-700 transition disabled:opacity-60"
             >
               {isSubmitting ? "Submitting..." : "Submit application"}
             </button>

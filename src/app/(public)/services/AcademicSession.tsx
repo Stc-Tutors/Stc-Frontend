@@ -71,7 +71,7 @@ const AcademicSession = () => {
               <p className="text-xl text-gray-600 mb-6">{service.description}</p>
               <Link
                 href={`/services/${service.slug}`}
-                className="flex items-center text-[#38b6ff] font-medium hover:text-indigo-300 transition-colors w-fit"
+                className="flex items-center text-[#0a7ac2] font-medium hover:text-indigo-300 transition-colors w-fit"
               >
                 Learn More <span className="ml-2">→</span>
               </Link>

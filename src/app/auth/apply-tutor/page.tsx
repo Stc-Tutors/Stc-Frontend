@@ -16,7 +16,7 @@ export default function ApplyTutorPage() {
       <div className="p-6">
         <Link
           href="/"
-          className="text-[#3b5bdb] underline underline-offset-4 hover:text-[#38b6ff] transition-colors duration-200 flex items-center"
+          className="text-[#3b5bdb] underline underline-offset-4 hover:text-[#0a7ac2] transition-colors duration-200 flex items-center"
         >
           <MoveLeft className="mr-2 h-4 w-4" />
           Back to Home

@@ -29,7 +29,7 @@ const Approach = () => {
       <div className="container mx-auto px-6 md:px-12 lg:px-20">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="bg-white p-8 rounded-lg shadow-md">
-            <h3 className="text-lg font-semibold text-orange-600 flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-orange-700 flex items-center gap-2">
               {content.approachIcon && <SiteIcon value={content.approachIcon} size={22} />}
               Our Values and Approach
             </h3>
@@ -42,7 +42,7 @@ const Approach = () => {
           </div>
 
           <div className="bg-white p-8 rounded-lg shadow-md">
-            <h3 className="text-lg font-semibold text-orange-600 flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-orange-700 flex items-center gap-2">
               {content.whyChooseIcon && <SiteIcon value={content.whyChooseIcon} size={22} />}
               {content.whyChooseTitle}
             </h3>

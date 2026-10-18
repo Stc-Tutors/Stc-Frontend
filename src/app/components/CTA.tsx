@@ -81,7 +81,7 @@ const CTA = () => {
 
         {/* Right Side: Contact Form */}
         <div className="flex-1 bg-white p-6 md:p-8 rounded-lg shadow-lg">
-          <h2 className="text-2xl font-semibold text-[#38b6ff]">{content.headline}</h2>
+          <h2 className="text-2xl font-semibold text-[#0a7ac2]">{content.headline}</h2>
           <p className="mt-2 mb-4">{content.subtext}</p>
           <form className="space-y-4" onSubmit={handleSubmit}>
             <input
@@ -122,7 +122,7 @@ const CTA = () => {
             <button
               type="submit"
               disabled={isSending}
-              className="w-full bg-[#38b6ff] text-white py-3 rounded-md text-lg hover:bg-[#1c2574] transition disabled:opacity-60"
+              className="w-full bg-[#0a7ac2] text-white py-3 rounded-md text-lg hover:bg-[#1c2574] transition disabled:opacity-60"
             >
               {isSending ? "Sending..." : content.submitText}
             </button>

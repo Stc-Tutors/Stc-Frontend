@@ -95,25 +95,25 @@ const Contact = () => {
           >
             {content.phones.map((phone) => (
               <div key={phone} className="flex items-center gap-4">
-                <Phone className="text-[#38b6ff]" />
+                <Phone className="text-[#0a7ac2]" />
                 <span className="text-gray-700">{phone}</span>
               </div>
             ))}
             {content.emails.map((email) => (
               <div key={email} className="flex items-center gap-4">
-                <Mail className="text-[#38b6ff]" />
+                <Mail className="text-[#0a7ac2]" />
                 <span className="text-gray-700">{email}</span>
               </div>
             ))}
             {content.address && (
               <div className="flex items-center gap-4">
-                <MapPin className="text-[#38b6ff]" />
+                <MapPin className="text-[#0a7ac2]" />
                 <span className="text-gray-700">{content.address}</span>
               </div>
             )}
             {content.hours && (
               <div className="flex items-center gap-4">
-                <Clock className="text-[#38b6ff]" />
+                <Clock className="text-[#0a7ac2]" />
                 <span className="text-gray-700">{content.hours}</span>
               </div>
             )}
@@ -128,7 +128,7 @@ const Contact = () => {
               target="_blank"
               rel="noopener noreferrer"
               aria-label={social.platform}
-              className="text-[#38b6ff] hover:text-indigo-800 transition-colors p-2 rounded-full hover:bg-indigo-50"
+              className="text-[#0a7ac2] hover:text-indigo-800 transition-colors p-2 rounded-full hover:bg-indigo-50"
               whileHover={{ y: -2 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -196,7 +196,7 @@ const Contact = () => {
             <button
               type="submit"
               disabled={isSending}
-              className="bg-[#38b6ff] text-white px-6 py-3 rounded-md hover:bg-indigo-700 transition disabled:opacity-60"
+              className="bg-[#0a7ac2] text-white px-6 py-3 rounded-md hover:bg-indigo-700 transition disabled:opacity-60"
             >
               {isSending ? "Sending..." : "Send Message"}
             </button>

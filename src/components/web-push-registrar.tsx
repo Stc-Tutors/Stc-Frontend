@@ -82,12 +82,12 @@ export default function WebPushRegistrar() {
 
   return (
     <div role="region" aria-label="Turn on class reminders" className="fixed inset-x-3 bottom-3 z-50 mx-auto flex max-w-md items-start gap-3 rounded-xl border bg-white p-4 shadow-lg sm:left-auto sm:right-4 sm:mx-0">
-      <BellRing className="mt-0.5 h-5 w-5 shrink-0 text-[#38b6ff]" aria-hidden="true" />
+      <BellRing className="mt-0.5 h-5 w-5 shrink-0 text-[#0a7ac2]" aria-hidden="true" />
       <div className="flex-1 text-sm">
         <p className="font-medium text-gray-900">Never miss a class</p>
         <p className="mt-0.5 text-gray-600">Turn on notifications and we&apos;ll remind you before each class starts - even when this site is closed.</p>
         <div className="mt-3 flex gap-2">
-          <button type="button" onClick={enable} className="rounded-md bg-[#38b6ff] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#1c9ae0]">
+          <button type="button" onClick={enable} className="rounded-md bg-[#0a7ac2] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#1c9ae0]">
             Turn on reminders
           </button>
           <button type="button" onClick={dismiss} className="rounded-md px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100">

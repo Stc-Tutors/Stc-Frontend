@@ -111,13 +111,13 @@ export default function CareersPage() {
       </div>
 
       {/* Stats strip - a quick visual read of the platform. */}
-      <div className="bg-[#38b6ff]">
+      <div className="bg-[#0a7ac2]">
         <div className="max-w-5xl mx-auto px-6 py-10 grid grid-cols-2 md:grid-cols-4 gap-6 text-center text-white">
           {STATS.map(({ icon: Icon, value, label }) => (
             <div key={value} className="flex flex-col items-center gap-2">
               <Icon className="size-7" />
               <p className="text-lg font-bold">{value}</p>
-              <p className="text-xs text-white/80">{label}</p>
+              <p className="text-xs text-white">{label}</p>
             </div>
           ))}
         </div>
@@ -141,7 +141,7 @@ export default function CareersPage() {
               const Icon = BULLET_ICONS[i % BULLET_ICONS.length];
               return (
                 <div key={item} className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex gap-3">
-                  <Icon className="size-6 text-[#38b6ff] shrink-0" />
+                  <Icon className="size-6 text-[#0a7ac2] shrink-0" />
                   <p className="text-sm text-gray-700">{item}</p>
                 </div>
               );
@@ -154,7 +154,7 @@ export default function CareersPage() {
           <ul className="grid sm:grid-cols-2 gap-x-8 gap-y-2">
             {intro.lookingForItems.map((item) => (
               <li key={item} className="flex items-start gap-2 text-gray-600">
-                <CheckCircle2 className="size-5 text-[#38b6ff] shrink-0 mt-0.5" />
+                <CheckCircle2 className="size-5 text-[#0a7ac2] shrink-0 mt-0.5" />
                 <span>{item}</span>
               </li>
             ))}
@@ -193,14 +193,14 @@ export default function CareersPage() {
                       {opening.isTutorRole ? (
                         <Link
                           href="/auth/apply-tutor"
-                          className="inline-block bg-[#38b6ff] text-white px-6 py-3 rounded-md hover:bg-indigo-700 transition text-center"
+                          className="inline-block bg-[#0a7ac2] text-white px-6 py-3 rounded-md hover:bg-indigo-700 transition text-center"
                         >
                           Become a Tutor
                         </Link>
                       ) : (
                         <button
                           onClick={() => setApplyingTo(opening)}
-                          className="bg-[#38b6ff] text-white px-6 py-3 rounded-md hover:bg-indigo-700 transition"
+                          className="bg-[#0a7ac2] text-white px-6 py-3 rounded-md hover:bg-indigo-700 transition"
                         >
                           Apply
                         </button>
@@ -212,7 +212,7 @@ export default function CareersPage() {
                     <>
                       <button
                         onClick={() => setExpandedId(isExpanded ? null : opening.id)}
-                        className="text-sm font-medium text-[#38b6ff] hover:underline mt-3"
+                        className="text-sm font-medium text-[#0a7ac2] hover:underline mt-3"
                       >
                         {isExpanded ? "Hide details" : "View details"}
                       </button>

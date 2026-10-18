@@ -43,7 +43,7 @@ const ServicesSection = () => {
             <ul className="space-y-4">
               {content.features.map((service, index) => (
                 <li key={index} className="flex items-center gap-3">
-                  <span className="text-[#38b6ff] text-xl"><SiteIcon value={service.icon} size={22} /></span>
+                  <span className="text-[#0a7ac2] text-xl"><SiteIcon value={service.icon} size={22} /></span>
                   <span className="text-gray-700">{service.text}</span>
                 </li>
               ))}
