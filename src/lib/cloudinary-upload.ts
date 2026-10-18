@@ -47,12 +47,34 @@ export function validateFileBeforeUpload(file: File, limits: UploadLimits): stri
 // Signed client-side upload: fetches a signature from our backend, then
 // posts the file straight to Cloudinary - the file itself never transits
 // our API server. Used by any tutor-application file_upload field.
+//
+// The direct hop to Cloudinary is the one part that can fail on the visitor's side (a poor or filtered mobile connection, an
+// ad-blocker, antivirus) and the browser reports every such failure as the same unhelpful "Failed to fetch". So a network-level
+// failure is retried once, and if it still fails the file is sent through our own site instead (/api/upload-fallback), which hands it
+// to Cloudinary from the server.
 export async function uploadToCloudinary(file: File, folder: UploadFolder): Promise<UploadedFile> {
   const [res, error] = await GetUploadSignatureAction(folder);
   if (error || !res?.data) {
     throw new Error(error || "Could not prepare file upload");
   }
-  const { signature, timestamp, apiKey, cloudName, allowedFormats, type } = res.data;
+
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      return await postDirectToCloudinary(file, folder, res.data);
+    } catch (err) {
+      if (!(err instanceof NetworkOrServerError)) throw err;
+      if (attempt === 0) await new Promise((resolve) => setTimeout(resolve, 800));
+    }
+  }
+  return uploadViaOurServer(file, folder);
+}
+
+class NetworkOrServerError extends Error {}
+
+type Signature = NonNullable<Awaited<ReturnType<typeof GetUploadSignatureAction>>[0]>["data"];
+
+async function postDirectToCloudinary(file: File, folder: UploadFolder, signed: NonNullable<Signature>): Promise<UploadedFile> {
+  const { signature, timestamp, apiKey, cloudName, allowedFormats, type } = signed;
 
   const formData = new FormData();
   formData.append("file", file);
@@ -67,13 +89,24 @@ export async function uploadToCloudinary(file: File, folder: UploadFolder): Prom
   // otherwise, matching what was actually signed.
   if (type) formData.append("type", type);
 
-  const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`, {
-    method: "POST",
-    body: formData,
-  });
+  let uploadRes: Response;
+  try {
+    uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`, { method: "POST", body: formData });
+  } catch {
+    // fetch only throws when the request never completed (no connection, blocked, cancelled).
+    throw new NetworkOrServerError("network");
+  }
 
   if (!uploadRes.ok) {
-    throw new Error("File upload failed - please try again");
+    if (uploadRes.status >= 500) throw new NetworkOrServerError("server");
+    let message = "File upload failed - please try again";
+    try {
+      const body = await uploadRes.json();
+      if (body?.error?.message) message = `File upload failed: ${body.error.message}`;
+    } catch {
+      // keep the generic message
+    }
+    throw new Error(message);
   }
 
   const uploadData = await uploadRes.json();
@@ -86,4 +119,19 @@ export async function uploadToCloudinary(file: File, folder: UploadFolder): Prom
     fileSizeBytes: uploadData.bytes as number,
     uploadedAt: uploadData.created_at as string,
   };
+}
+
+async function uploadViaOurServer(file: File, folder: UploadFolder): Promise<UploadedFile> {
+  const body = new FormData();
+  body.append("file", file);
+  body.append("folder", folder);
+  let res: Response;
+  try {
+    res = await fetch("/api/upload-fallback", { method: "POST", body });
+  } catch {
+    throw new Error("We couldn't upload your file - please check your internet connection and try again. If it keeps happening, try a different network or browser.");
+  }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data?.message || "File upload failed - please try again");
+  return data as UploadedFile;
 }
