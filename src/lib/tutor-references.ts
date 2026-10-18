@@ -21,6 +21,19 @@ export function referenceDaysLeft(app: TutorApplication | null | undefined): num
   return Math.ceil((new Date(app.referenceDeadline).getTime() - Date.now()) / 86400000);
 }
 
+const APPROVED = ["APPROVED_PENDING_VETTING", "VETTING_SUBMITTED", "APPROVED"];
+
+// How an approved tutor's references stand, for the badges on the review list; null when nothing is outstanding.
+export function referenceState(app: TutorApplication): { label: string; tone: "warn" | "danger" | "muted" } | null {
+  if (!APPROVED.includes(app.status) || pendingReferences(app).length === 0) return null;
+  if (app.referenceWaived) return { label: "References outstanding (waived)", tone: "muted" };
+  const left = referenceDaysLeft(app);
+  if (left === null) return { label: "References outstanding", tone: "warn" };
+  return left < 0 || new Date(app.referenceDeadline!).getTime() < Date.now()
+    ? { label: "References overdue - tutor locked", tone: "danger" }
+    : { label: `References due in ${left}d`, tone: "warn" };
+}
+
 export function referencesLocked(app: TutorApplication | null | undefined): boolean {
   const left = referenceDaysLeft(app);
   return left !== null && new Date(app!.referenceDeadline!).getTime() < Date.now() && pendingReferences(app).length > 0;

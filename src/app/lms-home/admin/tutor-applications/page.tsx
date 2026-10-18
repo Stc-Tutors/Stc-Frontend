@@ -20,6 +20,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import FullApplicationDetails from "@/components/tutor-applications/full-application-details";
 import ResourcePreviewDialog from "@/components/resources/ResourcePreviewDialog";
+import { referenceState } from "@/lib/tutor-references";
 import { TutorFilterBar, emptyTutorFilters, tutorFiltersToParams, type TutorFilterValues } from "@/components/tutor-filters/tutor-filter-bar";
 
 export default function TutorApplicationsPage() {
@@ -310,6 +311,18 @@ Approve anyway?`)) return;
                     {app.status}
                   </span>
                 )}
+                {(() => {
+                  const refs = referenceState(app);
+                  return refs ? (
+                    <span
+                      className={`ml-2 inline-block text-xs px-2 py-1 rounded-full font-medium ${
+                        refs.tone === "danger" ? "bg-red-100 text-red-700" : refs.tone === "warn" ? "bg-amber-100 text-amber-800" : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      {refs.label}
+                    </span>
+                  ) : null;
+                })()}
               </div>
             );
           })}

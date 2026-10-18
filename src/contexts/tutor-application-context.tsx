@@ -260,6 +260,8 @@ export function TutorApplicationProvider({ children }: { children: ReactNode }) 
           lessonPlanText: application.lessonPlanText,
           internalExpectedPayMin: application.internalExpectedPayMin,
           internalExpectedPayMax: application.internalExpectedPayMax,
+          internalExpectedPayMinCurrency: application.internalExpectedPayMinCurrency,
+          internalExpectedPayMaxCurrency: application.internalExpectedPayMaxCurrency,
         },
         step9: {
           payoutMethod: application.payoutMethod,

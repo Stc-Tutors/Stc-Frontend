@@ -558,9 +558,9 @@ export const TUTOR_FIELD_REGISTRY: TutorFieldEntry[] = [
     stepTitle: "Final Evaluation",
     getValue: (a) =>
       a.internalExpectedPayMin != null && a.internalExpectedPayMax != null
-        ? { min: a.internalExpectedPayMin, max: a.internalExpectedPayMax }
+        ? { min: a.internalExpectedPayMin, max: a.internalExpectedPayMax, minCur: a.internalExpectedPayMinCurrency ?? "NGN", maxCur: a.internalExpectedPayMaxCurrency ?? "NGN" }
         : undefined,
-    format: (v: { min: number; max: number }) => `${formatMoney(v.min)} - ${formatMoney(v.max)} / hr`,
+    format: (v: { min: number; max: number; minCur: string; maxCur: string }) => `${formatMoney(v.min, v.minCur)} - ${formatMoney(v.max, v.maxCur)} / hr`,
   },
 
   // Step 10: Payment & Referral

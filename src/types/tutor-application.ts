@@ -258,6 +258,8 @@ export interface TutorApplication {
   reference2Response?: ReferenceResponse;
   // Set at approval when a referee hadn't replied yet: the date by which every reference must be in, or the dashboard locks.
   referenceDeadline?: string;
+  referenceWaived?: boolean;
+  referenceWaivedAt?: string;
 
   // Step 5: Technical Readiness
   devices?: string[];
@@ -290,6 +292,9 @@ export interface TutorApplication {
   lessonPlanText?: string;
   internalExpectedPayMin?: number;
   internalExpectedPayMax?: number;
+  // ISO codes; the lowest and highest amounts can each be in a different currency. Absent on older applications (read as NGN).
+  internalExpectedPayMinCurrency?: string;
+  internalExpectedPayMaxCurrency?: string;
 
   // Step 9: Payment & Referral
   payoutMethod?: PayoutMethod;
@@ -478,6 +483,8 @@ export interface TutorApplicationStep8Payload {
   lessonPlanText?: string;
   internalExpectedPayMin: number;
   internalExpectedPayMax: number;
+  internalExpectedPayMinCurrency?: string;
+  internalExpectedPayMaxCurrency?: string;
 }
 
 export interface TutorApplicationStep9Payload {

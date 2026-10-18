@@ -1,5 +1,6 @@
 "use client";
 
+import { CURRENCIES } from "@/types/service-pricing";
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,6 +32,9 @@ export default function FinalEvaluationStep({ onNext, errors }: StepProps) {
   const [finalFeedbackApproach, setFinalFeedbackApproach] = useState(draft.step8.finalFeedbackApproach || "");
   const [internalExpectedPayMin, setInternalExpectedPayMin] = useState(draft.step8.internalExpectedPayMin ?? 0);
   const [internalExpectedPayMax, setInternalExpectedPayMax] = useState(draft.step8.internalExpectedPayMax ?? 0);
+  // The lowest and the highest amount each have their own currency.
+  const [internalExpectedPayMinCurrency, setInternalExpectedPayMinCurrency] = useState(draft.step8.internalExpectedPayMinCurrency ?? "NGN");
+  const [internalExpectedPayMaxCurrency, setInternalExpectedPayMaxCurrency] = useState(draft.step8.internalExpectedPayMaxCurrency ?? "NGN");
 
   const { fields: customFields } = useCustomFormFields(STAGE);
   const customFieldResponses = draft.customFieldResponses;
@@ -46,7 +50,7 @@ export default function FinalEvaluationStep({ onNext, errors }: StepProps) {
         stepErrors.finalFeedbackApproach = `Please write at least ${MIN_RESPONSE_LENGTH} characters`;
       }
       if (internalExpectedPayMin < 0) stepErrors.internalExpectedPayMin = "Enter a valid amount";
-      if (internalExpectedPayMax < internalExpectedPayMin) {
+      if (internalExpectedPayMinCurrency === internalExpectedPayMaxCurrency && internalExpectedPayMax < internalExpectedPayMin) {
         stepErrors.internalExpectedPayMax = "Must be greater than or equal to the lowest amount";
       }
 
@@ -64,6 +68,8 @@ export default function FinalEvaluationStep({ onNext, errors }: StepProps) {
           finalFeedbackApproach,
           internalExpectedPayMin,
           internalExpectedPayMax,
+          internalExpectedPayMinCurrency,
+          internalExpectedPayMaxCurrency,
         });
       } else {
         onNext(stepErrors);
@@ -77,6 +83,8 @@ export default function FinalEvaluationStep({ onNext, errors }: StepProps) {
     finalFeedbackApproach,
     internalExpectedPayMin,
     internalExpectedPayMax,
+    internalExpectedPayMinCurrency,
+    internalExpectedPayMaxCurrency,
     customFields,
     customFieldResponses,
     onNext,
@@ -116,7 +124,7 @@ export default function FinalEvaluationStep({ onNext, errors }: StepProps) {
           </div>
 
           <div className="space-y-2">
-            <Label>Expected Hourly Pay (Naira)</Label>
+            <Label>Expected hourly pay</Label>
             <p className="text-xs text-gray-500">
               This is for our internal planning only - STC pays tutors a share of what the student pays rather than a
               named rate, so this won&apos;t be used to set your actual pay.
@@ -124,26 +132,54 @@ export default function FinalEvaluationStep({ onNext, errors }: StepProps) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="internalExpectedPayMin">Lowest expected pay per hour *</Label>
-                <Input
-                  id="internalExpectedPayMin"
-                  type="number"
-                  min={0}
-                  value={internalExpectedPayMin}
-                  onChange={(e) => setInternalExpectedPayMin(Number(e.target.value))}
-                  className={errors.internalExpectedPayMin ? "border-red-500" : ""}
-                />
+                <div className="flex gap-2">
+                  <select
+                    aria-label="Currency for the lowest amount"
+                    value={internalExpectedPayMinCurrency}
+                    onChange={(e) => setInternalExpectedPayMinCurrency(e.target.value)}
+                    className="rounded-md border border-input bg-white px-2 text-sm"
+                  >
+                    {CURRENCIES.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </select>
+                  <Input
+                    id="internalExpectedPayMin"
+                    type="number"
+                    min={0}
+                    value={internalExpectedPayMin}
+                    onChange={(e) => setInternalExpectedPayMin(Number(e.target.value))}
+                    className={errors.internalExpectedPayMin ? "border-red-500" : ""}
+                  />
+                </div>
                 {errors.internalExpectedPayMin && <p className="text-red-600 text-sm">{errors.internalExpectedPayMin}</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="internalExpectedPayMax">Highest expected pay per hour *</Label>
-                <Input
-                  id="internalExpectedPayMax"
-                  type="number"
-                  min={0}
-                  value={internalExpectedPayMax}
-                  onChange={(e) => setInternalExpectedPayMax(Number(e.target.value))}
-                  className={errors.internalExpectedPayMax ? "border-red-500" : ""}
-                />
+                <div className="flex gap-2">
+                  <select
+                    aria-label="Currency for the highest amount"
+                    value={internalExpectedPayMaxCurrency}
+                    onChange={(e) => setInternalExpectedPayMaxCurrency(e.target.value)}
+                    className="rounded-md border border-input bg-white px-2 text-sm"
+                  >
+                    {CURRENCIES.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </select>
+                  <Input
+                    id="internalExpectedPayMax"
+                    type="number"
+                    min={0}
+                    value={internalExpectedPayMax}
+                    onChange={(e) => setInternalExpectedPayMax(Number(e.target.value))}
+                    className={errors.internalExpectedPayMax ? "border-red-500" : ""}
+                  />
+                </div>
                 {errors.internalExpectedPayMax && <p className="text-red-600 text-sm">{errors.internalExpectedPayMax}</p>}
               </div>
             </div>

@@ -20,6 +20,10 @@ export interface TutorFilterValues {
   classFormat: string[];
   minYears: string;
   maxYears: string;
+  // Hourly pay the tutor expects: matches tutors whose own range overlaps this one (amounts are converted to payCurrency).
+  minPay: string;
+  maxPay: string;
+  payCurrency: string;
   availableDay: string[];
   availableFrom: string;
   availableTo: string;
@@ -42,6 +46,9 @@ export const emptyTutorFilters = (): TutorFilterValues => ({
   classFormat: [],
   minYears: "",
   maxYears: "",
+  minPay: "",
+  maxPay: "",
+  payCurrency: "NGN",
   availableDay: [],
   availableFrom: "",
   availableTo: "",
@@ -61,16 +68,23 @@ export function tutorFiltersToParams(v: TutorFilterValues, opts: { searchKey?: s
   put(opts.searchKey ?? "q", v.q);
   (["service", "subject", "curriculum", "gradeLevel", "examBoard", "ageRange", "country", "language", "qualification", "classFormat", "availableDay"] as const).forEach((k) => put(k, v[k]));
   (["minYears", "maxYears", "availableFrom", "availableTo", "dateFrom", "dateTo"] as const).forEach((k) => put(k, v[k]));
+  // The currency only means something alongside an amount.
+  if (v.minPay.trim() || v.maxPay.trim()) {
+    put("minPay", v.minPay);
+    put("maxPay", v.maxPay);
+    put("payCurrency", v.payCurrency);
+  }
   if (v.sort !== "newest") out.sort = v.sort;
   return out;
 }
 
 export function activeTutorFilterCount(v: TutorFilterValues): number {
   const arrays = [v.service, v.subject, v.curriculum, v.gradeLevel, v.examBoard, v.ageRange, v.country, v.language, v.qualification, v.classFormat, v.availableDay];
-  const strings = [v.minYears, v.maxYears, v.availableFrom, v.availableTo, v.dateFrom, v.dateTo];
+  const strings = [v.minYears, v.maxYears, v.minPay, v.maxPay, v.availableFrom, v.availableTo, v.dateFrom, v.dateTo];
   return arrays.filter((a) => a.length > 0).length + strings.filter((s) => s !== "").length;
 }
 
+const PAY_CURRENCIES = ["NGN", "USD", "GBP", "EUR", "CAD", "GHS", "ZAR", "KES", "AUD", "AED", "INR"];
 const WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const CLASS_FORMATS = [
   { value: "ONE_ON_ONE_ONLY", label: "One-on-one" },
@@ -233,6 +247,26 @@ export function TutorFilterBar({ value, onChange, showDates, hideSearch, hideSor
                 Max yrs
                 <input type="number" min={0} value={value.maxYears} onChange={(e) => set("maxYears", e.target.value)} className="w-full rounded-md border px-2 py-1.5" />
               </label>
+              <div className="col-span-2 md:col-span-4">
+                <p className="mb-1 text-xs text-gray-500">Expected pay per hour - finds tutors whose own range overlaps yours</p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <select value={value.payCurrency} onChange={(e) => set("payCurrency", e.target.value)} aria-label="Currency" className="rounded-md border bg-white px-2 py-1.5 text-sm">
+                    {PAY_CURRENCIES.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </select>
+                  <label className="flex items-center gap-2 text-sm text-gray-600">
+                    Min
+                    <input type="number" min={0} value={value.minPay} onChange={(e) => set("minPay", e.target.value)} className="w-28 rounded-md border px-2 py-1.5" />
+                  </label>
+                  <label className="flex items-center gap-2 text-sm text-gray-600">
+                    Max
+                    <input type="number" min={0} value={value.maxPay} onChange={(e) => set("maxPay", e.target.value)} className="w-28 rounded-md border px-2 py-1.5" />
+                  </label>
+                </div>
+              </div>
               {showDates && (
                 <>
                   <label className="flex items-center gap-2 text-sm text-gray-600">
