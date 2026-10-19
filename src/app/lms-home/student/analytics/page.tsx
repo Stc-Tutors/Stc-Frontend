@@ -6,9 +6,6 @@ import DownloadReport from "@/components/studentDashboard/DownloadReport";
 import AnalyticsChart from "@/components/studentDashboard/AnalyticsChart";
 import { Card } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
-import { GetEnrollmentsAction } from "@/server/enrollment";
-import { GetStudentCoursesAction } from "@/server/course-enrollment";
-import { GetCourseLessonsAction } from "@/server/lesson";
 import { GetCourseAssignmentsAction } from "@/server/assignment";
 import { GetStudentAttendanceAction } from "@/server/attendance";
 import { GetMySubmissionsAction } from "@/server/submission";
@@ -19,6 +16,7 @@ import { AttendanceStatus } from "@/types/attendance";
 import { Assignment } from "@/types/assignment";
 import { Course } from "@/types/course";
 import { Notification } from "@/types/notification";
+import { GetCourseLessonsCached, GetEnrollmentsCached, GetStudentCoursesCached } from "@/lib/cached-reads";
 
 interface ProgressCard {
   title: string;
@@ -36,7 +34,7 @@ export default function AnalyticsPage() {
 
   useEffect(() => {
     const load = async () => {
-      const [enrollmentsRes] = await GetEnrollmentsAction();
+      const [enrollmentsRes] = await GetEnrollmentsCached();
       const studentId = enrollmentsRes?.data?.[0]?.id;
 
       const [notificationsRes] = await GetNotificationsAction();
@@ -47,7 +45,7 @@ export default function AnalyticsPage() {
         return;
       }
 
-      const [courseEnrollmentsRes] = await GetStudentCoursesAction(studentId);
+      const [courseEnrollmentsRes] = await GetStudentCoursesCached(studentId);
       const enrollments = courseEnrollmentsRes?.data ?? [];
       const courses = enrollments
         .map((e) => (typeof e.course === "string" ? null : (e.course as Course)))
@@ -60,7 +58,7 @@ export default function AnalyticsPage() {
       });
 
       const [lessonLists, assignmentLists, [attendanceRes], [submissionsRes]] = await Promise.all([
-        Promise.all(courses.map((c) => GetCourseLessonsAction(c.id))),
+        Promise.all(courses.map((c) => GetCourseLessonsCached(c.id))),
         Promise.all(courses.map((c) => GetCourseAssignmentsAction(c.id))),
         GetStudentAttendanceAction(studentId),
         GetMySubmissionsAction(),

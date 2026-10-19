@@ -5,9 +5,9 @@ import { MessageSquare, CalendarDays } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { GetLinkedStudentsAction, GetEnrollmentsAction } from "@/server/enrollment";
 import { StartSupportConversationAction } from "@/server/message";
 import { Student } from "@/types/student";
+import { GetEnrollmentsCached, GetLinkedStudentsCached } from "@/lib/cached-reads";
 
 interface ParentAnalyticsHeaderProps {
   onStudentChange?: (studentId: string) => void;
@@ -22,8 +22,8 @@ export default function ParentAnalyticsHeader({ onStudentChange }: ParentAnalyti
 
   useEffect(() => {
     const load = async () => {
-      const [linkedRes] = await GetLinkedStudentsAction();
-      const [ownRes] = await GetEnrollmentsAction();
+      const [linkedRes] = await GetLinkedStudentsCached();
+      const [ownRes] = await GetEnrollmentsCached();
 
       const byId = new Map<string, Student>();
       [...(linkedRes?.data ?? []), ...(ownRes?.data ?? [])].forEach((s) => byId.set(s.id, s));

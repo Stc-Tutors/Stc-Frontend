@@ -2,10 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { Circle } from "rc-progress";
-import { GetEnrollmentsAction } from "@/server/enrollment";
-import { GetStudentCoursesAction } from "@/server/course-enrollment";
 import { GetNotificationsAction } from "@/server/notification";
 import { Course } from "@/types/course";
+import { GetEnrollmentsCached, GetStudentCoursesCached } from "@/lib/cached-reads";
 
 const LEGEND_COLORS = ["bg-blue-500", "bg-orange-500", "bg-sky-400", "bg-green-500", "bg-purple-500"];
 
@@ -18,11 +17,11 @@ export default function LessonProgress() {
 
   useEffect(() => {
     const load = async () => {
-      const [enrollmentsRes] = await GetEnrollmentsAction();
+      const [enrollmentsRes] = await GetEnrollmentsCached();
       const studentId = enrollmentsRes?.data?.[0]?.id;
 
       if (studentId) {
-        const [courseEnrollmentsRes] = await GetStudentCoursesAction(studentId);
+        const [courseEnrollmentsRes] = await GetStudentCoursesCached(studentId);
         const enrollments = courseEnrollmentsRes?.data ?? [];
         if (enrollments.length > 0) {
           const avg = Math.round(

@@ -3,11 +3,11 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { GetMyCoursesAction } from "@/server/course";
-import { GetCourseLessonsAction } from "@/server/lesson";
 import { Course } from "@/types/course";
 import { Lesson } from "@/types/lesson";
 import { formatScheduleTime } from "@/lib/datetime";
 import { WEEKDAYS_SUNDAY_FIRST_ABBREVIATED } from "@/constants/weekdays";
+import { GetCourseLessonsCached } from "@/lib/cached-reads";
 
 interface Row {
   lesson: Lesson;
@@ -53,7 +53,7 @@ export default function CalendarPreview() {
       const [coursesRes] = await GetMyCoursesAction();
       const courses = coursesRes?.data ?? [];
 
-      const lessonLists = await Promise.all(courses.map((c) => GetCourseLessonsAction(c.id)));
+      const lessonLists = await Promise.all(courses.map((c) => GetCourseLessonsCached(c.id)));
 
       const allRows: Row[] = [];
       lessonLists.forEach(([res], i) => {

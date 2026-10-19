@@ -10,9 +10,8 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
-import { GetEnrollmentsAction } from "@/server/enrollment";
-import { GetStudentCoursesAction } from "@/server/course-enrollment";
 import { Course } from "@/types/course";
+import { GetEnrollmentsCached, GetStudentCoursesCached } from "@/lib/cached-reads";
 
 interface CourseProgress {
   name: string;
@@ -25,14 +24,14 @@ export default function PerformanceChart() {
 
   useEffect(() => {
     const load = async () => {
-      const [enrollmentsRes] = await GetEnrollmentsAction();
+      const [enrollmentsRes] = await GetEnrollmentsCached();
       const studentId = enrollmentsRes?.data?.[0]?.id;
       if (!studentId) {
         setIsLoading(false);
         return;
       }
 
-      const [courseEnrollmentsRes] = await GetStudentCoursesAction(studentId);
+      const [courseEnrollmentsRes] = await GetStudentCoursesCached(studentId);
       const enrollments = courseEnrollmentsRes?.data ?? [];
 
       setData(

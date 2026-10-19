@@ -8,15 +8,13 @@ import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import AnalyticsChart from "@/components/studentDashboard/AnalyticsChart";
 import DownloadReport from "@/components/studentDashboard/DownloadReport";
-import { GetEnrollmentsAction } from "@/server/enrollment";
-import { GetStudentCoursesAction } from "@/server/course-enrollment";
-import { GetCourseLessonsAction } from "@/server/lesson";
 import { GetStudentAttendanceAction } from "@/server/attendance";
 import { CourseEnrollmentStatus } from "@/types/course-enrollment";
 import { LessonStatus, Lesson } from "@/types/lesson";
 import { AttendanceStatus, Attendance } from "@/types/attendance";
 import { Course } from "@/types/course";
 import { studentAvatarUrl } from "@/types/student";
+import { GetCourseLessonsCached, GetEnrollmentsCached, GetStudentCoursesCached } from "@/lib/cached-reads";
 
 interface ProgressCard {
   title: string;
@@ -45,7 +43,7 @@ export default function StudentAttendancePage() {
 
   useEffect(() => {
     const load = async () => {
-      const [enrollmentsRes] = await GetEnrollmentsAction();
+      const [enrollmentsRes] = await GetEnrollmentsCached();
       const student = enrollmentsRes?.data?.[0];
       const studentId = student?.id;
       if (student) {
@@ -58,7 +56,7 @@ export default function StudentAttendancePage() {
         return;
       }
 
-      const [courseEnrollmentsRes] = await GetStudentCoursesAction(studentId);
+      const [courseEnrollmentsRes] = await GetStudentCoursesCached(studentId);
       const enrollments = courseEnrollmentsRes?.data ?? [];
       const courses = enrollments
         .map((e) => (typeof e.course === "string" ? null : (e.course as Course)))
@@ -71,7 +69,7 @@ export default function StudentAttendancePage() {
       });
 
       const [lessonLists, [attendanceRes]] = await Promise.all([
-        Promise.all(courses.map((c) => GetCourseLessonsAction(c.id))),
+        Promise.all(courses.map((c) => GetCourseLessonsCached(c.id))),
         GetStudentAttendanceAction(studentId),
       ]);
 

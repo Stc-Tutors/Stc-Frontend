@@ -3,12 +3,10 @@
 import React, { useEffect, useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
-import { GetEnrollmentsAction, GetLinkedStudentsAction } from "@/server/enrollment";
-import { GetStudentCoursesAction } from "@/server/course-enrollment";
-import { GetCourseLessonsAction } from "@/server/lesson";
 import { Course } from "@/types/course";
 import { Lesson } from "@/types/lesson";
 import { formatScheduleTime } from "@/lib/datetime";
+import { GetCourseLessonsCached, GetEnrollmentsCached, GetLinkedStudentsCached, GetStudentCoursesCached } from "@/lib/cached-reads";
 
 interface Row {
   lesson: Lesson;
@@ -40,13 +38,13 @@ export default function ParentCalendar() {
 
   useEffect(() => {
     const load = async () => {
-      const [linkedRes] = await GetLinkedStudentsAction();
-      const [ownRes] = await GetEnrollmentsAction();
+      const [linkedRes] = await GetLinkedStudentsCached();
+      const [ownRes] = await GetEnrollmentsCached();
       const byId = new Map<string, true>();
       [...(linkedRes?.data ?? []), ...(ownRes?.data ?? [])].forEach((s) => byId.set(s.id, true));
 
       const courseEnrollmentLists = await Promise.all(
-        Array.from(byId.keys()).map((id) => GetStudentCoursesAction(id))
+        Array.from(byId.keys()).map((id) => GetStudentCoursesCached(id))
       );
 
       const courses = new Map<string, Course>();
@@ -57,7 +55,7 @@ export default function ParentCalendar() {
       });
 
       const lessonLists = await Promise.all(
-        Array.from(courses.keys()).map((courseId) => GetCourseLessonsAction(courseId))
+        Array.from(courses.keys()).map((courseId) => GetCourseLessonsCached(courseId))
       );
 
       const allRows: Row[] = [];

@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { GetStudentCoursesAction } from "@/server/course-enrollment";
 import { CourseEnrollmentStatus } from "@/types/course-enrollment";
+import { GetStudentCoursesCached } from "@/lib/cached-reads";
 
 interface CourseProgressChartProps {
   studentId?: string;
@@ -28,7 +28,7 @@ export default function CourseProgressChart({ studentId }: CourseProgressChartPr
     }
     const load = async () => {
       setIsLoading(true);
-      const [res] = await GetStudentCoursesAction(studentId);
+      const [res] = await GetStudentCoursesCached(studentId);
       const enrollments = res?.data ?? [];
       setRows(
         enrollments.map((e) => ({

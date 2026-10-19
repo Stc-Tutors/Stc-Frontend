@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 import { Circle } from "rc-progress";
 import { GetMyCoursesAction } from "@/server/course";
-import { GetCourseLessonsAction } from "@/server/lesson";
 import { GetNotificationsAction } from "@/server/notification";
 import { LessonStatus } from "@/types/lesson";
+import { GetCourseLessonsCached } from "@/lib/cached-reads";
 
 const LEGEND_COLORS = ["bg-blue-500", "bg-orange-500", "bg-sky-400", "bg-green-500", "bg-purple-500"];
 
@@ -22,7 +22,7 @@ export default function LessonProgress() {
       const courses = coursesRes?.data ?? [];
       setCourseNames(courses.map((c) => c.title).slice(0, 3));
 
-      const lessonLists = await Promise.all(courses.map((c) => GetCourseLessonsAction(c.id)));
+      const lessonLists = await Promise.all(courses.map((c) => GetCourseLessonsCached(c.id)));
       const allLessons = lessonLists.flatMap(([res]) => res?.data ?? []);
       if (allLessons.length > 0) {
         setProgress(

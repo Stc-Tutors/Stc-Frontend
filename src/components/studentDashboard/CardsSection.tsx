@@ -8,11 +8,10 @@ import {
   Users,
   Baby,
 } from "lucide-react";
-import { GetEnrollmentsAction, GetLinkedStudentsAction } from "@/server/enrollment";
-import { GetStudentCoursesAction } from "@/server/course-enrollment";
 import { CourseEnrollmentStatus } from "@/types/course-enrollment";
 import { CourseTutor } from "@/types/course";
 import { matchesSelectedStudent, useSelectedStudent } from "@/contexts/selected-student-context";
+import { GetEnrollmentsCached, GetLinkedStudentsCached, GetStudentCoursesCached } from "@/lib/cached-reads";
 
 // showChildrenCount is only passed from the Parent dashboard - a student's
 // own dashboard has no "children" concept.
@@ -22,8 +21,8 @@ export default function CardsSection({ showChildrenCount = false }: { showChildr
 
   useEffect(() => {
     const load = async () => {
-      const [linkedRes] = await GetLinkedStudentsAction();
-      const [ownRes] = await GetEnrollmentsAction();
+      const [linkedRes] = await GetLinkedStudentsCached();
+      const [ownRes] = await GetEnrollmentsCached();
       const allStudents = [...(linkedRes?.data ?? []), ...(ownRes?.data ?? [])];
       const studentIds = new Set(
         (isAllSelected ? allStudents : allStudents.filter((s) => matchesSelectedStudent(s, selectedId))).map(
@@ -36,7 +35,7 @@ export default function CardsSection({ showChildrenCount = false }: { showChildr
       }
 
       const courseEnrollmentLists = await Promise.all(
-        Array.from(studentIds).map((id) => GetStudentCoursesAction(id))
+        Array.from(studentIds).map((id) => GetStudentCoursesCached(id))
       );
       const enrollments = courseEnrollmentLists.flatMap(([res]) => res?.data ?? []);
 

@@ -7,13 +7,11 @@ import JoinClassLink from "@/components/classroom/JoinClassLink";
 import { hasJoinableClass } from "@/lib/class-join-window";
 import { CalendarClock } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { GetLinkedStudentsAction, GetEnrollmentsAction } from "@/server/enrollment";
-import { GetStudentCoursesAction } from "@/server/course-enrollment";
 import { formatScheduleTime } from "@/lib/datetime";
-import { GetCourseLessonsAction } from "@/server/lesson";
 import { GetNotificationsAction } from "@/server/notification";
 import { Course, CourseTutor } from "@/types/course";
 import { Lesson, LessonStatus } from "@/types/lesson";
+import { GetCourseLessonsCached, GetEnrollmentsCached, GetLinkedStudentsCached, GetStudentCoursesCached } from "@/lib/cached-reads";
 
 interface Row {
   lesson: Lesson;
@@ -41,13 +39,13 @@ export default function TodayLectureCard() {
 
   useEffect(() => {
     const load = async () => {
-      const [linkedRes] = await GetLinkedStudentsAction();
-      const [ownRes] = await GetEnrollmentsAction();
+      const [linkedRes] = await GetLinkedStudentsCached();
+      const [ownRes] = await GetEnrollmentsCached();
       const byId = new Map<string, true>();
       [...(linkedRes?.data ?? []), ...(ownRes?.data ?? [])].forEach((s) => byId.set(s.id, true));
       const studentIds = Array.from(byId.keys());
 
-      const courseEnrollmentLists = await Promise.all(studentIds.map((id) => GetStudentCoursesAction(id)));
+      const courseEnrollmentLists = await Promise.all(studentIds.map((id) => GetStudentCoursesCached(id)));
 
       const courseStudent = new Map<string, { course: Course; studentId: string }>();
       courseEnrollmentLists.forEach(([res], i) => {
@@ -59,7 +57,7 @@ export default function TodayLectureCard() {
       });
 
       const courseIds = Array.from(courseStudent.keys());
-      const lessonLists = await Promise.all(courseIds.map((id) => GetCourseLessonsAction(id)));
+      const lessonLists = await Promise.all(courseIds.map((id) => GetCourseLessonsCached(id)));
 
       let allLessons: Lesson[] = [];
       const todayRows: Row[] = [];

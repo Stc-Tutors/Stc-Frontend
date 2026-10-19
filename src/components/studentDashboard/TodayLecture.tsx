@@ -4,14 +4,12 @@ import { useEffect, useState } from "react";
 import { CalendarClock } from "lucide-react";
 import JoinClassLink from "@/components/classroom/JoinClassLink";
 import { hasJoinableClass } from "@/lib/class-join-window";
-import { GetLinkedStudentsAction, GetEnrollmentsAction } from "@/server/enrollment";
-import { GetStudentCoursesAction } from "@/server/course-enrollment";
 import { formatScheduleTime } from "@/lib/datetime";
-import { GetCourseLessonsAction } from "@/server/lesson";
 import { Course } from "@/types/course";
 import { Lesson } from "@/types/lesson";
 import { matchesSelectedStudent, useSelectedStudent } from "@/contexts/selected-student-context";
 import { courseTutorName } from "@/lib/tutor-name";
+import { GetCourseLessonsCached, GetEnrollmentsCached, GetLinkedStudentsCached, GetStudentCoursesCached } from "@/lib/cached-reads";
 
 interface Row {
   lesson: Lesson;
@@ -34,15 +32,15 @@ export default function TodayLectures() {
 
   useEffect(() => {
     const load = async () => {
-      const [linkedRes] = await GetLinkedStudentsAction();
-      const [ownRes] = await GetEnrollmentsAction();
+      const [linkedRes] = await GetLinkedStudentsCached();
+      const [ownRes] = await GetEnrollmentsCached();
       const allStudents = [...(linkedRes?.data ?? []), ...(ownRes?.data ?? [])];
       const filtered = isAllSelected ? allStudents : allStudents.filter((s) => matchesSelectedStudent(s, selectedId));
       const byId = new Map<string, string>();
       filtered.forEach((s) => byId.set(s.id, s.fullName));
 
       const studentIds = Array.from(byId.keys());
-      const courseEnrollmentLists = await Promise.all(studentIds.map((id) => GetStudentCoursesAction(id)));
+      const courseEnrollmentLists = await Promise.all(studentIds.map((id) => GetStudentCoursesCached(id)));
 
       const courses = new Map<string, Course>();
       // Which of the children in view each course belongs to - a shared course (siblings in the same group class,
@@ -62,7 +60,7 @@ export default function TodayLectures() {
       });
 
       const lessonLists = await Promise.all(
-        Array.from(courses.keys()).map((courseId) => GetCourseLessonsAction(courseId))
+        Array.from(courses.keys()).map((courseId) => GetCourseLessonsCached(courseId))
       );
 
       // Only worth labelling when more than one child is actually in view this render.

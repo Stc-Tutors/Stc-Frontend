@@ -4,9 +4,9 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { GetEnrollmentsAction, GetLinkedStudentsAction } from "@/server/enrollment";
 import { EnrollmentStatus, Student } from "@/types/student";
 import { hasServiceToPay } from "@/lib/enrollment-payable";
+import { GetEnrollmentsCached, GetLinkedStudentsCached } from "@/lib/cached-reads";
 
 // Surfaces a child whose registration was started but never finished, right
 // on the dashboard - mirrors the DRAFT/PENDING actions already in
@@ -27,7 +27,7 @@ export default function IncompleteEnrollmentBanner({
 
   useEffect(() => {
     (async () => {
-      const [res] = source === "linked" ? await GetLinkedStudentsAction() : await GetEnrollmentsAction();
+      const [res] = source === "linked" ? await GetLinkedStudentsCached() : await GetEnrollmentsCached();
       const students = res?.data ?? [];
       setIncomplete(
         students.filter(

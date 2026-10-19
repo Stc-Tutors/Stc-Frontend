@@ -3,15 +3,15 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { AlertCircle } from "lucide-react";
-import { GetEnrollmentsAction, GetLinkedStudentsAction } from "@/server/enrollment";
 import { EnrollmentStatus, Student } from "@/types/student";
+import { GetEnrollmentsCached, GetLinkedStudentsCached } from "@/lib/cached-reads";
 
 export default function PendingEnrollmentBanner({ basePath, source }: { basePath: string; source: "mine" | "linked" }) {
   const [pending, setPending] = useState<Student[]>([]);
 
   useEffect(() => {
     (async () => {
-      const [res] = source === "linked" ? await GetLinkedStudentsAction() : await GetEnrollmentsAction();
+      const [res] = source === "linked" ? await GetLinkedStudentsCached() : await GetEnrollmentsCached();
       const students = res?.data ?? [];
       setPending(students.filter((s) => s.enrollmentStatus === EnrollmentStatus.PENDING_PARENT_CONFIRMATION));
     })();

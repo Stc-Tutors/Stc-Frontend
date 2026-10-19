@@ -8,11 +8,10 @@ import { Button } from "@/components/ui/button";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import ParentCalendar from "./parentCalendar";
 import TodayLectures from "../studentDashboard/TodayLecture";
-import { GetEnrollmentsAction, GetLinkedStudentsAction } from "@/server/enrollment";
-import { GetStudentCoursesAction } from "@/server/course-enrollment";
 import { GetNotificationsAction } from "@/server/notification";
 import { Notification } from "@/types/notification";
 import { groupStudentsByChild, matchesSelectedStudent, useSelectedStudent } from "@/contexts/selected-student-context";
+import { GetEnrollmentsCached, GetLinkedStudentsCached, GetStudentCoursesCached } from "@/lib/cached-reads";
 
 interface ChildProgress {
   name: string;
@@ -27,8 +26,8 @@ export default function ParentMiddleSection() {
 
   useEffect(() => {
     const load = async () => {
-      const [linkedRes] = await GetLinkedStudentsAction();
-      const [ownRes] = await GetEnrollmentsAction();
+      const [linkedRes] = await GetLinkedStudentsCached();
+      const [ownRes] = await GetEnrollmentsCached();
       const allStudents = [...(linkedRes?.data ?? []), ...(ownRes?.data ?? [])];
       const filtered = isAllSelected ? allStudents : allStudents.filter((s) => matchesSelectedStudent(s, selectedId));
 
@@ -36,7 +35,7 @@ export default function ParentMiddleSection() {
       // enrollments contributes ONE averaged bar, not 3 identically-named ones.
       const groups = groupStudentsByChild(filtered);
       const courseEnrollmentLists = await Promise.all(
-        groups.map((g) => Promise.all(g.enrollments.map((s) => GetStudentCoursesAction(s.id))))
+        groups.map((g) => Promise.all(g.enrollments.map((s) => GetStudentCoursesCached(s.id))))
       );
 
       setData(

@@ -3,10 +3,10 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Star } from "lucide-react";
-import { GetStudentCoursesAction } from "@/server/course-enrollment";
 import { GetTutorRatingSummaryAction } from "@/server/session-feedback";
 import { CourseEnrollmentStatus } from "@/types/course-enrollment";
 import { CourseTutor } from "@/types/course";
+import { GetStudentCoursesCached } from "@/lib/cached-reads";
 
 interface TutorRatingsPanelProps {
   studentId?: string;
@@ -43,7 +43,7 @@ export default function TutorRatingsPanel({ studentId }: TutorRatingsPanelProps)
     }
     const load = async () => {
       setIsLoading(true);
-      const [res] = await GetStudentCoursesAction(studentId);
+      const [res] = await GetStudentCoursesCached(studentId);
       const active = (res?.data ?? []).filter((e) => e.status === CourseEnrollmentStatus.ACTIVE);
 
       const withTutor = active

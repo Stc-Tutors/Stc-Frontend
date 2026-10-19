@@ -1,15 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { GetEnrollmentsAction, GetLinkedStudentsAction } from "@/server/enrollment";
-import { GetStudentCoursesAction } from "@/server/course-enrollment";
-import { GetCourseLessonsAction } from "@/server/lesson";
 import { Course } from "@/types/course";
 import { Lesson } from "@/types/lesson";
 import { formatScheduleTime } from "@/lib/datetime";
 import { WEEKDAYS_ABBREVIATED } from "@/constants/weekdays";
 import { matchesSelectedStudent, useSelectedStudent } from "@/contexts/selected-student-context";
 import { courseTutorName } from "@/lib/tutor-name";
+import { GetCourseLessonsCached, GetEnrollmentsCached, GetLinkedStudentsCached, GetStudentCoursesCached } from "@/lib/cached-reads";
 
 interface Row {
   lesson: Lesson;
@@ -39,15 +37,15 @@ export default function Timetable() {
 
   useEffect(() => {
     const load = async () => {
-      const [linkedRes] = await GetLinkedStudentsAction();
-      const [ownRes] = await GetEnrollmentsAction();
+      const [linkedRes] = await GetLinkedStudentsCached();
+      const [ownRes] = await GetEnrollmentsCached();
       const allStudents = [...(linkedRes?.data ?? []), ...(ownRes?.data ?? [])];
       const filtered = isAllSelected ? allStudents : allStudents.filter((s) => matchesSelectedStudent(s, selectedId));
       const byId = new Map<string, true>();
       filtered.forEach((s) => byId.set(s.id, true));
 
       const courseEnrollmentLists = await Promise.all(
-        Array.from(byId.keys()).map((id) => GetStudentCoursesAction(id))
+        Array.from(byId.keys()).map((id) => GetStudentCoursesCached(id))
       );
 
       const courses = new Map<string, Course>();
@@ -58,7 +56,7 @@ export default function Timetable() {
       });
 
       const lessonLists = await Promise.all(
-        Array.from(courses.keys()).map((courseId) => GetCourseLessonsAction(courseId))
+        Array.from(courses.keys()).map((courseId) => GetCourseLessonsCached(courseId))
       );
 
       const weekStart = startOfWeek(new Date());

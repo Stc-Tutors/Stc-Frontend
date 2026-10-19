@@ -6,7 +6,7 @@ import { CalendarClock, Play, Square, ChevronDown, Video } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { GetMyCoursesAction, GetCourseStudentsAction } from "@/server/course";
-import { GetCourseLessonsAction, ClockInLessonAction, AddLessonCommentAction } from "@/server/lesson";
+import { ClockInLessonAction, AddLessonCommentAction } from "@/server/lesson";
 import ClockOutDialog from "@/components/tutorDashboard/ClockOutDialog";
 import { MarkAttendanceAction } from "@/server/attendance";
 import { formatScheduleTime } from "@/lib/datetime";
@@ -16,6 +16,7 @@ import { CourseEnrollment } from "@/types/course-enrollment";
 import { Student } from "@/types/student";
 import { AttendanceStatus } from "@/types/attendance";
 import { LessonDeliveryMode } from "@/types/live-class";
+import { GetCourseLessonsCached } from "@/lib/cached-reads";
 
 interface Row {
   lesson: Lesson;
@@ -46,7 +47,7 @@ export default function TodaysSessions() {
     const courses = coursesRes?.data ?? [];
 
     const [lessonLists, studentLists] = await Promise.all([
-      Promise.all(courses.map((c) => GetCourseLessonsAction(c.id))),
+      Promise.all(courses.map((c) => GetCourseLessonsCached(c.id))),
       Promise.all(courses.map((c) => GetCourseStudentsAction(c.id))),
     ]);
 

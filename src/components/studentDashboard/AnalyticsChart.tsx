@@ -12,11 +12,9 @@ import {
 } from "recharts";
 import { useEffect, useMemo, useState } from "react";
 import { ChevronDown } from "lucide-react";
-import { GetEnrollmentsAction, GetLinkedStudentsAction } from "@/server/enrollment";
-import { GetStudentCoursesAction } from "@/server/course-enrollment";
-import { GetCourseLessonsAction } from "@/server/lesson";
 import { Course } from "@/types/course";
 import { Lesson, LessonStatus } from "@/types/lesson";
+import { GetCourseLessonsCached, GetEnrollmentsCached, GetLinkedStudentsCached, GetStudentCoursesCached } from "@/lib/cached-reads";
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
@@ -37,13 +35,13 @@ export default function AnalyticsChart() {
 
   useEffect(() => {
     const load = async () => {
-      const [linkedRes] = await GetLinkedStudentsAction();
-      const [ownRes] = await GetEnrollmentsAction();
+      const [linkedRes] = await GetLinkedStudentsCached();
+      const [ownRes] = await GetEnrollmentsCached();
       const byId = new Map<string, true>();
       [...(linkedRes?.data ?? []), ...(ownRes?.data ?? [])].forEach((s) => byId.set(s.id, true));
 
       const courseEnrollmentLists = await Promise.all(
-        Array.from(byId.keys()).map((id) => GetStudentCoursesAction(id))
+        Array.from(byId.keys()).map((id) => GetStudentCoursesCached(id))
       );
 
       const courseIds = new Set<string>();
@@ -54,7 +52,7 @@ export default function AnalyticsChart() {
       });
 
       const lessonLists = await Promise.all(
-        Array.from(courseIds).map((courseId) => GetCourseLessonsAction(courseId))
+        Array.from(courseIds).map((courseId) => GetCourseLessonsCached(courseId))
       );
 
       setLessons(lessonLists.flatMap(([res]) => res?.data ?? []));

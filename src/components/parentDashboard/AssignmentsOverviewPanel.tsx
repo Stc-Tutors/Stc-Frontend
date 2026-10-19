@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { GetStudentCoursesAction } from "@/server/course-enrollment";
 import { GetCourseAssignmentsAction } from "@/server/assignment";
 import { GetMySubmissionsAction } from "@/server/submission";
 import { CourseEnrollmentStatus } from "@/types/course-enrollment";
 import { Assignment } from "@/types/assignment";
 import { Submission, SubmissionStatus } from "@/types/submission";
+import { GetStudentCoursesCached } from "@/lib/cached-reads";
 
 interface AssignmentsOverviewPanelProps {
   studentId?: string;
@@ -25,7 +25,7 @@ export default function AssignmentsOverviewPanel({ studentId }: AssignmentsOverv
     }
     const load = async () => {
       setIsLoading(true);
-      const [coursesRes] = await GetStudentCoursesAction(studentId);
+      const [coursesRes] = await GetStudentCoursesCached(studentId);
       const activeCourseIds = (coursesRes?.data ?? [])
         .filter((e) => e.status === CourseEnrollmentStatus.ACTIVE)
         .map((e) => (typeof e.course === "string" ? e.course : e.course.id));
