@@ -15,6 +15,8 @@ import DisplayPrefsScript from "@/components/shared/display-prefs-script";
 export const metadata = {
   // Lets pages declare relative canonical/OG URLs.
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://www.stctutors.com"),
+  // "./" resolves against metadataBase per page, so every page names its own canonical URL (apex/www and query-string variants collapse).
+  alternates: { canonical: "./" },
   title: "STC Tutors",
   description: "Personalized online tutoring platform",
 };
