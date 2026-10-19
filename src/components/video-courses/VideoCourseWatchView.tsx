@@ -23,6 +23,15 @@ function youTubeEmbedUrl(url: string): string | null {
   }
 }
 
+function isManagedPlayerUrl(url: string): boolean {
+  try {
+    const u = new URL(url);
+    return u.protocol === "https:" && (u.hostname === "iframe.mediadelivery.net" || u.hostname === "player.mux.com");
+  } catch {
+    return false;
+  }
+}
+
 function isHttpUrl(url: string): boolean {
   try {
     const p = new URL(url).protocol;
@@ -34,7 +43,8 @@ function isHttpUrl(url: string): boolean {
 
 function VideoFrame({ url }: { url: string }) {
   if (!isHttpUrl(url)) return <p className="text-sm text-red-600">This video link is not valid.</p>;
-  const embed = youTubeEmbedUrl(url);
+  // YouTube, or the signed Bunny Stream / Mux embeds the backend issues for managed videos (they expire after a few hours).
+  const embed = youTubeEmbedUrl(url) ?? (isManagedPlayerUrl(url) ? url : null);
   if (embed) {
     return (
       <div className="aspect-video bg-black">

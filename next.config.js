@@ -89,6 +89,9 @@ function contentSecurityPolicy() {
       "https://docs.google.com",
       "https://meet.google.com",
       "https://www.youtube.com",
+      // Paid video lessons hosted on Bunny Stream / Mux play in these signed, expiring embeds.
+      "https://iframe.mediadelivery.net",
+      "https://player.mux.com",
       // The resource preview dialog frames uploaded PDFs/documents straight from Cloudinary.
       "https://res.cloudinary.com",
       examsOrigin,
