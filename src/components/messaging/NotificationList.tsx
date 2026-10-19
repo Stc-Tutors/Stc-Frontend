@@ -112,7 +112,7 @@ export default function NotificationList() {
                 <UserCircle className="text-blue-500" />
                 <div>
                   <p className="font-semibold text-gray-800">
-                    {n.title} <span className="text-gray-500 text-sm">({formatDateTime(n.createdAt)})</span>
+                    {n.title} <span className="text-gray-600 text-sm">({formatDateTime(n.createdAt)})</span>
                   </p>
                   <p className="text-sm text-gray-600">{n.body}</p>
                 </div>

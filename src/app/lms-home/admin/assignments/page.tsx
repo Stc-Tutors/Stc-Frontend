@@ -133,10 +133,10 @@ function PendingAssignmentsQueue() {
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
-                    <Button size="icon" variant="ghost" onClick={() => handleApprove(row.id)}>
+                    <Button aria-label="Approve" size="icon" variant="ghost" onClick={() => handleApprove(row.id)}>
                       <Check className="w-4 h-4 text-green-600" />
                     </Button>
-                    <Button size="icon" variant="ghost" onClick={() => handleReject(row.id)}>
+                    <Button aria-label="Reject" size="icon" variant="ghost" onClick={() => handleReject(row.id)}>
                       <X className="w-4 h-4 text-red-600" />
                     </Button>
                   </div>

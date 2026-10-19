@@ -113,15 +113,15 @@ export default function AdminDocumentUploadPage() {
                 <TableCell className="text-xs text-gray-500">{formatDate(row.submittedAt)}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
-                    <Button size="icon" variant="ghost" onClick={() => setPreview({ title: `${row.applicantName} - Document ${i + 1}`, url: row.documentUrl })}>
+                    <Button aria-label="Preview document" size="icon" variant="ghost" onClick={() => setPreview({ title: `${row.applicantName} - Document ${i + 1}`, url: row.documentUrl })}>
                       <Eye className="w-4 h-4 text-gray-500" />
                     </Button>
                     {row.status === TutorApplicationStatus.PENDING && (
                       <>
-                        <Button size="icon" variant="ghost" onClick={() => handleApprove(row.applicationId)}>
+                        <Button aria-label="Approve" size="icon" variant="ghost" onClick={() => handleApprove(row.applicationId)}>
                           <Check className="w-4 h-4 text-green-600" />
                         </Button>
-                        <Button size="icon" variant="ghost" onClick={() => handleReject(row.applicationId)}>
+                        <Button aria-label="Reject" size="icon" variant="ghost" onClick={() => handleReject(row.applicationId)}>
                           <X className="w-4 h-4 text-red-600" />
                         </Button>
                       </>

@@ -219,7 +219,7 @@ export default function ChildProfilePage() {
                 <Label>Student ID</Label>
                 <div className="flex items-center gap-2">
                   <Input readOnly value={child.studentLoginId} className="max-w-[220px] font-mono" />
-                  <Button type="button" variant="outline" size="icon" onClick={() => copyToClipboard(child.studentLoginId!)}>
+                  <Button aria-label="Copy student ID" type="button" variant="outline" size="icon" onClick={() => copyToClipboard(child.studentLoginId!)}>
                     <Copy className="w-4 h-4" />
                   </Button>
                 </div>
@@ -354,7 +354,7 @@ export default function ChildProfilePage() {
                 <Label>Student ID</Label>
                 <div className="flex items-center gap-2">
                   <Input readOnly value={resetResult.studentLoginId} className="font-mono" />
-                  <Button type="button" variant="outline" size="icon" onClick={() => copyToClipboard(resetResult.studentLoginId)}>
+                  <Button aria-label="Copy student ID" type="button" variant="outline" size="icon" onClick={() => copyToClipboard(resetResult.studentLoginId)}>
                     <Copy className="w-4 h-4" />
                   </Button>
                 </div>
@@ -363,7 +363,7 @@ export default function ChildProfilePage() {
                 <Label>New Password</Label>
                 <div className="flex items-center gap-2">
                   <Input readOnly value={resetResult.password} className="font-mono" />
-                  <Button type="button" variant="outline" size="icon" onClick={() => copyToClipboard(resetResult.password)}>
+                  <Button aria-label="Copy password" type="button" variant="outline" size="icon" onClick={() => copyToClipboard(resetResult.password)}>
                     <Copy className="w-4 h-4" />
                   </Button>
                 </div>
