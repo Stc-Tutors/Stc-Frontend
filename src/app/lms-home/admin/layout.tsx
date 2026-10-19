@@ -373,6 +373,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </nav>
 
         <div className="p-4 border-t space-y-4">
+          <Link href="/lms-home/manual" className="flex items-center gap-3 text-gray-600 hover:text-[#0a7ac2] hover:translate-x-3">
+            <BookOpen className="w-5 h-5" />
+            User Manual
+          </Link>
           <Link href="/lms-home/admin/messages" className="flex items-center gap-3 text-gray-600 hover:text-[#0a7ac2] hover:translate-x-3">
             <Headphones className="w-5 h-5" />
             Support

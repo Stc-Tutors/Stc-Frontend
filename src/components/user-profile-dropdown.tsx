@@ -15,7 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { LayoutDashboard, LogOut, ChevronDown } from "lucide-react"
+import { BookOpen, LayoutDashboard, LogOut, ChevronDown } from "lucide-react"
 
 export function UserProfileDropdown() {
   const router = useRouter()
@@ -79,6 +79,11 @@ export function UserProfileDropdown() {
         <DropdownMenuItem className="cursor-pointer" onClick={() => router.push(lmsDashboardPath(user.role))}>
           <LayoutDashboard className="w-4 h-4 mr-2" />
           Dashboard
+        </DropdownMenuItem>
+
+        <DropdownMenuItem className="cursor-pointer" onClick={() => router.push("/lms-home/manual")}>
+          <BookOpen className="w-4 h-4 mr-2" />
+          User Manual
         </DropdownMenuItem>
 
         <DropdownMenuSeparator />
