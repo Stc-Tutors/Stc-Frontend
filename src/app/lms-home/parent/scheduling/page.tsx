@@ -255,7 +255,7 @@ export default function ParentSchedulePage() {
                   {formatScheduleDateTime(c.currentScheduledDate)} &rarr;{" "}
                   {c.requestedScheduledDate ? formatScheduleDateTime(c.requestedScheduledDate) : "-"}
                 </p>
-                {c.reason && <p className="text-xs text-gray-500 mt-1">Tutor's note: {c.reason}</p>}
+                {c.reason && <p className="text-xs text-gray-500 mt-1">Tutor&apos;s note: {c.reason}</p>}
                 {rejectingConfirmationId === c.id ? (
                   <div className="flex flex-wrap items-center gap-2 mt-2">
                     <input
@@ -300,7 +300,7 @@ export default function ParentSchedulePage() {
       )}
 
       <div className="bg-white p-4 rounded-lg shadow-sm">
-        <h3 className="font-semibold text-gray-800 mb-4">Your Children's Classes</h3>
+        <h3 className="font-semibold text-gray-800 mb-4">Your Children&apos;s Classes</h3>
         {message && <p className="text-sm text-blue-600 mb-3">{message}</p>}
         {!isLoading && rows.length > 0 && <ScheduleViewControls view={view} onChange={setView} counts={counts} />}
 

@@ -634,7 +634,7 @@ export default function EnrollmentList({ source, basePath }: EnrollmentListProps
               {childToRemove && childToRemove.enrollments.length > 1
                 ? ` and all ${childToRemove.enrollments.length} of their enrollments`
                 : ""}{" "}
-              from your account - they'll no longer appear in your dashboard, child switcher, or schedule. Their
+              from your account - they&apos;ll no longer appear in your dashboard, child switcher, or schedule. Their
               payment and lesson history is kept and an administrator can restore access if this was a mistake. This
               does not cancel any active lessons directly - contact support if you also need those cancelled.
             </AlertDialogDescription>

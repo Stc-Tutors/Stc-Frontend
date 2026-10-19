@@ -92,7 +92,7 @@ export default function TodayLectureCard() {
   return (
     <div className="bg-white rounded-lg shadow-sm p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
       <div className="md:col-span-2 space-y-3">
-        <h3 className="font-semibold text-gray-800">Today's Lecture</h3>
+        <h3 className="font-semibold text-gray-800">Today&apos;s Lecture</h3>
 
         {isLoading ? (
           <p className="text-sm text-gray-500">Loading...</p>

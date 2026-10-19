@@ -82,7 +82,7 @@ const Contact = () => {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
         >
-          Have a question or need help? We'd love to hear from you.
+          Have a question or need help? We&apos;d love to hear from you.
         </motion.p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
@@ -203,7 +203,7 @@ const Contact = () => {
             {sendError && <p className="text-red-600 mt-3 text-sm">{sendError}</p>}
             {submitted && (
               <p className="text-green-600 mt-3 text-sm">
-                Message sent! We'll get back to you soon.
+                Message sent! We&apos;ll get back to you soon.
               </p>
             )}
           </motion.form>

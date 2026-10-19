@@ -93,7 +93,7 @@ function PendingAssignmentsQueue() {
     <div>
       <p className="text-xs text-gray-500 mb-4">
         Tutors without an assignment auto-approve grant (set by a super admin on their profile) have their
-        assignments held here until an admin approves them - students can't see a pending assignment.
+        assignments held here until an admin approves them - students can&apos;t see a pending assignment.
       </p>
 
       {message && <p className="text-sm text-blue-600 mb-4">{message}</p>}

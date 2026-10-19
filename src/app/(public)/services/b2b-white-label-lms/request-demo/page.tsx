@@ -84,7 +84,7 @@ export default function RequestDemoPage() {
   if (submitted) {
     return (
       <main className="container mx-auto px-6 py-20 max-w-xl text-center">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">Thanks — we've got it.</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-4">Thanks — we&apos;ve got it.</h1>
         <p className="text-gray-600 mb-8">
           Someone from our team will reach out to {contactEmail} to schedule your demo.
         </p>
@@ -99,7 +99,7 @@ export default function RequestDemoPage() {
     <main className="container mx-auto px-6 py-16 max-w-xl">
       <h1 className="text-3xl font-bold text-gray-900 mb-2">Request a Demo</h1>
       <p className="text-gray-600 mb-8">
-        Tell us about your organization and we'll be in touch to schedule a walkthrough of the White-Label LMS.
+        Tell us about your organization and we&apos;ll be in touch to schedule a walkthrough of the White-Label LMS.
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-5">

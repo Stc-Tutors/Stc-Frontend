@@ -99,7 +99,7 @@ export default function ParentAssessmentPage() {
       {isLoading ? (
         <p className="text-sm text-gray-500 py-6">Loading assignments...</p>
       ) : rows.length === 0 ? (
-        <p className="text-sm text-gray-500 py-6">No assignments yet for your children's enrolled courses.</p>
+        <p className="text-sm text-gray-500 py-6">No assignments yet for your children&apos;s enrolled courses.</p>
       ) : (
         <div className="divide-y">
           {rows.map((row, i) => (

@@ -87,7 +87,7 @@ export default function TodayLectures() {
 
   return (
     <div className="bg-white rounded-lg shadow-sm p-4 space-y-3">
-      <h3 className="font-semibold text-gray-800">Today's Lectures</h3>
+      <h3 className="font-semibold text-gray-800">Today&apos;s Lectures</h3>
 
       {isLoading ? (
         <p className="text-sm text-gray-500">Loading...</p>

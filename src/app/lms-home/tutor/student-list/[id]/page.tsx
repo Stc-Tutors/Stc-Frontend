@@ -148,7 +148,7 @@ export default function StudentProfilePage() {
 
       <section className="bg-white mt-8 ml-8 mr-9 pl-12 pr-9 py-5 space-y-5">
         <h2 className="font-bold text-xl">Learning Profile</h2>
-        <p className="text-xs text-gray-500 -mt-3">What this student's family shared to help you teach effectively.</p>
+        <p className="text-xs text-gray-500 -mt-3">What this student&apos;s family shared to help you teach effectively.</p>
 
         <div className="flex gap-5">
           <div>

@@ -134,7 +134,7 @@ export default function ReferenceFormPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="additionalComments">Anything else you'd like to add? (optional)</Label>
+                <Label htmlFor="additionalComments">Anything else you&apos;d like to add? (optional)</Label>
                 <Textarea
                   id="additionalComments"
                   value={additionalComments}

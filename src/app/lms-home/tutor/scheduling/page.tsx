@@ -129,8 +129,8 @@ export default function TutorSchedulePage() {
       <div className="bg-white p-4 rounded-lg shadow-sm">
         <h3 className="font-semibold text-gray-800 mb-4">Your Lessons</h3>
         <p className="text-xs text-gray-500 mb-3">
-          You can only request a reschedule here - a class can't be cancelled by the tutor directly. Contact an
-          admin if you truly can't teach it.
+          You can only request a reschedule here - a class can&apos;t be cancelled by the tutor directly. Contact an
+          admin if you truly can&apos;t teach it.
         </p>
         {message && <p className="text-sm text-blue-600 mb-3">{message}</p>}
         {!isLoading && rows.length > 0 && <ScheduleViewControls view={view} onChange={setView} counts={counts} />}
@@ -240,7 +240,7 @@ export default function TutorSchedulePage() {
                             isInsideTutorRescheduleGate(lesson.scheduledDate, Date.now(), tutorNoticeHours) &&
                             surchargeSettings && (
                               <p className="text-xs text-amber-600 mt-1">
-                                This is inside {tutorNoticeHours} hours' notice - a {surchargePreview(surchargeSettings)} applies if
+                                This is inside {tutorNoticeHours} hours&apos; notice - a {surchargePreview(surchargeSettings)} applies if
                                 this reschedule is confirmed (admin can adjust it on review).
                               </p>
                             )}

@@ -634,7 +634,7 @@ export default function EnrollmentReview({ onNext, errors }: StepProps) {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-semibold text-green-800">Ready to Proceed</h3>
-              <p className="text-sm text-green-600">Click "Save & Continue" to proceed to secure payment</p>
+              <p className="text-sm text-green-600">Click &quot;Save & Continue&quot; to proceed to secure payment</p>
             </div>
             <div className="text-right">
               <p className="text-2xl font-bold text-green-800"><LocalFirstPrice amount={totalCost} currency={costCurrency} country={childInfo?.countryOfResidence} explain>{formatMoney(totalCost, costCurrency)}</LocalFirstPrice></p>

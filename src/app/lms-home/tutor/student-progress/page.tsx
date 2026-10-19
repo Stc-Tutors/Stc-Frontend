@@ -92,9 +92,9 @@ export default function StudentProgressPage() {
       <div>
         <h1 className="text-2xl font-bold">Student Progress</h1>
         <p className="text-sm text-gray-500 mt-1">
-          One row per student per course - each course's overall progress averages attendance rate and average
+          One row per student per course - each course&apos;s overall progress averages attendance rate and average
           graded assignment score (whichever of the two it has data for). Filter below, or click a row for that
-          student's full breakdown.
+          student&apos;s full breakdown.
         </p>
       </div>
 

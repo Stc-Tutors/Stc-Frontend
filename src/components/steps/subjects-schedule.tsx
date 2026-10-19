@@ -1486,7 +1486,7 @@ export default function SubjectsSchedule({ onNext, errors, forcedUserType }: Ste
                   }
                 />
                 <span className="text-sm text-gray-700">
-                  My schedule is flexible - I'd rather agree the exact days/times with an admin after enrolling
+                  My schedule is flexible - I&apos;d rather agree the exact days/times with an admin after enrolling
                   instead of picking them now.
                 </span>
               </label>
@@ -1494,13 +1494,13 @@ export default function SubjectsSchedule({ onNext, errors, forcedUserType }: Ste
 
             {serviceData.classFormat === "group" && hasHourlySubject && (
               <p className="text-sm text-gray-600">
-                This is priced per hour, so choose the days and times you'd like to attend below - that's how the price
-                is worked out. We'll still confirm the group's exact schedule after enrollment.
+                This is priced per hour, so choose the days and times you&apos;d like to attend below - that&apos;s how the price
+                is worked out. We&apos;ll still confirm the group&apos;s exact schedule after enrollment.
               </p>
             )}
             {serviceData.classFormat === "group" && !hasHourlySubject && classGroups.length === 0 && (
               <p className="text-sm text-gray-600">
-                You'll be placed in the next available group class for this subject - we'll confirm your schedule
+                You&apos;ll be placed in the next available group class for this subject - we&apos;ll confirm your schedule
                 after enrollment (you may be waitlisted if the group is full).
               </p>
             )}

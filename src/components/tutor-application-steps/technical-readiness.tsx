@@ -152,7 +152,7 @@ export default function TechnicalReadinessStep({ onNext, errors }: StepProps) {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="toolInput">Tools You're Comfortable Using *</Label>
+            <Label htmlFor="toolInput">Tools You&apos;re Comfortable Using *</Label>
             <div className="flex gap-2">
               <Input
                 id="toolInput"

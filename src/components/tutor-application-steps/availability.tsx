@@ -133,8 +133,8 @@ export default function AvailabilityStep({ onNext, errors }: StepProps) {
           <div className="space-y-2">
             <Label>Your Weekly Availability *</Label>
             <p className="text-sm text-gray-500">
-              Set the general hours you're open to teach. You can add more than one window per day (e.g. 9:00-12:00
-              and 16:00-21:00 on the same day) - not tied to any particular subject, we'll fit students into these
+              Set the general hours you&apos;re open to teach. You can add more than one window per day (e.g. 9:00-12:00
+              and 16:00-21:00 on the same day) - not tied to any particular subject, we&apos;ll fit students into these
               windows and reschedule within them as needed.
             </p>
             <div className="space-y-2">
@@ -179,7 +179,7 @@ export default function AvailabilityStep({ onNext, errors }: StepProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="maxWeeklyHours">Maximum Hours/Week You're Available *</Label>
+            <Label htmlFor="maxWeeklyHours">Maximum Hours/Week You&apos;re Available *</Label>
             <Select value={maxWeeklyHours} onValueChange={(v) => setMaxWeeklyHours(v as MaxWeeklyHoursBand)}>
               <SelectTrigger id="maxWeeklyHours" className={errors.maxWeeklyHours ? "border-red-500" : ""}>
                 <SelectValue placeholder="Select a range" />

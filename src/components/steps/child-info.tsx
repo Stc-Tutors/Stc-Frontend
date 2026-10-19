@@ -329,7 +329,7 @@ export default function ChildInfoStep({ onNext, errors, forcedUserType }: StepPr
               <Label htmlFor="parent" className="flex-1 cursor-pointer">
                 <div>
                   <p className="font-medium">Parent/Guardian</p>
-                  <p className="text-sm text-gray-600">I'm enrolling my child</p>
+                  <p className="text-sm text-gray-600">I&apos;m enrolling my child</p>
                 </div>
               </Label>
             </div>
@@ -338,7 +338,7 @@ export default function ChildInfoStep({ onNext, errors, forcedUserType }: StepPr
               <Label htmlFor="student" className="flex-1 cursor-pointer">
                 <div>
                   <p className="font-medium">Student (16+)</p>
-                  <p className="text-sm text-gray-600">I'm enrolling myself</p>
+                  <p className="text-sm text-gray-600">I&apos;m enrolling myself</p>
                 </div>
               </Label>
             </div>

@@ -48,7 +48,7 @@ export default function ReviewSubmitStep() {
   return (
     <div className="space-y-6 w-full">
       <p className="text-sm text-gray-600">
-        Review everything below before submitting. Use "Edit" on any section to jump straight back into it - your other
+        Review everything below before submitting. Use &quot;Edit&quot; on any section to jump straight back into it - your other
         answers are kept.
       </p>
 

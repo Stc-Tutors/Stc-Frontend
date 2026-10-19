@@ -32,7 +32,7 @@ export default function BillingSummaryPanel({ studentId }: BillingSummaryPanelPr
     <Card>
       <CardHeader>
         <CardTitle>Billing & Spending</CardTitle>
-        <p className="text-gray-500 text-sm mt-1">What you've paid across all your children, over time</p>
+        <p className="text-gray-500 text-sm mt-1">What you&apos;ve paid across all your children, over time</p>
       </CardHeader>
       <CardContent>
         {isLoading ? (

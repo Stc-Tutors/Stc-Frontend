@@ -250,7 +250,7 @@ export default function SchedulePage() {
                   {formatScheduleDateTime(c.currentScheduledDate)} &rarr;{" "}
                   {c.requestedScheduledDate ? formatScheduleDateTime(c.requestedScheduledDate) : "-"}
                 </p>
-                {c.reason && <p className="text-xs text-gray-500 mt-1">Tutor's note: {c.reason}</p>}
+                {c.reason && <p className="text-xs text-gray-500 mt-1">Tutor&apos;s note: {c.reason}</p>}
                 {rejectingConfirmationId === c.id ? (
                   <div className="flex flex-wrap items-center gap-2 mt-2">
                     <input

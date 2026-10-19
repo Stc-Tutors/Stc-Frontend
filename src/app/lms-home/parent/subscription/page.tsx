@@ -18,7 +18,7 @@ export default function ParentSubscriptionPage() {
       </button>
 
       <h1 className="text-2xl font-semibold text-gray-900 mb-1">Plans &amp; Subscription</h1>
-      <p className="text-gray-500 text-sm mb-6">Manage your billing plan for your children's lessons.</p>
+      <p className="text-gray-500 text-sm mb-6">Manage your billing plan for your children&apos;s lessons.</p>
 
       <PlansPanel />
     </div>

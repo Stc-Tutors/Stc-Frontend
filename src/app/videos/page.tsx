@@ -46,7 +46,7 @@ export default function VideosPage() {
               <span>Duration: 12:45</span>
             </div>
             <p className="text-gray-600 mb-4">
-              In this introductory lesson, we'll cover the basic concepts of data analysis, 
+              In this introductory lesson, we&apos;ll cover the basic concepts of data analysis, 
               including data types, data structures, and the data analysis process.
             </p>
             <div className="flex flex-wrap gap-3">

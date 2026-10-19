@@ -72,7 +72,7 @@ function StudentsPageInner() {
             <TutorsCard/>
         </div>
       <h1 className="text-2xl font-bold mb-6">
-        Your Students{query ? <span className="text-base font-normal text-gray-500"> — search: "{query}"</span> : ""}
+        Your Students{query ? <span className="text-base font-normal text-gray-500"> — search: &quot;{query}&quot;</span> : ""}
       </h1>
 
       {isLoading ? (
@@ -82,7 +82,7 @@ function StudentsPageInner() {
           No students yet. Once someone enrolls in one of your courses, they will show up here.
         </p>
       ) : filteredStudents.length === 0 ? (
-        <p className="text-sm text-gray-500 py-4">No students match "{query}".</p>
+        <p className="text-sm text-gray-500 py-4">No students match &quot;{query}&quot;.</p>
       ) : (
         <>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">

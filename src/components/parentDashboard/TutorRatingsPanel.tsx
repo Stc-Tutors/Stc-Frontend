@@ -72,13 +72,13 @@ export default function TutorRatingsPanel({ studentId }: TutorRatingsPanelProps)
     <Card>
       <CardHeader>
         <CardTitle>Tutor Performance</CardTitle>
-        <p className="text-gray-500 text-sm mt-1">Ratings other families have left for this child's current tutors</p>
+        <p className="text-gray-500 text-sm mt-1">Ratings other families have left for this child&apos;s current tutors</p>
       </CardHeader>
       <CardContent>
         {isLoading ? (
           <p className="text-sm text-gray-500">Loading...</p>
         ) : !studentId ? (
-          <p className="text-sm text-gray-500">Select a child to view their tutors' ratings.</p>
+          <p className="text-sm text-gray-500">Select a child to view their tutors&apos; ratings.</p>
         ) : rows.length === 0 ? (
           <p className="text-sm text-gray-500">No active tutors yet.</p>
         ) : (

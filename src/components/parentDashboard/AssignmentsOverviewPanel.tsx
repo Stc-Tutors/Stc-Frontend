@@ -68,7 +68,7 @@ export default function AssignmentsOverviewPanel({ studentId }: AssignmentsOverv
     <Card>
       <CardHeader>
         <CardTitle>Assignment Completion</CardTitle>
-        <p className="text-gray-500 text-sm mt-1">Across the selected child's currently active courses</p>
+        <p className="text-gray-500 text-sm mt-1">Across the selected child&apos;s currently active courses</p>
       </CardHeader>
       <CardContent>
         {isLoading ? (

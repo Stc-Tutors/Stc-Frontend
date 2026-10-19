@@ -368,7 +368,7 @@ export default function DashboardPage() {
                           ? `your full available balance (${formatMoney(balance?.currentBalance ?? 0, balance?.currency)})`
                           : formatMoney(Number(withdrawAmount), balance?.currency)}
                         {profile?.bankName ? ` to ${profile.bankName} · ${profile.accountNumber}` : ""}. An admin will need
-                        to review and approve it before funds are transferred. You won't be able to request again for
+                        to review and approve it before funds are transferred. You won&apos;t be able to request again for
                         14 days after this.
                       </AlertDialogDescription>
                     </AlertDialogHeader>

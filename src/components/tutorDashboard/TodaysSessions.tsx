@@ -139,7 +139,7 @@ export default function TodaysSessions() {
 
   return (
     <div className="bg-white rounded-lg shadow-sm p-4 space-y-3">
-      <h3 className="font-semibold text-gray-800">Today's Sessions</h3>
+      <h3 className="font-semibold text-gray-800">Today&apos;s Sessions</h3>
       {message && <p className="text-sm text-blue-600">{message}</p>}
       <ClockOutDialog lessonId={clockOutLessonId} onClose={() => setClockOutLessonId(null)} onClockedOut={handleClockedOut} />
 

@@ -165,7 +165,7 @@ export default function WalletPage() {
           </Card>
         ) : error && !data ? (
           <Card className="flex items-center justify-between p-4 gap-4">
-            <p className="text-sm text-red-600">We couldn't load your balance. This is not a zero balance.</p>
+            <p className="text-sm text-red-600">We couldn&apos;t load your balance. This is not a zero balance.</p>
             <Button variant="outline" size="sm" onClick={() => refresh()}>Retry</Button>
           </Card>
         ) : balances.length === 0 ? (

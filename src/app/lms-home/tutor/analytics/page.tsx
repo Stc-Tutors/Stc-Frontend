@@ -101,7 +101,7 @@ export default function TutorAnalyticsPage() {
         {isLoading ? (
           <p className="text-sm text-gray-500">Loading...</p>
         ) : courses.length === 0 ? (
-          <p className="text-sm text-gray-500">You haven't created any courses yet.</p>
+          <p className="text-sm text-gray-500">You haven&apos;t created any courses yet.</p>
         ) : (
           <div className="divide-y">
             {courses.map((course) => (

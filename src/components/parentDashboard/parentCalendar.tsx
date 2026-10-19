@@ -101,8 +101,8 @@ export default function ParentCalendar() {
 
       <CardContent>
         <div className="grid grid-cols-7 gap-1 text-center text-sm font-medium">
-          {["S", "M", "T", "W", "T", "F", "S"].map((d) => (
-            <div key={d} className="text-gray-500 py-2">
+          {["S", "M", "T", "W", "T", "F", "S"].map((d, idx) => (
+            <div key={`${d}-${idx}`} className="text-gray-500 py-2">
               {d}
             </div>
           ))}

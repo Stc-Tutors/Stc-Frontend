@@ -342,7 +342,7 @@ export default function TutorProfileDetailsPage() {
       <div>
         <h1 className="text-xl font-bold">My Profile Details</h1>
         <p className="text-sm text-gray-600 mt-1">
-          Sections marked "public" are what students and parents see on your profile. Everything else (documents,
+          Sections marked &quot;public&quot; are what students and parents see on your profile. Everything else (documents,
           technical setup, payment details) is visible only to you and STC admins. Your phone number and email are
           never shown publicly.
         </p>
@@ -354,9 +354,9 @@ export default function TutorProfileDetailsPage() {
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-800">
           <p className="font-semibold">Changes awaiting admin approval</p>
           <p className="mt-1">
-            You submitted changes on {formatDate(pendingEdit.submittedAt)} that haven't been
+            You submitted changes on {formatDate(pendingEdit.submittedAt)} that haven&apos;t been
             approved yet - the form below shows your draft, but students, parents, and admins still see your
-            last-approved profile until it's reviewed. You can keep editing and resubmit; it replaces the pending
+            last-approved profile until it&apos;s reviewed. You can keep editing and resubmit; it replaces the pending
             draft.
           </p>
         </div>
@@ -616,7 +616,7 @@ export default function TutorProfileDetailsPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-gray-500">
-            Set the general hours you're open to teach, for each day you're available. Not tied to any particular
+            Set the general hours you&apos;re open to teach, for each day you&apos;re available. Not tied to any particular
             subject - students are fit into these windows and rescheduled within them as needed.
           </p>
           <div className="space-y-2">
@@ -781,7 +781,7 @@ export default function TutorProfileDetailsPage() {
             </RadioGroup>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="toolInput">Tools you're comfortable using</Label>
+            <Label htmlFor="toolInput">Tools you&apos;re comfortable using</Label>
             <Input
               id="toolInput"
               value={toolInput}

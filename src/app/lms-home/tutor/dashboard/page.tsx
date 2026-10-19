@@ -25,7 +25,7 @@ export default function TutorDashboardPage() {
       <div className="flex-1">
         <h2 className="text-xl font-bold text-white">Welcome to your dashboard{user ? `, ${user.firstName}` : ""}!</h2>
         <p className="text-lg text-white mt-8">
-          Here's where your virtual classroom comes to life.
+          Here&apos;s where your virtual classroom comes to life.
           Manage your lessons, track student progress, and stay organized, all in one place.
           Whether you are scheduling a new class, reviewing assignments or
           chatting with students, your dashboard is built to make online teaching smooth
