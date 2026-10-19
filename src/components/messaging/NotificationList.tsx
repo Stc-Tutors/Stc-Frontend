@@ -67,7 +67,7 @@ export default function NotificationList() {
         </button>
       </div>
 
-      <p className="text-gray-500 mb-4">You have {unreadCount} unread notification(s)</p>
+      <p className="text-gray-600 mb-4">You have {unreadCount} unread notification(s)</p>
 
       <div className="flex gap-3 mb-6">
         <select aria-label="Filter by type"
@@ -96,7 +96,7 @@ export default function NotificationList() {
       {isLoading ? (
         <p className="text-sm text-gray-500">Loading...</p>
       ) : notifications.length === 0 ? (
-        <p className="text-sm text-gray-500">No notifications yet.</p>
+        <p className="text-sm text-gray-600">No notifications yet.</p>
       ) : filtered.length === 0 ? (
         <p className="text-sm text-gray-500">No notifications match this filter.</p>
       ) : (

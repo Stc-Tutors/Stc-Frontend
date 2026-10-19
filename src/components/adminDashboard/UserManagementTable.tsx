@@ -37,13 +37,13 @@ export default function UserManagementTable() {
         <div className="flex gap-1 bg-gray-100 rounded-lg p-1 text-xs">
           <button
             onClick={() => setTab("students")}
-            className={`px-3 py-1 rounded-md ${tab === "students" ? "bg-white shadow-sm font-medium" : "text-gray-500"}`}
+            className={`px-3 py-1 rounded-md ${tab === "students" ? "bg-white shadow-sm font-medium" : "text-gray-600"}`}
           >
             Students
           </button>
           <button
             onClick={() => setTab("tutors")}
-            className={`px-3 py-1 rounded-md ${tab === "tutors" ? "bg-white shadow-sm font-medium" : "text-gray-500"}`}
+            className={`px-3 py-1 rounded-md ${tab === "tutors" ? "bg-white shadow-sm font-medium" : "text-gray-600"}`}
           >
             Tutors
           </button>

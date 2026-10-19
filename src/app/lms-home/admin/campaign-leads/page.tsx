@@ -38,7 +38,7 @@ export default function AdminCampaignLeadsPage() {
 
       <div className="flex flex-wrap gap-3 mb-4">
         <Input placeholder="Search name, email or phone..." value={search} onChange={(e) => setSearch(e.target.value)} className="max-w-xs" />
-        <select value={campaign} onChange={(e) => setCampaign(e.target.value)} className="border rounded-md px-3 py-2 text-sm bg-white">
+        <select aria-label="Filter by campaign" value={campaign} onChange={(e) => setCampaign(e.target.value)} className="border rounded-md px-3 py-2 text-sm bg-white">
           <option value="">All campaigns</option>
           {campaigns.map((c) => (
             <option key={c} value={c}>

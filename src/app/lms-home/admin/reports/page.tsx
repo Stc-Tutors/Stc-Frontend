@@ -205,7 +205,7 @@ export default function AdminReportsPage() {
 
         <div className="bg-white rounded-2xl shadow p-6">
           <h2 className="text-lg font-semibold mb-4">Tutor Performance</h2>
-          <div className="space-y-2 max-h-80 overflow-y-auto">
+          <div tabIndex={0} className="space-y-2 max-h-80 overflow-y-auto">
             {tutorPerformance.length === 0 ? (
               <p className="text-sm text-gray-500">No data.</p>
             ) : (
@@ -239,7 +239,7 @@ export default function AdminReportsPage() {
         <div className="bg-white rounded-2xl shadow p-6">
           <h2 className="text-lg font-semibold mb-1">Course Completion Rate</h2>
           <p className="text-xs text-gray-500 mb-3">Completed vs total course enrollments</p>
-          <div className="space-y-2 max-h-80 overflow-y-auto">
+          <div tabIndex={0} className="space-y-2 max-h-80 overflow-y-auto">
             {completion.length === 0 ? (
               <p className="text-sm text-gray-500">No data.</p>
             ) : (

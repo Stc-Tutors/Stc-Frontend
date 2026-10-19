@@ -86,7 +86,7 @@ export function ClassReportsAdmin() {
 
       <div className="flex flex-wrap items-center gap-2">
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search tutor, student or class..." className="w-64 rounded-md border border-gray-300 px-3 py-2 text-sm" />
-        <select value={state} onChange={(e) => setState(e.target.value as "" | "filed" | "missing")} className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm">
+        <select aria-label="Filter by report status" value={state} onChange={(e) => setState(e.target.value as "" | "filed" | "missing")} className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm">
           <option value="">All classes</option>
           <option value="filed">Report filed</option>
           <option value="missing">Report missing</option>
