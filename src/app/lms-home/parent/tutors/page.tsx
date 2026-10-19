@@ -191,7 +191,7 @@ export default function ParentTutorsPage() {
                       </span>
                       {a.subjectEnrollmentId &&
                         (a.hasPendingChangeRequest ? (
-                          <span className="text-xs text-amber-600 whitespace-nowrap">Change requested</span>
+                          <span className="text-xs text-amber-700 whitespace-nowrap">Change requested</span>
                         ) : (
                           <button
                             type="button"

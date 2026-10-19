@@ -400,7 +400,7 @@ export default function MarketplacePage() {
                     <LocalFirstPrice amount={displayAmount} currency={displayCurrency}>{displayCurrency} {displayAmount.toLocaleString()}</LocalFirstPrice>
                   </p>
                 )}
-                {quoteError && <p className="text-xs text-amber-600 mt-1 max-w-xs">{quoteError}</p>}
+                {quoteError && <p className="text-xs text-amber-700 mt-1 max-w-xs">{quoteError}</p>}
               </div>
             </div>
 

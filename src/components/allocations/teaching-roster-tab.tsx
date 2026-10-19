@@ -168,7 +168,7 @@ export default function TeachingRosterTab({
       </div>
 
       {tutorId && !allocation && (
-        <p className="text-xs text-amber-600">
+        <p className="text-xs text-amber-700">
           This tutor has no allocation yet - nothing will show here until one is set.
         </p>
       )}

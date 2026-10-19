@@ -393,7 +393,7 @@ export default function AdminSessionsPage() {
                         View report
                       </button>
                     ) : lesson.status === LessonStatus.COMPLETED ? (
-                      <span className="text-xs text-amber-600">Not filed</span>
+                      <span className="text-xs text-amber-700">Not filed</span>
                     ) : (
                       <span className="text-xs text-gray-500">-</span>
                     )}

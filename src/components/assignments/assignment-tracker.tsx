@@ -143,7 +143,7 @@ export function AssignmentTracker() {
                           <span className="font-medium">
                             {a.progress.submitted} / {a.progress.expected}
                           </span>
-                          {a.progress.late > 0 && <span className="ml-2 text-xs text-amber-600">{a.progress.late} late</span>}
+                          {a.progress.late > 0 && <span className="ml-2 text-xs text-amber-700">{a.progress.late} late</span>}
                           {a.progress.graded > 0 && <span className="ml-2 text-xs text-emerald-600">{a.progress.graded} graded</span>}
                         </>
                       )}

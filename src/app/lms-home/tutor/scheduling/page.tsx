@@ -239,7 +239,7 @@ export default function TutorSchedulePage() {
                           {!isInsideTutorRescheduleHardFloor(lesson.scheduledDate) &&
                             isInsideTutorRescheduleGate(lesson.scheduledDate, Date.now(), tutorNoticeHours) &&
                             surchargeSettings && (
-                              <p className="text-xs text-amber-600 mt-1">
+                              <p className="text-xs text-amber-700 mt-1">
                                 This is inside {tutorNoticeHours} hours&apos; notice - a {surchargePreview(surchargeSettings)} applies if
                                 this reschedule is confirmed (admin can adjust it on review).
                               </p>

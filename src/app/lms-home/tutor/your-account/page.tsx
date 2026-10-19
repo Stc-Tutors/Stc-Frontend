@@ -196,13 +196,13 @@ export default function DashboardPage() {
         </p>
       )}
       {balance && balance.surchargeDeduction > 0 && (
-        <p className="text-xs text-amber-600">
+        <p className="text-xs text-amber-700">
           {formatMoney(balance.surchargeDeduction, balance.currency)} deducted from your{" "}
           {formatMoney(balance.grossBalance, balance.currency)} gross balance for late-notice reschedule surcharge(s).
         </p>
       )}
       {balance && balance.unpriced.length > 0 && (
-        <p className="text-xs text-amber-600">
+        <p className="text-xs text-amber-700">
           {balance.unpriced.length} course(s) have hours excluded from your balance because no rate has been
           confirmed for them yet - contact an admin to have them priced.
         </p>
@@ -316,7 +316,7 @@ export default function DashboardPage() {
                 <p className="text-sm font-light">Pending payout requests</p>
 
                 {balance && balance.nextWithdrawalAvailableAt ? (
-                  <p className="text-xs text-amber-600">
+                  <p className="text-xs text-amber-700">
                     You can request another withdrawal on{" "}
                     {formatDate(balance.nextWithdrawalAvailableAt)} - one withdrawal is allowed
                     every 14 days.

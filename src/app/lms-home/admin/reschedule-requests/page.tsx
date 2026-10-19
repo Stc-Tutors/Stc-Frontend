@@ -100,7 +100,7 @@ export default function AdminRescheduleRequestsPage() {
       </div>
 
       {!canApproveReschedules && (
-        <p className="text-xs text-amber-600 mb-4">
+        <p className="text-xs text-amber-700 mb-4">
           You can view this queue, but you don&apos;t have permission to approve or reject requests.
         </p>
       )}
