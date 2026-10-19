@@ -14,6 +14,7 @@ import {
   BarChart2,
   UserRound,
   Headphones,
+  CheckCircle2,
   Bell,
   LogOut,
   Menu,
@@ -228,6 +229,17 @@ const sidebarLinks: {
     icon: Megaphone,
     href: "/lms-home/admin/announcements",
     permission: AdminPermission.MANAGE_ANNOUNCEMENTS,
+  },
+  {
+    label: "Approvals",
+    icon: CheckCircle2,
+    href: "/lms-home/admin/approvals",
+    permission: [
+      AdminPermission.APPROVE_TUTOR_CHANGE_REQUESTS,
+      AdminPermission.RESOLVE_TUTOR_NO_SHOW_REPORTS,
+      AdminPermission.RESOLVE_PENALTY_APPEALS,
+      AdminPermission.APPROVE_RESOURCES,
+    ],
   },
   {
     label: "Reschedule Requests",

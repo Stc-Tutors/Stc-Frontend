@@ -18,6 +18,7 @@ import { FLAGGABLE_FIELDS } from "@/lib/tutor-application-fields";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { ConfirmVettingAction, RequestVettingChangesAction } from "@/server/admin-review";
 import FullApplicationDetails from "@/components/tutor-applications/full-application-details";
 import ResourcePreviewDialog from "@/components/resources/ResourcePreviewDialog";
 import { referenceState } from "@/lib/tutor-references";
@@ -296,6 +297,40 @@ Approve anyway?`)) return;
                     {app.flaggedFields && app.flaggedFields.length > 0 && (
                       <p>Flagged: {app.flaggedFields.join(", ")}</p>
                     )}
+                  </div>
+                )}
+
+                {app.status === TutorApplicationStatus.VETTING_SUBMITTED && canReview && (
+                  <div className="space-y-2 rounded-md border border-blue-200 bg-blue-50 p-3 text-xs text-blue-900">
+                    <p>
+                      This tutor has submitted the Vetting Questionnaire. Open <strong>full application</strong> above to read their answers, then confirm (this makes them
+                      eligible for student allocation) or send it back with a note.
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        size="sm"
+                        onClick={async () => {
+                          const [, error] = await ConfirmVettingAction(app.id);
+                          setMessage(error || "Vetting confirmed - the tutor is now eligible for student allocation");
+                          if (!error) load();
+                        }}
+                      >
+                        Confirm vetting
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={async () => {
+                          const note = window.prompt("What should the tutor change?");
+                          if (!note?.trim()) return;
+                          const [, error] = await RequestVettingChangesAction(app.id, note.trim());
+                          setMessage(error || "Sent back - the tutor has been asked to update their answers");
+                          if (!error) load();
+                        }}
+                      >
+                        Ask for changes
+                      </Button>
+                    </div>
                   </div>
                 )}
 
