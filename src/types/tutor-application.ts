@@ -316,6 +316,9 @@ export interface TutorApplication {
   // Post-approval Vetting Questionnaire - see VettingQuestionnaire and
   // TutorApplicationStatus.APPROVED_PENDING_VETTING.
   vettingQuestionnaire?: VettingQuestionnaire;
+  // Set when a reviewer sent the questionnaire back: what they asked the tutor to change.
+  vettingChangesNote?: string;
+  vettingChangesRequestedAt?: string;
 
   // Task 6: answers to any active CustomFormField for the tutor-onboarding
   // stages, keyed by ICustomFormField.id.

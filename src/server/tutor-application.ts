@@ -374,6 +374,15 @@ export async function ReplaceMyReferenceAction(
   return [res ? ((await res.json()) as ApiResponse<TutorApplication>) : null, error];
 }
 
+// Open the submitted questionnaire up again to change it (only before a reviewer has confirmed it).
+export async function ReopenVettingAction(id: string): Promise<[ApiResponse<TutorApplication> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: `/tutor-applications/${id}/vetting/reopen`,
+    request: { method: "POST", headers: { "Content-Type": "application/json" } },
+  });
+  return [res ? ((await res.json()) as ApiResponse<TutorApplication>) : null, error];
+}
+
 // Post-approval Vetting Questionnaire - real login required (application is
 // already APPROVED_PENDING_VETTING). Submitting flips it to APPROVED.
 export async function SubmitVettingQuestionnaireAction(

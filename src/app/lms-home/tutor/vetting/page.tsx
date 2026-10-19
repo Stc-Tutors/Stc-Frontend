@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { GetMyTutorApplicationAction, SubmitVettingQuestionnaireAction } from "@/server/tutor-application";
+import { GetMyTutorApplicationAction, ReopenVettingAction, SubmitVettingQuestionnaireAction } from "@/server/tutor-application";
 import { SubmitVettingQuestionnairePayload, TutorApplication, TutorApplicationStatus } from "@/types/tutor-application";
 
 const MIN_RESPONSE_LENGTH = 200;
@@ -42,13 +42,43 @@ export default function TutorVettingPage() {
   const [signature, setSignature] = useState("");
   const [signatureDate, setSignatureDate] = useState(() => new Date().toISOString().slice(0, 10));
 
+  // Earlier answers (a questionnaire sent back for changes, or reopened by the tutor) come back into the form rather than a blank one.
+  const prefill = (app: TutorApplication | null) => {
+    const q = app?.vettingQuestionnaire;
+    if (!q) return;
+    setIndependentContractorAccepted(!!q.independentContractorAccepted);
+    setScenarioDirectPaymentResponse(q.scenarioDirectPaymentResponse ?? "");
+    setScenarioFirstLessonPrepResponse(q.scenarioFirstLessonPrepResponse ?? "");
+    setReportingPolicyAccepted(!!q.reportingPolicyAccepted);
+    setNonCircumventionAccepted(!!q.nonCircumventionAccepted);
+    setPunctualityAccepted(!!q.punctualityAccepted);
+    setAttendanceAccepted(!!q.attendanceAccepted);
+    setConfidentialityAccepted(!!q.confidentialityAccepted);
+    setBindingAgreementAccepted(!!q.bindingAgreementAccepted);
+    setSignature(q.signature ?? "");
+  };
+
   useEffect(() => {
     (async () => {
       const [res] = await GetMyTutorApplicationAction();
       setApplication(res?.data ?? null);
+      prefill(res?.data ?? null);
       setIsLoading(false);
     })();
   }, []);
+
+  const handleReopen = async () => {
+    if (!application) return;
+    setIsSubmitting(true);
+    const [res, err] = await ReopenVettingAction(application.id);
+    setIsSubmitting(false);
+    if (err) {
+      setError(err);
+      return;
+    }
+    setApplication(res?.data ?? { ...application, status: TutorApplicationStatus.APPROVED_PENDING_VETTING });
+    prefill(application);
+  };
 
   const handleSubmit = async () => {
     if (!application) return;
@@ -119,8 +149,14 @@ export default function TutorVettingPage() {
       <div className="max-w-2xl mx-auto p-6">
         <Card>
           <CardContent className="py-6 text-sm text-gray-600">
-            Thanks - your Vetting Questionnaire has been submitted. A reviewer will confirm it shortly; you&apos;ll be
-            notified once that&apos;s done and you&apos;re eligible to be matched with students.
+            <p>
+              Thanks - your Vetting Questionnaire has been submitted. A reviewer will confirm it shortly; you&apos;ll be
+              notified once that&apos;s done and you&apos;re eligible to be matched with students.
+            </p>
+            <p className="mt-3">Spotted something you want to change? You can open your answers up again until a reviewer has confirmed them.</p>
+            <Button className="mt-3" variant="outline" onClick={handleReopen} disabled={isSubmitting}>
+              {isSubmitting ? "Opening..." : "Change my answers"}
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -148,6 +184,14 @@ export default function TutorVettingPage() {
           approval and become eligible to be matched with students.
         </p>
       </div>
+
+      {application.vettingChangesNote && (
+        <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
+          <p className="font-medium">A reviewer asked you to update your answers:</p>
+          <p className="mt-1 whitespace-pre-wrap">{application.vettingChangesNote}</p>
+          <p className="mt-2 text-xs">Your earlier answers are filled in below - change what was asked and submit again.</p>
+        </div>
+      )}
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 
