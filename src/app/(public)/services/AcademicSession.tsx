@@ -67,7 +67,7 @@ const AcademicSession = () => {
           >
             {/* Text Content */}
             <div className="flex flex-col justify-center">
-              <h3 className="text-3xl font-bold text-gray-900 mb-4">{service.title}</h3>
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">{service.title}</h2>
               <p className="text-xl text-gray-600 mb-6">{service.description}</p>
               <Link
                 href={`/services/${service.slug}`}

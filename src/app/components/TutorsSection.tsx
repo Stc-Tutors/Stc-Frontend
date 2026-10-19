@@ -118,7 +118,7 @@ const TutorsSection = () => {
                     />
                   </div>
                   <div className="tutorInfo">
-                    <h3>{tutor.name}</h3>
+                    <h2>{tutor.name}</h2>
                     <p className="subject">{tutor.subject}</p>
                     <div className="rating">
                       {[...Array(5)].map((_, i) => (
