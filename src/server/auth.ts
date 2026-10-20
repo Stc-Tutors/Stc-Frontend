@@ -88,7 +88,8 @@ export async function SigninAction(data: {
     // dependency on NODE_ENV actually resolving to "production" at runtime
     // on the hosting platform.
     cookie.set("token", resData.data.token, {
-      maxAge: 60 * 60 * 24,
+      // The backend says how long this role's session lasts (30 days for families and tutors, 7 for staff), renewed whenever they use the app.
+      maxAge: (resData.data as { sessionSeconds?: number }).sessionSeconds ?? 60 * 60 * 24,
       path: "/",
       httpOnly: true,
       secure: true,

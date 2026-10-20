@@ -124,6 +124,19 @@ export default async function fetchAPI<T>({
       throw new Error(errorMessage)
     }
 
+    // The API hands back a fresh token once the current one is a day old and the person is still using the app: swap the cookie so an
+    // active user never gets signed out. Cookies can only be written from a server action / route handler - elsewhere (page rendering) this
+    // is skipped and the next action does it.
+    const refreshed = res.headers.get("x-refreshed-token");
+    if (refreshed) {
+      try {
+        const maxAge = Number(res.headers.get("x-refreshed-token-max-age")) || 60 * 60 * 24;
+        (await cookies()).set("token", refreshed, { maxAge, path: "/", httpOnly: true, secure: true, sameSite: "lax" });
+      } catch {
+        // not allowed in this context
+      }
+    }
+
     return [res, null];
   } catch (error) {
     // if ((error as Error).message === 'Unauthorized') {
