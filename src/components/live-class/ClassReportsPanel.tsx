@@ -219,7 +219,13 @@ export default function ClassReportsPanel() {
                   {report.myFeedback.comment && <p className="text-sm text-gray-700">{report.myFeedback.comment}</p>}
                 </div>
               ) : (
-                report.canRate && <RateForm report={report} onDone={() => void refresh()} />
+                report.joined === false ? (
+                  <p className="rounded-lg bg-gray-50 p-3 text-sm text-gray-600">
+                    {report.studentName} did not press Join Class for this session, so it can&apos;t be rated.
+                  </p>
+                ) : (
+                  report.canRate && <RateForm report={report} onDone={() => void refresh()} />
+                )
               )}
             </CardContent>
           </Card>

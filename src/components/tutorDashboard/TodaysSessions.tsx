@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CalendarClock, Play, Square, ChevronDown, Video } from "lucide-react";
+import { CalendarClock, Square, ChevronDown, Video } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { GetMyCoursesAction, GetCourseStudentsAction } from "@/server/course";
-import { ClockInLessonAction, AddLessonCommentAction } from "@/server/lesson";
+import { AddLessonCommentAction } from "@/server/lesson";
 import ClockOutDialog from "@/components/tutorDashboard/ClockOutDialog";
 import { MarkAttendanceAction } from "@/server/attendance";
 import { formatScheduleTime } from "@/lib/datetime";
@@ -75,12 +75,6 @@ export default function TodaysSessions() {
   useEffect(() => {
     load();
   }, []);
-
-  const handleClockIn = async (id: string) => {
-    const [, error] = await ClockInLessonAction(id);
-    setMessage(error);
-    load();
-  };
 
   const handleClockedOut = () => {
     setClockOutLessonId(null);
@@ -170,24 +164,16 @@ export default function TodaysSessions() {
                   </div>
 
                   {!lesson.actualStartTime ? (
-                    lesson.deliveryMode === LessonDeliveryMode.LIVEKIT ? (
-                      // In-app class: the server sees when the tutor connects,
-                      // so joining the classroom IS the clock-in.
-                      <Button size="sm" onClick={() => router.push(`/lms-home/classroom/live/${lesson.id}`)}>
-                        <Video className="w-3.5 h-3.5 mr-1" /> Start class
-                      </Button>
-                    ) : (
-                      <Button size="sm" onClick={() => handleClockIn(lesson.id)}>
-                        <Play className="w-3.5 h-3.5 mr-1" /> Clock In
-                      </Button>
-                    )
+                    // Joining IS the clock-in for both kinds of class: the server sees an in-app tutor connect, and pressing Join Class on an
+                    // external-link class is logged and clocks the tutor in. Nothing needs claiming by hand.
+                    <Button size="sm" onClick={() => router.push(`/lms-home/classroom/live/${lesson.id}`)}>
+                      <Video className="w-3.5 h-3.5 mr-1" /> {lesson.deliveryMode === LessonDeliveryMode.LIVEKIT ? "Start class" : "Join class"}
+                    </Button>
                   ) : !lesson.actualEndTime ? (
                     <div className="flex gap-2">
-                      {lesson.deliveryMode === LessonDeliveryMode.LIVEKIT && (
-                        <Button size="sm" variant="outline" onClick={() => router.push(`/lms-home/classroom/live/${lesson.id}`)}>
-                          <Video className="w-3.5 h-3.5 mr-1" /> Rejoin
-                        </Button>
-                      )}
+                      <Button size="sm" variant="outline" onClick={() => router.push(`/lms-home/classroom/live/${lesson.id}`)}>
+                        <Video className="w-3.5 h-3.5 mr-1" /> Rejoin
+                      </Button>
                       <Button size="sm" variant="destructive" onClick={() => setClockOutLessonId(lesson.id)}>
                         <Square className="w-3.5 h-3.5 mr-1" /> Clock Out
                       </Button>

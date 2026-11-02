@@ -235,6 +235,8 @@ export interface ClassReport {
   report: { key: string; label: string; value: string }[];
   myFeedback: { rating: number; tags: string[]; comment?: string } | null;
   canRate: boolean;
+  // False for an external-link class this child never pressed Join Class on.
+  joined?: boolean;
   recordingAvailable: boolean;
   // False while the tutor's own report for this class is still missing - the class can be rated anyway.
   tutorReportFiled?: boolean;
@@ -278,6 +280,8 @@ export interface ClassLog {
   tutorClockedInAt: string | null;
   endedAt: string | null;
   timeline: { userId: string; name?: string; role: PresenceRole; joinedAt: string; leftAt: string | null; stillConnected: boolean; minutes: number }[];
+  // Presses of "Join Class" on an external meeting link (no leave time exists for those).
+  linkJoins?: { userId: string; name?: string; role: PresenceRole; joinedAt: string }[];
   people: { userId: string; name?: string; role: PresenceRole; firstJoinedAt: string; lastLeftAt: string | null; totalMinutes: number; sessions: number; dropOffs: number }[];
 }
 

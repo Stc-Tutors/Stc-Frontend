@@ -57,7 +57,7 @@ export default function ClassLogDialog({ lessonId, title, onClose }: { lessonId:
             <section>
               <h3 className="mb-2 font-medium text-gray-900">Per person</h3>
               {log.people.length === 0 ? (
-                <p className="text-gray-600">Nobody connected to the room.</p>
+                <p className="text-gray-600">Nobody connected to the in-app room.</p>
               ) : (
                 <div className="overflow-x-auto rounded border">
                   <table className="w-full text-left text-xs">
@@ -87,6 +87,20 @@ export default function ClassLogDialog({ lessonId, title, onClose }: { lessonId:
                 </div>
               )}
             </section>
+
+            {log.linkJoins && log.linkJoins.length > 0 && (
+              <section>
+                <h3 className="mb-2 font-medium text-gray-900">Pressed Join Class (external meeting link)</h3>
+                <ol className="space-y-1 text-xs text-gray-700">
+                  {log.linkJoins.map((j, i) => (
+                    <li key={i} className="rounded border bg-gray-50 px-3 py-1.5">
+                      <span className="font-medium text-gray-900">{j.name}</span> ({ROLE_LABEL[j.role] ?? j.role}) pressed Join Class at {time(j.joinedAt)}
+                    </li>
+                  ))}
+                </ol>
+                <p className="mt-1 text-xs text-gray-500">The meeting itself is on another service, so only the click is recorded - not when anyone left.</p>
+              </section>
+            )}
 
             <section>
               <h3 className="mb-2 font-medium text-gray-900">Every join and leave</h3>

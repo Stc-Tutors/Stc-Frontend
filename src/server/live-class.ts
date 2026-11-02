@@ -37,6 +37,11 @@ export async function JoinLiveClassAction(lessonId: string, mode?: "observe" | "
   return call(`/live-classes/${lessonId}/join`, "POST", mode ? { mode } : undefined);
 }
 
+// Logs a press of "Join Class" on an external-link class (clocks the tutor in, marks the student present).
+export async function RecordLinkJoinAction(lessonId: string): Result<{ recorded: boolean; role: string }> {
+  return call(`/live-classes/${lessonId}/link-join`, "POST");
+}
+
 export async function EndLiveClassAction(lessonId: string): Result<null> {
   return call(`/live-classes/${lessonId}/end`, "POST");
 }

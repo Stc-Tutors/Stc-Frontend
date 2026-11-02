@@ -117,7 +117,7 @@ export default function LiveClassroomPage() {
               {course && <p className="text-sm text-gray-500">{course.title}</p>}
             </div>
             {joinWindow?.isJoinable ? (
-              <LiveClassRedirect meetingUrl={lesson.meetingUrl} />
+              <LiveClassRedirect lessonId={lesson.id} meetingUrl={lesson.meetingUrl} />
             ) : (
               <div className="bg-gray-50 border border-dashed border-gray-300 rounded-lg py-16 flex flex-col items-center gap-3 text-center">
                 <Clock className="w-8 h-8 text-gray-500" />
