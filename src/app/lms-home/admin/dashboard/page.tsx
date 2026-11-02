@@ -31,23 +31,25 @@ export default function AdminDashboardPage() {
   const isAdminViewer = !isLoadingUser && !!user && isAdminOrAbove(user.role);
 
   useEffect(() => {
-    if (!isAdminViewer) {
-      setIsLoading(false);
-      return;
-    }
-    const load = async () => {
-      // Independent requests - fetched together instead of one after the other (the second used to wait for the first).
-      const [[res], [tutorsRes]] = await Promise.all([GetAdminOverviewAction(), GetTutorPerformanceReportAction()]);
-      setOverview(res?.data ?? null);
+    queueMicrotask(() => {
+      if (!isAdminViewer) {
+        setIsLoading(false);
+        return;
+      }
+      const load = async () => {
+        // Independent requests - fetched together instead of one after the other (the second used to wait for the first).
+        const [[res], [tutorsRes]] = await Promise.all([GetAdminOverviewAction(), GetTutorPerformanceReportAction()]);
+        setOverview(res?.data ?? null);
 
-      const rated = (tutorsRes?.data ?? []).filter((t) => t.totalRatings > 0);
-      setPlatformRating(
-        rated.length > 0 ? rated.reduce((sum, t) => sum + (t.averageRating ?? 0), 0) / rated.length : null
-      );
+        const rated = (tutorsRes?.data ?? []).filter((t) => t.totalRatings > 0);
+        setPlatformRating(
+          rated.length > 0 ? rated.reduce((sum, t) => sum + (t.averageRating ?? 0), 0) / rated.length : null
+        );
 
-      setIsLoading(false);
-    };
-    load();
+        setIsLoading(false);
+      };
+      load();
+    });
   }, [isAdminViewer]);
 
   if (isLoadingUser) return <InlineLoader />;

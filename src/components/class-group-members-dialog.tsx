@@ -54,7 +54,9 @@ export default function ClassGroupMembersDialog({ group, onOpenChange }: Props) 
   }, []);
 
   useEffect(() => {
-    if (group) load(group.id);
+    queueMicrotask(() => {
+      if (group) load(group.id);
+    });
   }, [group, load]);
 
   const columns: DataTableColumn<SubjectEnrollment>[] = [

@@ -125,11 +125,13 @@ export function SelectedStudentProvider({ children: reactChildren }: { children:
   const isLoading = isSessionLoading || isStudentsLoading
 
   useEffect(() => {
-    setSelectedId((current) =>
-      current === ALL_CHILDREN_ID || students.some((s) => s.id === current || s.childId === current)
-        ? current
-        : ALL_CHILDREN_ID
-    )
+    queueMicrotask(() => {
+      setSelectedId((current) =>
+        current === ALL_CHILDREN_ID || students.some((s) => s.id === current || s.childId === current)
+          ? current
+          : ALL_CHILDREN_ID
+      )
+    });
   }, [students])
 
   const childGroups = groupStudentsByChild(students)

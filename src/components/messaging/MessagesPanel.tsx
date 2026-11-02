@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ArrowLeft, Send, Users } from "lucide-react";
 import { useUser } from "@/contexts/user-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -73,7 +73,10 @@ export default function MessagesPanel({ initialConversationId }: { initialConver
   const [error, setError] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const conversationIdRef = useRef<string | null>(null);
-  conversationIdRef.current = conversationId;
+  // Read by async handlers (never during render); kept current right after every commit.
+  useLayoutEffect(() => {
+    conversationIdRef.current = conversationId;
+  });
   // Guards against out-of-order responses: clicking contact A then quickly
   // clicking contact B starts two overlapping openContact() calls, and
   // without this, whichever one's network request happens to resolve last
@@ -170,18 +173,6 @@ export default function MessagesPanel({ initialConversationId }: { initialConver
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Deep-link from a notification (e.g. "New message") straight into the
-  // conversation it's about, instead of leaving the user on the bare list.
-  useEffect(() => {
-    if (!initialConversationId || appliedInitialConversationId.current === initialConversationId || isLoadingContacts) return;
-    const row = rows.find((r) => r.conversationId === initialConversationId);
-    if (row) {
-      appliedInitialConversationId.current = initialConversationId;
-      openContact(row);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialConversationId, isLoadingContacts, rows]);
-
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -229,6 +220,18 @@ export default function MessagesPanel({ initialConversationId }: { initialConver
     // display depends on - don't block showing the just-fetched messages on it.
     MarkConversationReadAction(id).then(() => loadContacts());
   };
+
+  // Deep-link from a notification (e.g. "New message") straight into the
+  // conversation it's about, instead of leaving the user on the bare list.
+  useEffect(() => {
+    if (!initialConversationId || appliedInitialConversationId.current === initialConversationId || isLoadingContacts) return;
+    const row = rows.find((r) => r.conversationId === initialConversationId);
+    if (row) {
+      appliedInitialConversationId.current = initialConversationId;
+      queueMicrotask(() => openContact(row));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialConversationId, isLoadingContacts, rows]);
 
   const handleSend = async () => {
     if (!conversationId || !body.trim() || isSending) return;

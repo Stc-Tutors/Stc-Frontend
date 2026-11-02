@@ -33,17 +33,19 @@ export default function ReferenceFormPage() {
   const slotNumber = slot === "2" ? 2 : 1;
 
   useEffect(() => {
-    if (!token) {
-      setLoadError("This link is missing its access token - please use the link exactly as it appeared in the email.");
-      setIsLoading(false);
-      return;
-    }
-    GetReferenceInfoAction(applicationId as string, slotNumber, token).then(([res, error]) => {
-      setInfo(res?.data ?? null);
-      setLoadError(error);
-      setIsLoading(false);
+    queueMicrotask(() => {
+      if (!token) {
+        setLoadError("This link is missing its access token - please use the link exactly as it appeared in the email.");
+        setIsLoading(false);
+        return;
+      }
+      GetReferenceInfoAction(applicationId as string, slotNumber, token).then(([res, error]) => {
+        setInfo(res?.data ?? null);
+        setLoadError(error);
+        setIsLoading(false);
+      });
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [applicationId, slotNumber, token]);
 
   const handleSubmit = async () => {

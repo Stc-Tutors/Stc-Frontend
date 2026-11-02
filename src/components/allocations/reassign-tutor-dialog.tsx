@@ -37,15 +37,19 @@ export default function ReassignTutorDialog({ enrollment, onOpenChange, onReassi
   const [explain, setExplain] = useState<TutorEligibilityExplanation | null>(null);
 
   useEffect(() => {
-    setSelectedTutorId("");
-    setSearch("");
-    setFilters(emptyTutorFilters());
+    queueMicrotask(() => {
+      setSelectedTutorId("");
+      setSearch("");
+      setFilters(emptyTutorFilters());
+    });
   }, [enrollment]);
 
   useEffect(() => {
     if (!enrollment) return;
     let stale = false;
-    setIsLoading(true);
+    queueMicrotask(() => {
+      if (!stale) setIsLoading(true);
+    });
     const timer = setTimeout(async () => {
       const [res, error] = await SearchEligibleTutorsAction(enrollment.id, search.trim() || undefined, tutorFiltersToParams({ ...filters, q: "" }));
       if (stale) return;

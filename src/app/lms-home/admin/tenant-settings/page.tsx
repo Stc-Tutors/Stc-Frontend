@@ -44,8 +44,10 @@ export default function TenantSettingsPage() {
   };
 
   useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    queueMicrotask(() => {
+      load();
+    });
+   
   }, []);
 
   const handleSaveDomain = async () => {

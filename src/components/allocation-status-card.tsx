@@ -20,7 +20,9 @@ export default function AllocationStatusCard({ studentId, onChanged }: { student
   }, [studentId]);
 
   useEffect(() => {
-    load();
+    queueMicrotask(() => {
+      load();
+    });
   }, [load]);
 
   const createRecords = async () => {

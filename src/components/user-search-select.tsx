@@ -38,27 +38,35 @@ export function UserSearchSelect({ role, value, onChange, placeholder, assignabl
 
   useEffect(() => {
     if (!open) return;
-    setIsLoading(true);
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) setIsLoading(true);
+    });
     const timeout = setTimeout(() => {
       GetUsersAction({ role, search: search || undefined, assignable: assignableOnly ? true : undefined }).then(([res]) => {
         setUsers(res?.data ?? []);
         setIsLoading(false);
       });
     }, 250);
-    return () => clearTimeout(timeout);
+    return () => {
+      cancelled = true;
+      clearTimeout(timeout);
+    };
   }, [open, search, role, assignableOnly]);
 
   useEffect(() => {
-    if (!value) {
-      setSelected(null);
-      return;
-    }
-    if (selected?.id === value) return;
-    GetUsersAction({ role, search: value }).then(([res]) => {
-      const match = (res?.data ?? []).find((u) => u.id === value);
-      if (match) setSelected(match);
+    queueMicrotask(() => {
+      if (!value) {
+        setSelected(null);
+        return;
+      }
+      if (selected?.id === value) return;
+      GetUsersAction({ role, search: value }).then(([res]) => {
+        const match = (res?.data ?? []).find((u) => u.id === value);
+        if (match) setSelected(match);
+      });
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);
 
   return (

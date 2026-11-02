@@ -65,6 +65,7 @@ export interface TutorFieldEntry {
   stepId: number;
   stepTitle: string;
   getValue: (app: TutorApplication) => unknown;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- a registry of fields whose values each have a different shape
   format: (value: any, context?: TutorFieldRenderContext) => React.ReactNode;
 }
 

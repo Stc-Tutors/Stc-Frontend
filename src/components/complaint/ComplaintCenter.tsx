@@ -68,7 +68,9 @@ export default function ComplaintCenter() {
   };
 
   useEffect(() => {
-    load();
+    queueMicrotask(() => {
+      load();
+    });
   }, []);
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {

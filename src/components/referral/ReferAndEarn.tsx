@@ -93,8 +93,10 @@ export default function ReferAndEarn() {
   };
 
   useEffect(() => {
-    load();
-    ListReferralBanksAction().then(([res]) => setBanks(res?.data ?? []));
+    queueMicrotask(() => {
+      load();
+      ListReferralBanksAction().then(([res]) => setBanks(res?.data ?? []));
+    });
   }, []);
 
   const handleMoveToWallet = async (currency: string) => {
@@ -410,7 +412,7 @@ export default function ReferAndEarn() {
   );
 }
 
-function StatCard({ title, value, icon: Icon, color, note }: any) {
+function StatCard({ title, value, icon: Icon, color, note }: { title: string; value: React.ReactNode; icon: React.ElementType; color?: string; note?: React.ReactNode }) {
   return (
     <Card className="flex items-center p-4 gap-4">
       <div className={`p-3 rounded-lg ${color}`}>

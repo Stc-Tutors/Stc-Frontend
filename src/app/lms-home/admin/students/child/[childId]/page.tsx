@@ -66,8 +66,10 @@ export default function AdminChildProfilePage() {
   };
 
   useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    queueMicrotask(() => {
+      load();
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [childId]);
 
   const openEdit = (section: typeof editSection, initial: Record<string, string | undefined>) => {
@@ -81,7 +83,7 @@ export default function AdminChildProfilePage() {
       ...form,
       weightKg: form.weightKg ? Number(form.weightKg) : undefined,
       heightCm: form.heightCm ? Number(form.heightCm) : undefined,
-    } as any);
+    } as unknown as Parameters<typeof UpdateChildProfileAction>[1]);
     setIsSaving(false);
     setMessage(error || "Details updated");
     setEditSection(null);

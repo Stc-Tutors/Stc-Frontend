@@ -51,8 +51,10 @@ export default function TutorApplicationsPage() {
   };
 
   useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    queueMicrotask(() => {
+      load();
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, filters]);
 
   const handleApprove = async (id: string) => {

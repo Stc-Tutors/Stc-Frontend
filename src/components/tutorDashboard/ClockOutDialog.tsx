@@ -30,15 +30,17 @@ export default function ClockOutDialog({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!lessonId) return;
-    setFields(null);
-    setValues({});
-    setError(null);
-    (async () => {
-      const [res, loadError] = await GetClockOutFormFieldsAction();
-      if (loadError) setError(loadError);
-      setFields((res?.data ?? []).filter((field) => field.isActive));
-    })();
+    queueMicrotask(() => {
+      if (!lessonId) return;
+      setFields(null);
+      setValues({});
+      setError(null);
+      (async () => {
+        const [res, loadError] = await GetClockOutFormFieldsAction();
+        if (loadError) setError(loadError);
+        setFields((res?.data ?? []).filter((field) => field.isActive));
+      })();
+    });
   }, [lessonId]);
 
   const set = (key: string, value: string) => setValues((prev) => ({ ...prev, [key]: value }));

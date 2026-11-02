@@ -61,10 +61,12 @@ export default function MockExamsPage() {
   }, []);
 
   useEffect(() => {
-    if (!activeKey || !learners.find((l) => l.key === activeKey)?.enabled) return;
-    setOpenExam(null);
-    setSubjects(null);
-    loadChild(activeKey);
+    queueMicrotask(() => {
+      if (!activeKey || !learners.find((l) => l.key === activeKey)?.enabled) return;
+      setOpenExam(null);
+      setSubjects(null);
+      loadChild(activeKey);
+    });
   }, [activeKey, learners, loadChild]);
 
   const chooseExam = async (examId: number) => {

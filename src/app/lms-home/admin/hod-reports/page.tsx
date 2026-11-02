@@ -26,8 +26,10 @@ export default function HodReportsPage() {
   }, []);
 
   useEffect(() => {
-    if (canView) load();
-    else setIsLoading(false);
+    queueMicrotask(() => {
+      if (canView) load();
+      else setIsLoading(false);
+    });
   }, [canView, load]);
 
   if (isLoadingUser) return <InlineLoader />;

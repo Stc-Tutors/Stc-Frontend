@@ -75,8 +75,10 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
-    load();
-    ListPayoutBanksAction().then(([res]) => setBanks(res?.data ?? []));
+    queueMicrotask(() => {
+      load();
+      ListPayoutBanksAction().then(([res]) => setBanks(res?.data ?? []));
+    });
   }, []);
 
   const totalPaid = requests.filter((r) => r.status === PayoutRequestStatus.PAID).reduce((sum, r) => sum + r.amount, 0);
@@ -398,7 +400,7 @@ export default function DashboardPage() {
 }
 
 /* ------------------- Reusable Stat Card ------------------- */
-function StatCard({ title, value, icon: Icon, color, note }: any) {
+function StatCard({ title, value, icon: Icon, color, note }: { title: string; value: React.ReactNode; icon: React.ElementType; color?: string; note?: React.ReactNode }) {
   return (
     <Card className="flex items-center p-4 gap-4">
       <div className={`p-3 rounded-lg ${color}`}>

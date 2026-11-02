@@ -11,6 +11,7 @@ import { formatScheduleDateTime } from "@/lib/datetime";
 import { StudentsCell } from "@/components/group-students-cell";
 import { hasJoinableClass } from "@/lib/class-join-window";
 import { ToastError } from "@/components/ui/custom/toast";
+import { currentTime } from "@/lib/clock";
 
 const tutorOf = (l: Lesson): { id: string; name: string } => {
   const tutor = (l.course as LessonCourseRef).tutor;
@@ -45,7 +46,7 @@ export default function HodSchedulePage() {
     return Array.from(map.entries()).sort((a, b) => a[1].localeCompare(b[1]));
   }, [lessons]);
 
-  const now = Date.now();
+  const now = currentTime();
   const visible = lessons
     .filter(
       (l) =>

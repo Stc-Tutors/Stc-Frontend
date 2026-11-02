@@ -67,7 +67,9 @@ function PendingAssignmentsQueue() {
   };
 
   useEffect(() => {
-    load();
+    queueMicrotask(() => {
+      load();
+    });
   }, []);
 
   const handleApprove = async (id: string) => {

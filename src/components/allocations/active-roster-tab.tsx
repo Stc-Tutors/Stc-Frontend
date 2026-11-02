@@ -56,12 +56,16 @@ export default function ActiveRosterTab({ jumpToken = 0 }: { jumpToken?: number 
   }, []);
 
   useEffect(() => {
-    load();
+    queueMicrotask(() => {
+      load();
+    });
   }, [load]);
 
   useEffect(() => {
-    if (jumpToken > 0) load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    queueMicrotask(() => {
+      if (jumpToken > 0) load();
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jumpToken]);
 
   const columns: DataTableColumn<SubjectEnrollment>[] = [

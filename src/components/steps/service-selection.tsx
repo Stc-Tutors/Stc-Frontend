@@ -77,12 +77,14 @@ export default function ServiceSelection({ onNext, errors, forcedUserType }: Ste
   // "Planned"-status service's query param silently no-ops, same as if the
   // visitor had picked nothing).
   useEffect(() => {
-    if (selectedSlug || services.length === 0) return
-    const requested = searchParams.get("service")
-    if (!requested) return
-    const match = services.find((s) => s.slug === requested)
-    if (match) setSelectedSlug(match.slug)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    queueMicrotask(() => {
+      if (selectedSlug || services.length === 0) return
+      const requested = searchParams.get("service")
+      if (!requested) return
+      const match = services.find((s) => s.slug === requested)
+      if (match) setSelectedSlug(match.slug)
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [services])
 
   useEffect(() => {

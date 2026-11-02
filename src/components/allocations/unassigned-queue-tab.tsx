@@ -28,12 +28,16 @@ export default function UnassignedQueueTab({ jumpToken = 0 }: { jumpToken?: numb
   }, []);
 
   useEffect(() => {
-    load();
+    queueMicrotask(() => {
+      load();
+    });
   }, [load]);
 
   useEffect(() => {
-    if (jumpToken > 0) load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    queueMicrotask(() => {
+      if (jumpToken > 0) load();
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jumpToken]);
 
   const handleChanged = () => {

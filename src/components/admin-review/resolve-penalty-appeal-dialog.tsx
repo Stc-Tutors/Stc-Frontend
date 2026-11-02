@@ -39,8 +39,10 @@ export default function ResolvePenaltyAppealDialog({ charge, onOpenChange, onRes
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    setDecision(null);
-    setNote("");
+    queueMicrotask(() => {
+      setDecision(null);
+      setNote("");
+    });
   }, [charge]);
 
   if (!charge) return null;

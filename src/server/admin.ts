@@ -194,7 +194,7 @@ export async function UpdateEnrollmentStatusAction(
 
 export async function GetEnrollmentsByStatusAction(
   status: string
-): Promise<[ApiResponse<any[]> | null, string | null]> {
+): Promise<[ApiResponse<Student[]> | null, string | null]> {
   const [res, error] = await fetchAPI({
     url: `/enrollments/status/${status}`,
     request: {
@@ -203,7 +203,7 @@ export async function GetEnrollmentsByStatusAction(
     },
   });
 
-  const resData = res ? ((await res.json()) as ApiResponse<any[]>) : null;
+  const resData = res ? ((await res.json()) as ApiResponse<Student[]>) : null;
   return [resData, error];
 }
 

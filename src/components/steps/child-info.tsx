@@ -103,12 +103,14 @@ export default function ChildInfoStep({ onNext, errors, forcedUserType }: StepPr
   const [selectedChildKey, setSelectedChildKey] = useState(enrollmentData.childId || "")
 
   useEffect(() => {
-    if (formData.userType !== "parent") return
-    setIsLoadingChildren(true)
-    GetLinkedStudentsAction().then(([res]) => {
-      setExistingChildren(groupStudentsByChild(res?.data ?? []))
-      setIsLoadingChildren(false)
-    })
+    queueMicrotask(() => {
+      if (formData.userType !== "parent") return
+      setIsLoadingChildren(true)
+      GetLinkedStudentsAction().then(([res]) => {
+        setExistingChildren(groupStudentsByChild(res?.data ?? []))
+        setIsLoadingChildren(false)
+      })
+    });
   }, [formData.userType])
 
   const handleSelectExistingChild = (key: string) => {
@@ -214,14 +216,16 @@ export default function ChildInfoStep({ onNext, errors, forcedUserType }: StepPr
   // what's already on file. Only fills fields still blank, so it never
   // clobbers a value they've since edited or a resumed draft.
   useEffect(() => {
-    if (formData.userType !== "student" || !user) return
-    setFormData((prev) => {
-      if (prev.fullName.trim() && prev.phone.trim()) return prev
-      const fullName = prev.fullName.trim() || `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim()
-      const phone = prev.phone.trim() || user.phone || ""
-      if (fullName === prev.fullName && phone === prev.phone) return prev
-      return { ...prev, fullName, phone }
-    })
+    queueMicrotask(() => {
+      if (formData.userType !== "student" || !user) return
+      setFormData((prev) => {
+        if (prev.fullName.trim() && prev.phone.trim()) return prev
+        const fullName = prev.fullName.trim() || `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim()
+        const phone = prev.phone.trim() || user.phone || ""
+        if (fullName === prev.fullName && phone === prev.phone) return prev
+        return { ...prev, fullName, phone }
+      })
+    });
   }, [user, formData.userType])
 
   const { fields: customFields } = useCustomFormFields(STAGE, enrollmentData.serviceDetails?.serviceType)

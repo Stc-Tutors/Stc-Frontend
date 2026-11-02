@@ -97,7 +97,7 @@ export default function ClassroomPage() {
       onCancel: () => {
         ToastError("Payment was not completed.");
       },
-      onError: (error: any) => {
+      onError: (error: { message?: string }) => {
         ToastError(error?.message || "Payment failed. Please try again.");
       },
     });

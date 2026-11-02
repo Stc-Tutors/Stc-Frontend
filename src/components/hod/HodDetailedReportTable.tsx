@@ -86,7 +86,9 @@ export function HodDetailedReportTable() {
   }, []);
 
   useEffect(() => {
-    load();
+    queueMicrotask(() => {
+      load();
+    });
   }, [load]);
 
   const handleExport = () => {

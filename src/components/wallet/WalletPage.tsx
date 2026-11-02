@@ -309,7 +309,9 @@ function PenaltyChargesSection() {
   };
 
   useEffect(() => {
-    load();
+    queueMicrotask(() => {
+      load();
+    });
   }, []);
 
   const handleFileAppeal = async () => {

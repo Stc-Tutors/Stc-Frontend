@@ -118,7 +118,9 @@ export function CourseForm({
   // Locked entry point (e.g. "+ New course under X") - pin the service
   // immediately rather than waiting for the admin to pick one.
   useEffect(() => {
-    if (lockedServiceSlug) setServiceSlug(lockedServiceSlug);
+    queueMicrotask(() => {
+      if (lockedServiceSlug) setServiceSlug(lockedServiceSlug);
+    });
   }, [lockedServiceSlug]);
 
   // Resets the taxonomy picker whenever the service actually changes (the
@@ -149,37 +151,41 @@ export function CourseForm({
   // fires correctly if `services` finishes loading after serviceSlug is
   // already set (e.g. the edit-mode load racing the services fetch).
   useEffect(() => {
-    setAgeRangeNodes([]);
-    if (!selectedService || !isFlatTree) return;
-    GetCurriculumChildrenAction(null, selectedService.slug).then(([res]) => setAgeRangeNodes(res?.data ?? []));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    queueMicrotask(() => {
+      setAgeRangeNodes([]);
+      if (!selectedService || !isFlatTree) return;
+      GetCurriculumChildrenAction(null, selectedService.slug).then(([res]) => setAgeRangeNodes(res?.data ?? []));
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedService?.slug, isFlatTree]);
 
   // Edit mode - load the existing course once and prefill every field.
   // Declared after the reset effect above so, on mount, that effect's first
   // (harmless, serviceSlug still "") pass runs before this sets the ref.
   useEffect(() => {
-    if (!courseId) return;
-    setIsLoadingCourse(true);
-    isEditLoadRef.current = true;
-    GetCourseAction(courseId).then(([res, err]) => {
-      if (err || !res?.data) {
-        setError(err || "Could not load course");
+    queueMicrotask(() => {
+      if (!courseId) return;
+      setIsLoadingCourse(true);
+      isEditLoadRef.current = true;
+      GetCourseAction(courseId).then(([res, err]) => {
+        if (err || !res?.data) {
+          setError(err || "Could not load course");
+          setIsLoadingCourse(false);
+          return;
+        }
+        const c = res.data;
+        setServiceSlug(c.serviceType);
+        setTitle(c.title);
+        setSubtitle(c.subtitle ?? "");
+        setDescription(c.description);
+        setCategory(c.category);
+        setLanguage(c.language);
+        setPrice(String(c.price ?? ""));
+        setCapacity(c.capacity ? String(c.capacity) : "");
+        setCoverImageUrl(c.coverImageUrl ?? "");
+        setTaxonomyNodeId(c.taxonomyNodeId ?? "");
         setIsLoadingCourse(false);
-        return;
-      }
-      const c = res.data;
-      setServiceSlug(c.serviceType);
-      setTitle(c.title);
-      setSubtitle(c.subtitle ?? "");
-      setDescription(c.description);
-      setCategory(c.category);
-      setLanguage(c.language);
-      setPrice(String(c.price ?? ""));
-      setCapacity(c.capacity ? String(c.capacity) : "");
-      setCoverImageUrl(c.coverImageUrl ?? "");
-      setTaxonomyNodeId(c.taxonomyNodeId ?? "");
-      setIsLoadingCourse(false);
+      });
     });
   }, [courseId]);
 

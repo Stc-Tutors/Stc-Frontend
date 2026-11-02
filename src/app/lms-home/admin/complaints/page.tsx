@@ -69,8 +69,10 @@ export default function AdminComplaintsPage() {
   };
 
   useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    queueMicrotask(() => {
+      load();
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const selected = complaints.find((c) => c.id === selectedId) ?? null;
@@ -97,12 +99,14 @@ export default function AdminComplaintsPage() {
   }, [complaints]);
 
   useEffect(() => {
-    if (!selected?.assignedTo) {
-      setAssignedToName(null);
-      return;
-    }
-    GetUserByIdAction(selected.assignedTo).then(([res]) => {
-      setAssignedToName(res?.data ? `${res.data.firstName} ${res.data.lastName}` : null);
+    queueMicrotask(() => {
+      if (!selected?.assignedTo) {
+        setAssignedToName(null);
+        return;
+      }
+      GetUserByIdAction(selected.assignedTo).then(([res]) => {
+        setAssignedToName(res?.data ? `${res.data.firstName} ${res.data.lastName}` : null);
+      });
     });
   }, [selected?.assignedTo]);
 

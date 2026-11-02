@@ -40,45 +40,47 @@ export default function AdminFinancePage() {
   }, [currency, canViewFinancialReports]);
 
   useEffect(() => {
-    if (!canViewFinancialReports) {
-      setIsLoading(false);
-      return;
-    }
-    const load = async () => {
-      const [payoutsRes] = await ListAllPayoutRequestsAction(PayoutRequestStatus.PAID);
-      const payoutRows = payoutsRes?.data ?? [];
-      setPayouts(payoutRows);
+    queueMicrotask(() => {
+      if (!canViewFinancialReports) {
+        setIsLoading(false);
+        return;
+      }
+      const load = async () => {
+        const [payoutsRes] = await ListAllPayoutRequestsAction(PayoutRequestStatus.PAID);
+        const payoutRows = payoutsRes?.data ?? [];
+        setPayouts(payoutRows);
 
-      // PayoutRequest.tutor is a bare id (never populated server-side) -
-      // resolved here so the expenses table shows who was paid, not just a
-      // date and an amount.
-      const tutorIds = Array.from(new Set(payoutRows.map((p) => p.tutor)));
-      if (tutorIds.length > 0) {
-        const results = await Promise.all(tutorIds.map((id) => GetUserByIdAction(id)));
-        setTutorNames(
-          Object.fromEntries(
-            results
-              .map(([res], i): [string, string] | null =>
-                res?.data ? [tutorIds[i], `${res.data.firstName} ${res.data.lastName}`] : null
-              )
-              .filter((entry): entry is [string, string] => entry !== null)
+        // PayoutRequest.tutor is a bare id (never populated server-side) -
+        // resolved here so the expenses table shows who was paid, not just a
+        // date and an amount.
+        const tutorIds = Array.from(new Set(payoutRows.map((p) => p.tutor)));
+        if (tutorIds.length > 0) {
+          const results = await Promise.all(tutorIds.map((id) => GetUserByIdAction(id)));
+          setTutorNames(
+            Object.fromEntries(
+              results
+                .map(([res], i): [string, string] | null =>
+                  res?.data ? [tutorIds[i], `${res.data.firstName} ${res.data.lastName}`] : null
+                )
+                .filter((entry): entry is [string, string] => entry !== null)
+            )
+          );
+        }
+
+        const [studentsRes] = await ListStudentsForAdminAction({ limit: 100 });
+        setPendingStudents(
+          (studentsRes?.data ?? []).filter(
+            (s) =>
+              s.enrollmentStatus === EnrollmentStatus.PENDING ||
+              s.enrollmentStatus === EnrollmentStatus.PENDING_PARENT_CONFIRMATION
           )
         );
-      }
 
-      const [studentsRes] = await ListStudentsForAdminAction({ limit: 100 });
-      setPendingStudents(
-        (studentsRes?.data ?? []).filter(
-          (s) =>
-            s.enrollmentStatus === EnrollmentStatus.PENDING ||
-            s.enrollmentStatus === EnrollmentStatus.PENDING_PARENT_CONFIRMATION
-        )
-      );
-
-      setIsLoading(false);
-    };
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        setIsLoading(false);
+      };
+      load();
+    });
+   
   }, [canViewFinancialReports]);
 
   // Only payouts in the chosen currency count against its revenue (payouts are naira bank transfers today).

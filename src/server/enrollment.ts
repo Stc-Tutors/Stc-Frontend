@@ -12,7 +12,7 @@ export interface EnrollmentResponse {
   payment: PaymentRequest | null;
 }
 
-export async function EnrollAction(data: any): Promise<[ApiResponse<EnrollmentResponse> | null, string | null]> {
+export async function EnrollAction(data: object): Promise<[ApiResponse<EnrollmentResponse> | null, string | null]> {
   const [res, error] = await fetchAPI({
     url: "/enrollments",
     request: {
@@ -154,7 +154,7 @@ export async function GetEnrollmentAction(id: string): Promise<[ApiResponse<Stud
 // stcbe's EnrollmentStatus.DRAFT. `data` is deliberately loose (a draft can
 // be missing whatever step hasn't been reached yet); completeness is only
 // enforced at FinalizeEnrollmentAction.
-export async function SaveDraftEnrollmentAction(data: any): Promise<[ApiResponse<Student> | null, string | null]> {
+export async function SaveDraftEnrollmentAction(data: object): Promise<[ApiResponse<Student> | null, string | null]> {
   const [res, error] = await fetchAPI({
     url: "/enrollments/draft",
     request: {
@@ -170,7 +170,7 @@ export async function SaveDraftEnrollmentAction(data: any): Promise<[ApiResponse
 
 export async function UpdateDraftEnrollmentAction(
   id: string,
-  data: any
+  data: object
 ): Promise<[ApiResponse<Student> | null, string | null]> {
   const [res, error] = await fetchAPI({
     url: `/enrollments/draft/${id}`,
@@ -189,7 +189,7 @@ export async function UpdateDraftEnrollmentAction(
 // real, payable submission - same contract/response shape as EnrollAction.
 export async function FinalizeEnrollmentAction(
   id: string,
-  data: any
+  data: object
 ): Promise<[ApiResponse<EnrollmentResponse> | null, string | null]> {
   const [res, error] = await fetchAPI({
     url: `/enrollments/draft/${id}/finalize`,

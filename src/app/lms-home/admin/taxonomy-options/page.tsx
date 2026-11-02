@@ -50,10 +50,12 @@ export default function TaxonomyOptionsPage() {
   };
 
   useEffect(() => {
-    load();
-    setEditingId(null);
-    setShowCreate(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    queueMicrotask(() => {
+      load();
+      setEditingId(null);
+      setShowCreate(false);
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [kind]);
 
   const openCreate = () => {

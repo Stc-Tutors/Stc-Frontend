@@ -111,6 +111,7 @@ export default function TutorApplicationFlow() {
     // Step 1 (Services) doesn't hit the API - it just stashes data locally,
     // then step 2 (Personal Information) sends both together as one
     // StartTutorApplicationAction call. See setServicesOffered.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- each wizard step submits its own payload type
     const submitters: Record<number, (d: any) => Promise<{ success: boolean; error?: string }> | void> = {
       1: (d) => setServicesOffered(d.servicesOffered),
       2: submitStep1,

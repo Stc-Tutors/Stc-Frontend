@@ -89,16 +89,18 @@ export default function ExamDetail({ basePath }: { basePath: string }) {
   }, [id]);
 
   useEffect(() => {
-    load();
-    (async () => {
-      const [res] = await GetExamStatusAction();
-      if (res?.data) setPerms(res.data);
-    })();
+    queueMicrotask(() => {
+      load();
+      (async () => {
+        const [res] = await GetExamStatusAction();
+        if (res?.data) setPerms(res.data);
+      })();
+    });
   }, [load]);
 
   useEffect(() => {
     if (search.trim().length < 2) {
-      setHits([]);
+      queueMicrotask(() => setHits([]));
       return;
     }
     const t = setTimeout(async () => {

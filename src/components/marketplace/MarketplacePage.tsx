@@ -83,16 +83,18 @@ export default function MarketplacePage() {
   }, []);
 
   useEffect(() => {
-    if (!selectedSlug) {
-      setCourses([]);
-      setCoursesLoading(false);
-      return;
-    }
-    const requestId = ++coursesRequestRef.current;
-    GetCoursesAction({ serviceType: selectedSlug }).then(([res]) => {
-      if (coursesRequestRef.current !== requestId) return; // a newer service was selected meanwhile
-      setCourses(res?.data ?? []);
-      setCoursesLoading(false);
+    queueMicrotask(() => {
+      if (!selectedSlug) {
+        setCourses([]);
+        setCoursesLoading(false);
+        return;
+      }
+      const requestId = ++coursesRequestRef.current;
+      GetCoursesAction({ serviceType: selectedSlug }).then(([res]) => {
+        if (coursesRequestRef.current !== requestId) return; // a newer service was selected meanwhile
+        setCourses(res?.data ?? []);
+        setCoursesLoading(false);
+      });
     });
   }, [selectedSlug]);
 
@@ -102,22 +104,24 @@ export default function MarketplacePage() {
   // price/currency is the fallback if a quote can't be resolved (e.g. no
   // pricing row configured yet for this course).
   useEffect(() => {
-    if (!selectedCourse || !selectedService) {
-      setQuote(null);
-      setQuoteError(null);
-      setQuoteLoading(false);
-      return;
-    }
-    const requestId = ++quoteRequestRef.current;
-    QuotePricingAction({ serviceType: selectedService.slug, courseId: selectedCourse.id }).then(([res, error]) => {
-      if (quoteRequestRef.current !== requestId) return; // a newer course was selected meanwhile
-      if (error || !res?.data) {
-        setQuoteError(error || "Couldn't fetch a live quote - showing the course's listed price instead.");
+    queueMicrotask(() => {
+      if (!selectedCourse || !selectedService) {
         setQuote(null);
-      } else {
-        setQuote(res.data);
+        setQuoteError(null);
+        setQuoteLoading(false);
+        return;
       }
-      setQuoteLoading(false);
+      const requestId = ++quoteRequestRef.current;
+      QuotePricingAction({ serviceType: selectedService.slug, courseId: selectedCourse.id }).then(([res, error]) => {
+        if (quoteRequestRef.current !== requestId) return; // a newer course was selected meanwhile
+        if (error || !res?.data) {
+          setQuoteError(error || "Couldn't fetch a live quote - showing the course's listed price instead.");
+          setQuote(null);
+        } else {
+          setQuote(res.data);
+        }
+        setQuoteLoading(false);
+      });
     });
   }, [selectedCourse, selectedService]);
 

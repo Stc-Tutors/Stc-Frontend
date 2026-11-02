@@ -10,7 +10,7 @@ import { invalidateTags } from "@/lib/client-cache";
 import { formatDate } from "@/lib/datetime";
 import { formatMoney } from "@/lib/money";
 import { VerifyPaymentAction } from "@/server/payment";
-import { ExtendScheduleAction, GetExtensionQuoteAction, type ExtensionQuote } from "@/server/course-enrollment";
+import { ExtendScheduleAction, GetExtensionQuoteAction, type ExtensionQuote } from "@/server/course-enrollment";
 import { LocalFirstPrice } from "@/components/local-price-note";
 import { createCheckout } from "@/lib/checkout";
 
@@ -29,11 +29,13 @@ export default function ExtendWeeksDialog({ studentId, courseId, subject }: { st
 
   useEffect(() => {
     if (!open || !validWeeks) {
-      setQuote(null);
+      queueMicrotask(() => setQuote(null));
       return;
     }
     let stale = false;
-    setQuoteError(null);
+    queueMicrotask(() => {
+      if (!stale) setQuoteError(null);
+    });
     const t = setTimeout(async () => {
       const [res, error] = await GetExtensionQuoteAction(studentId, courseId, n);
       if (stale) return;

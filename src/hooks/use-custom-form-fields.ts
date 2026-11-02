@@ -16,7 +16,9 @@ export function useCustomFormFields(stage: CustomFormStage, serviceType?: string
 
   useEffect(() => {
     let cancelled = false;
-    setIsLoading(true);
+    queueMicrotask(() => {
+      if (!cancelled) setIsLoading(true);
+    });
     GetCustomFormFieldsAction(stage, serviceType).then(([res]) => {
       if (cancelled) return;
       const sorted = [...(res?.data ?? [])].sort((a, b) => a.order - b.order);

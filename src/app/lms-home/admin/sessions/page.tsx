@@ -116,8 +116,10 @@ export default function AdminSessionsPage() {
   };
 
   useEffect(() => {
-    load(filter);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    queueMicrotask(() => {
+      load(filter);
+    });
+   
   }, [filter]);
 
   useEffect(() => {

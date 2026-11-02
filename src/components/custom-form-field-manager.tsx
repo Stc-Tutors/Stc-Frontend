@@ -82,8 +82,10 @@ export function CustomFormFieldManager({ serviceType, hideHeading }: { serviceTy
   };
 
   useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    queueMicrotask(() => {
+      load();
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [serviceType]);
 
   const fieldsByStage = useMemo(() => {

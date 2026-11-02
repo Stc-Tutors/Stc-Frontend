@@ -106,8 +106,10 @@ function ServiceWorkspacePageInner() {
   };
 
   useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    queueMicrotask(() => {
+      load();
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   // A Flow Requirement and a Flow Tree stage are the same fact seen two ways

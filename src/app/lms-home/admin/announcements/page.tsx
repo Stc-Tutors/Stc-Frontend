@@ -41,7 +41,9 @@ export default function AdminAnnouncementsPage() {
   };
 
   useEffect(() => {
-    load();
+    queueMicrotask(() => {
+      load();
+    });
   }, []);
 
   const handleSend = async () => {

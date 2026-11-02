@@ -37,8 +37,10 @@ export default function LessonManager({ courseId }: { courseId: string }) {
   };
 
   useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    queueMicrotask(() => {
+      load();
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [courseId]);
 
   const addLesson = async () => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { ApiResponse } from "@/lib/fetch";
 
 // A small stale-while-revalidate cache for reads made from client components.
@@ -229,7 +229,10 @@ export function useCachedQuery<T>(
 ): CachedQuery<T> {
   const { ttl = DEFAULT_TTL_MS, tags, persist, enabled = true } = options;
   const fetcherRef = useRef(fetcher);
-  fetcherRef.current = fetcher;
+  // Kept current right after every commit; only ever read from effects and event handlers, never while rendering.
+  useLayoutEffect(() => {
+    fetcherRef.current = fetcher;
+  });
   const tagsKey = (tags ?? []).join("|");
 
   const subscribe = (onChange: () => void) => (key ? addListener(listeners, key, onChange) : () => {});

@@ -57,8 +57,10 @@ export default function AdminDocumentUploadPage() {
   };
 
   useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    queueMicrotask(() => {
+      load();
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter]);
 
   const handleApprove = async (applicationId: string) => {

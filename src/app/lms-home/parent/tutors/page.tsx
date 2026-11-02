@@ -125,8 +125,10 @@ export default function ParentTutorsPage() {
   };
 
   useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    queueMicrotask(() => {
+      load();
+    });
+   
   }, []);
 
   const handleSubmitRequest = async () => {

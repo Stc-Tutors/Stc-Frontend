@@ -17,7 +17,7 @@ export interface CheckoutPayment {
 }
 
 export interface CheckoutCallbacks {
-  onSuccess?: (transaction?: any) => void | Promise<void>;
+  onSuccess?: (transaction?: unknown) => void | Promise<void>;
   onCancel?: () => void;
   onError?: (error: { message?: string }) => void;
 }

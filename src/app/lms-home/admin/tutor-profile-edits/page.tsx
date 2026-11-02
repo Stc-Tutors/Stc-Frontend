@@ -79,9 +79,11 @@ export default function TutorProfileEditsPage() {
   };
 
   useEffect(() => {
-    if (canReview) load();
-    else setIsLoading(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    queueMicrotask(() => {
+      if (canReview) load();
+      else setIsLoading(false);
+    });
+   
   }, [canReview]);
 
   const handleApprove = async (id: string) => {

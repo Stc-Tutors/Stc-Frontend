@@ -636,7 +636,7 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
         schedule: student.schedule ?? [],
         totalCost: serviceDetails?.totalCost ?? 0,
         selectedService,
-        customFieldResponses: (student as any).customFieldResponses ?? {},
+        customFieldResponses: (student as typeof student & { customFieldResponses?: Record<string, string> }).customFieldResponses ?? {},
       });
     } catch (error) {
       console.error("Load enrollment error:", error);

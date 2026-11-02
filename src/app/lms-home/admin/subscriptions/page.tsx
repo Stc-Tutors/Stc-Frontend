@@ -53,7 +53,9 @@ export default function AdminSubscriptionsPage() {
   };
 
   useEffect(() => {
-    load();
+    queueMicrotask(() => {
+      load();
+    });
   }, []);
 
   const handleConfirm = async () => {

@@ -30,7 +30,9 @@ export default function MyResourcesView() {
   };
 
   useEffect(() => {
-    load();
+    queueMicrotask(() => {
+      load();
+    });
   }, []);
 
   const handleUnlockResource = async (resource: CourseResource) => {
@@ -53,7 +55,7 @@ export default function MyResourcesView() {
       onCancel: () => {
         ToastError("Payment was not completed.");
       },
-      onError: (error: any) => {
+      onError: (error: { message?: string }) => {
         ToastError(error?.message || "Payment failed. Please try again.");
       },
     });

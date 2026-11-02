@@ -63,18 +63,22 @@ export default function TeachingRosterTab({
   }
 
   useEffect(() => {
-    setSubject("");
-    setAssigned([]);
-    loadForTutor();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    queueMicrotask(() => {
+      setSubject("");
+      setAssigned([]);
+      loadForTutor();
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tutorId]);
 
   // A super-admin clicking the "Action Required" widget just wants this tab
   // focused - re-fetch whatever's currently selected rather than deep-link a
   // specific tutor, since the orphan pool spans every tutor.
   useEffect(() => {
-    if (jumpToken > 0) loadForTutor();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    queueMicrotask(() => {
+      if (jumpToken > 0) loadForTutor();
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jumpToken]);
 
   // Every unassigned enrollment this tutor is actually eligible for -
@@ -104,8 +108,10 @@ export default function TeachingRosterTab({
   }
 
   useEffect(() => {
-    refreshRight();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    queueMicrotask(() => {
+      refreshRight();
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [subject, tutorId]);
 
   const handleTransfer = async (ids: string[]) => {

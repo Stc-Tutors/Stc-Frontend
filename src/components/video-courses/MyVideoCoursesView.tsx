@@ -38,7 +38,9 @@ export default function MyVideoCoursesView() {
   }, []);
 
   useEffect(() => {
-    load();
+    queueMicrotask(() => {
+      load();
+    });
   }, [load]);
 
   const base = `/lms-home/${(user?.role ?? "student").toLowerCase()}/video-courses`;

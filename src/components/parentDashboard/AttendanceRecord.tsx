@@ -22,18 +22,20 @@ export default function AttendanceRecord({ studentId }: AttendanceRecordProps) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!studentId) {
-      setRecords([]);
-      setIsLoading(false);
-      return;
-    }
-    const load = async () => {
-      setIsLoading(true);
-      const [res] = await GetStudentAttendanceAction(studentId);
-      setRecords(res?.data ?? []);
-      setIsLoading(false);
-    };
-    load();
+    queueMicrotask(() => {
+      if (!studentId) {
+        setRecords([]);
+        setIsLoading(false);
+        return;
+      }
+      const load = async () => {
+        setIsLoading(true);
+        const [res] = await GetStudentAttendanceAction(studentId);
+        setRecords(res?.data ?? []);
+        setIsLoading(false);
+      };
+      load();
+    });
   }, [studentId]);
 
   const counts = {

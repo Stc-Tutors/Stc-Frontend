@@ -11,6 +11,7 @@ import { CalendarIcon } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { currentTime } from "@/lib/clock";
 
 interface OneOnOneDatePickerProps {
   // ISO datetime string, mirrors ServiceDetails.startDate.
@@ -24,7 +25,7 @@ export function OneOnOneDatePicker({ value, onChange, error }: OneOnOneDatePicke
   // Recomputed on every render rather than memoized - a few ms of drift here
   // is irrelevant to a 24h lead-time rule, and this keeps the disabled
   // boundary accurate if the picker stays open a long time.
-  const minDate = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  const minDate = new Date(currentTime() + 24 * 60 * 60 * 1000);
   const selected = value ? new Date(value) : undefined;
 
   return (

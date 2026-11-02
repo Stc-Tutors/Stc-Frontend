@@ -298,7 +298,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [sidebarCollapsed, toggleSidebarCollapsed] = useSidebarCollapsed();
   // Close the mobile drawer whenever the user navigates.
   useEffect(() => {
-    setIsSidebarOpen(false);
+    queueMicrotask(() => {
+      setIsSidebarOpen(false);
+    });
   }, [pathname]);
   const [searchTerm, setSearchTerm] = useState("");
   const { user, hasPermission, hodAssignment, hasHodPermission, isLoading } = useUser();

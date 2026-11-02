@@ -50,8 +50,10 @@ export default function StudentGradingPanel({ studentId }: { studentId: string }
   };
 
   useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    queueMicrotask(() => {
+      load();
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [studentId]);
 
   const handleGrade = async (submissionId: string) => {

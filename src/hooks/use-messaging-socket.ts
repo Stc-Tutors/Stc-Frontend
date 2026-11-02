@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
 import { Message } from "@/types/message";
 import { playNotificationSound } from "@/lib/notification-alert";
@@ -40,7 +40,10 @@ export function useMessagingSocket({
   // effect only ever runs once per mount, instead of reconnecting whenever
   // the caller passes a new inline function.
   const handlersRef = useRef<UseMessagingSocketOptions>({});
-  handlersRef.current = { onMessageNew, onMessageDelivered, onMessageRead, onReconnect };
+  // Updated right after every commit (before any event can arrive), instead of while rendering.
+  useLayoutEffect(() => {
+    handlersRef.current = { onMessageNew, onMessageDelivered, onMessageRead, onReconnect };
+  });
 
   useEffect(() => {
     let cancelled = false;

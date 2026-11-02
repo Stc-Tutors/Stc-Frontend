@@ -59,17 +59,21 @@ export default function TutorAssignmentsPage() {
   };
 
   useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    queueMicrotask(() => {
+      load();
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    setTargetStudents([]);
-    if (!courseId) {
-      setRoster([]);
-      return;
-    }
-    GetCourseEnrollmentsAction(courseId).then(([res]) => setRoster(res?.data ?? []));
+    queueMicrotask(() => {
+      setTargetStudents([]);
+      if (!courseId) {
+        setRoster([]);
+        return;
+      }
+      GetCourseEnrollmentsAction(courseId).then(([res]) => setRoster(res?.data ?? []));
+    });
   }, [courseId]);
 
   const toggleTargetStudent = (studentId: string) => {

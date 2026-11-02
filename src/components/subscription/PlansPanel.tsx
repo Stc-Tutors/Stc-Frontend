@@ -23,7 +23,9 @@ export default function PlansPanel() {
   };
 
   useEffect(() => {
-    load();
+    queueMicrotask(() => {
+      load();
+    });
   }, []);
 
   const activeSubscription = subscriptions.find((s) => s.status === SubscriptionStatus.ACTIVE);

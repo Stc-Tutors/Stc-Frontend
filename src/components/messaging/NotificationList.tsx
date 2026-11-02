@@ -35,7 +35,9 @@ export default function NotificationList() {
   };
 
   useEffect(() => {
-    load();
+    queueMicrotask(() => {
+      load();
+    });
   }, []);
 
   const handleView = async (n: Notification) => {

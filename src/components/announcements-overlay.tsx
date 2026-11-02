@@ -43,19 +43,25 @@ function AnnouncementsOverlayInner() {
   // Deep-link from a notification - open straight up, and once the list
   // loads, jump directly to the detail view for that one.
   useEffect(() => {
-    if (targetId) setOpen(true);
+    queueMicrotask(() => {
+      if (targetId) setOpen(true);
+    });
   }, [targetId]);
 
   useEffect(() => {
-    if (open && !hasLoaded) load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    queueMicrotask(() => {
+      if (open && !hasLoaded) load();
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   useEffect(() => {
-    if (!targetId || !hasLoaded) return;
-    const found = announcements.find((a) => a.id === targetId);
-    if (found) setActive(found);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    queueMicrotask(() => {
+      if (!targetId || !hasLoaded) return;
+      const found = announcements.find((a) => a.id === targetId);
+      if (found) setActive(found);
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [targetId, hasLoaded]);
 
   return (

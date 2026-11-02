@@ -35,7 +35,9 @@ export default function MyExamsView() {
   }, []);
 
   useEffect(() => {
-    load();
+    queueMicrotask(() => {
+      load();
+    });
   }, [load]);
 
   const start = async (exam: MyExam) => {

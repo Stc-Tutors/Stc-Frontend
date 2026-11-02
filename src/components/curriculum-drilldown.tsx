@@ -97,14 +97,18 @@ export default function CurriculumDrilldown({ serviceType, onSubjectsResolved, o
 
   useEffect(() => {
     let cancelled = false;
-    setCountry(undefined);
-    setCurriculum(undefined);
-    setLevel(undefined);
-    setKlass(undefined);
-    setCurricula([]);
-    setLevels([]);
-    setClasses([]);
-    onSubjectsResolved([]);
+    // Reset first (the restore below only touches state after its first await, so this always lands before it).
+    queueMicrotask(() => {
+      if (cancelled) return;
+      setCountry(undefined);
+      setCurriculum(undefined);
+      setLevel(undefined);
+      setKlass(undefined);
+      setCurricula([]);
+      setLevels([]);
+      setClasses([]);
+      onSubjectsResolved([]);
+    });
 
     const restore = async () => {
       const [countriesRes] = await GetCurriculumChildrenAction(null, serviceType);

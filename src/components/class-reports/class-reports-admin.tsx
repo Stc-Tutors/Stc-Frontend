@@ -51,7 +51,9 @@ export function ClassReportsAdmin() {
   }, [from, to]);
 
   useEffect(() => {
-    load();
+    queueMicrotask(() => {
+      load();
+    });
   }, [load]);
 
   const shown = useMemo(() => {

@@ -18,43 +18,45 @@ export default function AssignmentsOverviewPanel({ studentId }: AssignmentsOverv
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!studentId) {
-      setStats({ total: 0, submitted: 0, graded: 0, missing: 0 });
-      setIsLoading(false);
-      return;
-    }
-    const load = async () => {
-      setIsLoading(true);
-      const [coursesRes] = await GetStudentCoursesCached(studentId);
-      const activeCourseIds = (coursesRes?.data ?? [])
-        .filter((e) => e.status === CourseEnrollmentStatus.ACTIVE)
-        .map((e) => (typeof e.course === "string" ? e.course : e.course.id));
+    queueMicrotask(() => {
+      if (!studentId) {
+        setStats({ total: 0, submitted: 0, graded: 0, missing: 0 });
+        setIsLoading(false);
+        return;
+      }
+      const load = async () => {
+        setIsLoading(true);
+        const [coursesRes] = await GetStudentCoursesCached(studentId);
+        const activeCourseIds = (coursesRes?.data ?? [])
+          .filter((e) => e.status === CourseEnrollmentStatus.ACTIVE)
+          .map((e) => (typeof e.course === "string" ? e.course : e.course.id));
 
-      const [assignmentLists, [submissionsRes]] = await Promise.all([
-        Promise.all(activeCourseIds.map((id) => GetCourseAssignmentsAction(id))),
-        GetMySubmissionsAction(),
-      ]);
+        const [assignmentLists, [submissionsRes]] = await Promise.all([
+          Promise.all(activeCourseIds.map((id) => GetCourseAssignmentsAction(id))),
+          GetMySubmissionsAction(),
+        ]);
 
-      const assignments: Assignment[] = assignmentLists
-        .flatMap(([res]) => res?.data ?? [])
-        .filter((a) => !a.targetStudents || a.targetStudents.length === 0 || a.targetStudents.includes(studentId));
+        const assignments: Assignment[] = assignmentLists
+          .flatMap(([res]) => res?.data ?? [])
+          .filter((a) => !a.targetStudents || a.targetStudents.length === 0 || a.targetStudents.includes(studentId));
 
-      const mySubmissions: Submission[] = (submissionsRes?.data ?? []).filter(
-        (s) => (typeof s.student === "string" ? s.student : s.student.id) === studentId
-      );
-      const submittedAssignmentIds = new Set(
-        mySubmissions.map((s) => (typeof s.assignment === "string" ? s.assignment : s.assignment.id))
-      );
+        const mySubmissions: Submission[] = (submissionsRes?.data ?? []).filter(
+          (s) => (typeof s.student === "string" ? s.student : s.student.id) === studentId
+        );
+        const submittedAssignmentIds = new Set(
+          mySubmissions.map((s) => (typeof s.assignment === "string" ? s.assignment : s.assignment.id))
+        );
 
-      const now = Date.now();
-      const submitted = assignments.filter((a) => submittedAssignmentIds.has(a.id)).length;
-      const graded = mySubmissions.filter((s) => s.status === SubmissionStatus.GRADED).length;
-      const missing = assignments.filter((a) => !submittedAssignmentIds.has(a.id) && new Date(a.dueDate).getTime() < now).length;
+        const now = Date.now();
+        const submitted = assignments.filter((a) => submittedAssignmentIds.has(a.id)).length;
+        const graded = mySubmissions.filter((s) => s.status === SubmissionStatus.GRADED).length;
+        const missing = assignments.filter((a) => !submittedAssignmentIds.has(a.id) && new Date(a.dueDate).getTime() < now).length;
 
-      setStats({ total: assignments.length, submitted, graded, missing });
-      setIsLoading(false);
-    };
-    load();
+        setStats({ total: assignments.length, submitted, graded, missing });
+        setIsLoading(false);
+      };
+      load();
+    });
   }, [studentId]);
 
   const cards = [

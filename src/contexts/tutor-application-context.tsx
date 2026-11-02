@@ -165,132 +165,134 @@ export function TutorApplicationProvider({ children }: { children: ReactNode }) 
   // the applicationId+draftToken pair stashed in localStorage on step 1
   // success, not a normal session/cookie.
   useEffect(() => {
-    const ref = readDraftRef();
-    if (!ref) {
-      setIsLoading(false);
-      return;
-    }
-    GetTutorApplicationDraftAction(ref.applicationId, ref.draftToken).then(([res, error]) => {
-      if (error || !res?.data) {
-        // Token expired/invalid or the draft was already submitted - drop
-        // the stale reference and let the applicant start fresh.
-        clearDraftRef();
+    queueMicrotask(() => {
+      const ref = readDraftRef();
+      if (!ref) {
         setIsLoading(false);
         return;
       }
-      const application = res.data;
-      setDraft({
-        applicationId: ref.applicationId,
-        draftToken: ref.draftToken,
-        emailVerified: application.emailVerified,
-        // Backend currentStep (1-10) tracks the last completed backend step
-        // (see TutorApplicationService.updateStepN); UI steps run 1-12
-        // (Services + Personal Info are UI steps 1-2 but count as backend
-        // step 1 together; Review & Submit is UI step 12 with no backend
-        // step of its own), so resume two UI steps ahead of it.
-        currentStep: Math.min((application.currentStep ?? -1) + 2, 12),
-        step1: {
-          servicesOffered: application.servicesOffered,
-          email: (application.user as { email?: string } | undefined)?.email ?? "",
-          countryOfResidence: application.countryOfResidence,
-          preferredLanguages: application.preferredLanguages,
-          dateOfBirth: application.dateOfBirth,
-          headshotFile: application.headshotFile,
-        },
-        step2: {
-          qualifications: application.qualifications,
-          yearsOfExperience: application.yearsOfExperience,
-          yearsOnlineTutoringExperience: application.yearsOnlineTutoringExperience,
-          highestQualification: application.highestQualification,
-          otherQualificationsHeld: application.otherQualificationsHeld,
-          otherCertifications: application.otherCertifications,
-          otherCertificationDetail: application.otherCertificationDetail,
-          teachingExperienceHistory: application.teachingExperienceHistory,
-          previousPlatforms: application.previousPlatforms,
-          documentUrls: application.documentUrls,
-        },
-        step3: {
-          teachingCycles: application.teachingCycles,
-          digitalSkillsBundles: application.digitalSkillsBundles,
-          musicInstruments: application.musicInstruments,
-          softSkillsTopics: application.softSkillsTopics,
-          careerCoachingTopics: application.careerCoachingTopics,
-          selfDevTopics: application.selfDevTopics,
-          adultEdFocusAreas: application.adultEdFocusAreas,
-        },
-        step4: {
-          govIdFile: application.govIdFile,
-          cvFile: application.cvFile,
-          supportingDocumentsFile: application.supportingDocumentsFile,
-          certificationProofs: application.certificationProofs,
-          backgroundCheckConsent: application.backgroundCheckConsent,
-          reference1Name: application.reference1Name,
-          reference1Contact: application.reference1Contact,
-          reference2Name: application.reference2Name,
-          reference2Contact: application.reference2Contact,
-        },
-        step5: {
-          devices: application.devices,
-          internetSpeed: application.internetSpeed,
-          toolProficiency: application.toolProficiency,
-          hasQuietEnvironment: application.hasQuietEnvironment,
-          hasPeripherals: application.hasPeripherals,
-        },
-        step6: {
-          timezone: application.timezone,
-          availabilitySchedule: application.availabilitySchedule,
-          maxWeeklyHours: application.maxWeeklyHours,
-          preferredClassFormat: application.preferredClassFormat,
-        },
-        step7: {
-          psychConfidenceRating: application.psychConfidenceRating,
-          psychDisengagedResponse: application.psychDisengagedResponse,
-          psychMotivation: application.psychMotivation,
-          psychParentDisagreementResponse: application.psychParentDisagreementResponse,
-          personalityType: application.personalityType,
-          personalityAdaptabilityRating: application.personalityAdaptabilityRating,
-          personalityClassPrep: application.personalityClassPrep,
-          personalityAboveAndBeyond: application.personalityAboveAndBeyond,
-          analyticalOrCreative: application.analyticalOrCreative,
-        },
-        step8: {
-          finalStrengths: application.finalStrengths,
-          finalFeedbackApproach: application.finalFeedbackApproach,
-          lessonPlanUrl: application.lessonPlanUrl,
-          lessonPlanText: application.lessonPlanText,
-          internalExpectedPayMin: application.internalExpectedPayMin,
-          internalExpectedPayMax: application.internalExpectedPayMax,
-          internalExpectedPayMinCurrency: application.internalExpectedPayMinCurrency,
-          internalExpectedPayMaxCurrency: application.internalExpectedPayMaxCurrency,
-        },
-        step9: {
-          payoutMethod: application.payoutMethod,
-          bankName: application.bankName,
-          accountNumber: application.accountNumber,
-          accountName: application.accountName,
-          wasReferred: application.wasReferred,
-          // Populated to {id, firstName, lastName} for display elsewhere -
-          // this step's payload needs just the id back (resubmitted as-is
-          // if the applicant edits and re-saves Step 9).
-          referringTutorId:
-            typeof application.referringTutorId === "string"
-              ? application.referringTutorId
-              : application.referringTutorId?.id,
-        },
-        step10: {
-          termsAccepted: application.termsAccepted,
-          ethicsCommitmentAccepted: application.ethicsCommitmentAccepted,
-          dataPrivacyAgreed: application.dataPrivacyAgreed,
-          signature: application.signature,
-          whatsappChannelJoined: application.whatsappChannelJoined,
-        },
-        customFieldResponses: application.customFieldResponses ?? {},
-        submitted: false,
-        applicationStatus: application.status,
-        flaggedFields: application.flaggedFields,
-        needsMoreInfoNote: application.needsMoreInfoNote,
+      GetTutorApplicationDraftAction(ref.applicationId, ref.draftToken).then(([res, error]) => {
+        if (error || !res?.data) {
+          // Token expired/invalid or the draft was already submitted - drop
+          // the stale reference and let the applicant start fresh.
+          clearDraftRef();
+          setIsLoading(false);
+          return;
+        }
+        const application = res.data;
+        setDraft({
+          applicationId: ref.applicationId,
+          draftToken: ref.draftToken,
+          emailVerified: application.emailVerified,
+          // Backend currentStep (1-10) tracks the last completed backend step
+          // (see TutorApplicationService.updateStepN); UI steps run 1-12
+          // (Services + Personal Info are UI steps 1-2 but count as backend
+          // step 1 together; Review & Submit is UI step 12 with no backend
+          // step of its own), so resume two UI steps ahead of it.
+          currentStep: Math.min((application.currentStep ?? -1) + 2, 12),
+          step1: {
+            servicesOffered: application.servicesOffered,
+            email: (application.user as { email?: string } | undefined)?.email ?? "",
+            countryOfResidence: application.countryOfResidence,
+            preferredLanguages: application.preferredLanguages,
+            dateOfBirth: application.dateOfBirth,
+            headshotFile: application.headshotFile,
+          },
+          step2: {
+            qualifications: application.qualifications,
+            yearsOfExperience: application.yearsOfExperience,
+            yearsOnlineTutoringExperience: application.yearsOnlineTutoringExperience,
+            highestQualification: application.highestQualification,
+            otherQualificationsHeld: application.otherQualificationsHeld,
+            otherCertifications: application.otherCertifications,
+            otherCertificationDetail: application.otherCertificationDetail,
+            teachingExperienceHistory: application.teachingExperienceHistory,
+            previousPlatforms: application.previousPlatforms,
+            documentUrls: application.documentUrls,
+          },
+          step3: {
+            teachingCycles: application.teachingCycles,
+            digitalSkillsBundles: application.digitalSkillsBundles,
+            musicInstruments: application.musicInstruments,
+            softSkillsTopics: application.softSkillsTopics,
+            careerCoachingTopics: application.careerCoachingTopics,
+            selfDevTopics: application.selfDevTopics,
+            adultEdFocusAreas: application.adultEdFocusAreas,
+          },
+          step4: {
+            govIdFile: application.govIdFile,
+            cvFile: application.cvFile,
+            supportingDocumentsFile: application.supportingDocumentsFile,
+            certificationProofs: application.certificationProofs,
+            backgroundCheckConsent: application.backgroundCheckConsent,
+            reference1Name: application.reference1Name,
+            reference1Contact: application.reference1Contact,
+            reference2Name: application.reference2Name,
+            reference2Contact: application.reference2Contact,
+          },
+          step5: {
+            devices: application.devices,
+            internetSpeed: application.internetSpeed,
+            toolProficiency: application.toolProficiency,
+            hasQuietEnvironment: application.hasQuietEnvironment,
+            hasPeripherals: application.hasPeripherals,
+          },
+          step6: {
+            timezone: application.timezone,
+            availabilitySchedule: application.availabilitySchedule,
+            maxWeeklyHours: application.maxWeeklyHours,
+            preferredClassFormat: application.preferredClassFormat,
+          },
+          step7: {
+            psychConfidenceRating: application.psychConfidenceRating,
+            psychDisengagedResponse: application.psychDisengagedResponse,
+            psychMotivation: application.psychMotivation,
+            psychParentDisagreementResponse: application.psychParentDisagreementResponse,
+            personalityType: application.personalityType,
+            personalityAdaptabilityRating: application.personalityAdaptabilityRating,
+            personalityClassPrep: application.personalityClassPrep,
+            personalityAboveAndBeyond: application.personalityAboveAndBeyond,
+            analyticalOrCreative: application.analyticalOrCreative,
+          },
+          step8: {
+            finalStrengths: application.finalStrengths,
+            finalFeedbackApproach: application.finalFeedbackApproach,
+            lessonPlanUrl: application.lessonPlanUrl,
+            lessonPlanText: application.lessonPlanText,
+            internalExpectedPayMin: application.internalExpectedPayMin,
+            internalExpectedPayMax: application.internalExpectedPayMax,
+            internalExpectedPayMinCurrency: application.internalExpectedPayMinCurrency,
+            internalExpectedPayMaxCurrency: application.internalExpectedPayMaxCurrency,
+          },
+          step9: {
+            payoutMethod: application.payoutMethod,
+            bankName: application.bankName,
+            accountNumber: application.accountNumber,
+            accountName: application.accountName,
+            wasReferred: application.wasReferred,
+            // Populated to {id, firstName, lastName} for display elsewhere -
+            // this step's payload needs just the id back (resubmitted as-is
+            // if the applicant edits and re-saves Step 9).
+            referringTutorId:
+              typeof application.referringTutorId === "string"
+                ? application.referringTutorId
+                : application.referringTutorId?.id,
+          },
+          step10: {
+            termsAccepted: application.termsAccepted,
+            ethicsCommitmentAccepted: application.ethicsCommitmentAccepted,
+            dataPrivacyAgreed: application.dataPrivacyAgreed,
+            signature: application.signature,
+            whatsappChannelJoined: application.whatsappChannelJoined,
+          },
+          customFieldResponses: application.customFieldResponses ?? {},
+          submitted: false,
+          applicationStatus: application.status,
+          flaggedFields: application.flaggedFields,
+          needsMoreInfoNote: application.needsMoreInfoNote,
+        });
+        setIsLoading(false);
       });
-      setIsLoading(false);
     });
   }, []);
 

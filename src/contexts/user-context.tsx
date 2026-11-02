@@ -100,18 +100,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
     if (bootstrapStudents) setCached(STUDENTS_CACHE_KEY, bootstrapStudents, { tags: ["enrollments"] })
   }, [bootstrapStudents])
 
-  const loggedOutRef = useRef(false)
-  useEffect(() => {
-    // A 401 means the session cookie no longer maps to a real user (e.g. the
-    // account was deleted) - clear the stale cookie and send them to login
-    // instead of leaving them on a page that has no user to render.
-    if (error?.name === "NoRetryError" && !loggedOutRef.current) {
-      loggedOutRef.current = true
-      void logout()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [error])
-
   const hasPermission = (permission: AdminPermission): boolean => {
     if (permissions === "*") return true
     return permissions?.includes(permission) ?? false
@@ -142,6 +130,18 @@ export function UserProvider({ children }: { children: ReactNode }) {
       console.error("Logout failed:", error)
     }
   }
+
+  const loggedOutRef = useRef(false)
+  useEffect(() => {
+    // A 401 means the session cookie no longer maps to a real user (e.g. the
+    // account was deleted) - clear the stale cookie and send them to login
+    // instead of leaving them on a page that has no user to render.
+    if (error?.name === "NoRetryError" && !loggedOutRef.current) {
+      loggedOutRef.current = true
+      void logout()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [error])
 
   const value: UserContextType = {
     user,

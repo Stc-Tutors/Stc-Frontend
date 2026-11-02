@@ -103,7 +103,9 @@ export default function PendingAssignmentsPage() {
   };
 
   useEffect(() => {
-    load();
+    queueMicrotask(() => {
+      load();
+    });
   }, []);
 
   const handleAccept = async (id: string) => {

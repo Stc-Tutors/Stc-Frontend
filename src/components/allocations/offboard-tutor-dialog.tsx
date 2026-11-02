@@ -31,10 +31,12 @@ export default function OffboardTutorDialog({ onDone }: { onDone?: () => void })
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    setSummary(null);
-    setResults(null);
-    if (!outgoingId) return;
-    GetTutorTeachingSummaryAction(outgoingId).then(([res]) => setSummary(res?.data ?? null));
+    queueMicrotask(() => {
+      setSummary(null);
+      setResults(null);
+      if (!outgoingId) return;
+      GetTutorTeachingSummaryAction(outgoingId).then(([res]) => setSummary(res?.data ?? null));
+    });
   }, [outgoingId]);
 
   const reset = () => {

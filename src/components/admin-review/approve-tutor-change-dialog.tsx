@@ -36,16 +36,18 @@ export default function ApproveTutorChangeDialog({ request, onOpenChange, onAppr
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    setSelectedTutorId("");
-    if (!request) return;
-    setIsLoading(true);
-    Promise.all([GetTutorsForChangeAction(), ListTutorAllocationsAction()]).then(
-      ([[usersRes], [allocationsRes]]) => {
-        setTutors(usersRes?.data ?? []);
-        setAllocationsByTutor(new Map((allocationsRes?.data ?? []).map((a) => [a.tutor, a])));
-        setIsLoading(false);
-      }
-    );
+    queueMicrotask(() => {
+      setSelectedTutorId("");
+      if (!request) return;
+      setIsLoading(true);
+      Promise.all([GetTutorsForChangeAction(), ListTutorAllocationsAction()]).then(
+        ([[usersRes], [allocationsRes]]) => {
+          setTutors(usersRes?.data ?? []);
+          setAllocationsByTutor(new Map((allocationsRes?.data ?? []).map((a) => [a.tutor, a])));
+          setIsLoading(false);
+        }
+      );
+    });
   }, [request]);
 
   if (!request) return null;

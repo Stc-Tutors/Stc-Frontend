@@ -92,25 +92,27 @@ export default function EnrollmentList({ source, basePath }: EnrollmentListProps
   }, [source])
 
   useEffect(() => {
-    let filtered = students
+    queueMicrotask(() => {
+      let filtered = students
 
-    if (searchTerm) {
-      filtered = filtered.filter(
-        (student) =>
-          student.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (student.parentName ?? "").toLowerCase().includes(searchTerm.toLowerCase()),
-      )
-    }
+      if (searchTerm) {
+        filtered = filtered.filter(
+          (student) =>
+            student.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (student.parentName ?? "").toLowerCase().includes(searchTerm.toLowerCase()),
+        )
+      }
 
-    if (statusFilter !== "all") {
-      filtered = filtered.filter((student) => student.enrollmentStatus === statusFilter)
-    }
+      if (statusFilter !== "all") {
+        filtered = filtered.filter((student) => student.enrollmentStatus === statusFilter)
+      }
 
-    if (serviceTypeFilter !== "all") {
-      filtered = filtered.filter((student) => student.serviceDetails?.serviceType === serviceTypeFilter)
-    }
+      if (serviceTypeFilter !== "all") {
+        filtered = filtered.filter((student) => student.serviceDetails?.serviceType === serviceTypeFilter)
+      }
 
-    setFilteredStudents(filtered)
+      setFilteredStudents(filtered)
+    });
   }, [students, searchTerm, statusFilter, serviceTypeFilter])
 
   const getStatusColor = (status: EnrollmentStatus) => {

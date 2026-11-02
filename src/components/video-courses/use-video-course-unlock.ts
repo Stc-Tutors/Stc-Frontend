@@ -25,7 +25,9 @@ export function useVideoCourseUnlock() {
   }, [canLearn]);
 
   useEffect(() => {
-    refresh();
+    queueMicrotask(() => {
+      refresh();
+    });
   }, [refresh]);
 
   const unlock = useCallback(
@@ -56,7 +58,7 @@ export function useVideoCourseUnlock() {
           ToastError("Payment was not completed.");
           setBusyId(null);
         },
-        onError: (err: any) => {
+        onError: (err: { message?: string }) => {
           ToastError(err?.message || "Payment failed. Please try again.");
           setBusyId(null);
         },

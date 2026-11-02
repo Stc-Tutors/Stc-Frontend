@@ -27,7 +27,9 @@ export default function GroupScheduleConfirmationBanner() {
   };
 
   useEffect(() => {
-    load();
+    queueMicrotask(() => {
+      load();
+    });
   }, []);
 
   const handleConfirm = async (id: string) => {

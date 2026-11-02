@@ -74,9 +74,11 @@ export default function MessagingPermissionsPage() {
   };
 
   useEffect(() => {
-    if (canManage) load();
-    else setIsLoading(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    queueMicrotask(() => {
+      if (canManage) load();
+      else setIsLoading(false);
+    });
+   
   }, [canManage]);
 
   const handleGrant = async () => {

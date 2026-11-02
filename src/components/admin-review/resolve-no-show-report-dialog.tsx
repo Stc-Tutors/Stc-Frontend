@@ -38,8 +38,10 @@ export default function ResolveNoShowReportDialog({ report, onOpenChange, onReso
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    setOutcome(null);
-    setNotes("");
+    queueMicrotask(() => {
+      setOutcome(null);
+      setNotes("");
+    });
   }, [report]);
 
   if (!report) return null;

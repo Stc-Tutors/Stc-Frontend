@@ -18,6 +18,7 @@ import { Lesson, LessonStatus, RescheduleSurchargeSettings, RescheduleSurchargeT
 import { ScheduleViewControls, useScheduleView } from "@/components/schedule-view-controls";
 import { formatScheduleDateTime } from "@/lib/datetime";
 import { isInsideTutorRescheduleGate, isInsideTutorRescheduleHardFloor, DEFAULT_TUTOR_NOTICE_HOURS } from "@/lib/schedule-gate";
+import { currentTime } from "@/lib/clock";
 
 interface Row {
   lesson: Lesson;
@@ -71,10 +72,12 @@ export default function TutorSchedulePage() {
   };
 
   useEffect(() => {
-    load();
-    GetRescheduleSurchargeSettingsAction().then(([res]) => setSurchargeSettings(res?.data ?? null));
-    GetRescheduleNoticeSettingsAction().then(([res]) => {
-      if (res?.data) setTutorNoticeHours(res.data.tutorNoticeHours);
+    queueMicrotask(() => {
+      load();
+      GetRescheduleSurchargeSettingsAction().then(([res]) => setSurchargeSettings(res?.data ?? null));
+      GetRescheduleNoticeSettingsAction().then(([res]) => {
+        if (res?.data) setTutorNoticeHours(res.data.tutorNoticeHours);
+      });
     });
   }, []);
 
@@ -237,7 +240,7 @@ export default function TutorSchedulePage() {
                               : "Sent to admin for review, then to the parent to confirm - it only applies once the parent agrees."}
                           </p>
                           {!isInsideTutorRescheduleHardFloor(lesson.scheduledDate) &&
-                            isInsideTutorRescheduleGate(lesson.scheduledDate, Date.now(), tutorNoticeHours) &&
+                            isInsideTutorRescheduleGate(lesson.scheduledDate, currentTime(), tutorNoticeHours) &&
                             surchargeSettings && (
                               <p className="text-xs text-amber-700 mt-1">
                                 This is inside {tutorNoticeHours} hours&apos; notice - a {surchargePreview(surchargeSettings)} applies if

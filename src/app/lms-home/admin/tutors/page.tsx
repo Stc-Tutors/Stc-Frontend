@@ -38,8 +38,10 @@ export default function AdminTutorsPage() {
   };
 
   useEffect(() => {
-    load(search, filters);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    queueMicrotask(() => {
+      load(search, filters);
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {

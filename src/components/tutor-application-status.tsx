@@ -73,27 +73,29 @@ export default function TutorApplicationStatusView() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const stored = readStatusRef();
-    setRef(stored);
-    if (!stored) {
-      setError("We couldn't find your application on this device. Use the link from your confirmation email instead.");
-      setIsLoading(false);
-      return;
-    }
-    Promise.all([
-      GetTutorApplicationStatusAction(stored.applicationId, stored.statusToken),
-      GetTutorApplicationSupportMessagesAction(stored.applicationId, stored.statusToken),
-    ]).then(([[statusRes, statusErr], [messagesRes]]) => {
-      if (statusErr || !statusRes?.data) {
-        setError(statusErr || "Could not load your application status");
-      } else {
-        setStatus(statusRes.data.status);
-        setRejectionReason(statusRes.data.rejectionReason);
-        setFlaggedFields(statusRes.data.flaggedFields ?? []);
-        setNeedsMoreInfoNote(statusRes.data.needsMoreInfoNote);
+    queueMicrotask(() => {
+      const stored = readStatusRef();
+      setRef(stored);
+      if (!stored) {
+        setError("We couldn't find your application on this device. Use the link from your confirmation email instead.");
+        setIsLoading(false);
+        return;
       }
-      setMessages(messagesRes?.data ?? []);
-      setIsLoading(false);
+      Promise.all([
+        GetTutorApplicationStatusAction(stored.applicationId, stored.statusToken),
+        GetTutorApplicationSupportMessagesAction(stored.applicationId, stored.statusToken),
+      ]).then(([[statusRes, statusErr], [messagesRes]]) => {
+        if (statusErr || !statusRes?.data) {
+          setError(statusErr || "Could not load your application status");
+        } else {
+          setStatus(statusRes.data.status);
+          setRejectionReason(statusRes.data.rejectionReason);
+          setFlaggedFields(statusRes.data.flaggedFields ?? []);
+          setNeedsMoreInfoNote(statusRes.data.needsMoreInfoNote);
+        }
+        setMessages(messagesRes?.data ?? []);
+        setIsLoading(false);
+      });
     });
   }, []);
 

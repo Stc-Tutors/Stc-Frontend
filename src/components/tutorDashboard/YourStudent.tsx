@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { MoreHorizontal } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -40,9 +41,9 @@ export default function YourStudents() {
     <div className="bg-white shadow rounded-2xl p-4">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-semibold">Your Students</h2>
-        <a href="/lms-home/tutor/student-list" className="text-blue-500 text-sm hover:underline">
+        <Link href="/lms-home/tutor/student-list" className="text-blue-500 text-sm hover:underline">
         View All
-        </a>
+        </Link>
 
       </div>
 

@@ -50,12 +50,14 @@ function TutorAllocationForm({ student, onDone }: { student: Student; onDone: ()
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    setCourseId("");
-    if (!tutorId) {
-      setCourses([]);
-      return;
-    }
-    GetCoursesAction({ tutor: tutorId }).then(([res]) => setCourses(res?.data ?? []));
+    queueMicrotask(() => {
+      setCourseId("");
+      if (!tutorId) {
+        setCourses([]);
+        return;
+      }
+      GetCoursesAction({ tutor: tutorId }).then(([res]) => setCourses(res?.data ?? []));
+    });
   }, [tutorId]);
 
   const handleAllocate = async () => {

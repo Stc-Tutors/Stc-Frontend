@@ -42,7 +42,9 @@ export function AssignmentTracker() {
   }, [qApplied, status, state]);
 
   useEffect(() => {
-    load();
+    queueMicrotask(() => {
+      load();
+    });
   }, [load]);
 
   const openAssignment = async (a: AssignmentWithProgress) => {

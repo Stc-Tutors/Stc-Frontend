@@ -48,8 +48,10 @@ export default function AdminAuditLogPage() {
   };
 
   useEffect(() => {
-    load(1);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    queueMicrotask(() => {
+      load(1);
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleFilter = () => load(1);

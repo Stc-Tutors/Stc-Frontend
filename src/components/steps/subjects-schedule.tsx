@@ -146,11 +146,13 @@ export default function SubjectsSchedule({ onNext, errors, forcedUserType }: Ste
   // Drop any previously-checked subject that's no longer in the resolved
   // list (e.g. the user picked a different grade level/class).
   useEffect(() => {
-    if (!(isPathA || isPathB) || resolvedSubjects.length === 0) return;
-    const validNames = new Set(resolvedSubjects.map((s) => s.name));
-    setServiceData((prev) => {
-      const filtered = prev.selectedSubjects.filter((s) => validNames.has(s));
-      return filtered.length === prev.selectedSubjects.length ? prev : { ...prev, selectedSubjects: filtered };
+    queueMicrotask(() => {
+      if (!(isPathA || isPathB) || resolvedSubjects.length === 0) return;
+      const validNames = new Set(resolvedSubjects.map((s) => s.name));
+      setServiceData((prev) => {
+        const filtered = prev.selectedSubjects.filter((s) => validNames.has(s));
+        return filtered.length === prev.selectedSubjects.length ? prev : { ...prev, selectedSubjects: filtered };
+      });
     });
   }, [resolvedSubjects, isPathA, isPathB]);
 
@@ -230,6 +232,25 @@ export default function SubjectsSchedule({ onNext, errors, forcedUserType }: Ste
   const [classGroups, setClassGroups] = useState<IClassGroup[]>([]);
   const [isLoadingGroups, setIsLoadingGroups] = useState(false);
 
+  const handleStageSelect = async (stageIndex: number, nodeId: string, options?: CurriculumNode[], reset = true) => {
+    const node = (options ?? stageOptions[stageIndex] ?? []).find((n) => n.id === nodeId);
+    setStageSelections((prev) => [...prev.slice(0, stageIndex), nodeId]);
+    setStageOptions((prev) => prev.slice(0, stageIndex + 1));
+    setServiceData((prev) => ({
+      ...prev,
+      // The first stage of a requires_age_range service IS the age range -
+      // ageLevel is what pricing, class-group matching and validation key off.
+      ...(stageIndex === 0 && flowReq.requires_age_range ? { ageLevel: node?.name ?? "" } : {}),
+      // A different pick upstream invalidates any course already chosen.
+      ...(reset ? { courseId: "", courseIds: [], selectedSubjects: [], classGroupId: "" } : {}),
+    }));
+    if (reset) setNodePickIds([]);
+    if (stageIndex < stages.length - 1 && serviceType) {
+      const [res] = await GetCurriculumChildrenAction(nodeId, serviceType);
+      setStageOptions((prev) => [...prev.slice(0, stageIndex + 1), res?.data ?? []]);
+    }
+  };
+
   // First stage's options (the tree's roots) - and, when this step remounts
   // with an age range already chosen (Edit from Review, resumed draft),
   // restore that pick by name so the course list doesn't silently un-filter.
@@ -251,25 +272,6 @@ export default function SubjectsSchedule({ onNext, errors, forcedUserType }: Ste
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPathCService, serviceType, stages.length]);
 
-  const handleStageSelect = async (stageIndex: number, nodeId: string, options?: CurriculumNode[], reset = true) => {
-    const node = (options ?? stageOptions[stageIndex] ?? []).find((n) => n.id === nodeId);
-    setStageSelections((prev) => [...prev.slice(0, stageIndex), nodeId]);
-    setStageOptions((prev) => prev.slice(0, stageIndex + 1));
-    setServiceData((prev) => ({
-      ...prev,
-      // The first stage of a requires_age_range service IS the age range -
-      // ageLevel is what pricing, class-group matching and validation key off.
-      ...(stageIndex === 0 && flowReq.requires_age_range ? { ageLevel: node?.name ?? "" } : {}),
-      // A different pick upstream invalidates any course already chosen.
-      ...(reset ? { courseId: "", courseIds: [], selectedSubjects: [], classGroupId: "" } : {}),
-    }));
-    if (reset) setNodePickIds([]);
-    if (stageIndex < stages.length - 1 && serviceType) {
-      const [res] = await GetCurriculumChildrenAction(nodeId, serviceType);
-      setStageOptions((prev) => [...prev.slice(0, stageIndex + 1), res?.data ?? []]);
-    }
-  };
-
   // Which node the course list is filtered by. Normally the deepest pick. When
   // several courses can be taken (isMultiCourse) the LAST stage becomes the
   // tick-list itself (see the render below), so its own options are what's
@@ -282,38 +284,6 @@ export default function SubjectsSchedule({ onNext, errors, forcedUserType }: Ste
       : ""
     : deepestSelectedNodeId;
   const mustPickBeforeCourses = lastStageIsPick ? stages.length >= 2 : stages.length > 0;
-
-  // Refetches whenever that node changes. A service with a tree lists
-  // nothing until its stages are chosen - except on a remount that
-  // already carries a chosen course, which loads the unfiltered list so that
-  // course still resolves (see the restore effect above).
-  useEffect(() => {
-    if (!isPathCService || !serviceType) return;
-    setCoursesResolved(false);
-    if (mustPickBeforeCourses && !coursesQueryNodeId && !serviceData.courseId) {
-      setCourses([]);
-      return;
-    }
-    let cancelled = false;
-    setIsLoadingCourses(true);
-    GetCoursesAction({ serviceType, ...(coursesQueryNodeId ? { taxonomyNodeId: coursesQueryNodeId } : {}) }).then(([res]) => {
-      if (cancelled) return;
-      const list = res?.data ?? [];
-      setCourses(list);
-      setIsLoadingCourses(false);
-      setCoursesResolved(true);
-      // With exactly one option there's nothing to choose, so asking the
-      // family to pick it again just reads as an extra step - take it. Never
-      // overrides a course already picked (a resumed draft).
-      if (list.length === 1 && !serviceData.courseId) handleSelectCourse(list[0]);
-    });
-    return () => {
-      cancelled = true;
-    };
-    // serviceData.courseId is deliberately not a dependency - picking a
-    // course must not refetch the list it was picked from.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isPathCService, serviceType, stages.length, coursesQueryNodeId, lastStageIsPick]);
 
   useEffect(() => {
     if (!isPathCService || !flowReq.requires_language_selection) return;
@@ -402,16 +372,18 @@ export default function SubjectsSchedule({ onNext, errors, forcedUserType }: Ste
   // While plain-picking, the picked items ARE the enrollment's subjects.
   const nodePickKey = nodePicks.map((n) => n.id).join(",");
   useEffect(() => {
-    if (!isPathCService || !treeHasPickLevel) return;
-    if (serviceData.courseIds.length > 0) return;
-    const names = nodePicks.map((n) => n.name);
-    setServiceData((prev) =>
-      prev.selectedSubjects.length === names.length && prev.selectedSubjects.every((s, i) => s === names[i])
-        ? prev
-        : { ...prev, selectedSubjects: names, courseId: "", courseIds: [] }
-    );
-    // nodePicks is captured through nodePickKey; the rest are stable inputs.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    queueMicrotask(() => {
+      if (!isPathCService || !treeHasPickLevel) return;
+      if (serviceData.courseIds.length > 0) return;
+      const names = nodePicks.map((n) => n.name);
+      setServiceData((prev) =>
+        prev.selectedSubjects.length === names.length && prev.selectedSubjects.every((s, i) => s === names[i])
+          ? prev
+          : { ...prev, selectedSubjects: names, courseId: "", courseIds: [] }
+      );
+      // nodePicks is captured through nodePickKey; the rest are stable inputs.
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nodePickKey, serviceData.courseIds.length, isPathCService, treeHasPickLevel]);
 
   const toggleNodePick = (node: CurriculumNode) =>
@@ -448,6 +420,42 @@ export default function SubjectsSchedule({ onNext, errors, forcedUserType }: Ste
   };
 
   const handleSelectCourse = (course: Course) => applyCourseSelection([course]);
+
+  // Refetches whenever that node changes. A service with a tree lists
+  // nothing until its stages are chosen - except on a remount that
+  // already carries a chosen course, which loads the unfiltered list so that
+  // course still resolves (see the restore effect above).
+  useEffect(() => {
+    if (!isPathCService || !serviceType) return;
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) setCoursesResolved(false);
+    });
+    if (mustPickBeforeCourses && !coursesQueryNodeId && !serviceData.courseId) {
+      queueMicrotask(() => setCourses([]));
+      return;
+    }
+    queueMicrotask(() => {
+      if (!cancelled) setIsLoadingCourses(true);
+    });
+    GetCoursesAction({ serviceType, ...(coursesQueryNodeId ? { taxonomyNodeId: coursesQueryNodeId } : {}) }).then(([res]) => {
+      if (cancelled) return;
+      const list = res?.data ?? [];
+      setCourses(list);
+      setIsLoadingCourses(false);
+      setCoursesResolved(true);
+      // With exactly one option there's nothing to choose, so asking the
+      // family to pick it again just reads as an extra step - take it. Never
+      // overrides a course already picked (a resumed draft).
+      if (list.length === 1 && !serviceData.courseId) handleSelectCourse(list[0]);
+    });
+    return () => {
+      cancelled = true;
+    };
+    // serviceData.courseId is deliberately not a dependency - picking a
+    // course must not refetch the list it was picked from.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPathCService, serviceType, stages.length, coursesQueryNodeId, lastStageIsPick]);
 
   // Tick/untick one course when several may be taken.
   const toggleCourse = (course: Course) =>
@@ -503,11 +511,13 @@ export default function SubjectsSchedule({ onNext, errors, forcedUserType }: Ste
   const classGroupLookupReady = !!(serviceData.courseId || groupLookupSubject);
   useEffect(() => {
     if (!wantsClassGroup || !serviceType || !classGroupLookupReady) {
-      setClassGroups([]);
+      queueMicrotask(() => setClassGroups([]));
       return;
     }
     let cancelled = false;
-    setIsLoadingGroups(true);
+    queueMicrotask(() => {
+      if (!cancelled) setIsLoadingGroups(true);
+    });
     GetClassGroupsAction({
       serviceType,
       ...(serviceData.courseId
@@ -535,10 +545,12 @@ export default function SubjectsSchedule({ onNext, errors, forcedUserType }: Ste
   // A picked group that's no longer on offer (different subject/age range chosen)
   // must not linger.
   useEffect(() => {
-    if (isLoadingGroups || !serviceData.classGroupId) return;
-    if (!classGroups.some((g) => g.id === serviceData.classGroupId)) {
-      setServiceData((prev) => ({ ...prev, classGroupId: "" }));
-    }
+    queueMicrotask(() => {
+      if (isLoadingGroups || !serviceData.classGroupId) return;
+      if (!classGroups.some((g) => g.id === serviceData.classGroupId)) {
+        setServiceData((prev) => ({ ...prev, classGroupId: "" }));
+      }
+    });
   }, [classGroups, isLoadingGroups, serviceData.classGroupId]);
 
   const isPathBExam = isPathB;
@@ -547,21 +559,23 @@ export default function SubjectsSchedule({ onNext, errors, forcedUserType }: Ste
   // A/B only - Path C's schedule comes straight from the chosen course, see
   // handleSelectCourse).
   useEffect(() => {
-    if (isPathC) return;
-    setSchedule((prev) => {
-      const updated = serviceData.selectedSubjects.map((subject) => {
-        const existing = prev.find((s) => s.subject === subject);
-        return (
-          existing || {
-            subject,
-            days: [],
-            time: "8:00am",
-            duration: 60,
-          }
-        );
-      });
+    queueMicrotask(() => {
+      if (isPathC) return;
+      setSchedule((prev) => {
+        const updated = serviceData.selectedSubjects.map((subject) => {
+          const existing = prev.find((s) => s.subject === subject);
+          return (
+            existing || {
+              subject,
+              days: [],
+              time: "8:00am",
+              duration: 60,
+            }
+          );
+        });
 
-      return updated;
+        return updated;
+      });
     });
   }, [serviceData.selectedSubjects, isPathC]);
 
@@ -574,12 +588,14 @@ export default function SubjectsSchedule({ onNext, errors, forcedUserType }: Ste
   // enrollmentData from context) since that context update above hasn't
   // committed by the time this effect runs in the same pass.
   useEffect(() => {
-    const computedCost = isPathC ? chosenCoursesTotal : calculateCost(schedule, pricingDetails);
-    const computedCurrency = isPathC ? chosenCourses[0]?.currency ?? "NGN" : getCostCurrency(schedule, pricingDetails);
+    queueMicrotask(() => {
+      const computedCost = isPathC ? chosenCoursesTotal : calculateCost(schedule, pricingDetails);
+      const computedCurrency = isPathC ? chosenCourses[0]?.currency ?? "NGN" : getCostCurrency(schedule, pricingDetails);
 
-    setLocalTotalCost(computedCost);
-    setTotalCost(computedCost, computedCurrency);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+      setLocalTotalCost(computedCost);
+      setTotalCost(computedCost, computedCurrency);
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     schedule,
     serviceData.selectedSubjects,
@@ -757,7 +773,7 @@ export default function SubjectsSchedule({ onNext, errors, forcedUserType }: Ste
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [serviceData, schedule, isPathC, isCohortBased, isSingleSelection, customFields, customFieldResponses, chosenCoursesTotal, pricingKey, nodePickIds]);
 
-  const handleScheduleChange = (index: number, field: keyof Schedule, value: any) => {
+  const handleScheduleChange = (index: number, field: keyof Schedule, value: Schedule[keyof Schedule]) => {
     setSchedule((prev) => prev.map((item, i) => (i === index ? { ...item, [field]: value } : item)));
   };
 

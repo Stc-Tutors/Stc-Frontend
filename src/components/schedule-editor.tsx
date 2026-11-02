@@ -34,7 +34,9 @@ export default function ScheduleEditor({ student, onChanged }: { student: Studen
   }, [student.id]);
 
   useEffect(() => {
-    loadWaiting();
+    queueMicrotask(() => {
+      loadWaiting();
+    });
   }, [loadWaiting]);
 
   const startEditing = () => {

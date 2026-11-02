@@ -172,7 +172,11 @@ export function TutorFilterBar({ value, onChange, showDates, hideSearch, hideSor
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [qDraft]);
-  useEffect(() => setQDraft(value.q), [value.q]);
+  useEffect(() => {
+    queueMicrotask(() => {
+      setQDraft(value.q);
+    });
+  }, [value.q]);
 
   return (
     <div className="mb-4 space-y-3">

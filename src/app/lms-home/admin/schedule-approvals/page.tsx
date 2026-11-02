@@ -19,7 +19,9 @@ export default function AdminScheduleApprovalsPage() {
   }, []);
 
   useEffect(() => {
-    load();
+    queueMicrotask(() => {
+      load();
+    });
   }, [load]);
 
   return (

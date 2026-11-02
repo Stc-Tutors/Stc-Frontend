@@ -33,6 +33,7 @@ import { DEFAULT_NO_SHOW_GRACE_PERIOD_MINUTES } from "@/types/penalty";
 import { ScheduleViewControls, useScheduleView } from "@/components/schedule-view-controls";
 import ScheduleProposalsBanner from "@/components/schedule-proposals-banner";
 import GroupScheduleConfirmationBanner from "@/components/group-schedule-confirmation-banner";
+import { currentTime } from "@/lib/clock";
 
 interface Row {
   lesson: Lesson;
@@ -116,9 +117,11 @@ export default function SchedulePage() {
   };
 
   useEffect(() => {
-    load();
-    loadConfirmations();
-    loadNoticeSettings();
+    queueMicrotask(() => {
+      load();
+      loadConfirmations();
+      loadNoticeSettings();
+    });
   }, []);
 
   // Client-side default guess for button visibility only - mirrors the
@@ -126,7 +129,7 @@ export default function SchedulePage() {
   // and rejects a too-early report with a clear message.
   const canReportTutorNoShow = (lesson: Lesson) =>
     lesson.status === LessonStatus.SCHEDULED &&
-    Date.now() >= new Date(lesson.scheduledDate).getTime() + DEFAULT_NO_SHOW_GRACE_PERIOD_MINUTES * 60 * 1000;
+    currentTime() >= new Date(lesson.scheduledDate).getTime() + DEFAULT_NO_SHOW_GRACE_PERIOD_MINUTES * 60 * 1000;
 
   const handleReportTutorNoShow = async (lessonId: string) => {
     const [, error] = await ReportTutorNoShowAction({ lessonId, studentId: myStudentId ?? undefined });
@@ -418,7 +421,7 @@ export default function SchedulePage() {
                           </div>
                           <p className="text-xs text-gray-500 mt-1">
                             The new time always needs admin confirmation with the tutor.
-                            {isInsideRescheduleGate(lesson.scheduledDate, Date.now(), studentNoticeHours) &&
+                            {isInsideRescheduleGate(lesson.scheduledDate, currentTime(), studentNoticeHours) &&
                               ` This class starts within ${studentNoticeHours} hours, so it will be flagged urgent.`}
                           </p>
                           <p className="text-xs text-gray-500 mt-1">
@@ -447,7 +450,7 @@ export default function SchedulePage() {
                             </button>
                           </div>
                           <p className="text-xs text-gray-500 mt-1">
-                            {isInsideRescheduleGate(lesson.scheduledDate, Date.now(), studentNoticeHours)
+                            {isInsideRescheduleGate(lesson.scheduledDate, currentTime(), studentNoticeHours)
                               ? `This class starts within ${studentNoticeHours} hours, so cancelling now needs admin approval before it's final.`
                               : `${studentNoticeHours} hours or more out, so this cancels immediately.`}
                           </p>

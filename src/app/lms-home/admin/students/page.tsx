@@ -74,8 +74,10 @@ function AdminStudentsPageInner() {
   };
 
   useEffect(() => {
-    load(searchParams.get("search") || undefined);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    queueMicrotask(() => {
+      load(searchParams.get("search") || undefined);
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSearchSubmit = (e: React.FormEvent) => {

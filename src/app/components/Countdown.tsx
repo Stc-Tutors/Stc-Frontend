@@ -5,11 +5,11 @@ import {useEffect, useState} from "react";
 const Countdown = ({seconds = 5, onComplete} : {seconds?:
     number; onComplete?: () => void }) => {
         const[timeLeft, setTimeLeft] = useState(seconds);
-        const[visible, setVisible] =useState(true);
+        // Hidden as soon as the count reaches zero (derived from the count, not stored separately).
+        const visible = timeLeft !== 0;
 
         useEffect(() => {
             if (timeLeft ===0) {
-                setVisible(false);
                 if (onComplete) onComplete();
                 return;
             }

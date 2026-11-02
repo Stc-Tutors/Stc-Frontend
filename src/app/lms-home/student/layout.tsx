@@ -116,7 +116,9 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
   const [sidebarCollapsed, toggleSidebarCollapsed] = useSidebarCollapsed();
   // Close the mobile drawer whenever the user navigates.
   useEffect(() => {
-    setIsSidebarOpen(false);
+    queueMicrotask(() => {
+      setIsSidebarOpen(false);
+    });
   }, [pathname]);
 
   // A student with no registered service can't use any other LMS feature -

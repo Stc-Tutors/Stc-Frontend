@@ -45,7 +45,9 @@ export default function AllocationsPage() {
   }, []);
 
   useEffect(() => {
-    loadSummary();
+    queueMicrotask(() => {
+      loadSummary();
+    });
   }, [loadSummary]);
 
   const jumpTo = (target: Tab) => {

@@ -74,7 +74,7 @@ export default function AdminReportsPage() {
       setIsLoading(false);
     };
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [canViewFinancialReports]);
 
   const missedClasses = tutorPerformance.reduce((sum, t) => sum + t.cancelledSessions, 0);

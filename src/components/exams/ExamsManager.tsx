@@ -39,7 +39,9 @@ export default function ExamsManager({ basePath }: { basePath: string }) {
   }, []);
 
   useEffect(() => {
-    load();
+    queueMicrotask(() => {
+      load();
+    });
   }, [load]);
 
   const create = async (v: ExamFormValues) => {

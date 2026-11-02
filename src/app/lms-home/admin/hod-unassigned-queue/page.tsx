@@ -34,8 +34,10 @@ export default function HodUnassignedQueuePage() {
   }, []);
 
   useEffect(() => {
-    if (canView) load();
-    else setIsLoading(false);
+    queueMicrotask(() => {
+      if (canView) load();
+      else setIsLoading(false);
+    });
   }, [canView, load]);
 
   const handleChanged = () => {

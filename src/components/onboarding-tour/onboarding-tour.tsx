@@ -51,13 +51,19 @@ export default function OnboardingTour() {
   const [rect, setRect] = useState<DOMRect | null>(null);
   const [isPersisting, setIsPersisting] = useState(false);
 
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    queueMicrotask(() => {
+      setMounted(true);
+    });
+  }, []);
 
   const steps = getTourSteps(user?.role);
   const eligible = !!user && user.termsAccepted !== false && user.hasCompletedTour === false && steps.length > 0;
 
   useEffect(() => {
-    if (!started && eligible && DASHBOARD_ROUTE.test(pathname ?? "")) setStarted(true);
+    queueMicrotask(() => {
+      if (!started && eligible && DASHBOARD_ROUTE.test(pathname ?? "")) setStarted(true);
+    });
   }, [started, eligible, pathname]);
 
   const visible = mounted && started && eligible;
@@ -67,7 +73,7 @@ export default function OnboardingTour() {
   useEffect(() => {
     if (!visible || !step) return;
     if (!step.target) {
-      setRect(null);
+      queueMicrotask(() => setRect(null));
       return;
     }
 
@@ -99,7 +105,7 @@ export default function OnboardingTour() {
       window.setTimeout(tryFind, FIND_RETRY_MS);
     };
 
-    tryFind();
+    queueMicrotask(tryFind); // checks `cancelled` itself, so a cleaned-up effect does nothing
     window.addEventListener("resize", recompute);
     window.addEventListener("scroll", recompute, true);
     return () => {

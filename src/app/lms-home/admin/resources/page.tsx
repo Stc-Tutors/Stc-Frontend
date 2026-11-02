@@ -78,8 +78,10 @@ export default function AdminResourcesPage() {
   };
 
   useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    queueMicrotask(() => {
+      load();
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const driveError = fileUrl.trim() && !toGoogleDriveEmbedUrl(fileUrl) ? "Must be a Google Drive share link" : null;

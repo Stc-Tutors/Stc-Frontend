@@ -69,7 +69,11 @@ export default function StudentProgressPage() {
     [rows, studentFilter, serviceFilter, subjectFilter]
   );
 
-  useEffect(() => setPage(1), [studentFilter, serviceFilter, subjectFilter]);
+  useEffect(() => {
+    queueMicrotask(() => {
+      setPage(1);
+    });
+  }, [studentFilter, serviceFilter, subjectFilter]);
 
   const aggregate = average(filtered.map((r) => r.overallProgressPercent)) ?? 0;
   const avgAttendance = average(filtered.map((r) => r.attendanceRate));

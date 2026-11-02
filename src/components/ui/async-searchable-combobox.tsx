@@ -33,11 +33,13 @@ export function AsyncSearchableCombobox({ value, selectedLabel, onChange, onSear
 
   useEffect(() => {
     if (!open || query.trim().length < 2) {
-      setOptions([]);
+      queueMicrotask(() => setOptions([]));
       return;
     }
     let cancelled = false;
-    setIsLoading(true);
+    queueMicrotask(() => {
+      if (!cancelled) setIsLoading(true);
+    });
     const timeout = setTimeout(() => {
       onSearch(query).then((results) => {
         if (!cancelled) {

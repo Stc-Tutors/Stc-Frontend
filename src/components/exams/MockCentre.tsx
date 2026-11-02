@@ -131,12 +131,14 @@ function AccessTab({ notify }: { notify: Notify }) {
   }, [notify]);
 
   useEffect(() => {
-    load();
+    queueMicrotask(() => {
+      load();
+    });
   }, [load]);
 
   useEffect(() => {
     if (search.trim().length < 2) {
-      setHits([]);
+      queueMicrotask(() => setHits([]));
       return;
     }
     const t = setTimeout(async () => {
@@ -362,7 +364,9 @@ function ExamsTab({ notify }: { notify: Notify }) {
   }, [notify]);
 
   useEffect(() => {
-    load();
+    queueMicrotask(() => {
+      load();
+    });
   }, [load]);
 
   const save = async (examId: number, isActive: boolean, source: string) => {
@@ -697,7 +701,9 @@ function StudentsTab({ notify }: { notify: Notify }) {
   }, [notify]);
 
   useEffect(() => {
-    load();
+    queueMicrotask(() => {
+      load();
+    });
   }, [load]);
 
   const give = async (key: string, name: string) => {
@@ -820,7 +826,9 @@ function ResultsTab({ notify }: { notify: Notify }) {
   }, []);
 
   useEffect(() => {
-    load();
+    queueMicrotask(() => {
+      load();
+    });
   }, [load]);
 
   return (
@@ -886,7 +894,9 @@ function PricingTab({ notify, isSuper }: { notify: Notify; isSuper: boolean }) {
   }, []);
 
   useEffect(() => {
-    load();
+    queueMicrotask(() => {
+      load();
+    });
   }, [load]);
 
   const save = async () => {

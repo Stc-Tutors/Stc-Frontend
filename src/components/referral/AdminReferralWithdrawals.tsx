@@ -57,7 +57,9 @@ export default function AdminReferralWithdrawals() {
   };
 
   useEffect(() => {
-    load();
+    queueMicrotask(() => {
+      load();
+    });
   }, []);
 
   const handleApprove = async (id: string) => {

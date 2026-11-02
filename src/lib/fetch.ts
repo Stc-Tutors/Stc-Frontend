@@ -21,10 +21,11 @@ export interface ApiResponse<T> {
 function describeErrorDetails(details: unknown): string {
   if (!Array.isArray(details)) return "";
   const reasons = details
-    .map((d: any) => {
-      if (typeof d === "string") return d;
+    .map((entry: unknown) => {
+      if (typeof entry === "string") return entry;
+      const d = entry as { msg?: unknown; constraints?: Record<string, string> } | null;
       if (d?.msg) return String(d.msg);
-      if (d?.constraints) return Object.values(d.constraints as Record<string, string>).join(", ");
+      if (d?.constraints) return Object.values(d.constraints).join(", ");
       return "";
     })
     .filter(Boolean);

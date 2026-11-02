@@ -36,36 +36,38 @@ export default function TutorRatingsPanel({ studentId }: TutorRatingsPanelProps)
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!studentId) {
-      setRows([]);
-      setIsLoading(false);
-      return;
-    }
-    const load = async () => {
-      setIsLoading(true);
-      const [res] = await GetStudentCoursesCached(studentId);
-      const active = (res?.data ?? []).filter((e) => e.status === CourseEnrollmentStatus.ACTIVE);
+    queueMicrotask(() => {
+      if (!studentId) {
+        setRows([]);
+        setIsLoading(false);
+        return;
+      }
+      const load = async () => {
+        setIsLoading(true);
+        const [res] = await GetStudentCoursesCached(studentId);
+        const active = (res?.data ?? []).filter((e) => e.status === CourseEnrollmentStatus.ACTIVE);
 
-      const withTutor = active
-        .map((e) => {
-          if (typeof e.course === "string") return null;
-          const tutor = e.course.tutor as CourseTutor | undefined;
-          if (!tutor) return null;
-          return { tutorId: tutor.id, tutorName: `${tutor.firstName} ${tutor.lastName}`, courseTitle: e.course.title };
-        })
-        .filter((v): v is { tutorId: string; tutorName: string; courseTitle: string } => !!v);
+        const withTutor = active
+          .map((e) => {
+            if (typeof e.course === "string") return null;
+            const tutor = e.course.tutor as CourseTutor | undefined;
+            if (!tutor) return null;
+            return { tutorId: tutor.id, tutorName: `${tutor.firstName} ${tutor.lastName}`, courseTitle: e.course.title };
+          })
+          .filter((v): v is { tutorId: string; tutorName: string; courseTitle: string } => !!v);
 
-      const summaries = await Promise.all(withTutor.map((w) => GetTutorRatingSummaryAction(w.tutorId)));
-      setRows(
-        withTutor.map((w, i) => ({
-          ...w,
-          averageRating: summaries[i][0]?.data?.averageRating ?? 0,
-          totalRatings: summaries[i][0]?.data?.totalRatings ?? 0,
-        }))
-      );
-      setIsLoading(false);
-    };
-    load();
+        const summaries = await Promise.all(withTutor.map((w) => GetTutorRatingSummaryAction(w.tutorId)));
+        setRows(
+          withTutor.map((w, i) => ({
+            ...w,
+            averageRating: summaries[i][0]?.data?.averageRating ?? 0,
+            totalRatings: summaries[i][0]?.data?.totalRatings ?? 0,
+          }))
+        );
+        setIsLoading(false);
+      };
+      load();
+    });
   }, [studentId]);
 
   return (

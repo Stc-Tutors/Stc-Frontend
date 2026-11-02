@@ -50,23 +50,27 @@ export default function UnassignedQueueDetailDialog({ enrollment, onOpenChange, 
   const [isSavingLink, setIsSavingLink] = useState(false);
 
   useEffect(() => {
-    if (!enrollment || enrollment.status !== SubjectEnrollmentStatus.UNASSIGNED_TUTOR) return;
-    setIsLoadingSuggestions(true);
-    setSuggestionsError(null);
-    GetSuggestedTutorsAction(enrollment.id).then(([res, error]) => {
-      setSuggestions(res?.data ?? []);
-      if (error) setSuggestionsError(error);
-      setIsLoadingSuggestions(false);
+    queueMicrotask(() => {
+      if (!enrollment || enrollment.status !== SubjectEnrollmentStatus.UNASSIGNED_TUTOR) return;
+      setIsLoadingSuggestions(true);
+      setSuggestionsError(null);
+      GetSuggestedTutorsAction(enrollment.id).then(([res, error]) => {
+        setSuggestions(res?.data ?? []);
+        if (error) setSuggestionsError(error);
+        setIsLoadingSuggestions(false);
+      });
     });
   }, [enrollment]);
 
   useEffect(() => {
-    setSuggestions(null);
-    setShowManualSearch(false);
-    setManualSearch("");
-    setManualResults(null);
-    setSelectedTutorId("");
-    setMeetingUrl(enrollment?.meetingUrl ?? "");
+    queueMicrotask(() => {
+      setSuggestions(null);
+      setShowManualSearch(false);
+      setManualSearch("");
+      setManualResults(null);
+      setSelectedTutorId("");
+      setMeetingUrl(enrollment?.meetingUrl ?? "");
+    });
   }, [enrollment]);
 
   if (!enrollment) return null;

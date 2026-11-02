@@ -79,11 +79,13 @@ export function ClassGroupManager({ serviceType, hideHeading }: { serviceType?: 
   const [viewingMembers, setViewingMembers] = useState<IClassGroup | null>(null);
 
   useEffect(() => {
-    if (!form.serviceType) {
-      setCourses([]);
-      return;
-    }
-    GetCoursesAction({ serviceType: form.serviceType }).then(([res]) => setCourses(res?.data ?? []));
+    queueMicrotask(() => {
+      if (!form.serviceType) {
+        setCourses([]);
+        return;
+      }
+      GetCoursesAction({ serviceType: form.serviceType }).then(([res]) => setCourses(res?.data ?? []));
+    });
   }, [form.serviceType]);
 
   const serviceLocked = !!serviceType;
@@ -104,8 +106,10 @@ export function ClassGroupManager({ serviceType, hideHeading }: { serviceType?: 
   };
 
   useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    queueMicrotask(() => {
+      load();
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [serviceType]);
 
   const openCreate = () => {

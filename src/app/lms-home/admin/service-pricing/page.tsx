@@ -160,11 +160,13 @@ export default function ServicePricingPage() {
 
   // Switching services invalidates whatever node was picked in the old tree.
   useEffect(() => {
-    setSelectedNodeId(undefined);
-    setCountry("");
-    setCurriculum("");
-    setGradeLevel("");
-    setSubject("");
+    queueMicrotask(() => {
+      setSelectedNodeId(undefined);
+      setCountry("");
+      setCurriculum("");
+      setGradeLevel("");
+      setSubject("");
+    });
   }, [serviceType]);
 
   const load = async () => {
@@ -182,7 +184,9 @@ export default function ServicePricingPage() {
   };
 
   useEffect(() => {
-    load();
+    queueMicrotask(() => {
+      load();
+    });
   }, []);
 
   const courseTitleById = (id?: string) => courses.find((c) => c.id === id)?.title ?? id;

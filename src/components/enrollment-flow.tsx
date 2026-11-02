@@ -107,17 +107,21 @@ export default function EnrollmentFlow({ forcedUserType, dashboardPath, paymentH
   const [showPaymentConsent, setShowPaymentConsent] = useState(false);
 
   useEffect(() => {
-    setIsClient(true);
+    queueMicrotask(() => {
+      setIsClient(true);
+    });
   }, []);
 
   // Load existing enrollment if continuing
   useEffect(() => {
-    if (!continueId) {
-      setContinueLoadDone(true);
-      return;
-    }
-    if (!isClient) return;
-    loadEnrollment(continueId).finally(() => setContinueLoadDone(true));
+    queueMicrotask(() => {
+      if (!continueId) {
+        setContinueLoadDone(true);
+        return;
+      }
+      if (!isClient) return;
+      loadEnrollment(continueId).finally(() => setContinueLoadDone(true));
+    });
   }, [continueId, loadEnrollment, isClient]);
 
   // Deep link from Marketplace: a parent picked an already-enrolled child

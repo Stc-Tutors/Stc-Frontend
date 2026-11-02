@@ -41,12 +41,14 @@ export default function ResourceTargetPicker({ courses, fetchStudents, fetchServ
   const [services, setServices] = useState<{ slug: string; serviceName: string }[]>([]);
 
   useEffect(() => {
-    if (value.mode !== "students") return;
-    setIsLoadingStudents(true);
-    fetchStudents()
-      .then(setStudents)
-      .finally(() => setIsLoadingStudents(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    queueMicrotask(() => {
+      if (value.mode !== "students") return;
+      setIsLoadingStudents(true);
+      fetchStudents()
+        .then(setStudents)
+        .finally(() => setIsLoadingStudents(false));
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value.mode]);
 
   useEffect(() => {

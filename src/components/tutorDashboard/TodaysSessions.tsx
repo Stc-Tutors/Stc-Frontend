@@ -73,7 +73,9 @@ export default function TodaysSessions() {
   };
 
   useEffect(() => {
-    load();
+    queueMicrotask(() => {
+      load();
+    });
   }, []);
 
   const handleClockIn = async (id: string) => {

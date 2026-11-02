@@ -114,7 +114,9 @@ function TutorChangesTab() {
     setItems(res?.data ?? []);
   }, []);
   useEffect(() => {
-    load();
+    queueMicrotask(() => {
+      load();
+    });
   }, [load]);
 
   const reject = async (id: string) => {
@@ -185,7 +187,9 @@ function NoShowTab() {
     setIsLoading(false);
   }, [status]);
   useEffect(() => {
-    load();
+    queueMicrotask(() => {
+      load();
+    });
   }, [load]);
 
   return (
@@ -256,7 +260,9 @@ function AppealsTab() {
     setIsLoading(false);
   }, []);
   useEffect(() => {
-    load();
+    queueMicrotask(() => {
+      load();
+    });
   }, [load]);
 
   return (
@@ -318,7 +324,9 @@ function SessionsTab() {
     setIsLoading(false);
   }, [bucket]);
   useEffect(() => {
-    load();
+    queueMicrotask(() => {
+      load();
+    });
   }, [load]);
 
   const approve = async (id: string) => {

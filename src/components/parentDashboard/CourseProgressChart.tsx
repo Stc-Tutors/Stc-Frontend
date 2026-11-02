@@ -21,25 +21,27 @@ export default function CourseProgressChart({ studentId }: CourseProgressChartPr
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!studentId) {
-      setRows([]);
-      setIsLoading(false);
-      return;
-    }
-    const load = async () => {
-      setIsLoading(true);
-      const [res] = await GetStudentCoursesCached(studentId);
-      const enrollments = res?.data ?? [];
-      setRows(
-        enrollments.map((e) => ({
-          title: typeof e.course === "string" ? "Course" : e.course.title,
-          progress: e.progressPercent,
-          status: e.status,
-        }))
-      );
-      setIsLoading(false);
-    };
-    load();
+    queueMicrotask(() => {
+      if (!studentId) {
+        setRows([]);
+        setIsLoading(false);
+        return;
+      }
+      const load = async () => {
+        setIsLoading(true);
+        const [res] = await GetStudentCoursesCached(studentId);
+        const enrollments = res?.data ?? [];
+        setRows(
+          enrollments.map((e) => ({
+            title: typeof e.course === "string" ? "Course" : e.course.title,
+            progress: e.progressPercent,
+            status: e.status,
+          }))
+        );
+        setIsLoading(false);
+      };
+      load();
+    });
   }, [studentId]);
 
   return (

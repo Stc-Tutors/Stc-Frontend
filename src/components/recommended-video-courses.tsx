@@ -20,7 +20,7 @@ export default function RecommendedVideoCourses({ subjectNodeIds }: { subjectNod
 
   useEffect(() => {
     if (subjectNodeIds.length === 0) {
-      setVideoCourses([]);
+      queueMicrotask(() => setVideoCourses([]));
       return;
     }
     let cancelled = false;

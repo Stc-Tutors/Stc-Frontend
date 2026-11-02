@@ -117,8 +117,10 @@ export default function CurriculumTreeBrowser({
   };
 
   useEffect(() => {
-    load(null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    queueMicrotask(() => {
+      load(null);
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -127,12 +129,14 @@ export default function CurriculumTreeBrowser({
   }, [path]);
 
   useEffect(() => {
-    setNewType(typeOptions[0]);
-    setNewFullName("");
-    setNewDescription("");
-    setNewGrades("");
-    setNewRequiredSubjects("");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    queueMicrotask(() => {
+      setNewType(typeOptions[0]);
+      setNewFullName("");
+      setNewDescription("");
+      setNewGrades("");
+      setNewRequiredSubjects("");
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [depth]);
 
   const drillInto = (node: CurriculumNode) => {

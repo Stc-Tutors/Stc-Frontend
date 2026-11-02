@@ -21,19 +21,21 @@ export default function GuardianConsentForm({ token, signedIn }: { token: string
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!token) {
-      setState("invalid");
-      setMessage("This link is missing its confirmation code. Please use the link in the email exactly as it was sent.");
-      return;
-    }
-    GuardianConsentPreviewAction(token).then(([res, error]) => {
-      if (res?.data) {
-        setPreview(res.data);
-        setState("ready");
-      } else {
+    queueMicrotask(() => {
+      if (!token) {
         setState("invalid");
-        setMessage(error ?? "This confirmation link is invalid or has expired.");
+        setMessage("This link is missing its confirmation code. Please use the link in the email exactly as it was sent.");
+        return;
       }
+      GuardianConsentPreviewAction(token).then(([res, error]) => {
+        if (res?.data) {
+          setPreview(res.data);
+          setState("ready");
+        } else {
+          setState("invalid");
+          setMessage(error ?? "This confirmation link is invalid or has expired.");
+        }
+      });
     });
   }, [token]);
 

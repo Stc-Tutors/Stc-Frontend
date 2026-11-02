@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useMemo, useState } from "react";
 import { GetPageSectionsAction } from "@/server/content";
 import { PageSectionKey } from "@/types/content";
 import { unwrap, useCachedQuery } from "@/lib/client-cache";
@@ -18,7 +18,7 @@ import { unwrap, useCachedQuery } from "@/lib/client-cache";
 export function usePageSection<T extends object>(key: PageSectionKey, defaults: T): T {
   // `defaults` is a fresh object literal every render in every caller; keep the
   // first one so the returned value is stable until real content arrives.
-  const defaultsRef = useRef(defaults);
+  const [stableDefaults] = useState(defaults);
   const { data: sections } = useCachedQuery("page-sections", () => unwrap(GetPageSectionsAction()), {
     ttl: 5 * 60_000,
     persist: true,
@@ -28,8 +28,8 @@ export function usePageSection<T extends object>(key: PageSectionKey, defaults: 
 
   return useMemo(() => {
     if (match?.data && Object.keys(match.data).length > 0) {
-      return { ...defaultsRef.current, ...match.data } as T;
+      return { ...stableDefaults, ...match.data } as T;
     }
-    return defaultsRef.current;
-  }, [match]);
+    return stableDefaults;
+  }, [match, stableDefaults]);
 }

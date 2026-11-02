@@ -27,8 +27,10 @@ export function CourseCatalog({ serviceType, hideHeading }: { serviceType?: stri
   };
 
   useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    queueMicrotask(() => {
+      load();
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [serviceType]);
 
   const handlePublish = async (id: string) => {

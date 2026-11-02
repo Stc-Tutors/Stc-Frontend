@@ -4,6 +4,7 @@ import JoinClassLink from "@/components/classroom/JoinClassLink";
 import { formatScheduleDateTime } from "@/lib/datetime";
 import { getJoinWindow } from "@/lib/class-join-window";
 import { Lesson, LessonStatus } from "@/types/lesson";
+import { currentTime } from "@/lib/clock";
 
 interface Row {
   lesson: Lesson;
@@ -15,7 +16,7 @@ interface Row {
 // progress shows the next scheduled class (or "no upcoming class") instead
 // of the tab just bouncing to another page.
 export default function NextClassBanner({ rows, canJoin = true }: { rows: Row[]; canJoin?: boolean }) {
-  const now = Date.now();
+  const now = currentTime();
   const scheduled = rows
     .filter((r) => r.lesson.status === LessonStatus.SCHEDULED)
     .sort((a, b) => new Date(a.lesson.scheduledDate).getTime() - new Date(b.lesson.scheduledDate).getTime());

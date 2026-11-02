@@ -105,7 +105,7 @@ export default function EnrollmentReview({ onNext, errors }: StepProps) {
     return () => window.removeEventListener("validateStep", handleValidation);
   }, [acceptTerms, acceptPrivacy, customFields, customFieldResponses, onNext]);
 
-  const formatScheduleText = (scheduleItem: any) => {
+  const formatScheduleText = (scheduleItem: { days: string[]; duration: number; time: string }) => {
     const days = scheduleItem.days.length > 0 ? scheduleItem.days.join(", ") : "Days to be confirmed";
     const duration =
       scheduleItem.duration === 60
@@ -140,13 +140,15 @@ export default function EnrollmentReview({ onNext, errors }: StepProps) {
   // does just 400s - see ReferralService.applyReferralCode).
   const autoAppliedRef = useRef(false);
   useEffect(() => {
-    if (autoAppliedRef.current || hasExistingReferrer) return;
-    const ref = searchParams.get("ref");
-    if (!ref) return;
-    autoAppliedRef.current = true;
-    setReferralCode(ref);
-    applyReferralCode(ref);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    queueMicrotask(() => {
+      if (autoAppliedRef.current || hasExistingReferrer) return;
+      const ref = searchParams.get("ref");
+      if (!ref) return;
+      autoAppliedRef.current = true;
+      setReferralCode(ref);
+      applyReferralCode(ref);
+    });
+   
   }, [searchParams, hasExistingReferrer]);
 
   // Read-only preview (CouponService.validate) - the actual redemption only

@@ -48,13 +48,17 @@ export default function OversightRosterTab({ jumpToken }: { jumpToken: number })
   }
 
   useEffect(() => {
-    refreshLeft();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    queueMicrotask(() => {
+      refreshLeft();
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [subjectFilter]);
 
   useEffect(() => {
-    if (jumpToken > 0) refreshLeft();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    queueMicrotask(() => {
+      if (jumpToken > 0) refreshLeft();
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jumpToken]);
 
   function refreshRight() {
@@ -70,8 +74,10 @@ export default function OversightRosterTab({ jumpToken }: { jumpToken: number })
   }
 
   useEffect(() => {
-    refreshRight();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    queueMicrotask(() => {
+      refreshRight();
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [adminId]);
 
   const handleTransfer = async (ids: string[]) => {
