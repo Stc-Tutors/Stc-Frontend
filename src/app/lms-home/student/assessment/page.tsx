@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, CalendarDays } from "lucide-react";
 import { GetMyAssignmentsAction } from "@/server/assignment";
 import { MyAssignmentRow } from "@/types/assignment";
+import { currentTime } from "@/lib/clock";
 
 export default function AssessmentPage() {
   const router = useRouter();
@@ -57,7 +58,7 @@ export default function AssessmentPage() {
         <div className="space-y-3 md:space-y-0 md:divide-y">
           {rows.map((row) => {
             const { assignment, submission } = row;
-            const overdue = !submission && new Date(assignment.dueDate).getTime() < Date.now();
+            const overdue = !submission && new Date(assignment.dueDate).getTime() < currentTime();
             return (
               <div
                 key={`${assignment.id}-${row.student.id}`}

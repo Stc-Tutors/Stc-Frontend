@@ -87,7 +87,7 @@ export default function NotificationBell({ viewAllHref }: { viewAllHref: string 
   }, [isOpen]);
 
   useEffect(() => {
-    setIsOpen(false);
+    queueMicrotask(() => setIsOpen(false));
   }, [pathname]);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
