@@ -1,4 +1,5 @@
 import { UploadedFile } from "@/lib/cloudinary-upload";
+import type { Submission } from "@/types/submission";
 
 export enum AssignmentStatus {
   // Only reachable for a tutor without assignmentAutoApprove granted (or an
@@ -64,4 +65,12 @@ export interface AssignmentProgressDetail {
   dueDate: string;
   maxScore: number;
   students: AssignmentStudentProgress[];
+}
+
+// GET /assignments/mine - one row per child per approved assignment of a course they are enrolled in.
+export interface MyAssignmentRow {
+  assignment: Assignment;
+  course: { id: string; title: string };
+  student: { id: string; fullName: string };
+  submission: Submission | null;
 }

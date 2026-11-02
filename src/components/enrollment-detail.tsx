@@ -225,7 +225,7 @@ export default function EnrollmentDetail({ basePath }: EnrollmentDetailProps) {
 
         {/* Detailed Information Tabs */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="schedule">Schedule</TabsTrigger>
             <TabsTrigger value="service">Service Details</TabsTrigger>

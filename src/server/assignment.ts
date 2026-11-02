@@ -2,7 +2,17 @@
 
 import fetchAPI, { type ApiResponse } from "@/lib/fetch";
 import { UploadedFile } from "@/lib/cloudinary-upload";
-import { Assignment, AssignmentProgressDetail, AssignmentWithProgress } from "@/types/assignment";
+import { Assignment, AssignmentProgressDetail, AssignmentWithProgress, MyAssignmentRow } from "@/types/assignment";
+
+export async function GetMyAssignmentsAction(): Promise<[ApiResponse<MyAssignmentRow[]> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: "/assignments/mine",
+    request: { method: "GET", headers: { "Content-Type": "application/json" } },
+  });
+
+  const resData = res ? ((await res.json()) as ApiResponse<MyAssignmentRow[]>) : null;
+  return [resData, error];
+}
 
 export async function GetCourseAssignmentsAction(
   courseId: string

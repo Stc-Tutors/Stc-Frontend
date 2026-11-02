@@ -71,7 +71,7 @@ export function ClassReportsAdmin() {
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-3 gap-3 max-w-xl">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-xl">
         {[
           ["Classes held", rows.length, "text-gray-900"],
           ["Reports filed", filed, "text-emerald-600"],

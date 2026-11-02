@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { unwrap, useCachedQuery } from "@/lib/client-cache";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Bell } from "lucide-react";
 import { GetNotificationsAction, MarkAllNotificationsReadAction, MarkNotificationReadAction } from "@/server/notification";
 import { Notification } from "@/types/notification";
@@ -18,7 +18,9 @@ import { ensureNotificationPermission, playNotificationSound, showBrowserNotific
 // notification-alert.ts for why this is poll-driven, not push-driven.
 export default function NotificationBell({ viewAllHref }: { viewAllHref: string }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
   // null until the first load resolves, so that load doesn't fire a sound/
   // popup for every notification already sitting there on mount - only for
   // ones that show up in a later refresh.
@@ -67,6 +69,27 @@ export default function NotificationBell({ viewAllHref }: { viewAllHref: string 
     return () => clearInterval(interval);
   }, [refresh]);
 
+  // The dropdown closes when the person does anything else: clicks/taps outside it, presses Escape, or moves to another page.
+  useEffect(() => {
+    if (!isOpen) return;
+    const onPointerDown = (e: PointerEvent) => {
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setIsOpen(false);
+    };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsOpen(false);
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
+    setIsOpen(false);
+  }, [pathname]);
+
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   const handleOpen = (n: Notification) => {
@@ -76,7 +99,7 @@ export default function NotificationBell({ viewAllHref }: { viewAllHref: string 
   };
 
   return (
-    <div className="relative">
+    <div className="relative" ref={rootRef}>
       <button
         onClick={() => setIsOpen((o) => !o)}
         className="relative p-2 rounded-full hover:bg-gray-100 cursor-pointer transition"
@@ -91,7 +114,7 @@ export default function NotificationBell({ viewAllHref }: { viewAllHref: string 
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg border border-gray-200 z-50">
+        <div className="absolute right-0 mt-2 w-80 max-w-[calc(100vw-1.5rem)] bg-white rounded-md shadow-lg border border-gray-200 z-50">
           <div className="flex items-center justify-between p-3 border-b border-gray-100">
             <span className="text-sm font-semibold text-gray-900">Notifications</span>
             <button

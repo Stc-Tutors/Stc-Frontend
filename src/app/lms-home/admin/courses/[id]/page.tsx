@@ -103,7 +103,7 @@ export default function AdminCourseDetailPage() {
       </div>
       <p className="text-sm text-gray-600 mb-6">{course.description}</p>
 
-      <div className="grid grid-cols-3 gap-4 text-sm mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm mb-8">
         <div>
           <p className="font-medium text-gray-700">Status</p>
           <p>{course.status}</p>

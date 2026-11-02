@@ -98,7 +98,7 @@ export default function Timetable() {
       ) : !hasAnyLessons ? (
         <p className="text-sm text-gray-500">No classes scheduled this week.</p>
       ) : (
-        <div className="grid grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
           {days.map((day) => (
             <div key={day} className="space-y-2">
               <div className="font-medium text-gray-500 text-center">{day}</div>

@@ -7,9 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import FileUploadField from "@/components/ui/custom/file-upload-field";
-import { GetAssignmentAction } from "@/server/assignment";
-import { GetMySubmissionsAction, SubmitAssignmentAction } from "@/server/submission";
-import { GetEnrollmentsAction } from "@/server/enrollment";
+import { GetAssignmentAction, GetMyAssignmentsAction } from "@/server/assignment";
+import { SubmitAssignmentAction } from "@/server/submission";
 import { Assignment } from "@/types/assignment";
 import { Submission } from "@/types/submission";
 import { UploadedFile } from "@/lib/cloudinary-upload";
@@ -33,8 +32,7 @@ export default function AssignmentDetailPage() {
   useEffect(() => {
     const load = async () => {
       const [assignmentRes, err] = await GetAssignmentAction(assignmentId as string);
-      const [submissionsRes] = await GetMySubmissionsAction();
-      const [enrollmentsRes] = await GetEnrollmentsAction();
+      const [mineRes] = await GetMyAssignmentsAction();
 
       if (err || !assignmentRes?.data) {
         setMessage(err || "Assignment not found");
@@ -43,20 +41,22 @@ export default function AssignmentDetailPage() {
       }
 
       setAssignment(assignmentRes.data);
-      setStudentId(enrollmentsRes?.data?.[0]?.id ?? null);
-
-      const existing = (submissionsRes?.data ?? []).find((s) =>
-        typeof s.assignment === "string" ? s.assignment === assignmentId : s.assignment.id === assignmentId
-      );
-      if (existing) setSubmission(existing);
+      // The row for THIS assignment names the child it was set for - a login with more than one enrollment must not file it as the first one.
+      const mine = (mineRes?.data ?? []).find((r) => r.assignment.id === assignmentId);
+      setStudentId(mine?.student.id ?? null);
+      setSubmission(mine?.submission ?? null);
       setIsLoading(false);
     };
     load();
   }, [assignmentId]);
 
   const handleSubmit = async () => {
+    if (!content.trim() && !fileUrl.trim() && !attachment) {
+      setMessage("Type your answer, add a link, or upload a file before submitting.");
+      return;
+    }
     if (!studentId) {
-      setMessage("No active enrollment found for your account.");
+      setMessage("This assignment is not set for your account.");
       return;
     }
     setIsSubmitting(true);
@@ -80,7 +80,7 @@ export default function AssignmentDetailPage() {
   if (!assignment) return <div className="p-6">{message || "Assignment not found"}</div>;
 
   return (
-    <div className="min-h-screen bg-white px-6 py-4 max-w-2xl mx-auto">
+    <div className="min-h-screen bg-white px-4 sm:px-6 py-4 max-w-2xl mx-auto">
       <button
         onClick={() => router.push("/lms-home/student/assessment")}
         className="flex items-center text-gray-700 mb-4 hover:text-blue-500"

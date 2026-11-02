@@ -3,69 +3,27 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, CalendarDays } from "lucide-react";
-import { GetEnrollmentsAction } from "@/server/enrollment";
-import { GetStudentCoursesAction } from "@/server/course-enrollment";
-import { GetCourseAssignmentsAction } from "@/server/assignment";
-import { GetMySubmissionsAction } from "@/server/submission";
-import { Assignment } from "@/types/assignment";
-import { Submission } from "@/types/submission";
-import { Course } from "@/types/course";
-
-interface Row {
-  assignment: Assignment;
-  course: Course;
-  submission?: Submission;
-}
+import { GetMyAssignmentsAction } from "@/server/assignment";
+import { MyAssignmentRow } from "@/types/assignment";
 
 export default function AssessmentPage() {
   const router = useRouter();
-  const [rows, setRows] = useState<Row[]>([]);
+  const [rows, setRows] = useState<MyAssignmentRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const load = async () => {
-      const [enrollmentsRes] = await GetEnrollmentsAction();
-      const enrollments = enrollmentsRes?.data ?? [];
-      if (enrollments.length === 0) {
-        setIsLoading(false);
-        return;
-      }
-
-      // Every enrollment, not just the first - a student taking more than one
-      // service (or re-enrolled) has courses under each record. Deduped by
-      // course id since two records can share one course.
-      const courseEnrollmentLists = await Promise.all(enrollments.map((s) => GetStudentCoursesAction(s.id)));
-      const coursesById = new Map<string, Course>();
-      for (const [res] of courseEnrollmentLists) {
-        for (const e of res?.data ?? []) {
-          if (typeof e.course !== "string") coursesById.set(e.course.id, e.course);
-        }
-      }
-      const courses = Array.from(coursesById.values());
-
-      const [submissionsRes] = await GetMySubmissionsAction();
-      const submissions = submissionsRes?.data ?? [];
-
-      const assignmentLists = await Promise.all(courses.map((c) => GetCourseAssignmentsAction(c.id)));
-
-      const allRows: Row[] = [];
-      assignmentLists.forEach(([res], i) => {
-        (res?.data ?? []).forEach((assignment) => {
-          const submission = submissions.find((s) =>
-            typeof s.assignment === "string" ? s.assignment === assignment.id : s.assignment.id === assignment.id
-          );
-          allRows.push({ assignment, course: courses[i], submission });
-        });
-      });
-
-      setRows(allRows);
+      const [res, err] = await GetMyAssignmentsAction();
+      if (err) setError(err);
+      setRows(res?.data ?? []);
       setIsLoading(false);
     };
     load();
   }, []);
 
   return (
-    <div className="min-h-screen bg-white px-6 py-4">
+    <div className="min-h-screen bg-white px-4 sm:px-6 py-4">
       <button
         onClick={() => router.push("/lms-home/student/dashboard")}
         className="flex items-center text-1xl-gray-700 mb-4 cursor-pointer hover:text-blue-500"
@@ -74,15 +32,14 @@ export default function AssessmentPage() {
         <span className="text-1xl font-bold">BACK</span>
       </button>
 
-      <div className="flex items-center gap-3 mb-6">
+      <div className="flex items-center gap-3 mb-2">
         <CalendarDays className="text-blue-500" />
         <h2 className="text-lg font-semibold text-gray-800">Assignments</h2>
       </div>
+      <p className="text-xs text-gray-500 mb-6">Open an assignment to type your answer, add a link, or upload a file, then submit it.</p>
 
-      {/* Five columns need room: on a phone the table scrolls sideways instead of squeezing every column. */}
-      <div className="overflow-x-auto">
-      <div className="min-w-[640px]">
-      <div className="grid grid-cols-5 font-semibold text-sm text-gray-600 py-2 border-b">
+      {/* Desktop column headings; on a phone each assignment is its own card instead. */}
+      <div className="hidden md:grid grid-cols-5 font-semibold text-sm text-gray-600 py-2 border-b">
         <div>Course</div>
         <div>Assignment</div>
         <div className="text-center">Due Date</div>
@@ -92,45 +49,52 @@ export default function AssessmentPage() {
 
       {isLoading ? (
         <p className="text-sm text-gray-500 py-6">Loading assignments...</p>
+      ) : error ? (
+        <p className="text-sm text-red-600 py-6">{error}</p>
       ) : rows.length === 0 ? (
-        <p className="text-sm text-gray-500 py-6">No assignments yet for your enrolled courses.</p>
+        <p className="text-sm text-gray-500 py-6">No approved assignments yet for your enrolled courses.</p>
       ) : (
-        <div className="divide-y">
-          {rows.map((row) => (
-            <div key={row.assignment.id} className="grid grid-cols-5 items-center py-3 text-sm">
-              <div>{row.course.title}</div>
-              <div>{row.assignment.title}</div>
-              <div className="text-center">{new Date(row.assignment.dueDate).toLocaleDateString()}</div>
-              <div className="text-center">
-                <span
-                  className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    row.submission?.status === "GRADED"
-                      ? "bg-green-100 text-green-600"
-                      : row.submission
-                      ? "bg-blue-100 text-blue-700"
-                      : "bg-orange-100 text-orange-600"
-                  }`}
-                >
-                  {row.submission?.status ?? "Not submitted"}
-                  {row.submission?.status === "GRADED" && row.submission.score !== undefined
-                    ? ` (${row.submission.score}/${row.assignment.maxScore})`
-                    : ""}
-                </span>
+        <div className="space-y-3 md:space-y-0 md:divide-y">
+          {rows.map((row) => {
+            const { assignment, submission } = row;
+            const overdue = !submission && new Date(assignment.dueDate).getTime() < Date.now();
+            return (
+              <div
+                key={`${assignment.id}-${row.student.id}`}
+                className="rounded-lg border p-3 text-sm md:grid md:grid-cols-5 md:items-center md:rounded-none md:border-0 md:py-3 md:px-0 space-y-1 md:space-y-0"
+              >
+                <div className="text-gray-500 md:text-gray-900">{row.course.title}</div>
+                <div className="font-medium md:font-normal">{assignment.title}</div>
+                <div className="md:text-center text-gray-600">
+                  <span className="md:hidden">Due </span>
+                  {new Date(assignment.dueDate).toLocaleDateString()}
+                </div>
+                <div className="md:text-center">
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      submission?.status === "GRADED"
+                        ? "bg-green-100 text-green-600"
+                        : submission
+                        ? "bg-blue-100 text-blue-700"
+                        : overdue
+                        ? "bg-red-100 text-red-600"
+                        : "bg-orange-100 text-orange-600"
+                    }`}
+                  >
+                    {submission?.status ?? (overdue ? "Overdue - not submitted" : "Not submitted")}
+                    {submission?.status === "GRADED" && submission.score !== undefined ? ` (${submission.score}/${assignment.maxScore})` : ""}
+                  </span>
+                </div>
+                <div className="md:text-right pt-1 md:pt-0">
+                  <button className="text-blue-600 hover:underline font-medium" onClick={() => router.push(`/lms-home/student/assessment/${assignment.id}`)}>
+                    {submission ? "View" : "Attempt"}
+                  </button>
+                </div>
               </div>
-              <div className="text-right">
-                <button
-                  className="text-blue-600 hover:underline"
-                  onClick={() => router.push(`/lms-home/student/assessment/${row.assignment.id}`)}
-                >
-                  {row.submission ? "View" : "Attempt"}
-                </button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
-      </div>
-      </div>
     </div>
   );
 }

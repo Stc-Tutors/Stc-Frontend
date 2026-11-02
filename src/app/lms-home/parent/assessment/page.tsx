@@ -4,73 +4,25 @@ import { useEffect, useState } from "react";
 import { formatDate } from "@/lib/datetime";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, CalendarDays } from "lucide-react";
-import { GetLinkedStudentsAction } from "@/server/enrollment";
-import { GetStudentCoursesAction } from "@/server/course-enrollment";
-import { GetCourseAssignmentsAction } from "@/server/assignment";
-import { GetMySubmissionsAction } from "@/server/submission";
-import { Assignment } from "@/types/assignment";
-import { Submission } from "@/types/submission";
-import { Course } from "@/types/course";
-
-interface Row {
-  childName: string;
-  assignment: Assignment;
-  course: Course;
-  submission?: Submission;
-}
+import { GetMyAssignmentsAction } from "@/server/assignment";
+import { MyAssignmentRow } from "@/types/assignment";
 
 export default function ParentAssessmentPage() {
   const router = useRouter();
-  const [rows, setRows] = useState<Row[]>([]);
+  const [rows, setRows] = useState<MyAssignmentRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const load = async () => {
-      const [childrenRes] = await GetLinkedStudentsAction();
-      const children = childrenRes?.data ?? [];
-      if (children.length === 0) {
-        setIsLoading(false);
-        return;
-      }
-
-      const [submissionsRes] = await GetMySubmissionsAction();
-      const submissions = submissionsRes?.data ?? [];
-
-      const allRows: Row[] = [];
-      for (const child of children) {
-        const [courseEnrollmentsRes] = await GetStudentCoursesAction(child.id);
-        const courses = (courseEnrollmentsRes?.data ?? [])
-          .map((e) => (typeof e.course === "string" ? null : e.course))
-          .filter((c): c is Course => !!c);
-
-        const assignmentLists = await Promise.all(courses.map((c) => GetCourseAssignmentsAction(c.id)));
-
-        assignmentLists.forEach(([res], i) => {
-          (res?.data ?? []).forEach((assignment) => {
-            const submission = submissions.find((s) => {
-              const matchesAssignment =
-                typeof s.assignment === "string" ? s.assignment === assignment.id : s.assignment.id === assignment.id;
-              const matchesStudent = typeof s.student === "string" ? s.student === child.id : s.student.id === child.id;
-              return matchesAssignment && matchesStudent;
-            });
-            allRows.push({
-              childName: child.fullName || "Your child",
-              assignment,
-              course: courses[i],
-              submission,
-            });
-          });
-        });
-      }
-
-      setRows(allRows);
+      const [res] = await GetMyAssignmentsAction();
+      setRows(res?.data ?? []);
       setIsLoading(false);
     };
     load();
   }, []);
 
   return (
-    <div className="min-h-screen bg-white px-6 py-4">
+    <div className="min-h-screen bg-white px-4 sm:px-6 py-4">
       <button
         onClick={() => router.push("/lms-home/parent/dashboard")}
         className="flex items-center text-1xl-gray-700 mb-4 cursor-pointer hover:text-blue-500"
@@ -87,7 +39,7 @@ export default function ParentAssessmentPage() {
         View-only - assignments are submitted by your child from their own account.
       </p>
 
-      <div className="grid grid-cols-6 font-semibold text-sm text-gray-600 py-2 border-b">
+      <div className="hidden md:grid grid-cols-6 font-semibold text-sm text-gray-600 py-2 border-b">
         <div>Child</div>
         <div>Course</div>
         <div>Assignment</div>
@@ -99,41 +51,45 @@ export default function ParentAssessmentPage() {
       {isLoading ? (
         <p className="text-sm text-gray-500 py-6">Loading assignments...</p>
       ) : rows.length === 0 ? (
-        <p className="text-sm text-gray-500 py-6">No assignments yet for your children&apos;s enrolled courses.</p>
+        <p className="text-sm text-gray-500 py-6">No approved assignments yet for your children&apos;s enrolled courses.</p>
       ) : (
-        <div className="divide-y">
-          {rows.map((row, i) => (
-            <div key={`${row.assignment.id}-${i}`} className="grid grid-cols-6 items-center py-3 text-sm">
-              <div>{row.childName}</div>
-              <div>{row.course.title}</div>
-              <div>{row.assignment.title}</div>
-              <div className="text-center">{formatDate(row.assignment.dueDate)}</div>
-              <div className="text-center">
-                <span
-                  className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    row.submission?.status === "GRADED"
-                      ? "bg-green-100 text-green-600"
-                      : row.submission
-                      ? "bg-blue-100 text-blue-700"
-                      : "bg-orange-100 text-orange-600"
-                  }`}
-                >
-                  {row.submission?.status ?? "Not submitted"}
-                  {row.submission?.status === "GRADED" && row.submission.score !== undefined
-                    ? ` (${row.submission.score}/${row.assignment.maxScore})`
-                    : ""}
-                </span>
+        <div className="space-y-3 md:space-y-0 md:divide-y">
+          {rows.map((row) => {
+            const { assignment, submission } = row;
+            return (
+              <div
+                key={`${assignment.id}-${row.student.id}`}
+                className="rounded-lg border p-3 text-sm md:grid md:grid-cols-6 md:items-center md:rounded-none md:border-0 md:py-3 md:px-0 space-y-1 md:space-y-0"
+              >
+                <div className="font-medium">{row.student.fullName || "Your child"}</div>
+                <div className="text-gray-500 md:text-gray-900">{row.course.title}</div>
+                <div>{assignment.title}</div>
+                <div className="md:text-center text-gray-600">
+                  <span className="md:hidden">Due </span>
+                  {formatDate(assignment.dueDate)}
+                </div>
+                <div className="md:text-center">
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      submission?.status === "GRADED"
+                        ? "bg-green-100 text-green-600"
+                        : submission
+                        ? "bg-blue-100 text-blue-700"
+                        : "bg-orange-100 text-orange-600"
+                    }`}
+                  >
+                    {submission?.status ?? "Not submitted"}
+                    {submission?.status === "GRADED" && submission.score !== undefined ? ` (${submission.score}/${assignment.maxScore})` : ""}
+                  </span>
+                </div>
+                <div className="md:text-right pt-1 md:pt-0">
+                  <button className="text-blue-600 hover:underline font-medium" onClick={() => router.push(`/lms-home/parent/assessment/${assignment.id}`)}>
+                    View
+                  </button>
+                </div>
               </div>
-              <div className="text-right">
-                <button
-                  className="text-blue-600 hover:underline"
-                  onClick={() => router.push(`/lms-home/parent/assessment/${row.assignment.id}`)}
-                >
-                  View
-                </button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

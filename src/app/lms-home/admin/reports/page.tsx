@@ -333,7 +333,7 @@ function StudentProgressLookup() {
       {progress && selected && (
         <div>
           <p className="text-sm font-medium text-gray-900 mb-3">{selected.fullName}</p>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <p className="text-xl font-semibold text-gray-900">{progress.attendance.rate ?? "-"}%</p>
               <p className="text-sm text-gray-500">Attendance</p>
