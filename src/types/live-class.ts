@@ -296,6 +296,8 @@ export interface RecordingListItem {
   status?: string;
   scope?: string;
   expiresAt?: string;
+  // Only meaningful when status is "FAILED" - why the recording never started/completed.
+  error?: string;
   // Whether the signed-in staff member may permanently delete this recording (server-decided).
   canDelete?: boolean;
   // Whether they may read this class's join/leave log - a separate grant from watching the recording itself (server-decided).

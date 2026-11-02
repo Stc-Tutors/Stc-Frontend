@@ -80,7 +80,14 @@ export default function AdminRecordingsPage() {
                   <td className="px-3 py-2 font-medium text-gray-900">{item.courseTitle}</td>
                   <td className="px-3 py-2">{item.tutorName || "-"}</td>
                   <td className="px-3 py-2">{formatScheduleDateTime(item.scheduledDate)}</td>
-                  <td className="px-3 py-2">{STATUS_LABEL[item.status ?? ""] ?? item.status ?? "-"}</td>
+                  <td className="px-3 py-2">
+                    {STATUS_LABEL[item.status ?? ""] ?? item.status ?? "-"}
+                    {item.status === "FAILED" && item.error && (
+                      <span className="ml-1.5 cursor-help text-red-500" title={item.error}>
+                        (why?)
+                      </span>
+                    )}
+                  </td>
                   <td className="px-3 py-2">{item.expiresAt && item.status === "READY" ? new Date(item.expiresAt).toLocaleDateString() : "-"}</td>
                   <td className="px-3 py-2">
                     <div className="flex justify-end gap-2">
