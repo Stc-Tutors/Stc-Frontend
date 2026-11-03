@@ -174,7 +174,7 @@ export default function EnrollmentReview({ onNext, errors }: StepProps) {
 
       {/* Student/Child Information */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-row items-center justify-between flex-wrap gap-2">
           <CardTitle className="flex items-center gap-2">
             <User className="w-5 h-5" />
             {childInfo?.userType === "parent" ? "Child Information" : "Student Information"}
@@ -245,7 +245,7 @@ export default function EnrollmentReview({ onNext, errors }: StepProps) {
 
       {/* Service Details */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-row items-center justify-between flex-wrap gap-2">
           <CardTitle className="flex items-center gap-2">
             <GraduationCap className="w-5 h-5" />
             Service Details
@@ -382,7 +382,7 @@ export default function EnrollmentReview({ onNext, errors }: StepProps) {
 
       {/* Schedule & Pricing */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-row items-center justify-between flex-wrap gap-2">
           <CardTitle className="flex items-center gap-2">
             <Calendar className="w-5 h-5" />
             Schedule & Pricing
@@ -417,7 +417,7 @@ export default function EnrollmentReview({ onNext, errors }: StepProps) {
               <div className="space-y-2">
                 {showWeeklyBreakdown && (
                   <>
-                    <div className="flex justify-between text-sm">
+                    <div className="flex justify-between flex-wrap gap-2 text-sm">
                       <span>Total weekly hours:</span>
                       <span>
                         {schedule?.reduce((total, item) => {
@@ -427,7 +427,7 @@ export default function EnrollmentReview({ onNext, errors }: StepProps) {
                         hours
                       </span>
                     </div>
-                    <div className="flex justify-between text-sm">
+                    <div className="flex justify-between flex-wrap gap-2 text-sm">
                       <span>Weekly cost:</span>
                       <span className="text-right">
                         <LocalFirstPrice amount={totalCost / billingWeeks} currency={costCurrency} country={childInfo?.countryOfResidence}>
@@ -438,7 +438,7 @@ export default function EnrollmentReview({ onNext, errors }: StepProps) {
                   </>
                 )}
                 <Separator />
-                <div className="flex justify-between font-semibold text-lg">
+                <div className="flex justify-between flex-wrap gap-2 font-semibold text-lg">
                   <span>{!showWeeklyBreakdown ? "Total:" : `Total (${billingWeeks} week${billingWeeks === 1 ? "" : "s"}):`}</span>
                   <span className="text-green-600 text-right">
                     <LocalFirstPrice amount={totalCost} currency={costCurrency} country={childInfo?.countryOfResidence}>
@@ -633,7 +633,7 @@ export default function EnrollmentReview({ onNext, errors }: StepProps) {
       {/* Payment Summary */}
       <Card className="border-green-200 bg-green-50">
         <CardContent className="p-6">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-2">
             <div>
               <h3 className="text-lg font-semibold text-green-800">Ready to Proceed</h3>
               <p className="text-sm text-green-600">Click &quot;Save & Continue&quot; to proceed to secure payment</p>

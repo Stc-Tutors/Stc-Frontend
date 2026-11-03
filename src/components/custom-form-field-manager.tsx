@@ -303,7 +303,7 @@ export function CustomFormFieldManager({ serviceType, hideHeading }: { serviceTy
 
       {CUSTOM_FORM_STAGES.map((stage) => (
         <div key={stage} className="space-y-2">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-2">
             <h2 className="font-semibold text-gray-900">{CUSTOM_FORM_STAGE_LABELS[stage]}</h2>
             <button onClick={() => openCreate(stage)} className="text-xs border border-gray-300 rounded-md px-3 py-1.5 hover:bg-gray-50">
               Add field

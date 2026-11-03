@@ -222,7 +222,7 @@ export default function TodaysSessions() {
                           <p className="text-xs text-gray-500">No students enrolled in this course.</p>
                         ) : (
                           courseStudents.map((student) => (
-                            <div key={student.id} className="flex items-center justify-between text-sm border rounded-md p-2">
+                            <div key={student.id} className="flex items-center justify-between flex-wrap gap-2 text-sm border rounded-md p-2">
                               <span>{student.fullName}</span>
                               {markedStudentIds.has(student.id) ? (
                                 <span className="text-xs text-green-600">Marked</span>

@@ -75,7 +75,7 @@ export default function StudentProfilePage() {
 
   return (
     <section className="bg-gray-100">
-      <div className="bg-white flex justify-between py-12 px-24 ml-8 mr-9">
+      <div className="bg-white flex justify-between flex-wrap gap-2 py-8 px-4 sm:py-12 sm:px-12 lg:px-24 sm:ml-8 sm:mr-9">
         <div className="flex gap-4 items-center">
           <Avatar className="h-16 w-16">
             <AvatarImage src={studentAvatarUrl(student.user)} alt={student.fullName} />
@@ -103,7 +103,7 @@ export default function StudentProfilePage() {
           shown here - platform-mediated contact only, same policy as
           messaging (see stcbe's profile-access.service.ts). Use Messages to
           reach this family instead. */}
-      <section className="bg-white mt-8 ml-8 mr-9 pl-12 py-5 space-y-5">
+      <section className="bg-white mt-8 sm:ml-8 sm:mr-9 px-4 sm:pl-12 py-5 space-y-5">
         <div className="flex gap-5">
           <div>
             <div className="flex gap-2">
@@ -146,7 +146,7 @@ export default function StudentProfilePage() {
         </div>
       </section>
 
-      <section className="bg-white mt-8 ml-8 mr-9 pl-12 pr-9 py-5 space-y-5">
+      <section className="bg-white mt-8 sm:ml-8 sm:mr-9 px-4 sm:pl-12 sm:pr-9 py-5 space-y-5">
         <h2 className="font-bold text-xl">Learning Profile</h2>
         <p className="text-xs text-gray-500 -mt-3">What this student&apos;s family shared to help you teach effectively.</p>
 
@@ -183,7 +183,7 @@ export default function StudentProfilePage() {
         )}
       </section>
 
-      <section className="bg-white mt-8 ml-8 mr-9 pl-12 pr-9 py-5">
+      <section className="bg-white mt-8 sm:ml-8 sm:mr-9 px-4 sm:pl-12 sm:pr-9 py-5">
         <h2 className="font-bold text-xl mb-1">Academic Progress</h2>
         <p className="text-xs text-gray-500 mb-4">
           Attendance across all your lessons with this student, assignment completion and average grade on your
@@ -201,7 +201,7 @@ export default function StudentProfilePage() {
         )}
       </section>
 
-      <section className="bg-white mt-8 ml-8 mr-9 pl-12 pr-9 py-5">
+      <section className="bg-white mt-8 sm:ml-8 sm:mr-9 px-4 sm:pl-12 sm:pr-9 py-5">
         <h2 className="font-bold text-xl mb-1">Give an Assignment</h2>
         <p className="text-xs text-gray-500 mb-4">Targeted at just {student.fullName}.</p>
         <div className="max-w-lg">
@@ -209,7 +209,7 @@ export default function StudentProfilePage() {
         </div>
       </section>
 
-      <section className="bg-white mt-8 ml-8 mr-9 pl-12 pr-9 py-5">
+      <section className="bg-white mt-8 sm:ml-8 sm:mr-9 px-4 sm:pl-12 sm:pr-9 py-5">
         <h2 className="font-bold text-xl mb-1">Give a Resource</h2>
         <p className="text-xs text-gray-500 mb-4">
           Targeted at just {student.fullName} - stays hidden from them until an admin approves it.
@@ -219,7 +219,7 @@ export default function StudentProfilePage() {
         </div>
       </section>
 
-      <section className="bg-white mt-8 ml-8 mr-9 pl-12 pr-9 py-5">
+      <section className="bg-white mt-8 sm:ml-8 sm:mr-9 px-4 sm:pl-12 sm:pr-9 py-5">
         <h2 className="font-bold text-xl mb-4">Assignments &amp; Grading</h2>
         <StudentGradingPanel key={gradingRefreshKey} studentId={student.id} />
       </section>

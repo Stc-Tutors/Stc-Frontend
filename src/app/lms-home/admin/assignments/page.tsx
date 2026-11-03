@@ -44,7 +44,7 @@ export default function AdminAssignmentsPage() {
   const [view, setView] = useState<"queue" | "all">("queue");
   return (
     <div className="bg-white shadow rounded-2xl p-6">
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex items-center justify-between flex-wrap gap-2">
         <h1 className="text-2xl font-bold">Assignments</h1>
       </div>
       <ViewSwitch view={view} onChange={setView} />

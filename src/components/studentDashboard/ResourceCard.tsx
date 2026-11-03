@@ -46,7 +46,7 @@ export default function ResourceCard({ title, type, added, size, href, locked }:
   );
 
   if (locked) {
-    return <div className="flex items-center justify-between border-b py-4">{content}</div>;
+    return <div className="flex items-center justify-between flex-wrap gap-2 border-b py-4">{content}</div>;
   }
 
   if (href) {
@@ -54,7 +54,7 @@ export default function ResourceCard({ title, type, added, size, href, locked }:
       <>
         <button
           onClick={() => setPreviewOpen(true)}
-          className="w-full flex items-center justify-between border-b py-4 hover:bg-gray-50 transition-colors text-left"
+          className="w-full flex items-center justify-between flex-wrap gap-2 border-b py-4 hover:bg-gray-50 transition-colors text-left"
         >
           {content}
         </button>
@@ -63,5 +63,5 @@ export default function ResourceCard({ title, type, added, size, href, locked }:
     );
   }
 
-  return <div className="flex items-center justify-between border-b py-4">{content}</div>;
+  return <div className="flex items-center justify-between flex-wrap gap-2 border-b py-4">{content}</div>;
 }

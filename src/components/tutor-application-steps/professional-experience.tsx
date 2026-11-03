@@ -305,7 +305,7 @@ export default function ProfessionalExperienceStep({ onNext, errors }: StepProps
         <CardContent className="space-y-4">
           {teachingExperienceHistory.map((entry, index) => (
             <Card key={index} className="p-4 space-y-3">
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between flex-wrap gap-2 items-center">
                 <h4 className="font-semibold text-sm">Entry {index + 1}</h4>
                 <Button type="button" variant="ghost" size="sm" onClick={() => removeExperienceEntry(index)}>
                   <X className="h-4 w-4" />

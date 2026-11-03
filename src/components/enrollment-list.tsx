@@ -369,7 +369,7 @@ export default function EnrollmentList({ source, basePath }: EnrollmentListProps
         <div className="space-y-4">
           {childGroups.length === 0 ? (
             <Card>
-              <CardContent className="p-12 text-center">
+              <CardContent className="p-6 sm:p-12 text-center">
                 <GraduationCap className="w-16 h-16 text-gray-500 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">No enrollments found</h3>
                 <p className="text-gray-500 mb-6">
@@ -609,7 +609,7 @@ export default function EnrollmentList({ source, basePath }: EnrollmentListProps
         {filteredStudents.length > 0 && (
           <Card className="mt-6">
             <CardContent className="p-4">
-              <div className="flex justify-between items-center text-sm text-gray-600">
+              <div className="flex justify-between flex-wrap gap-2 items-center text-sm text-gray-600">
                 <span>
                   {source === "linked"
                     ? `Showing ${childGroups.length} child${childGroups.length === 1 ? "" : "ren"} (${filteredStudents.length} of ${students.length} enrollments)`

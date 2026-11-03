@@ -57,7 +57,7 @@ export default function ReviewSubmitStep() {
         const rendered = fields.map((entry) => ({ entry, value: renderTutorField(entry, application) }));
         return (
           <Card key={stepId}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0">
+            <CardHeader className="flex flex-row items-center justify-between flex-wrap gap-2 space-y-0">
               <CardTitle className="text-base">{stepTitle}</CardTitle>
               <Button variant="outline" size="sm" onClick={() => goToStep(stepId)}>
                 Edit
@@ -78,7 +78,7 @@ export default function ReviewSubmitStep() {
         );
       })}
 
-      <div className="flex justify-between mt-6">
+      <div className="flex justify-between flex-wrap gap-2 mt-6">
         <Button variant="outline" onClick={() => goToStep(11)} disabled={isSubmitting}>
           Previous
         </Button>

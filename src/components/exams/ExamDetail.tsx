@@ -407,7 +407,7 @@ export default function ExamDetail({ basePath }: { basePath: string }) {
       </section>
 
       <section className={box}>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-2">
           <h2 className="font-semibold">Learners &amp; results ({exam.seats?.length ?? 0})</h2>
           <Button size="sm" variant="outline" onClick={sync} disabled={busy || notOnStc}>
             Sync results

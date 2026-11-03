@@ -140,7 +140,7 @@ export function HodDetailedReportTable() {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
           <h2 className="font-semibold text-gray-900">Detailed Report</h2>
           <p className="text-xs text-gray-500">One row per student per course, within your scope(s).</p>

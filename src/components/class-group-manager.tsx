@@ -44,7 +44,7 @@ function CapacityBar({ confirmed, capacity }: { confirmed: number; capacity: num
   const barColor = pct >= 100 ? "bg-red-500" : pct >= 75 ? "bg-amber-500" : "bg-emerald-500";
   return (
     <div className="w-32 space-y-1">
-      <div className="flex justify-between text-xs text-gray-500">
+      <div className="flex justify-between flex-wrap gap-2 text-xs text-gray-500">
         <span>
           {confirmed}/{capacity}
         </span>

@@ -103,7 +103,7 @@ export default function AssignmentSubmissionsPage() {
               const draft = drafts[s.id] ?? { score: s.score?.toString() ?? "", feedback: s.feedback ?? "" };
               return (
                 <div key={s.id} className="border rounded-lg p-4 space-y-2">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
                     <span className="font-medium text-sm">{studentName(s.student)}</span>
                     <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">{s.status}</span>
                   </div>

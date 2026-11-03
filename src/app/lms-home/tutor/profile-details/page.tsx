@@ -449,7 +449,7 @@ export default function TutorProfileDetailsPage() {
           {education.length > 0 && (
             <ul className="space-y-2">
               {education.map((entry, i) => (
-                <li key={i} className="flex items-center justify-between border rounded-md p-2 text-sm">
+                <li key={i} className="flex items-center justify-between flex-wrap gap-2 border rounded-md p-2 text-sm">
                   <span>
                     {entry.degree}
                     {entry.institution ? ` — ${entry.institution}` : ""}
@@ -538,7 +538,7 @@ export default function TutorProfileDetailsPage() {
             <Label>Teaching experience history</Label>
             {teachingExperienceHistory.map((entry, index) => (
               <Card key={index} className="p-4 space-y-3">
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between flex-wrap gap-2 items-center">
                   <h4 className="font-semibold text-sm">Entry {index + 1}</h4>
                   <button onClick={() => removeExperienceEntry(index)} className="text-red-600 text-xs hover:underline">
                     Remove
@@ -626,7 +626,7 @@ export default function TutorProfileDetailsPage() {
                 .filter(({ slot }) => slot.dayOfWeek === day);
               return (
                 <div key={day} className="border rounded-md p-2 space-y-2">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
                     <span className="text-sm font-medium w-24">{day}</span>
                     <Button type="button" variant="outline" size="sm" onClick={() => addAvailabilitySlot(day)}>
                       Add window

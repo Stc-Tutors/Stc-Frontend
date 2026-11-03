@@ -32,7 +32,7 @@ export default function UserManagementTable() {
 
   return (
     <div className="bg-white p-4 rounded-lg shadow-sm">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between flex-wrap gap-2 mb-4">
         <h3 className="font-semibold text-gray-800">User Management</h3>
         <div className="flex gap-1 bg-gray-100 rounded-lg p-1 text-xs">
           <button

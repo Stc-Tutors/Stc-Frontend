@@ -87,7 +87,7 @@ export default function BreakoutPanel({ lessonId, onVisit }: BreakoutPanelProps)
     <div className="absolute bottom-20 right-3 z-10 w-72 rounded-lg border border-gray-200 bg-white/95 p-2 shadow-lg">
       {status?.active ? (
         <>
-          <p className="mb-1.5 flex items-center justify-between px-1 text-xs font-semibold text-gray-700">
+          <p className="mb-1.5 flex items-center justify-between flex-wrap gap-2 px-1 text-xs font-semibold text-gray-700">
             <span className="flex items-center gap-1.5">
               <Users className="h-3.5 w-3.5" />
               Breakout rooms ({status.rooms.length})
@@ -112,7 +112,7 @@ export default function BreakoutPanel({ lessonId, onVisit }: BreakoutPanelProps)
         </>
       ) : formOpen ? (
         <>
-          <p className="mb-1.5 flex items-center justify-between px-1 text-xs font-semibold text-gray-700">
+          <p className="mb-1.5 flex items-center justify-between flex-wrap gap-2 px-1 text-xs font-semibold text-gray-700">
             Start breakout rooms
             <button type="button" onClick={() => setFormOpen(false)} className="text-gray-500 hover:text-gray-600">
               <X className="h-3.5 w-3.5" />
@@ -137,7 +137,7 @@ export default function BreakoutPanel({ lessonId, onVisit }: BreakoutPanelProps)
             </div>
 
             {mode === "auto" ? (
-              <label className="flex items-center justify-between text-xs text-gray-600">
+              <label className="flex items-center justify-between flex-wrap gap-2 text-xs text-gray-600">
                 Number of groups
                 <input
                   type="number"
@@ -168,7 +168,7 @@ export default function BreakoutPanel({ lessonId, onVisit }: BreakoutPanelProps)
                     </select>
                   </div>
                 ))}
-                <label className="flex items-center justify-between pt-1 text-xs text-gray-600">
+                <label className="flex items-center justify-between flex-wrap gap-2 pt-1 text-xs text-gray-600">
                   Number of groups
                   <input
                     type="number"

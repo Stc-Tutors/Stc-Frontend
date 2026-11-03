@@ -66,20 +66,20 @@ export default function AttendanceRecord({ studentId }: AttendanceRecordProps) {
             <h3 className="text-sm font-semibold mb-3">Attendance Summary</h3>
 
             <div className="space-y-3 mb-6">
-              <div className="flex justify-between text-sm">
+              <div className="flex justify-between flex-wrap gap-2 text-sm">
                 <span>Present</span>
                 <span className="text-green-600 font-semibold">{counts[AttendanceStatus.PRESENT]}</span>
               </div>
-              <div className="flex justify-between text-sm">
+              <div className="flex justify-between flex-wrap gap-2 text-sm">
                 <span>Absent</span>
                 <span className="text-red-500 font-semibold">{counts[AttendanceStatus.ABSENT]}</span>
               </div>
-              <div className="flex justify-between text-sm">
+              <div className="flex justify-between flex-wrap gap-2 text-sm">
                 <span>Late</span>
                 <span className="text-yellow-500 font-semibold">{counts[AttendanceStatus.LATE]}</span>
               </div>
               {rate !== null && (
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between flex-wrap gap-2 text-sm">
                   <span>Attendance Rate</span>
                   <span className="text-blue-600 font-semibold">{rate}%</span>
                 </div>

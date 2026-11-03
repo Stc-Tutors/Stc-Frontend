@@ -58,7 +58,7 @@ export default function Home() {
       </button>
 
         {/* Top bar */}
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex justify-between flex-wrap gap-2 items-center mb-6">
           <h2 className="text-2xl font-bold">My Courses</h2>
 
           <Link href="/lms-home/student/courses/list">

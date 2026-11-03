@@ -115,7 +115,7 @@ export default function ClockOutDialog({
                         </button>
                       ))}
                     </div>
-                    <div className="flex justify-between text-xs text-gray-500">
+                    <div className="flex justify-between flex-wrap gap-2 text-xs text-gray-500">
                       <span>Struggled significantly</span>
                       <span>Mastered the concept</span>
                     </div>

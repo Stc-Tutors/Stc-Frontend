@@ -99,7 +99,7 @@ export function UserSearchSelect({ role, value, onChange, placeholder, assignabl
           </div>
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[300px] p-0">
+      <PopoverContent className="w-[300px] max-w-[calc(100vw-2rem)] p-0">
         <Command shouldFilter={false}>
           <CommandInput placeholder="Search by name or email..." value={search} onValueChange={setSearch} />
           <CommandEmpty>{isLoading ? "Searching..." : "No users found."}</CommandEmpty>

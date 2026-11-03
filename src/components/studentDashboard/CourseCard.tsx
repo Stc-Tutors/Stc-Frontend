@@ -34,7 +34,7 @@ const CourseCard = ({ course, onClick }: CourseCardProps) => {
       <div className="p-4 space-y-2">
         <span className="text-xs text-blue-600 font-semibold uppercase">{course.category}</span>
         <h2 className="font-medium text-gray-800">{course.title}</h2>
-        <div className="flex items-center justify-between text-sm text-gray-600">
+        <div className="flex items-center justify-between flex-wrap gap-2 text-sm text-gray-600">
           {tutorName && <span>👨‍🏫 {tutorName}</span>}
           <span>{course.language}</span>
         </div>

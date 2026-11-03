@@ -199,7 +199,7 @@ export default function ResourcesTabs({
     <div
       key={item.id}
       onClick={() => (onSelectRecording ? onSelectRecording(item) : setPreview({ title: item.title, url: item.url }))}
-      className="flex items-center justify-between border-b py-4 last:border-b-0 cursor-pointer hover:bg-gray-50 transition-colors rounded px-2 -mx-2"
+      className="flex items-center justify-between flex-wrap gap-2 border-b py-4 last:border-b-0 cursor-pointer hover:bg-gray-50 transition-colors rounded px-2 -mx-2"
     >
       <div className="flex items-center gap-4 min-w-0">
         <PlayCircle className="text-blue-500 shrink-0" size={28} />

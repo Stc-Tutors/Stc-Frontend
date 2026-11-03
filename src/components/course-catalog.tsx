@@ -54,7 +54,7 @@ export function CourseCatalog({ serviceType, hideHeading }: { serviceType?: stri
 
   return (
     <div className="bg-white shadow rounded-2xl p-6 space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         {!hideHeading && <h1 className="text-2xl font-bold">Courses</h1>}
         <Button onClick={() => router.push("/lms-home/admin/courses/create")}>Create Course</Button>
       </div>

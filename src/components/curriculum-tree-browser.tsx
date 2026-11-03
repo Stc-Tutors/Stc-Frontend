@@ -350,7 +350,7 @@ export default function CurriculumTreeBrowser({
                             {editCombinations.length > 0 && (
                               <ul className="space-y-1">
                                 {editCombinations.map((c, i) => (
-                                  <li key={i} className="flex items-center justify-between text-xs bg-white border rounded-md px-2 py-1">
+                                  <li key={i} className="flex items-center justify-between flex-wrap gap-2 text-xs bg-white border rounded-md px-2 py-1">
                                     <span>
                                       <span className="font-medium">{c.course}</span>: {c.subjects.join(", ")}
                                     </span>

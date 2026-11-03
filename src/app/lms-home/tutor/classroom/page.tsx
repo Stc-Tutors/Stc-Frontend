@@ -66,7 +66,7 @@ export default function TutorClassroomPage() {
             ) : (
               <ul className="divide-y">
                 {upcoming.map(({ lesson, course }) => (
-                  <li key={lesson.id} className="py-3 flex items-center justify-between">
+                  <li key={lesson.id} className="py-3 flex items-center justify-between flex-wrap gap-2">
                     <div>
                       <p className="font-medium text-gray-800">{course.title} · {lesson.title}</p>
                       <p className="text-sm text-gray-500">{formatScheduleDateTime(lesson.scheduledDate)}</p>

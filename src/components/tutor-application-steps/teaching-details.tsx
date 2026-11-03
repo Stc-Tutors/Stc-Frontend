@@ -231,7 +231,7 @@ export default function TeachingDetailsStep({ onNext, errors }: StepProps) {
             <CardContent className="space-y-4">
               {serviceCycles.map(({ cycle, index }, cycleNum) => (
                 <Card key={index} className="p-4 space-y-3">
-                  <div className="flex justify-between items-center">
+                  <div className="flex justify-between flex-wrap gap-2 items-center">
                     <h4 className="font-semibold text-sm">Entry {cycleNum + 1}</h4>
                     {serviceCycles.length > 1 && (
                       <Button type="button" variant="ghost" size="sm" onClick={() => removeCycle(index)}>

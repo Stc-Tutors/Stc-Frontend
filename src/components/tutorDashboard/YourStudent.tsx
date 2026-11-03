@@ -39,7 +39,7 @@ export default function YourStudents() {
 
   return (
     <div className="bg-white shadow rounded-2xl p-4">
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex justify-between flex-wrap gap-2 items-center mb-4">
         <h2 className="text-lg font-semibold">Your Students</h2>
         <Link href="/lms-home/tutor/student-list" className="text-blue-500 text-sm hover:underline">
         View All

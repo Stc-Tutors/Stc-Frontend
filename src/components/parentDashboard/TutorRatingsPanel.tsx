@@ -86,7 +86,7 @@ export default function TutorRatingsPanel({ studentId }: TutorRatingsPanelProps)
         ) : (
           <div className="divide-y">
             {rows.map((r) => (
-              <div key={`${r.tutorId}-${r.courseTitle}`} className="flex items-center justify-between py-3">
+              <div key={`${r.tutorId}-${r.courseTitle}`} className="flex items-center justify-between flex-wrap gap-2 py-3">
                 <div>
                   <p className="text-sm font-medium text-gray-800">{r.tutorName}</p>
                   <p className="text-xs text-gray-500">{r.courseTitle}</p>

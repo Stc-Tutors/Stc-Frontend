@@ -55,7 +55,7 @@ export default function HodTutorsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
           <h1 className="text-2xl font-semibold text-gray-900">My Tutors (HOD Scope)</h1>
           <p className="text-gray-500 text-sm mt-1">

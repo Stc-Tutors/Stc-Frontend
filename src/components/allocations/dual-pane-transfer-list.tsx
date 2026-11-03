@@ -67,7 +67,7 @@ export default function DualPaneTransferList({
     <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] gap-4 items-start">
       {/* Left pane */}
       <div className="border border-gray-200 rounded-lg overflow-hidden">
-        <div className="px-3 py-2 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
+        <div className="px-3 py-2 border-b border-gray-200 bg-gray-50 flex items-center justify-between flex-wrap gap-2">
           <h4 className="text-sm font-semibold text-gray-900">
             {leftTitle} <span className="text-gray-500 font-normal">({leftItems.length})</span>
           </h4>

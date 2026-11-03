@@ -75,7 +75,7 @@ export default function StudentGradingPanel({ studentId }: { studentId: string }
       {message && <p className="text-sm text-blue-600">{message}</p>}
       {rows.map((row) => (
         <div key={row.assignment.id} className="border rounded-lg p-4">
-          <div className="flex justify-between items-center mb-2">
+          <div className="flex justify-between flex-wrap gap-2 items-center mb-2">
             <div>
               <p className="font-medium">{row.assignment.title}</p>
               <p className="text-xs text-gray-500">{row.course.title}</p>

@@ -58,7 +58,7 @@ export function CountrySelect({ value, onChange }: CountrySelectProps) {
           <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[300px] p-0">
+      <PopoverContent className="w-[300px] max-w-[calc(100vw-2rem)] p-0">
         <Command>
           <CommandInput placeholder="Search countries..." />
           <CommandEmpty>No country found.</CommandEmpty>

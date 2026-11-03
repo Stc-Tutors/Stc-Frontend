@@ -168,7 +168,7 @@ export default function TutorApplicationStatusView() {
                   {flaggedFields.map((fieldId) => {
                     const field = FLAGGABLE_FIELDS_BY_ID[fieldId];
                     return (
-                      <div key={fieldId} className="flex items-center justify-between border rounded-md p-2 text-sm">
+                      <div key={fieldId} className="flex items-center justify-between flex-wrap gap-2 border rounded-md p-2 text-sm">
                         <span>{field ? `${field.label} (${field.stepTitle})` : fieldId}</span>
                         {field && (
                           <Button variant="outline" size="sm" onClick={() => handleEditSection(field.step)}>

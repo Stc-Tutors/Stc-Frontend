@@ -116,7 +116,7 @@ Approve anyway?`)) return;
 
   return (
     <div className="bg-white shadow rounded-2xl p-6">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between flex-wrap gap-2 mb-6">
         <h1 className="text-2xl font-bold">Tutor Applications</h1>
         <select
           aria-label="Status"
@@ -152,7 +152,7 @@ Approve anyway?`)) return;
             const applicant = app.user as TutorApplicationApplicant;
             return (
               <div key={app.id} className="border rounded-lg p-4 space-y-2">
-                <div className="flex justify-between items-start">
+                <div className="flex justify-between flex-wrap gap-2 items-start">
                   <div className="flex items-center gap-3">
                     {typeof app.user !== "string" && (
                       <Avatar className="h-10 w-10">

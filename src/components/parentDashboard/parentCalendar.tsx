@@ -80,7 +80,7 @@ export default function ParentCalendar() {
 
   return (
     <Card>
-      <CardHeader className="flex items-center justify-between">
+      <CardHeader className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2">
           <CalendarDays className="text-blue-500" />
           <CardTitle>

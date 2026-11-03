@@ -329,7 +329,7 @@ function InfoCard({
 }) {
   return (
     <div className="border rounded-lg p-4">
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
         <h3 className="font-semibold text-gray-800">{title}</h3>
         {onEdit && (
           <button onClick={onEdit} className="text-xs text-blue-600 hover:underline">

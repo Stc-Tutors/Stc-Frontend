@@ -85,7 +85,7 @@ export default function AnalyticsChart() {
 
   return (
     <div className="bg-white p-4 rounded-lg shadow-sm h-full">
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex justify-between flex-wrap gap-2 items-center mb-4">
         <h3 className="font-semibold text-gray-800">Course Performance</h3>
         <div className="relative inline-block text-left">
           <button

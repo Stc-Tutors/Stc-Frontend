@@ -281,7 +281,7 @@ export default function DashboardPage() {
                 )}
 
                 {profile?.accountNumber ? (
-                  <div className="border rounded-lg p-3 flex items-center justify-between">
+                  <div className="border rounded-lg p-3 flex items-center justify-between flex-wrap gap-2">
                     <div>
                       <p className="font-medium">{profile.bankName}</p>
                       <p className="text-sm text-gray-500">

@@ -34,7 +34,7 @@ export default function StudentReportHistoryPanel({ courseId }: { courseId: stri
             <button
               type="button"
               onClick={() => setOpenId(openId === s.studentId ? null : s.studentId)}
-              className="flex w-full items-center justify-between p-3 text-left"
+              className="flex w-full items-center justify-between flex-wrap gap-2 p-3 text-left"
             >
               <span className="font-medium">
                 {s.studentName} <span className="text-xs font-normal text-gray-500">· {s.reports.length} report{s.reports.length === 1 ? "" : "s"}</span>

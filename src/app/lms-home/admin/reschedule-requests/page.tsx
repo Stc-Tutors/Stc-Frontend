@@ -86,7 +86,7 @@ export default function AdminRescheduleRequestsPage() {
 
   return (
     <div className="bg-white shadow rounded-2xl p-6">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between flex-wrap gap-2 mb-6">
         <h1 className="text-2xl font-bold">Reschedule &amp; Cancellation Requests</h1>
         <select
           aria-label="Status filter"

@@ -1392,7 +1392,7 @@ export default function SubjectsSchedule({ onNext, errors, forcedUserType }: Ste
                       });
                     };
                     return (
-                      <div key={subject} className="grid grid-cols-3 gap-2 items-center text-sm">
+                      <div key={subject} className="grid grid-cols-1 sm:grid-cols-3 gap-2 items-center text-sm">
                         <span>{subject}</span>
                         <input
                           placeholder="Current score"

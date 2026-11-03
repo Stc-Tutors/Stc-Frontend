@@ -316,7 +316,7 @@ export default function ViewProfile({ userId }: { userId: string }) {
                   const reviewer = typeof review.student === "string" ? "A student" : (review.student?.fullName ?? "Removed student");
                   return (
                     <li key={review.id} className="border rounded-md p-3">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between flex-wrap gap-2">
                         <span className="text-sm font-medium text-gray-800">{reviewer}</span>
                         <StarRating rating={review.rating} />
                       </div>

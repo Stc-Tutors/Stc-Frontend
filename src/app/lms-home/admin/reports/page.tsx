@@ -125,7 +125,7 @@ export default function AdminReportsPage() {
               </div>
               <div className="space-y-2 mt-4">
                 {attendance.byCourse.map((c) => (
-                  <div key={c.courseId} className="flex justify-between text-sm">
+                  <div key={c.courseId} className="flex justify-between flex-wrap gap-2 text-sm">
                     <span className="text-gray-600">{c.courseTitle}</span>
                     <span className="font-medium">
                       {c.rate}% ({c.total - c.present} missed)
@@ -147,7 +147,7 @@ export default function AdminReportsPage() {
               <p className="text-2xl font-semibold text-gray-900 mb-3">{missedClasses} cancelled sessions</p>
               <div className="space-y-2 max-h-64 overflow-y-auto">
                 {rescheduleRate.map((r) => (
-                  <div key={r.tutorId} className="flex justify-between text-sm">
+                  <div key={r.tutorId} className="flex justify-between flex-wrap gap-2 text-sm">
                     <span className="text-gray-600">{r.name}</span>
                     <span className="font-medium">{r.rescheduleCount} reschedule(s)</span>
                   </div>
@@ -163,7 +163,7 @@ export default function AdminReportsPage() {
               <h2 className="text-lg font-semibold mb-4">Courses by Status</h2>
               <div className="space-y-2">
                 {Object.entries(overview.coursesByStatus).map(([status, count]) => (
-                  <div key={status} className="flex justify-between text-sm">
+                  <div key={status} className="flex justify-between flex-wrap gap-2 text-sm">
                     <span className="text-gray-600">{status}</span>
                     <span className="font-medium">{count}</span>
                   </div>
@@ -175,7 +175,7 @@ export default function AdminReportsPage() {
               <h2 className="text-lg font-semibold mb-4">Enrollments by Status</h2>
               <div className="space-y-2">
                 {Object.entries(overview.enrollmentsByStatus).map(([status, count]) => (
-                  <div key={status} className="flex justify-between text-sm">
+                  <div key={status} className="flex justify-between flex-wrap gap-2 text-sm">
                     <span className="text-gray-600">{status}</span>
                     <span className="font-medium">{count}</span>
                   </div>
@@ -192,7 +192,7 @@ export default function AdminReportsPage() {
               <p className="text-sm text-gray-500">No data.</p>
             ) : (
               categories.map((c) => (
-                <div key={c.category} className="flex justify-between text-sm">
+                <div key={c.category} className="flex justify-between flex-wrap gap-2 text-sm">
                   <span className="text-gray-600">{c.category}</span>
                   <span className="font-medium">
                     {c.courseCount} courses · {c.enrollmentCount} enrolled
@@ -210,7 +210,7 @@ export default function AdminReportsPage() {
               <p className="text-sm text-gray-500">No data.</p>
             ) : (
               tutorPerformance.map((t) => (
-                <div key={t.tutorId} className="flex justify-between text-sm">
+                <div key={t.tutorId} className="flex justify-between flex-wrap gap-2 text-sm">
                   <span className="text-gray-600">{t.name}</span>
                   <span className="font-medium">
                     {t.totalHours}h · {t.averageRating ? t.averageRating.toFixed(1) : "-"}★ · {t.cancelledSessions} missed
@@ -244,7 +244,7 @@ export default function AdminReportsPage() {
               <p className="text-sm text-gray-500">No data.</p>
             ) : (
               completion.map((c) => (
-                <div key={c.courseId} className="flex justify-between text-sm">
+                <div key={c.courseId} className="flex justify-between flex-wrap gap-2 text-sm">
                   <span className="text-gray-600">{c.courseTitle}</span>
                   <span className="font-medium">
                     {c.rate}% ({c.completed}/{c.total})

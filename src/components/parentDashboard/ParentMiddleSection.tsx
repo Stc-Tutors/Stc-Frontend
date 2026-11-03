@@ -62,7 +62,7 @@ export default function ParentMiddleSection() {
       {/* LEFT — PERFORMANCE OVERVIEW */}
       <div className="space-y-6 lg:col-span-2">
       <Card className="lg:col-span-2">
-        <CardHeader className="flex items-center justify-between">
+        <CardHeader className="flex items-center justify-between flex-wrap gap-2">
           <CardTitle>Performance Overview</CardTitle>
           <p className="text-sm text-gray-500">
             {isAllSelected ? "Avg. course progress by child" : "Avg. course progress"}

@@ -169,7 +169,7 @@ export default function ScheduleReviewPanel({ student, onChanged }: { student: S
   return (
     <Card>
       <CardContent className="p-5 space-y-3">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-2">
           <h3 className="text-sm font-semibold text-gray-900">Requested schedule</h3>
           <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${isApproved ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-800"}`}>
             {isApproved ? "Approved" : "Pending review"}

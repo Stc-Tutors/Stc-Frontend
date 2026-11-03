@@ -136,7 +136,7 @@ export default function PaymentsList({ variant }: PaymentsListProps) {
                 <div className="space-y-1">
                   <p className="text-sm text-gray-500 mb-1">By child</p>
                   {summary.byChild.map((c) => (
-                    <div key={c.studentId ?? "other"} className="flex justify-between text-sm">
+                    <div key={c.studentId ?? "other"} className="flex justify-between flex-wrap gap-2 text-sm">
                       <span className="text-gray-600">{c.studentName}</span>
                       <span className="font-medium">
                         {summary.currency} {c.total.toLocaleString()}

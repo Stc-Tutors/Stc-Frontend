@@ -16,7 +16,7 @@ export default function ExamCard({
   location: string;
 }) {
   return (
-    <div className="flex items-center justify-between py-4 border-b">
+    <div className="flex items-center justify-between flex-wrap gap-2 py-4 border-b">
       <div className="flex items-center gap-4">
         <FileText className="text-blue-500" />
         <div>

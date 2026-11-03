@@ -51,7 +51,7 @@ export default function TutorAnalyticsPage() {
             <p className="text-2xl font-semibold text-gray-800 mb-3">{hours.totalHours} hrs total</p>
             <div className="space-y-2">
               {hours.byCourse.map((c) => (
-                <div key={c.courseId} className="flex justify-between text-sm">
+                <div key={c.courseId} className="flex justify-between flex-wrap gap-2 text-sm">
                   <span className="text-gray-600">{c.courseTitle}</span>
                   <span className="font-medium">{c.hours} hrs</span>
                 </div>
@@ -107,7 +107,7 @@ export default function TutorAnalyticsPage() {
             {courses.map((course) => (
               <div
                 key={course.id}
-                className="flex items-center justify-between py-3 cursor-pointer hover:bg-gray-50 -mx-2 px-2 rounded"
+                className="flex items-center justify-between flex-wrap gap-2 py-3 cursor-pointer hover:bg-gray-50 -mx-2 px-2 rounded"
                 onClick={() => router.push(`/lms-home/tutor/courses/${course.id}`)}
               >
                 <div>

@@ -75,7 +75,7 @@ export default function DownloadReport() {
   };
 
   return (
-    <div className="bg-white-100 text-gray-700 rounded-xl p-4 flex items-center justify-between shadow-md">
+    <div className="bg-white-100 text-gray-700 rounded-xl p-4 flex items-center justify-between flex-wrap gap-2 shadow-md">
       <div>
         <h4 className="font-semibold text-lg">Attendance Report</h4>
       </div>

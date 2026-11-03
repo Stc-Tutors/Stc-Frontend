@@ -308,7 +308,7 @@ function SubjectLimits({
 
   return (
     <section className={box}>
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <h2 className="font-semibold">Subjects for {row.fullName}</h2>
         <Button size="sm" variant="outline" onClick={onClose}>
           Close

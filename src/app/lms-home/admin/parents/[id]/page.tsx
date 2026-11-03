@@ -117,7 +117,7 @@ export default function AdminParentDetailPage() {
           ) : (
             <ul className="divide-y">
               {children.map((child) => (
-                <li key={child.id} className="py-2 flex items-center justify-between">
+                <li key={child.id} className="py-2 flex items-center justify-between flex-wrap gap-2">
                   <div className="flex items-center gap-2">
                     <Avatar className="h-7 w-7">
                       <AvatarImage src={child.photoUrl || studentAvatarUrl(child.user)} alt={child.fullName} />

@@ -322,7 +322,7 @@ export default function EnrollmentFlow({ forcedUserType, dashboardPath, paymentH
       <div className="max-w-4xl mx-auto px-4">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between flex-wrap gap-2 mb-4">
             <h1 className="text-2xl font-bold text-gray-900">
               {continueId ? "Continue Enrollment" : isSelfRegisteringStudent ? "Complete Your Registration" : "Enroll Your Child"}
             </h1>
@@ -337,7 +337,7 @@ export default function EnrollmentFlow({ forcedUserType, dashboardPath, paymentH
 
           {/* Progress Bar */}
           <div className="space-y-2">
-            <div className="flex justify-between text-sm text-gray-600">
+            <div className="flex justify-between flex-wrap gap-2 text-sm text-gray-600">
               <span>
                 Step {currentStep} of {steps.length}
               </span>
@@ -373,7 +373,7 @@ export default function EnrollmentFlow({ forcedUserType, dashboardPath, paymentH
         </Card>
 
         {/* Navigation */}
-        <div className="flex justify-between">
+        <div className="flex justify-between flex-wrap gap-2">
           <Button
             variant="outline"
             onClick={handlePrevious}

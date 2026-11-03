@@ -53,7 +53,7 @@ function RatingInput({
           </button>
         ))}
       </div>
-      <div className="flex justify-between text-xs text-gray-500">
+      <div className="flex justify-between flex-wrap gap-2 text-xs text-gray-500">
         <span>{lowLabel}</span>
         <span>{highLabel}</span>
       </div>

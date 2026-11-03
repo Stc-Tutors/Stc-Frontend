@@ -198,7 +198,7 @@ export default function AdminCourseDetailPage() {
           {enrollments.map((e) => {
             const student = e.student as Student;
             return (
-              <li key={e.id} className="py-3 flex items-center justify-between text-sm">
+              <li key={e.id} className="py-3 flex items-center justify-between flex-wrap gap-2 text-sm">
                 <div className="flex items-center gap-2">
                   {typeof e.student !== "string" && (
                     <Avatar className="h-7 w-7">

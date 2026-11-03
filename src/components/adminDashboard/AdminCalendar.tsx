@@ -50,7 +50,7 @@ export default function AdminCalendar() {
 
   return (
     <div className="bg-white p-4 rounded-lg shadow-sm">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between flex-wrap gap-2 mb-4">
         <h3 className="text-lg font-semibold text-gray-800">
           {currentDate.toLocaleString("default", { month: "long" })} {year}
         </h3>

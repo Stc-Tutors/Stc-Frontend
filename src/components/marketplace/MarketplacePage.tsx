@@ -384,7 +384,7 @@ export default function MarketplacePage() {
             <CardTitle>3. Confirm &amp; pay</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-between border rounded-lg p-4 bg-gray-50">
+            <div className="flex items-center justify-between flex-wrap gap-2 border rounded-lg p-4 bg-gray-50">
               <div>
                 <p className="text-sm text-gray-500">Enrolling</p>
                 <p className="font-medium text-gray-900">{selectedStudent?.fullName}</p>

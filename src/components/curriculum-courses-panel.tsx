@@ -75,7 +75,7 @@ export default function CurriculumCoursesPanel({
           />
 
           <div className="bg-white rounded-xl shadow-sm p-6 space-y-3 max-w-4xl">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-2">
               <h2 className="font-semibold text-gray-900">
                 Courses under &quot;{currentNode?.name ?? "Root"}&quot;
               </h2>

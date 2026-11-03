@@ -142,7 +142,7 @@ export default function EnrollmentDetail({ basePath }: EnrollmentDetailProps) {
             Back to Enrollments
           </Button>
           <Card>
-            <CardContent className="p-12 text-center">
+            <CardContent className="p-6 sm:p-12 text-center">
               <AlertTriangle className="w-16 h-16 text-red-400 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Enrollment Not Found</h3>
               <p className="text-gray-600 mb-6">{error || "The enrollment you're looking for doesn't exist."}</p>
@@ -355,7 +355,7 @@ export default function EnrollmentDetail({ basePath }: EnrollmentDetailProps) {
                 <div className="space-y-4">
                   {(student.schedule ?? []).map((schedule, index) => (
                     <div key={index} className="border rounded-lg p-4 bg-gray-50">
-                      <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
                         <h4 className="font-semibold text-lg text-gray-900">{schedule.subject}</h4>
                         <Badge variant="outline">{schedule.duration} minutes</Badge>
                       </div>
@@ -544,21 +544,21 @@ export default function EnrollmentDetail({ basePath }: EnrollmentDetailProps) {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center justify-between flex-wrap gap-2 p-3 bg-gray-50 rounded-lg">
                       <div>
                         <p className="font-medium text-gray-900">Parent Email</p>
                         <p className="text-sm text-gray-600">{student.parentEmail}</p>
                       </div>
                       <Mail className="w-5 h-5 text-gray-500" />
                     </div>
-                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center justify-between flex-wrap gap-2 p-3 bg-gray-50 rounded-lg">
                       <div>
                         <p className="font-medium text-gray-900">Parent Phone</p>
                         <p className="text-sm text-gray-600">{student.parentPhone}</p>
                       </div>
                       <Phone className="w-5 h-5 text-gray-500" />
                     </div>
-                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center justify-between flex-wrap gap-2 p-3 bg-gray-50 rounded-lg">
                       <div>
                         <p className="font-medium text-gray-900">Student Phone</p>
                         <p className="text-sm text-gray-600">{student.phone}</p>
@@ -578,14 +578,14 @@ export default function EnrollmentDetail({ basePath }: EnrollmentDetailProps) {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center justify-between flex-wrap gap-2 p-3 bg-gray-50 rounded-lg">
                       <div>
                         <p className="font-medium text-gray-900">Country of Residence</p>
                         <p className="text-sm text-gray-600">{student.countryOfResidence}</p>
                       </div>
                       <Globe className="w-5 h-5 text-gray-500" />
                     </div>
-                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center justify-between flex-wrap gap-2 p-3 bg-gray-50 rounded-lg">
                       <div>
                         <p className="font-medium text-gray-900">Primary Language</p>
                         <p className="text-sm text-gray-600">{student.primaryLanguage}</p>

@@ -130,7 +130,7 @@ export default function TutorProfileEditsPage() {
             const tutor = req.tutor;
             return (
               <div key={req.id} className="border rounded-lg p-4 space-y-3">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between flex-wrap gap-2">
                   <p className="font-semibold text-gray-900">
                     {typeof tutor === "string" ? tutor : `${tutor.firstName} ${tutor.lastName}`}
                   </p>

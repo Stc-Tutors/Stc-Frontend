@@ -96,7 +96,7 @@ export default function ParentAnalyticsHeader({ onStudentChange }: ParentAnalyti
             value={selectedId}
             onChange={(e) => handleSelect(e.target.value)}
             disabled={students.length === 0}
-            className="appearance-none flex items-center justify-between px-4 py-2 border border-gray-300 rounded-lg min-w-[180px] text-gray-700 bg-white hover:bg-gray-50"
+            className="appearance-none flex items-center justify-between flex-wrap gap-2 px-4 py-2 border border-gray-300 rounded-lg min-w-[180px] text-gray-700 bg-white hover:bg-gray-50"
           >
             {students.length === 0 && <option>{isLoading ? "Loading..." : "No students linked"}</option>}
             {students.map((s) => (

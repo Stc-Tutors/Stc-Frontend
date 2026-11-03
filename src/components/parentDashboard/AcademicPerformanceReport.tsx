@@ -62,7 +62,7 @@ export default function AcademicPerformanceReport({ studentId }: AcademicPerform
               {graded.map((s) => {
                 const assignment = s.assignment as Assignment;
                 return (
-                  <div key={s.id} className="flex justify-between py-2 text-sm">
+                  <div key={s.id} className="flex justify-between flex-wrap gap-2 py-2 text-sm">
                     <span className="text-gray-700">{assignment.title}</span>
                     <span className="font-medium">
                       {s.score}/{assignment.maxScore}

@@ -144,7 +144,7 @@ export default function AvailabilityStep({ onNext, errors }: StepProps) {
                   .filter(({ slot }) => slot.dayOfWeek === day);
                 return (
                   <div key={day} className="border rounded-md p-2 space-y-2">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
                       <span className="text-sm font-medium w-24">{day}</span>
                       <Button type="button" variant="outline" size="sm" onClick={() => addSlot(day)}>
                         Add window

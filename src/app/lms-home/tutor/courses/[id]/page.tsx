@@ -167,7 +167,7 @@ export default function TutorCourseDetailPage() {
             <div className="w-full h-48 bg-gray-100" />
           )}
         </div>
-        <div className="p-6 flex items-center justify-between">
+        <div className="p-6 flex items-center justify-between flex-wrap gap-2">
           <div>
             <h1 className="text-xl font-bold">{course.title}</h1>
             <p className="text-sm text-gray-500">
@@ -283,7 +283,7 @@ export default function TutorCourseDetailPage() {
               <p className="text-sm text-gray-500">No lessons scheduled yet.</p>
             ) : (
               lessons.map((l) => (
-                <div key={l.id} className="flex justify-between items-center text-sm border-b pb-2">
+                <div key={l.id} className="flex justify-between flex-wrap gap-2 items-center text-sm border-b pb-2">
                   <span>{l.title}</span>
                   <div className="flex items-center gap-2">
                     <span className="text-gray-500">{formatDateTime(l.scheduledDate)}</span>
@@ -313,7 +313,7 @@ export default function TutorCourseDetailPage() {
               <p className="text-sm text-gray-500">No assignments yet.</p>
             ) : (
               assignments.map((a) => (
-                <div key={a.id} className="flex items-center justify-between text-sm border-b pb-2">
+                <div key={a.id} className="flex items-center justify-between flex-wrap gap-2 text-sm border-b pb-2">
                   <span className="flex items-center gap-2">
                     <button
                       className="text-blue-600 hover:underline text-left"
@@ -379,7 +379,7 @@ export default function TutorCourseDetailPage() {
             <p className="text-sm text-gray-500">No resources uploaded yet.</p>
           ) : (
             resources.map((r) => (
-              <div key={r.id} className="flex items-center justify-between text-sm border-b pb-2">
+              <div key={r.id} className="flex items-center justify-between flex-wrap gap-2 text-sm border-b pb-2">
                 <button onClick={() => setPreview({ title: r.title, url: r.fileUrl })} className="text-blue-600 hover:underline">
                   {r.title}
                 </button>

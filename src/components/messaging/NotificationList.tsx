@@ -62,7 +62,7 @@ export default function NotificationList() {
 
   return (
     <main className="max-w-4xl mx-auto px-4 py-6">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between flex-wrap gap-2 items-center mb-6">
         <h2 className="text-2xl font-semibold">Notifications</h2>
         <button className="text-sm text-blue-600 hover:underline" onClick={handleMarkAllRead}>
           Mark all as read

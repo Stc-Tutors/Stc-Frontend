@@ -163,7 +163,7 @@ export default function AnalyticsPage() {
 
         {/* Announcement panel */}
         <Card className="bg-white rounded-lg shadow-sm p-4">
-          <div className="flex justify-between items-center mb-3">
+          <div className="flex justify-between flex-wrap gap-2 items-center mb-3">
             <h3 className="font-semibold text-gray-800">Announcement</h3>
             <button
               onClick={() => router.push("/lms-home/student/notification")}

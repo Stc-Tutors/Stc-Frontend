@@ -86,7 +86,7 @@ export default function LessonProgress() {
 
       {/* Announcement */}
       <div className="border-t pt-3 mt-2">
-        <div className="flex justify-between items-center mb-2">
+        <div className="flex justify-between flex-wrap gap-2 items-center mb-2">
           <h4 className="font-semibold text-gray-800 text-sm">Announcement</h4>
           {announcements.length > 1 && (
             <button

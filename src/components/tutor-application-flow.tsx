@@ -216,13 +216,13 @@ export default function TutorApplicationFlow() {
     <div className="w-full flex-1 py-8">
       <div className="max-w-3xl mx-auto px-4">
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between flex-wrap gap-2 mb-4">
             <h1 className="text-2xl font-bold text-gray-900">
               {isEditingFlagged ? "Update Your Application" : "Tutor Registration"}
             </h1>
           </div>
           <div className="space-y-2">
-            <div className="flex justify-between text-sm text-gray-600">
+            <div className="flex justify-between flex-wrap gap-2 text-sm text-gray-600">
               <span>
                 Step {draft.currentStep} of {STEPS.length}
               </span>

@@ -112,7 +112,7 @@ export default function AdminAuditLogPage() {
             </TableBody>
           </Table>
 
-          <div className="flex items-center justify-between mt-4">
+          <div className="flex items-center justify-between flex-wrap gap-2 mt-4">
             <p className="text-xs text-gray-500">
               Page {page} of {totalPages} &middot; {total} total entries
             </p>

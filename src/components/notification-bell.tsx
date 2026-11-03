@@ -115,7 +115,7 @@ export default function NotificationBell({ viewAllHref }: { viewAllHref: string 
 
       {isOpen && (
         <div className="absolute right-0 mt-2 w-80 max-w-[calc(100vw-1.5rem)] bg-white rounded-md shadow-lg border border-gray-200 z-50">
-          <div className="flex items-center justify-between p-3 border-b border-gray-100">
+          <div className="flex items-center justify-between flex-wrap gap-2 p-3 border-b border-gray-100">
             <span className="text-sm font-semibold text-gray-900">Notifications</span>
             <button
               onClick={() => MarkAllNotificationsReadAction().then(() => refresh())}

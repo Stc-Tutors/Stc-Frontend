@@ -79,7 +79,7 @@ export function DataTable<T>({
       </div>
 
       {page !== undefined && totalPages !== undefined && totalPages > 1 && onPageChange && (
-        <div className="flex items-center justify-between border-t border-gray-200 px-4 py-3">
+        <div className="flex items-center justify-between flex-wrap gap-2 border-t border-gray-200 px-4 py-3">
           <p className="text-xs text-gray-500">
             Page {page} of {totalPages}
           </p>

@@ -196,7 +196,7 @@ export default function AnnotatedScreenShare() {
   }
 
   return (
-    <div className="absolute bottom-20 left-3 z-30 w-80 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xl">
+    <div className="absolute bottom-20 left-3 z-30 w-80 max-w-[calc(100vw-1.5rem)] overflow-hidden rounded-lg border border-gray-200 bg-white shadow-xl">
       <div className="flex items-center justify-between gap-2 border-b border-gray-100 bg-gray-50 px-2 py-1.5">
         <div className="flex items-center gap-1">
           {COLORS.map((c) => (

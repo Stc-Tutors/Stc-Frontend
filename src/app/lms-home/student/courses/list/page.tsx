@@ -48,7 +48,7 @@ export default function CoursesPage() {
     <div className="p-6 relative">
       {/* Top Section */}
       <div className="flex flex-col gap-4 mb-8">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-2">
           <button
             onClick={() => router.push("/lms-home/student/courses")}
             className="text-gray-600 hover:text-blue-800 flex items-center gap-1"
@@ -105,7 +105,7 @@ export default function CoursesPage() {
 
                 <p className="text-sm text-gray-600 mb-4">{course.description}</p>
 
-                <div className="mt-auto flex items-center justify-between">
+                <div className="mt-auto flex items-center justify-between flex-wrap gap-2">
                   <span className="text-sm font-medium text-gray-700">
                     <LocalFirstPrice amount={Number(course.price)} currency={course.currency}>{course.currency} {course.price}</LocalFirstPrice>
                   </span>
@@ -134,7 +134,7 @@ export default function CoursesPage() {
 
       {modal.courseId !== null && (
         <div className="fixed inset-0 bg-gray bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-96 shadow-lg text-center">
+          <div className="bg-white rounded-lg p-6 w-96 max-w-[90vw] shadow-lg text-center">
             <div className="mb-4">
               <span className="text-4xl">💡</span>
             </div>
@@ -142,7 +142,7 @@ export default function CoursesPage() {
             <p className="text-sm text-gray-600 mb-6">
               This will enroll you in the course and give you access to all lessons, resources, and assignments.
             </p>
-            <div className="flex justify-between">
+            <div className="flex justify-between flex-wrap gap-2">
               <Button variant="outline" className="text-red-500 border-red-300" onClick={() => setModal({ courseId: null })}>
                 Go Back
               </Button>

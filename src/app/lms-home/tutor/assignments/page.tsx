@@ -206,7 +206,7 @@ export default function TutorAssignmentsPage() {
         ) : (
           <div className="divide-y">
             {rows.map(({ course, assignment: a }) => (
-              <div key={a.id} className="flex items-center justify-between text-sm py-3">
+              <div key={a.id} className="flex items-center justify-between flex-wrap gap-2 text-sm py-3">
                 <div>
                   <button
                     className="text-blue-600 hover:underline font-medium"
