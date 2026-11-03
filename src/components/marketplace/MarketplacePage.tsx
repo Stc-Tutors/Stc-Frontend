@@ -21,6 +21,7 @@ import { GetCoursesAction } from "@/server/course";
 import { Course } from "@/types/course";
 import { QuotePricingAction } from "@/server/pricing";
 import { PricingQuote } from "@/types/pricing";
+import { IntakeClosedDialog, useIntakeClosed } from "@/components/intake-closed";
 import { EnrollInCourseAction } from "@/server/course-enrollment";
 import { InitiatePaymentAction, VerifyPaymentAction } from "@/server/payment";
 import { RedeemPaymentBypassTokenAction } from "@/server/enrollment";
@@ -66,6 +67,8 @@ export default function MarketplacePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPaymentConsent, setShowPaymentConsent] = useState(false);
   const [bypassCode, setBypassCode] = useState("");
+  const enrollClosed = useIntakeClosed(["ENROLLMENT"]);
+  const [closedNotice, setClosedNotice] = useState<string | null>(null);
 
   const selectedService = services.find((s) => s.slug === selectedSlug) ?? null;
   const selectedCourse = courses.find((c) => c.id === selectedCourseId) ?? null;
@@ -134,6 +137,10 @@ export default function MarketplacePage() {
     if (!selectedStudent || !selectedCourse || !selectedService) return;
 
     setShowPaymentConsent(false);
+    if (enrollClosed) {
+      setClosedNotice(enrollClosed);
+      return;
+    }
     setIsSubmitting(true);
     try {
       // A priced course is paid for FIRST: the server adds the student to the course the moment the payment is verified (and
@@ -435,6 +442,7 @@ export default function MarketplacePage() {
         </Card>
       )}
 
+      {closedNotice && <IntakeClosedDialog message={closedNotice} onClose={() => setClosedNotice(null)} />}
       <PaymentConsentModal
         open={showPaymentConsent}
         onOpenChange={setShowPaymentConsent}

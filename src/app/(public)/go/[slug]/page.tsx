@@ -10,6 +10,7 @@ import { sanitizeRichText } from "@/lib/sanitize-html";
 import { HeadSeoContent, PageSectionKey } from "@/types/content";
 import type { CampaignLandingPage as LandingPageData } from "@/types/campaign-landing-page";
 import CampaignSignupForm from "./CampaignSignupForm";
+import { IntakeGate } from "@/components/intake-closed";
 import PromoBanner from "./PromoBanner";
 import { promoExpired } from "@/lib/campaign-promo";
 import { WhatsAppFloat } from "./WhatsAppButtons";
@@ -197,7 +198,9 @@ export default async function CampaignLandingPage({ params }: { params: Params }
 
       <section className="max-w-5xl mx-auto px-4 sm:px-6 py-8 md:py-10 grid md:grid-cols-5 gap-10">
         <div className="md:col-span-2 order-first md:order-last">
-          <CampaignSignupForm page={page} cohortName={cohortName} />
+          <IntakeGate targets={["PARENT_SIGNUP", "ENROLLMENT"]}>
+            <CampaignSignupForm page={page} cohortName={cohortName} />
+          </IntakeGate>
         </div>
 
         <div className="md:col-span-3 space-y-10">

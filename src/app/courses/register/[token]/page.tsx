@@ -14,6 +14,7 @@ import { ROUTES } from "@/config/routes";
 import { UserRole, User } from "@/types/user";
 import { Student } from "@/types/student";
 import Link from "next/link";
+import { IntakeGate } from "@/components/intake-closed";
 import { LocalFirstPrice } from "@/components/local-price-note";
 
 // Public landing page for a Special Course's shareable registration link
@@ -71,7 +72,9 @@ export default function SpecialCourseRegisterPage() {
 
         {currentUser ? (
           canEnroll ? (
-            <ExistingUserEnroll token={token as string} user={currentUser} />
+            <IntakeGate targets={["ENROLLMENT"]} backHref="/">
+              <ExistingUserEnroll token={token as string} user={currentUser} />
+            </IntakeGate>
           ) : (
             <p className="text-sm text-gray-500 text-center">
               You&apos;re logged in as a {currentUser.role.toLowerCase()} - only a student or parent account can register
@@ -79,7 +82,9 @@ export default function SpecialCourseRegisterPage() {
             </p>
           )
         ) : (
-          <SpecialCourseRegisterForm token={token as string} />
+          <IntakeGate targets={["PARENT_SIGNUP", "ENROLLMENT"]} backHref="/">
+            <SpecialCourseRegisterForm token={token as string} />
+          </IntakeGate>
         )}
       </div>
     </AuthLayout>

@@ -6,6 +6,7 @@ import Image from "next/image";
 import { ArrowLeft, Clock, Users, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { GetCoursesAction } from "@/server/course";
+import { IntakeClosedDialog, useIntakeClosed } from "@/components/intake-closed";
 import { EnrollInCourseAction } from "@/server/course-enrollment";
 import { GetEnrollmentsAction } from "@/server/enrollment";
 import { Course } from "@/types/course";
@@ -31,7 +32,15 @@ export default function CoursesPage() {
     load();
   }, []);
 
+  const enrollClosed = useIntakeClosed(["ENROLLMENT"]);
+  const [closedNotice, setClosedNotice] = useState<string | null>(null);
+
   const handleConfirm = async () => {
+    if (enrollClosed) {
+      setModal({ courseId: null });
+      setClosedNotice(enrollClosed);
+      return;
+    }
     if (!modal.courseId || !studentId) {
       setMessage("You need an active enrollment before joining a course.");
       setModal({ courseId: null });
@@ -46,6 +55,7 @@ export default function CoursesPage() {
 
   return (
     <div className="p-6 relative">
+      {closedNotice && <IntakeClosedDialog message={closedNotice} onClose={() => setClosedNotice(null)} />}
       {/* Top Section */}
       <div className="flex flex-col gap-4 mb-8">
         <div className="flex items-center justify-between flex-wrap gap-2 flex-wrap">
