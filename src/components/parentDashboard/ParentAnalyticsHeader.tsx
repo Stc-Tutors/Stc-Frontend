@@ -68,7 +68,7 @@ export default function ParentAnalyticsHeader({ onStudentChange }: ParentAnalyti
         </div>
 
         {/* Right: Buttons */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <Button
             variant="outline"
             className="flex items-center gap-2 border-blue-500 text-blue-600 hover:bg-blue-50"

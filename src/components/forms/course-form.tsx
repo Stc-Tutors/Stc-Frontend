@@ -352,7 +352,7 @@ export function CourseForm({
         <GoogleDriveEmbed value={coverImageUrl} onChange={setCoverImageUrl} label="Cover Image URL (optional, Google Drive share link)" />
       </div>
 
-      <div className="flex justify-end gap-2">
+      <div className="flex justify-end gap-2 flex-wrap">
         <Button variant="outline" disabled={!canSubmit || isSubmitting} onClick={() => handleSubmit(false)}>
           Save as Draft
         </Button>

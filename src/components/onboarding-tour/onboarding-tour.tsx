@@ -211,7 +211,7 @@ export default function OnboardingTour() {
           <Button variant="ghost" size="sm" onClick={skip} disabled={isPersisting}>
             Skip
           </Button>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             {!isFirst && (
               <Button variant="outline" size="sm" onClick={goBack} disabled={isPersisting}>
                 Back

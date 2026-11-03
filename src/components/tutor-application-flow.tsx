@@ -178,7 +178,7 @@ export default function TutorApplicationFlow() {
                 We sent a verification link to <strong>{draft.step1.email}</strong>. Open it, then come back to this page and press the button below.
                 Check your spam folder if you don&apos;t see it.
               </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <div className="flex flex-col sm:flex-row gap-3 justify-center flex-wrap">
                 <Button
                   disabled={checking}
                   onClick={async () => {
@@ -266,7 +266,7 @@ export default function TutorApplicationFlow() {
         )}
 
         {draft.currentStep !== 12 && (
-        <div className="flex justify-between mt-6 gap-3">
+        <div className="flex justify-between mt-6 gap-3 flex-wrap">
           <Button
             variant="outline"
             onClick={handlePrevious}
@@ -277,7 +277,7 @@ export default function TutorApplicationFlow() {
             <span>Previous</span>
           </Button>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             {isEditingFlagged && (
               <Button
                 variant="secondary"

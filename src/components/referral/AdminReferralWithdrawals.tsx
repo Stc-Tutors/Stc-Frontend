@@ -181,7 +181,7 @@ export default function AdminReferralWithdrawals() {
                             </Button>
                           </div>
                         ) : (
-                          <div className="flex gap-2 justify-end">
+                          <div className="flex gap-2 justify-end flex-wrap">
                             <Button size="sm" onClick={() => handleApprove(w.id)}>
                               Approve
                             </Button>

@@ -238,7 +238,7 @@ export default function ExamDetail({ basePath }: { basePath: string }) {
         </Link>
         <div className="flex flex-wrap items-center justify-between gap-3 mt-1">
           <h1 className="text-2xl font-bold">{exam.title}</h1>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             {perms.isStaff && (
               <Button variant="outline" onClick={togglePublished} disabled={busy || notOnStc || awaiting}>
                 {exam.published ? "Unpublish" : "Publish to learners"}
@@ -277,7 +277,7 @@ export default function ExamDetail({ basePath }: { basePath: string }) {
                   monitoring features not in our licence
                 </label>
               )}
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 <Button size="sm" onClick={approve} disabled={busy}>
                   Approve
                 </Button>

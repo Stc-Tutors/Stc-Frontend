@@ -89,7 +89,7 @@ export default function GroupScheduleConfirmationBanner() {
                   placeholder="Optional - let the admin know why (e.g. time conflict)"
                   rows={2}
                 />
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                   <Button variant="destructive" size="sm" disabled={busyId === row.id} onClick={() => handleDecline(row.id)}>
                     {busyId === row.id ? "Declining..." : "Confirm decline"}
                   </Button>
@@ -99,7 +99,7 @@ export default function GroupScheduleConfirmationBanner() {
                 </div>
               </div>
             ) : (
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 <Button size="sm" disabled={busyId === row.id} onClick={() => handleConfirm(row.id)}>
                   {busyId === row.id ? "Confirming..." : "Confirm schedule"}
                 </Button>

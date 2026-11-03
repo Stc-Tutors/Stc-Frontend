@@ -188,7 +188,7 @@ export default function AdminResourcesPage() {
           studentNames={studentNames}
           renderExtraActions={(r) =>
             r.status === ResourceStatus.PENDING ? (
-              <div className="flex gap-2 mt-1">
+              <div className="flex gap-2 mt-1 flex-wrap">
                 <button onClick={() => handleApprove(r.id)} title="Approve">
                   <Check className="w-4 h-4 text-green-600" />
                 </button>

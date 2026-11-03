@@ -116,7 +116,7 @@ export default function AdminAuditLogPage() {
             <p className="text-xs text-gray-500">
               Page {page} of {totalPages} &middot; {total} total entries
             </p>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               <Button size="sm" variant="outline" disabled={page <= 1} onClick={() => load(page - 1)}>
                 Previous
               </Button>

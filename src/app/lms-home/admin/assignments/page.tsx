@@ -134,7 +134,7 @@ function PendingAssignmentsQueue() {
                   )}
                 </TableCell>
                 <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
+                  <div className="flex justify-end gap-2 flex-wrap">
                     <Button aria-label="Approve" size="icon" variant="ghost" onClick={() => handleApprove(row.id)}>
                       <Check className="w-4 h-4 text-green-600" />
                     </Button>

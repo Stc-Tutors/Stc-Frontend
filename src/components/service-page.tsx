@@ -157,7 +157,7 @@ export default function ServicePage({
           We&apos;re still putting the finishing touches on this program. Check back soon, or explore our other
           services in the meantime.
         </p>
-        <div className="flex gap-4">
+        <div className="flex gap-4 flex-wrap">
           <button
             onClick={() => router.back()}
             className="bg-gray-200 text-gray-800 px-6 py-3 rounded-lg hover:bg-gray-300 transition"
@@ -367,7 +367,7 @@ export default function ServicePage({
           <p className="mb-6 text-gray-200">
             {content.closingBody || `Join STC Tutors today and take the next step with ${content.heroHeading || "this program"}.`}
           </p>
-          <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-4 flex-wrap">
             <button
               onClick={() => window.history.back()}
               className="bg-white/10 text-white px-6 py-3 rounded-lg hover:bg-white/20 transition"

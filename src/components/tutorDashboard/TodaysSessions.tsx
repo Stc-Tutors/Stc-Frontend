@@ -174,7 +174,7 @@ export default function TodaysSessions() {
                   {!lesson.actualStartTime ? (
                     // Joining clocks the tutor in automatically (the server sees an in-app tutor connect; Join Class on an external link is
                     // logged), but Clock In stays available so a tutor can always start the clock - and so file the report - by hand.
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-wrap">
                       <Button size="sm" onClick={() => router.push(`/lms-home/classroom/live/${lesson.id}`)}>
                         <Video className="w-3.5 h-3.5 mr-1" /> {lesson.deliveryMode === LessonDeliveryMode.LIVEKIT ? "Start class" : "Join class"}
                       </Button>
@@ -183,7 +183,7 @@ export default function TodaysSessions() {
                       </Button>
                     </div>
                   ) : !lesson.actualEndTime ? (
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-wrap">
                       <Button size="sm" variant="outline" onClick={() => router.push(`/lms-home/classroom/live/${lesson.id}`)}>
                         <Video className="w-3.5 h-3.5 mr-1" /> Rejoin
                       </Button>

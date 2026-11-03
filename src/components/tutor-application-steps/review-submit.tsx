@@ -78,7 +78,7 @@ export default function ReviewSubmitStep() {
         );
       })}
 
-      <div className="flex justify-between flex-wrap gap-2 mt-6">
+      <div className="flex justify-between flex-wrap gap-2 mt-6 flex-wrap">
         <Button variant="outline" onClick={() => goToStep(11)} disabled={isSubmitting}>
           Previous
         </Button>

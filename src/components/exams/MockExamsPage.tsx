@@ -212,7 +212,7 @@ export default function MockExamsPage() {
                           <p className="font-medium">{e.name}</p>
                           <p className="text-xs text-gray-500">{e.country ?? ""}{e.ready ? "" : " · coming soon"}</p>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 flex-wrap">
                           <Button size="sm" variant="outline" onClick={() => chooseExam(e.id)} disabled={!e.ready}>
                             {openExam === e.id ? "Hide subjects" : "Subjects & topics"}
                           </Button>

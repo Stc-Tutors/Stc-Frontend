@@ -72,7 +72,7 @@ export default function RecordingConsentPanel() {
                     : `Not approved - ${child.fullName} will not appear or be heard in any recording`}
                 </p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 <Button size="sm" variant={child.granted ? "default" : "outline"} disabled={busyId === child.studentId || child.granted} onClick={() => decide(child, true)}>
                   {busyId === child.studentId && !child.granted ? "Saving..." : "Approve recording"}
                 </Button>

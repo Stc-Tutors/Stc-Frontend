@@ -122,7 +122,7 @@ export function TaxonomyStageEditor({
                     </select>
                   </div>
                 </div>
-                <div className="flex flex-col gap-1 pt-5">
+                <div className="flex flex-col gap-1 pt-5 flex-wrap">
                   <button
                     type="button"
                     onClick={() => moveStage(i, -1)}

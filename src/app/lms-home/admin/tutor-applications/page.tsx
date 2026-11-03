@@ -236,7 +236,7 @@ Approve anyway?`)) return;
                 </div>
 
                 {app.status === TutorApplicationStatus.PENDING && canReview && (
-                  <div className="flex gap-2 items-center pt-2">
+                  <div className="flex gap-2 items-center pt-2 flex-wrap">
                     <button
                       onClick={() => handleApprove(app.id)}
                       className="bg-green-600 text-white rounded-md px-3 py-1.5 text-xs hover:bg-green-700"
@@ -308,7 +308,7 @@ Approve anyway?`)) return;
                       This tutor has submitted the Vetting Questionnaire. Open <strong>full application</strong> above to read their answers, then confirm (this makes them
                       eligible for student allocation) or send it back with a note.
                     </p>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2 flex-wrap">
                       <Button
                         size="sm"
                         onClick={async () => {

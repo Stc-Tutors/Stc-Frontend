@@ -119,7 +119,7 @@ export default function BreakoutPanel({ lessonId, onVisit }: BreakoutPanelProps)
             </button>
           </p>
           <div className="space-y-2 px-1 text-sm">
-            <div className="flex gap-1">
+            <div className="flex gap-1 flex-wrap">
               <button
                 type="button"
                 onClick={() => setMode("auto")}

@@ -65,7 +65,7 @@ function ReferenceCard({ app, slot, onChanged }: { app: TutorApplication; slot: 
       </div>
 
       {!ref.response && !editing && (
-        <div className="mt-3 flex flex-wrap gap-2">
+        <div className="mt-3 flex flex-wrap gap-2 flex-wrap">
           <Button size="sm" onClick={resend} disabled={busy}>
             {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <MailCheck className="mr-2 h-4 w-4" />}
             Send the email again
@@ -81,7 +81,7 @@ function ReferenceCard({ app, slot, onChanged }: { app: TutorApplication; slot: 
           <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Full name" />
           <Input value={relationship} onChange={(e) => setRelationship(e.target.value)} placeholder="How they know you (e.g. former head of department)" />
           <Input value={contact} onChange={(e) => setContact(e.target.value)} placeholder="Their email address" type="email" />
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <Button size="sm" onClick={replace} disabled={busy || !name.trim() || !contact.trim()}>
               {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Save and email them
             </Button>

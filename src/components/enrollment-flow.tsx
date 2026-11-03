@@ -373,7 +373,7 @@ export default function EnrollmentFlow({ forcedUserType, dashboardPath, paymentH
         </Card>
 
         {/* Navigation */}
-        <div className="flex justify-between flex-wrap gap-2">
+        <div className="flex justify-between flex-wrap gap-2 flex-wrap">
           <Button
             variant="outline"
             onClick={handlePrevious}

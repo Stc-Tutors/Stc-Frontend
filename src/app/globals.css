@@ -200,7 +200,7 @@
 .text-xs { font-size: 0.8125rem; line-height: 1.25rem; }          /* 13px, was 12px */
 .text-\[10px\], .text-\[11px\] { font-size: 0.75rem !important; } /* nothing below 12px */
 /* Long names/emails/titles wrap inside their box instead of running under neighbouring text. */
-main, aside, header { overflow-wrap: anywhere; }
+main, aside, header { overflow-wrap: break-word; }
 main :is(h1, h2, h3, p, td, th, li, label, span, a) { min-width: 0; }
 
 /* ---------- Sidebar: separators between tabs + a clear marker for the hovered / current tab ---------- */
@@ -252,3 +252,12 @@ aside nav a.bg-blue-100 { border-left-color: #0a1f44; font-weight: 600; } /* cur
 /* Phone safety net: media never overflows its container, and the page never scrolls sideways. */
 img, video, canvas { max-width: 100%; height: auto; }
 html, body { overflow-x: clip; }
+
+/* Tables keep whole words (a narrow cell used to break "PENDING" into "PENDIN/G" or stack a name letter by letter) and scroll sideways inside their wrapper instead. */
+main table, main table * { overflow-wrap: normal; word-break: normal; }
+main table th, main table td { min-width: 4.5rem; }
+main table :is(td, th) span.rounded-full { white-space: nowrap; }
+/* Leave room under the page so the floating "Need help?" button never covers the last line of content. */
+@media (max-width: 1023px) {
+  main::after { content: ""; display: block; height: 4.5rem; }
+}

@@ -215,7 +215,7 @@ export default function AdminStudentDetailPage() {
                 <Input value={form[key]} onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))} />
               </div>
             ))}
-            <div className="flex justify-end gap-2 pt-2">
+            <div className="flex justify-end gap-2 pt-2 flex-wrap">
               <Button variant="outline" onClick={() => setEditSection(null)}>Cancel</Button>
               <Button onClick={handleSaveEdit} disabled={isSaving}>{isSaving ? "Saving..." : "Save"}</Button>
             </div>

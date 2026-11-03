@@ -149,7 +149,7 @@ export default function ScheduleEditor({ student, onChanged }: { student: Studen
             <button type="button" onClick={() => setRows((prev) => [...prev, blankRow(subjects[0] ?? "")])} className="text-xs text-blue-600 hover:underline">
               + Add another class slot
             </button>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <Button size="sm" onClick={send} disabled={saving}>
                 {saving ? "Sending..." : "Send for the family to accept"}
               </Button>

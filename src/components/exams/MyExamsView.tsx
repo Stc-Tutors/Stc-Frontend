@@ -158,7 +158,7 @@ export default function MyExamsView() {
         <div className="fixed inset-0 z-50 bg-black/70 flex flex-col">
           <div className="flex items-center justify-between flex-wrap gap-2 bg-white px-4 py-2">
             <p className="font-medium truncate">{frame.title}</p>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               <Button variant="outline" size="sm" onClick={openFrameInTab}>
                 Open in a new tab
               </Button>

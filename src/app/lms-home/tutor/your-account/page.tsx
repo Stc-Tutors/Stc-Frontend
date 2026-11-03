@@ -238,7 +238,7 @@ export default function DashboardPage() {
                             {r.proposedFlatRate != null ? `${r.proposedFlatRate} flat` : `${r.proposedRatePerHour}/hr`}
                           </span>
                         </p>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <Button size="sm" onClick={() => handleConfirmRate(r.id)}>Accept</Button>
                           <Button size="sm" variant="outline" onClick={() => handleRejectRate(r.id)}>Reject</Button>
                         </div>

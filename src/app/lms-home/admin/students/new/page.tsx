@@ -89,10 +89,10 @@ export default function AddNewStudentPage() {
           <Input value={parentPhone} onChange={(e) => setParentPhone(e.target.value)} placeholder="+234..." />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <Label className="mb-1 block">Gender</Label>
-            <div className="flex gap-4 pt-2">
+            <div className="flex flex-wrap gap-x-4 gap-y-1 pt-2">
               {["Male", "Female", "Other"].map((g) => (
                 <label key={g} className="flex items-center gap-1 text-sm">
                   <input type="radio" name="gender" checked={gender === g} onChange={() => setGender(g)} />
@@ -107,7 +107,7 @@ export default function AddNewStudentPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <Label className="mb-1 block">Grade/Class</Label>
             <Input value={grade} onChange={(e) => setGrade(e.target.value)} placeholder="e.g. SS3" />
@@ -118,7 +118,7 @@ export default function AddNewStudentPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <Label className="mb-1 block">Country of Residence</Label>
             <select

@@ -180,7 +180,7 @@ export default function ScheduleReviewPanel({ student, onChanged }: { student: S
         {message && <p className="text-xs text-blue-600">{message}</p>}
 
         {!isApproved && (
-          <div className="flex items-center gap-2 pt-1">
+          <div className="flex items-center gap-2 pt-1 flex-wrap">
             <Button size="sm" onClick={handleApprove} disabled={isApproving}>
               {isApproving ? "Approving..." : "Approve as submitted"}
             </Button>

@@ -114,7 +114,7 @@ export default function AdminDocumentUploadPage() {
                 <TableCell className="text-sm text-blue-600">Document {i + 1}</TableCell>
                 <TableCell className="text-xs text-gray-500">{formatDate(row.submittedAt)}</TableCell>
                 <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
+                  <div className="flex justify-end gap-2 flex-wrap">
                     <Button aria-label="Preview document" size="icon" variant="ghost" onClick={() => setPreview({ title: `${row.applicantName} - Document ${i + 1}`, url: row.documentUrl })}>
                       <Eye className="w-4 h-4 text-gray-500" />
                     </Button>

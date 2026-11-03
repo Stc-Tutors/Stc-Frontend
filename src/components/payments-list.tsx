@@ -210,7 +210,7 @@ export default function PaymentsList({ variant }: PaymentsListProps) {
                     </TableCell>
                     <TableCell className="text-right">
                       {payment.status === PaymentStatus.PENDING && payment.accessCode && (
-                        <div className="flex justify-end gap-2">
+                        <div className="flex justify-end gap-2 flex-wrap">
                           <Button
                             size="sm"
                             variant="ghost"

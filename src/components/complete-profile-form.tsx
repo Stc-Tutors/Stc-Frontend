@@ -320,7 +320,7 @@ export default function CompleteProfileForm({ studentId, dashboardPath }: { stud
         </Card>
       )}
 
-      <div className="flex gap-3">
+      <div className="flex gap-3 flex-wrap">
         <Button onClick={handleConfirm} disabled={isSaving}>
           {isSaving ? "Saving..." : requiresPayment ? "Confirm & Pay" : "Confirm"}
         </Button>

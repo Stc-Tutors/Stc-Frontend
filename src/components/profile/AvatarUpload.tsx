@@ -63,7 +63,7 @@ export default function AvatarUpload({ url, name, onChange }: Props) {
           <AvatarFallback>{name?.[0]}</AvatarFallback>
         </Avatar>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 flex-wrap">
           <Button type="button" variant="outline" disabled={isBusy} asChild>
             <label htmlFor="avatar-upload" className="cursor-pointer flex items-center gap-2">
               {isBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}

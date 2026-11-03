@@ -234,7 +234,7 @@ function AccessTab({ notify }: { notify: Notify }) {
                     {r.allowedSubjectIds ? `Limited to ${r.allowedSubjectIds.length} subject(s)` : "All subjects"}
                   </p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                   <Button size="sm" variant="outline" onClick={() => openLimits(r)} disabled={busy}>
                     Limit subjects
                   </Button>
@@ -335,7 +335,7 @@ function SubjectLimits({
           ))}
         </div>
       )}
-      <div className="flex gap-2">
+      <div className="flex gap-2 flex-wrap">
         <Button onClick={() => save(Array.from(chosen))} disabled={busy || chosen.size === 0}>
           Save limit ({chosen.size})
         </Button>
@@ -668,7 +668,7 @@ function BankTab({ notify }: { notify: Notify }) {
           </p>
           <input type="file" accept=".csv,text/csv" onChange={(e) => onFile(e.target.files?.[0])} className="text-sm" />
           <textarea className={`${field} font-mono`} rows={5} placeholder="...or paste CSV here" value={csv} onChange={(e) => setCsv(e.target.value)} />
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <Button variant="outline" onClick={() => importCsv(true)} disabled={busy || !csv.trim()}>
               Check file
             </Button>

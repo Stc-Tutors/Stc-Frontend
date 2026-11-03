@@ -256,7 +256,7 @@ export default function AdminChildProfilePage() {
                 <Input value={form[key]} onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))} />
               </div>
             ))}
-            <div className="flex justify-end gap-2 pt-2">
+            <div className="flex justify-end gap-2 pt-2 flex-wrap">
               <Button variant="outline" onClick={() => setEditSection(null)}>Cancel</Button>
               <Button onClick={handleSaveEdit} disabled={isSaving}>{isSaving ? "Saving..." : "Save"}</Button>
             </div>
@@ -402,7 +402,7 @@ function EnrollmentCard({
           )}
           <p className="text-sm text-gray-600 mt-1">{paymentSummary(payments)}</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Button variant="outline" size="sm" onClick={onView}>View full details</Button>
           {canManage && (
             enrollment.suspensionReason ? (

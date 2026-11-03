@@ -71,7 +71,7 @@ export default function DualPaneTransferList({
           <h4 className="text-sm font-semibold text-gray-900">
             {leftTitle} <span className="text-gray-500 font-normal">({leftItems.length})</span>
           </h4>
-          <div className="flex gap-2 text-xs">
+          <div className="flex gap-2 text-xs flex-wrap">
             <button type="button" onClick={selectAllShown} className="text-blue-600 hover:underline">
               Select all shown
             </button>
@@ -103,7 +103,7 @@ export default function DualPaneTransferList({
       </div>
 
       {/* Transfer control */}
-      <div className="flex lg:flex-col items-center justify-center gap-2 lg:pt-16">
+      <div className="flex lg:flex-col items-center justify-center gap-2 lg:pt-16 flex-wrap">
         <Button size="sm" onClick={handleTransfer} disabled={!canTransfer} title={transferDisabledReason}>
           <ChevronsRight className="size-4" />
           {isTransferring ? "Assigning..." : transferLabel}

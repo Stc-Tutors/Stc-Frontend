@@ -172,7 +172,7 @@ export default function AdminRescheduleRequestsPage() {
                           onChange={(e) => setRejectReason(e.target.value)}
                           className="border rounded-md px-2 py-1 text-xs w-48"
                         />
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 flex-wrap">
                           <Button size="sm" variant="destructive" onClick={() => handleReject(r.id)}>
                             Confirm reject
                           </Button>
@@ -189,7 +189,7 @@ export default function AdminRescheduleRequestsPage() {
                         </div>
                       </div>
                     ) : (
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 flex-wrap">
                         <Button size="sm" onClick={() => handleApprove(r.id)}>
                           Approve
                         </Button>

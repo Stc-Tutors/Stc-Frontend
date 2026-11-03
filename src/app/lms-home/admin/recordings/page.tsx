@@ -90,7 +90,7 @@ export default function AdminRecordingsPage() {
                   </td>
                   <td className="px-3 py-2">{item.expiresAt && item.status === "READY" ? new Date(item.expiresAt).toLocaleDateString() : "-"}</td>
                   <td className="px-3 py-2">
-                    <div className="flex justify-end gap-2">
+                    <div className="flex justify-end gap-2 flex-wrap">
                       {item.status === "READY" && (
                         <Button size="sm" variant="outline" onClick={() => setPlaying(item)}>
                           Watch

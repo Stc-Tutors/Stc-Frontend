@@ -242,7 +242,7 @@ export default function PendingAssignmentsPage() {
                         className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
                         rows={2}
                       />
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 flex-wrap">
                         <Button
                           variant="destructive"
                           disabled={isBusy}
@@ -256,7 +256,7 @@ export default function PendingAssignmentsPage() {
                       </div>
                     </div>
                   ) : (
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-wrap">
                       <Button
                         disabled={isBusy}
                         onClick={() => (entry.kind === "one-on-one" ? handleAccept(entry.row.id) : handleAcceptGroup(entry.classGroupId))}

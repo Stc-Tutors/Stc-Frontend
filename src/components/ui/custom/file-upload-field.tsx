@@ -58,7 +58,7 @@ export default function FileUploadField({ id, folder, value, onChange, limits, e
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 flex-wrap">
         <Button type="button" variant="outline" disabled={isUploading} asChild>
           <label htmlFor={id} className="cursor-pointer flex items-center gap-2">
             {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}

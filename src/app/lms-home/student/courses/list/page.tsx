@@ -48,7 +48,7 @@ export default function CoursesPage() {
     <div className="p-6 relative">
       {/* Top Section */}
       <div className="flex flex-col gap-4 mb-8">
-        <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center justify-between flex-wrap gap-2 flex-wrap">
           <button
             onClick={() => router.push("/lms-home/student/courses")}
             className="text-gray-600 hover:text-blue-800 flex items-center gap-1"
@@ -110,7 +110,7 @@ export default function CoursesPage() {
                     <LocalFirstPrice amount={Number(course.price)} currency={course.currency}>{course.currency} {course.price}</LocalFirstPrice>
                   </span>
 
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-wrap">
                     <Button
                       variant="outline"
                       onClick={() => router.push(`/lms-home/student/courses/${course.id}`)}
@@ -142,7 +142,7 @@ export default function CoursesPage() {
             <p className="text-sm text-gray-600 mb-6">
               This will enroll you in the course and give you access to all lessons, resources, and assignments.
             </p>
-            <div className="flex justify-between flex-wrap gap-2">
+            <div className="flex justify-between flex-wrap gap-2 flex-wrap">
               <Button variant="outline" className="text-red-500 border-red-300" onClick={() => setModal({ courseId: null })}>
                 Go Back
               </Button>

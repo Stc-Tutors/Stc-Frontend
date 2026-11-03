@@ -314,7 +314,7 @@ export default function TutorCourseDetailPage() {
             ) : (
               assignments.map((a) => (
                 <div key={a.id} className="flex items-center justify-between flex-wrap gap-2 text-sm border-b pb-2">
-                  <span className="flex items-center gap-2">
+                  <span className="flex items-center gap-2 flex-wrap">
                     <button
                       className="text-blue-600 hover:underline text-left"
                       onClick={() => router.push(`/lms-home/tutor/courses/${courseId}/assignments/${a.id}`)}
@@ -379,7 +379,7 @@ export default function TutorCourseDetailPage() {
             <p className="text-sm text-gray-500">No resources uploaded yet.</p>
           ) : (
             resources.map((r) => (
-              <div key={r.id} className="flex items-center justify-between flex-wrap gap-2 text-sm border-b pb-2">
+              <div key={r.id} className="flex items-center justify-between flex-wrap gap-2 text-sm border-b pb-2 flex-wrap">
                 <button onClick={() => setPreview({ title: r.title, url: r.fileUrl })} className="text-blue-600 hover:underline">
                   {r.title}
                 </button>

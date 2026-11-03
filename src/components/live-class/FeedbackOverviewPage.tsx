@@ -70,7 +70,7 @@ function FeedbackRow({ item, onChanged }: { item: OverviewFeedbackItem; onChange
             {nameOf(item.student, "Student")} · {formatDateTime(item.createdAt)}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <Button size="sm" variant="outline" disabled={busy} onClick={() => setNoting((v) => !v)}>
             <MessageSquarePlus className="mr-1.5 h-4 w-4" /> Note
           </Button>

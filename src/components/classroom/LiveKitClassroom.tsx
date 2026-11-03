@@ -287,7 +287,7 @@ export default function LiveKitClassroom({ lessonId, onExit }: LiveKitClassroomP
       <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-gray-300 bg-gray-50 py-16 text-center">
         <ShieldAlert className="h-8 w-8 text-amber-500" />
         <p className="max-w-md text-sm text-gray-700">{error}</p>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <Button variant="outline" onClick={onExit}>
             Back
           </Button>
@@ -309,7 +309,7 @@ export default function LiveKitClassroom({ lessonId, onExit }: LiveKitClassroomP
           <p className="text-sm text-gray-700">
             {phase === "ended" ? "This class has ended." : "You left the class."}
           </p>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <Button variant="outline" onClick={onExit}>
               Back to my schedule
             </Button>
@@ -460,7 +460,7 @@ export default function LiveKitClassroom({ lessonId, onExit }: LiveKitClassroomP
         )}
       </div>
 
-      <div className="absolute right-3 top-3 z-30 flex items-center gap-2">
+      <div className="absolute right-3 top-3 z-30 flex items-center gap-2 flex-wrap">
         {connection.context.kind === "visiting" && (
           <Button size="sm" variant="secondary" onClick={backToMainRoom}>
             <ArrowLeft className="mr-2 h-4 w-4" />

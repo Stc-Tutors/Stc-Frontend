@@ -94,7 +94,7 @@ export default function GuardianConsentForm({ token, signedIn }: { token: string
       {!signedIn ? (
         <div className="space-y-3 rounded-md border border-blue-200 bg-blue-50 p-4">
           <p>To confirm, sign in to (or create) a parent account using the same email address this link was sent to.</p>
-          <div className="flex gap-3">
+          <div className="flex gap-3 flex-wrap">
             <Button asChild className="flex-1">
               <Link href={`/auth/login?next=${encodeURIComponent(next)}`}>Sign in</Link>
             </Button>
