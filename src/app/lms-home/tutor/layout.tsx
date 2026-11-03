@@ -138,6 +138,9 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
     });
   }, [pathname]);
   const [searchTerm, setSearchTerm] = useState("");
+  // Until the tutor's application is fully approved, none of the dashboard (and so none of its data calls) is mounted:
+  // "checking" shows a blank loader, "held" shows a short status screen, "open" is the normal LMS.
+  const [gate, setGate] = useState<"checking" | "held" | "open">("checking");
   const { hodAssignment, hasHodPermission } = useUser();
   const visibleHodLinks = HOD_LINKS.filter((link) => {
     if (link.hodOnly) return !!hodAssignment;
@@ -160,6 +163,13 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
     if (pathname === VETTING_PATH || isGateAllowed(pathname)) return;
     (async () => {
       const [res] = await GetMyTutorApplicationAction();
+      const status = res?.data?.status;
+      const notApprovedYet =
+        status === TutorApplicationStatus.DRAFT ||
+        status === TutorApplicationStatus.PENDING ||
+        status === TutorApplicationStatus.RECOMMENDED ||
+        status === TutorApplicationStatus.NEEDS_MORE_INFO;
+      setGate(notApprovedYet ? "held" : status === TutorApplicationStatus.APPROVED_PENDING_VETTING || status === TutorApplicationStatus.VETTING_SUBMITTED ? "checking" : "open");
       // Past the references deadline with a referee still silent: only the references page (and account basics) open until they are in.
       if (referencesLocked(res?.data)) {
         router.replace(REFERENCES_PATH);
@@ -219,6 +229,28 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
   // First-login onboarding and the post-approval Vetting Questionnaire are
   // both bare full-screen steps - no sidebar/topbar chrome, so a tutor can't
   // wander off into the rest of the dashboard before completing either one.
+  const exemptFromGate = pathname === ONBOARDING_PATH || pathname === VETTING_PATH || isGateAllowed(pathname);
+  if (!exemptFromGate && gate === "checking") {
+    return <div className="flex h-dvh items-center justify-center bg-gray-50 text-sm text-gray-500">Loading...</div>;
+  }
+  if (!exemptFromGate && gate === "held") {
+    return (
+      <div className="mx-auto flex min-h-dvh max-w-xl flex-col justify-center gap-4 px-4 py-10 text-center">
+        <h1 className="text-xl font-semibold text-gray-900">Your tutor application is not approved yet</h1>
+        <p className="text-sm text-gray-600">
+          The tutor dashboard opens as soon as an admin approves your application. We will notify you the moment that happens. Until then you can still use your
+          profile, notifications and support.
+        </p>
+        <nav className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-gray-600">
+          <Link href="/lms-home/tutor/profile" className="underline">Profile</Link>
+          <Link href="/lms-home/tutor/notification" className="underline">Notifications</Link>
+          <Link href="/lms-home/tutor/complaints" className="underline">Support</Link>
+        </nav>
+        <LogoutButton className="mx-auto text-sm text-blue-600 underline">Log out</LogoutButton>
+      </div>
+    );
+  }
+
   if (pathname === ONBOARDING_PATH || pathname === VETTING_PATH) {
     return (
       <>
