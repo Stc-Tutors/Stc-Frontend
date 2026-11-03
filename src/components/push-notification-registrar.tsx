@@ -12,6 +12,29 @@ import { playNotificationSound } from "@/lib/notification-alert";
 // so @capacitor/* is never even imported outside the Android app - see
 // use-messaging-socket.ts for how the desktop app gets notifications instead
 // (the standard web Notification API, since it's just a BrowserView).
+// Android shows no banner for a push that arrives while the app is open, so draw one ourselves. Needs the native
+// local-notifications plugin (present from the app build that includes it); on an older build this quietly does nothing.
+async function showForegroundBanner(title?: string, body?: string, link?: string) {
+  try {
+    const { LocalNotifications } = await import("@capacitor/local-notifications");
+    const permission = await LocalNotifications.requestPermissions();
+    if (permission.display !== "granted") return;
+    await LocalNotifications.schedule({
+      notifications: [
+        {
+          id: Math.floor(Date.now() % 2_000_000_000),
+          title: title || "STC Tutors",
+          body: body || "",
+          channelId: "stc_alerts",
+          extra: { link },
+        },
+      ],
+    });
+  } catch {
+    // plugin not in this app build yet
+  }
+}
+
 export default function PushNotificationRegistrar() {
   const { user } = useUser();
   const registeredRef = useRef(false);
@@ -58,8 +81,9 @@ export default function PushNotificationRegistrar() {
       // so without this listener it was silently dropped: no banner, no
       // sound, nothing (the polling NotificationBell would eventually pick
       // it up too, but the point of push is not waiting on that).
-      PushNotifications.addListener("pushNotificationReceived", () => {
+      PushNotifications.addListener("pushNotificationReceived", (notification) => {
         playNotificationSound();
+        void showForegroundBanner(notification.title, notification.body, notification.data?.link as string | undefined);
       });
       // Tapping a notification (app backgrounded or cold-started from it) -
       // navigate straight to the conversation/page it's about instead of
@@ -71,6 +95,17 @@ export default function PushNotificationRegistrar() {
         const link = action.notification.data?.link as string | undefined;
         if (link) window.location.href = link;
       });
+
+      // Tapping the banner above opens the page it is about, like tapping a normal push.
+      try {
+        const { LocalNotifications } = await import("@capacitor/local-notifications");
+        LocalNotifications.addListener("localNotificationActionPerformed", (action) => {
+          const link = action.notification.extra?.link as string | undefined;
+          if (link) window.location.href = link;
+        });
+      } catch {
+        // plugin not in this app build yet
+      }
 
       await PushNotifications.register();
     })();
