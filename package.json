@@ -12,7 +12,7 @@
     "@capacitor/core": "^7.6.8",
     "@capacitor/push-notifications": "^7.0.7",
     "@excalidraw/excalidraw": "^0.18.1",
-    "@hookform/resolvers": "^5.0.1",
+    "@hookform/resolvers": "^5.9.2",
     "@livekit/components-core": "^0.12.15",
     "@livekit/components-react": "^2.9.24",
     "@livekit/components-styles": "^1.2.0",
@@ -44,7 +44,7 @@
     "lightningcss": "^1.30.2",
     "livekit-client": "^2.22.3",
     "lucide-react": "^0.485.0",
-    "next": "^16.4.0",
+    "next": "^16.4.4",
     "rc-progress": "^4.0.0",
     "react": "^18.3.1",
     "react-calendar": "^6.0.0",
@@ -64,7 +64,7 @@
     "swiper": "^14.1.0",
     "tailwind-merge": "^3.3.0",
     "world-countries": "^5.1.0",
-    "zod": "^3.25.28"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@eslint/js": "^9.29.0",
@@ -90,6 +90,13 @@
   "overrides": {
     "browserslist": "^4.28.7",
     "js-yaml": "^4.3.2",
-    "@humanfs/node": "^0.16.8"
+    "@humanfs/node": "^0.16.8",
+    "@excalidraw/excalidraw": {
+      "nanoid": "3.3.20"
+    },
+    "@excalidraw/mermaid-to-excalidraw": {
+      "nanoid": "5.1.16"
+    },
+    "lodash-es": "4.18.1"
   }
 }
