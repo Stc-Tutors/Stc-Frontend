@@ -9,6 +9,24 @@
 // covers it too - vibrate() works there without any native plugin.
 let audioCtx: AudioContext | null = null;
 
+// A browser only lets a page make sound after the person has touched it once. Unlock the audio engine on the first tap/key so the
+// chime works later when a notification arrives on its own (this was the "no sound" cause on phones and the desktop app).
+if (typeof window !== "undefined") {
+  const unlock = () => {
+    try {
+      const AudioCtxClass = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (AudioCtxClass) {
+        audioCtx ??= new AudioCtxClass();
+        if (audioCtx.state === "suspended") void audioCtx.resume();
+      }
+    } catch {
+      // nothing to unlock
+    }
+    ["pointerdown", "touchstart", "keydown"].forEach((e) => window.removeEventListener(e, unlock));
+  };
+  ["pointerdown", "touchstart", "keydown"].forEach((e) => window.addEventListener(e, unlock, { passive: true }));
+}
+
 export function playNotificationSound(): void {
   try {
     const AudioCtxClass = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;

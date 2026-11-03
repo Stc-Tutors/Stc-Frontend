@@ -12,16 +12,20 @@ self.addEventListener("push", (event) => {
     data = { title: "STC Tutors", body: event.data ? event.data.text() : "" };
   }
   const title = data.title || "STC Tutors";
+  // The number on the installed app's icon, where the browser supports it.
+  const badge = typeof data.unread === "number" && self.navigator.setAppBadge ? self.navigator.setAppBadge(data.unread).catch(() => {}) : null;
   event.waitUntil(
-    self.registration.showNotification(title, {
+    Promise.all([badge, self.registration.showNotification(title, {
       body: data.body || "",
       icon: "/image/STC%20logo%20main.png",
       badge: "/image/STC%20logo%20main.png",
       data: { link: data.link || "/lms-home" },
+      vibrate: [120, 60, 120],
+      silent: false,
       // A newer reminder for the same thing replaces the older one instead of stacking.
       tag: data.link || title,
       renotify: true,
-    })
+    })])
   );
 });
 

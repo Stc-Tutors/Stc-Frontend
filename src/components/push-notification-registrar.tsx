@@ -29,6 +29,23 @@ export default function PushNotificationRegistrar() {
 
       registeredRef.current = true;
 
+      // Android 8+ decides sound and pop-up behaviour per channel. The server names this channel on every push (stcbe ANDROID_CHANNEL_ID),
+      // so create it loud: without it messages arrive silently or only when the app is opened.
+      try {
+        await PushNotifications.createChannel({
+          id: "stc_alerts",
+          name: "STC alerts",
+          description: "Messages, class reminders and updates",
+          importance: 5,
+          visibility: 0,
+          sound: "default",
+          vibration: true,
+          lights: true,
+        });
+      } catch {
+        // older Android - the default channel is used
+      }
+
       PushNotifications.addListener("registration", (token) => {
         RegisterDeviceTokenAction(token.value, "ANDROID");
       });

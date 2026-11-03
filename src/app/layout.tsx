@@ -7,6 +7,7 @@ import TermsGateModal from "@/components/terms-gate-modal";
 import OnboardingTour from "@/components/onboarding-tour/onboarding-tour";
 import PushNotificationRegistrar from "@/components/push-notification-registrar";
 import WebPushRegistrar from "@/components/web-push-registrar";
+import AppBadgeSync from "@/components/app-badge-sync";
 import RealtimeSync from "@/components/realtime-sync";
 import ContactUsWidget from "@/components/contact-us-widget";
 import DisplayPrefsScript from "@/components/shared/display-prefs-script";
@@ -40,6 +41,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <OnboardingTour />
             <PushNotificationRegistrar />
             <WebPushRegistrar />
+            <AppBadgeSync />
             <RealtimeSync />
             {/* "Need help?" - call / WhatsApp / email / support, with details per audience - see ContactUsWidget. */}
             <ContactUsWidget />

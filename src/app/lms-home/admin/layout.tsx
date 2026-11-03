@@ -50,6 +50,7 @@ import BrandLogo from "@/components/shared/BrandLogo";
 import LogoutButton from "@/components/shared/LogoutButton";
 import { UserProfileDropdown } from "@/components/user-profile-dropdown";
 import NotificationBell from "@/components/notification-bell";
+import { NavCount, useSectionBadges } from "@/lib/section-badges";
 import AnnouncementsOverlay from "@/components/announcements-overlay";
 import { useUser } from "@/contexts/user-context";
 import { AdminPermission } from "@/types/admin-permission";
@@ -293,6 +294,7 @@ const TOUR_TARGETS: Record<string, string> = {
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { total: unreadTotal, countFor } = useSectionBadges();
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [sidebarCollapsed, toggleSidebarCollapsed] = useSidebarCollapsed();
@@ -381,7 +383,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   <Icon className="w-5 h-5" />
                   {label}
                 </div>
-                {badge && <span className="ml-auto w-2.5 h-2.5 bg-red-500 rounded-full"></span>}
+                <NavCount count={badge ? unreadTotal : countFor(href)} />
               </Link>
             ))}
         </nav>

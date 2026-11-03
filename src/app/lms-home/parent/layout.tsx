@@ -38,6 +38,7 @@ import BrandLogo from "@/components/shared/BrandLogo";
 import LogoutButton from "@/components/shared/LogoutButton";
 import { UserProfileDropdown } from "@/components/user-profile-dropdown";
 import NotificationBell from "@/components/notification-bell";
+import { NavCount, useSectionBadges } from "@/lib/section-badges";
 import AnnouncementsOverlay from "@/components/announcements-overlay";
 import { ChildSwitcherDropdown } from "@/components/child-switcher-dropdown";
 import AccessRestrictionGate from "@/components/shared/AccessRestrictionGate";
@@ -84,6 +85,7 @@ const TOUR_TARGETS: Record<string, string> = {
 
 export default function LMSLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { total: unreadTotal, countFor } = useSectionBadges();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [sidebarCollapsed, toggleSidebarCollapsed] = useSidebarCollapsed();
   // Close the mobile drawer whenever the user navigates.
@@ -140,9 +142,7 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
                         <Icon className="w-5 h-5" />
                         {label}
                         </div>
-                        {badge && (
-                            <span className="ml-auto w-2.5 h-2.5 bg-red-500 rounded-full"></span>
-                            )}
+                        <NavCount count={badge ? unreadTotal : countFor(href)} />
                             </Link>
                         ))}
                         </nav>
@@ -167,6 +167,7 @@ export default function LMSLayout({ children }: { children: React.ReactNode }) {
                                 className="flex items-center gap-3 text-gray-600 hover:text-[#0a7ac2] hover:translate-x-3">
                                     <Bell className="w-5 h-5" />
                                     Notifications
+<span className="ml-auto"><NavCount count={unreadTotal} /></span>
                                     </Link>
                                     
                                     {/* Logout */}
