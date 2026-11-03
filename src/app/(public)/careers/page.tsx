@@ -19,6 +19,7 @@ import { GetJobOpeningsAction } from "@/server/content";
 import { CareersIntroContent, JobEmploymentType, JobOpening, PageSectionKey } from "@/types/content";
 import { sanitizeRichText } from "@/lib/sanitize-html";
 import CareerApplicationForm from "./CareerApplicationForm";
+import { IntakeClosedDialog, useIntakeClosed } from "@/components/intake-closed";
 import PageFaq from "@/components/faq-section";
 
 // Purely decorative - a quick visual read of the platform before the text
@@ -89,6 +90,9 @@ export default function CareersPage() {
   const [openings, setOpenings] = useState<JobOpening[] | null>(null);
   const [applyingTo, setApplyingTo] = useState<JobOpening | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const tutorClosed = useIntakeClosed(["TUTOR_APPLICATION"]);
+  const careerClosed = useIntakeClosed(["CAREER_APPLICATION"]);
+  const [closedNotice, setClosedNotice] = useState<string | null>(null);
 
   useEffect(() => {
     GetJobOpeningsAction().then(([res]) => setOpenings(res?.data ?? []));
@@ -191,15 +195,24 @@ export default function CareersPage() {
                     </div>
                     <div className="shrink-0">
                       {opening.isTutorRole ? (
-                        <Link
-                          href="/auth/apply-tutor"
-                          className="inline-block bg-[#0a7ac2] text-white px-6 py-3 rounded-md hover:bg-indigo-700 transition text-center"
-                        >
-                          Become a Tutor
-                        </Link>
+                        tutorClosed ? (
+                          <button
+                            onClick={() => setClosedNotice(tutorClosed)}
+                            className="inline-block bg-[#0a7ac2] text-white px-6 py-3 rounded-md hover:bg-indigo-700 transition text-center"
+                          >
+                            Become a Tutor
+                          </button>
+                        ) : (
+                          <Link
+                            href="/auth/apply-tutor"
+                            className="inline-block bg-[#0a7ac2] text-white px-6 py-3 rounded-md hover:bg-indigo-700 transition text-center"
+                          >
+                            Become a Tutor
+                          </Link>
+                        )
                       ) : (
                         <button
-                          onClick={() => setApplyingTo(opening)}
+                          onClick={() => (careerClosed ? setClosedNotice(careerClosed) : setApplyingTo(opening))}
                           className="bg-[#0a7ac2] text-white px-6 py-3 rounded-md hover:bg-indigo-700 transition"
                         >
                           Apply
@@ -248,6 +261,7 @@ export default function CareersPage() {
 
       <PageFaq sectionKey={PageSectionKey.FAQ_CAREERS} />
 
+      {closedNotice && <IntakeClosedDialog message={closedNotice} onClose={() => setClosedNotice(null)} />}
       {applyingTo && <CareerApplicationForm opening={applyingTo} onClose={() => setApplyingTo(null)} />}
     </main>
   );

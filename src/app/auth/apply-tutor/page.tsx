@@ -4,6 +4,7 @@ import { MoveLeft } from "lucide-react";
 import { TutorApplicationProvider } from "@/contexts/tutor-application-context";
 import TutorApplicationFlow from "@/components/tutor-application-flow";
 import Loader from "@/components/loading";
+import { IntakeGate } from "@/components/intake-closed";
 
 // Multi-step tutor registration wizard - see tutor-registration-schema.json.
 // Supersedes the old single-page ApplyTutorForm (its route/backend endpoint
@@ -23,9 +24,11 @@ export default function ApplyTutorPage() {
         </Link>
       </div>
       <Suspense fallback={<Loader />}>
-        <TutorApplicationProvider>
-          <TutorApplicationFlow />
-        </TutorApplicationProvider>
+        <IntakeGate targets={["TUTOR_APPLICATION"]}>
+          <TutorApplicationProvider>
+            <TutorApplicationFlow />
+          </TutorApplicationProvider>
+        </IntakeGate>
       </Suspense>
     </div>
   );
