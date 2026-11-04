@@ -8,6 +8,10 @@ import { Button } from "@/components/ui/button";
 import { GetCoursesAction } from "@/server/course";
 import { IntakeClosedDialog, useIntakeClosed } from "@/components/intake-closed";
 import { EnrollInCourseAction } from "@/server/course-enrollment";
+import { InitiatePaymentAction, VerifyPaymentAction } from "@/server/payment";
+import { createCheckout } from "@/lib/checkout";
+import { PaymentRequest } from "@/types/payment";
+import { ROUTES } from "@/config/routes";
 import { GetEnrollmentsAction } from "@/server/enrollment";
 import { Course } from "@/types/course";
 import { LocalFirstPrice } from "@/components/local-price-note";
@@ -46,7 +50,45 @@ export default function CoursesPage() {
       setModal({ courseId: null });
       return;
     }
+    const course = courses.find((c) => c.id === modal.courseId);
     setEnrolling(modal.courseId);
+
+    // A priced course is paid for first - the verified payment is what adds it (the server refuses a bare enrol).
+    if (course && Number(course.price) > 0) {
+      const [payRes, payError] = await InitiatePaymentAction({
+        student: studentId,
+        amount: Number(course.price),
+        currency: course.currency,
+        description: course.title,
+        serviceType: course.serviceType,
+        // The server prices this from the course itself - the amount above is never trusted.
+        metadata: { courseId: course.id },
+      });
+      setModal({ courseId: null });
+      if (payError || !payRes?.data) {
+        setEnrolling(null);
+        setMessage(payError || "We couldn't start the payment. Please try again.");
+        return;
+      }
+      const payment = payRes.data as PaymentRequest & { fullyCoveredByWallet?: boolean };
+      // The wallet covered everything: already paid and added.
+      if (payment.fullyCoveredByWallet) {
+        router.push(ROUTES.LMS.STUDENT.PAYMENT_HISTORY);
+        return;
+      }
+      const popup = await createCheckout(payment, { returnTo: ROUTES.LMS.STUDENT.PAYMENT_HISTORY });
+      setEnrolling(null);
+      popup.resumeTransaction(payment.access_code, {
+        onSuccess: async () => {
+          await VerifyPaymentAction(payment.reference);
+          router.push(ROUTES.LMS.STUDENT.PAYMENT_HISTORY);
+        },
+        onCancel: () => setMessage("Payment cancelled - you can try again whenever you're ready."),
+        onError: (e: { message?: string }) => setMessage(e?.message || "Payment failed - please try again."),
+      });
+      return;
+    }
+
     const [, error] = await EnrollInCourseAction(modal.courseId, studentId);
     setEnrolling(null);
     setModal({ courseId: null });
