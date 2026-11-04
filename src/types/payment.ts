@@ -55,6 +55,7 @@ export interface CreatePaymentPayload {
   metadata?: Record<string, unknown>;
   country?: string;
   serviceType?: string;
+  couponCode?: string;
 }
 
 export interface SpendingSummary {

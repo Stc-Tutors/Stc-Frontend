@@ -362,6 +362,7 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
         currency: choice.currency,
         description: `${choice.courseTitle ?? choice.label}`,
         country: form.countryOfResidence,
+        couponCode: form.couponCode.trim() || undefined,
         // The server prices this from the course itself - the amount above is never trusted.
         metadata: { courseId: choice.courseId },
       });
@@ -374,9 +375,8 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
     }
 
     setStep("Submitting enrollment...");
-    // Hidden optional fields still have to satisfy the server, so they get neutral defaults.
-    const gender = form.childGender || "Prefer not to say";
-    const primaryLanguage = form.primaryLanguage || languages.find((l) => /english/i.test(l.label))?.value || languages[0]?.value || "";
+    const gender = form.childGender;
+    const primaryLanguage = form.primaryLanguage;
     const childName = isStudent ? `${form.parentFirstName} ${form.parentLastName}`.trim() : form.childFullName;
     const [enrollRes, enrollError] = await EnrollAction({
       fullName: childName,
@@ -612,7 +612,7 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
       // failure after they've already gone through the payment consent step.
       if (form.couponCode.trim()) {
         setStep("Checking coupon code...");
-        const previewAmount = isFlowTree ? flowTreeQuote?.amount ?? 0 : quote?.amount ?? 0;
+        const previewAmount = isSpecial ? page.specialCourse?.price ?? 0 : isFlowTree ? flowTreeQuote?.amount ?? 0 : quote?.amount ?? 0;
         const [, couponError] = await ValidateCouponAction(form.couponCode.trim(), previewAmount);
         if (couponError) {
           setError(couponError);
@@ -911,10 +911,9 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
           </p>
         )}
 
-        {/* A Special Course is charged at the course's own price, which no coupon changes. */}
-        {((!hidden.has("couponCode") && !isSpecial) || !hidden.has("referralCode")) && (
+        {(!hidden.has("couponCode") || !hidden.has("referralCode")) && (
           <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-2 pt-1">
-            {!hidden.has("couponCode") && !isSpecial && (
+            {!hidden.has("couponCode") && (
               <div>
                 <Label>Coupon code (optional)</Label>
                 <Input
