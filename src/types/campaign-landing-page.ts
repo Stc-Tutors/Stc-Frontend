@@ -34,7 +34,14 @@ export interface CampaignLandingPage {
   // couponCode, referralCode.
   hiddenFields?: string[];
   customQuestions?: CampaignQuestion[];
-  specialCourse?: { id: string; title: string; price: number; currency: string };
+  specialCourse?: {
+    id: string;
+    title: string;
+    price: number;
+    currency: string;
+    // Prices for specific countries (keyed by the country option value) - override price/currency for them.
+    countryPrices?: { country: string; currency: string; amount: number }[];
+  };
   courseId?: string;
   taxonomyNodeId?: string;
   classGroupId?: string;

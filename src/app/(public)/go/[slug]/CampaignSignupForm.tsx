@@ -188,6 +188,13 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
   const isFlowTree = page.pricingMode !== "COURSE" && !isSpecial;
   const isStudent = page.registrantType === "STUDENT";
   const serviceType = page.serviceType ?? "";
+  // A Special Course can have its own price for the visitor's country; otherwise the default applies.
+  const specialPrice = page.specialCourse
+    ? (() => {
+        const match = page.specialCourse.countryPrices?.find((p) => p.country.toLowerCase() === form.countryOfResidence.toLowerCase());
+        return match ? { amount: match.amount, currency: match.currency } : { amount: page.specialCourse.price, currency: page.specialCourse.currency };
+      })()
+    : null;
   const hidden = new Set(page.hiddenFields ?? []);
   const studentAge = ageFromDob(form.childDateOfBirth);
   // 16-17 year olds need a parent to confirm by email before the account works.
@@ -612,7 +619,7 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
       // failure after they've already gone through the payment consent step.
       if (form.couponCode.trim()) {
         setStep("Checking coupon code...");
-        const previewAmount = isSpecial ? page.specialCourse?.price ?? 0 : isFlowTree ? flowTreeQuote?.amount ?? 0 : quote?.amount ?? 0;
+        const previewAmount = isSpecial ? specialPrice?.amount ?? 0 : isFlowTree ? flowTreeQuote?.amount ?? 0 : quote?.amount ?? 0;
         const [, couponError] = await ValidateCouponAction(form.couponCode.trim(), previewAmount);
         if (couponError) {
           setError(couponError);
@@ -734,7 +741,7 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6 md:sticky md:top-6 space-y-3">
         <p className="text-lg font-bold text-gray-900 leading-snug">{cohortName}</p>
         <p className="text-sm text-gray-700">
-          {page.specialCourse && page.specialCourse.price > 0
+          {specialPrice && specialPrice.amount > 0
             ? "You're registered. Pay for the course from Payment History in your dashboard to unlock it."
             : "You're registered and enrolled."}
         </p>
@@ -937,11 +944,11 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
         {isSpecial ? (
           <div className="space-y-1">
             <p className="text-sm text-gray-500">{page.specialCourse?.title ?? "Price"}</p>
-            {page.specialCourse ? (
-              page.specialCourse.price > 0 ? (
+            {page.specialCourse && specialPrice ? (
+              specialPrice.amount > 0 ? (
                 <p className="text-2xl font-bold text-gray-900">
-                  <LocalFirstPrice amount={page.specialCourse.price} currency={page.specialCourse.currency} country={form.countryOfResidence} explain>
-                    {formatMoney(page.specialCourse.currency, page.specialCourse.price)}
+                  <LocalFirstPrice amount={specialPrice.amount} currency={specialPrice.currency} country={form.countryOfResidence} explain>
+                    {formatMoney(specialPrice.currency, specialPrice.amount)}
                   </LocalFirstPrice>
                 </p>
               ) : (
@@ -1024,7 +1031,7 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
       <p className="text-xs text-gray-500 text-center">
         {isSpecial && page.payOnPage === false
           ? "Creates your STC Tutors account and registers you for the course - you pay later from your dashboard."
-          : isSpecial && (page.specialCourse?.price ?? 0) === 0
+          : isSpecial && (specialPrice?.amount ?? 0) === 0
             ? "Creates your STC Tutors account and enrols you in the course."
             : `Creates your STC Tutors account${needsCourseChoice ? ", then a quick course pick, " : " and takes you straight "}to secure payment.`} We&apos;ll also email you a link to verify your address - no need to click it before paying.
       </p>
