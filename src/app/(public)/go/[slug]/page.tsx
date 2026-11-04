@@ -76,6 +76,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 //    right after account creation, before payment.
 //  - null: the admin locked the track, nothing to choose.
 function trackChoiceStage(page: LandingPageData): "form" | "after-signup" | null {
+  if (page.pricingMode === "SPECIAL_COURSE") return null;
   if (page.pricingMode === "COURSE") return page.courseId ? null : "after-signup";
   return page.taxonomyNodeId ? null : "form";
 }
@@ -85,7 +86,9 @@ const TRACK_WORDS = /track|course|choose|pick|select/i;
 function HowItWorks({ page }: { page: LandingPageData }) {
   const stage = trackChoiceStage(page);
   const when = stage === "after-signup" ? "right after you register, before payment" : "in the form, before payment";
-  const trackText = `Choose your child's track (coding, design, video editing and more) ${when}.`;
+  const isStudent = page.registrantType === "STUDENT";
+  const isSpecial = page.pricingMode === "SPECIAL_COURSE";
+  const trackText = `Choose your ${isStudent ? "" : "child's "}track (coding, design, video editing and more) ${when}.`;
 
   // Admin-written steps are shown exactly as written. If the track is still to
   // be chosen and no step already says so, a short note under the list makes it
@@ -95,11 +98,16 @@ function HowItWorks({ page }: { page: LandingPageData }) {
     adminSteps.length > 0
       ? adminSteps
       : [
-          { title: "Register", description: "Create your parent account and add your child's details." },
+          {
+            title: "Register",
+            description: isStudent ? "Create your student account with your details." : "Create your parent account and add your child's details.",
+          },
           stage
             ? { title: "Choose a track", description: trackText }
-            : { title: "Your program is ready", description: "The course and cohort are already selected for you." },
-          { title: "Pay securely", description: "Pay online - you'll see the price before you confirm." },
+            : { title: "Your program is ready", description: isSpecial ? "The course is already selected for you." : "The course and cohort are already selected for you." },
+          isSpecial && page.payOnPage === false
+            ? { title: "Pay from your dashboard", description: "Your place is saved - pay from your dashboard to unlock the course." }
+            : { title: "Pay securely", description: "Pay online - you'll see the price before you confirm." },
           { title: "Start learning", description: page.scheduleNote || "Join your first live class with a certified tutor." },
         ];
 
@@ -145,7 +153,8 @@ export default async function CampaignLandingPage({ params }: { params: Params }
   // the admin's Heading). Falls back to `page.title` for a page not locked to
   // a cohort at all.
   let cohortName = page.title;
-  if (page.classGroupId) {
+  if (page.pricingMode === "SPECIAL_COURSE" && page.specialCourse) cohortName = page.specialCourse.title;
+  if (page.classGroupId && page.serviceType) {
     const [groupsRes] = await GetClassGroupsAction({ serviceType: page.serviceType });
     const group = groupsRes?.data?.find((g) => g.id === page.classGroupId);
     if (group?.label) cohortName = group.label;
@@ -224,7 +233,7 @@ export default async function CampaignLandingPage({ params }: { params: Params }
 
           {page.testimonials && page.testimonials.length > 0 && (
             <div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-3">What parents say</h2>
+              <h2 className="text-lg font-semibold text-gray-900 mb-3">{page.registrantType === "STUDENT" ? "What students say" : "What parents say"}</h2>
               <div className="grid sm:grid-cols-2 gap-3">
                 {page.testimonials.map((t, i) => (
                   <figure key={i} className="bg-white border border-gray-100 rounded-lg p-4">

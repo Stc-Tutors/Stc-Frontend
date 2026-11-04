@@ -12,6 +12,8 @@ import { SearchableCombobox } from "@/components/ui/searchable-combobox";
 import { Button } from "@/components/ui/button";
 import { RegisterForCampaignAction, SigninAction } from "@/server/auth";
 import { EnrollAction } from "@/server/enrollment";
+import { EnrollViaCampaignPageAction } from "@/server/course-enrollment";
+import { InitiatePaymentAction } from "@/server/payment";
 import { QuotePricingAction } from "@/server/pricing";
 import { GetTaxonomyOptionsAction } from "@/server/taxonomy-option";
 import { GetCurriculumChildrenAction, GetCurriculumNodeAction } from "@/server/curriculum";
@@ -21,7 +23,8 @@ import { ApplyReferralCodeAction } from "@/server/referral";
 import PaymentConsentModal from "@/components/payment-consent-modal";
 import { isValidPassword, PASSWORD_POLICY_MESSAGE } from "@/lib/password-policy";
 import { CampaignLandingPage } from "@/types/campaign-landing-page";
-import { ITaxonomyOption, TaxonomyOptionKind } from "@/types/service-catalog";
+import { CustomFormFieldType, ICustomFormField, ITaxonomyOption, TaxonomyOptionKind } from "@/types/service-catalog";
+import DynamicQuestionField, { CustomFieldValue } from "@/components/forms/dynamic-question-field";
 import { CurriculumNode, CurriculumNodeType } from "@/types/curriculum";
 import { UserRole } from "@/types/user";
 import { PaymentRequest } from "@/types/payment";
@@ -42,6 +45,8 @@ interface FormState {
   childFullName: string;
   childGender: string;
   childDateOfBirth: string;
+  // A student aged 16-17 registering themselves: where the parent's confirmation link goes.
+  guardianEmail: string;
   countryOfResidence: string;
   primaryLanguage: string;
   couponCode: string;
@@ -57,6 +62,7 @@ const EMPTY_FORM: FormState = {
   childFullName: "",
   childGender: "",
   childDateOfBirth: "",
+  guardianEmail: "",
   countryOfResidence: "",
   primaryLanguage: "",
   couponCode: "",
@@ -82,6 +88,19 @@ function PriceError({ onRetry, pageName }: { onRetry: () => void; pageName: stri
   );
 }
 
+function ageFromDob(value?: string): number | null {
+  if (!value) return null;
+  const dob = new Date(value);
+  if (Number.isNaN(dob.getTime())) return null;
+  const now = new Date();
+  let age = now.getFullYear() - dob.getFullYear();
+  if (now.getMonth() < dob.getMonth() || (now.getMonth() === dob.getMonth() && now.getDate() < dob.getDate())) age -= 1;
+  return age;
+}
+
+const UNDER_16_MESSAGE =
+  "Children under 16 can't create their own account. Please ask a parent or guardian to register you from their own page.";
+
 function formatMoney(currency?: string, amount?: number) {
   if (amount == null) return "";
   return `${currency ?? "NGN"} ${amount.toLocaleString()}`;
@@ -89,6 +108,9 @@ function formatMoney(currency?: string, amount?: number) {
 
 interface EnrollChoice {
   courseId?: string;
+  // Set on a Special Course page: the student record the payment is for.
+  specialStudentId?: string;
+  courseTitle?: string;
   taxonomyNodeId?: string;
   // Only relevant for services whose flowRequirements.requires_age_range is
   // true (e.g. tech-bootcamp) - StudentService.assertServiceDetailsSatisfyFlowRequirements
@@ -130,7 +152,7 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [countries, setCountries] = useState<ITaxonomyOption[]>([]);
   const [languages, setLanguages] = useState<ITaxonomyOption[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(page.pricingMode !== "SPECIAL_COURSE");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [step, setStep] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -153,7 +175,8 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
   // --- COURSE mode: course browsing needs auth, so it's deferred ---
   const [quote, setQuote] = useState<{ amount: number; currency: string } | null>(null);
   const [needsCourseChoice, setNeedsCourseChoice] = useState(false);
-  const [phase, setPhase] = useState<"form" | "choose-course">("form");
+  const [phase, setPhase] = useState<"form" | "choose-course" | "consent-pending" | "registered">("form");
+  const [answers, setAnswers] = useState<Record<string, CustomFieldValue>>({});
   const [availableCourses, setAvailableCourses] = useState<Course[]>([]);
   const [chosenCourseId, setChosenCourseId] = useState("");
 
@@ -161,7 +184,25 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
   // loading state that never ends.
   const [priceError, setPriceError] = useState<string | null>(null);
 
-  const isFlowTree = page.pricingMode !== "COURSE";
+  const isSpecial = page.pricingMode === "SPECIAL_COURSE";
+  const isFlowTree = page.pricingMode !== "COURSE" && !isSpecial;
+  const isStudent = page.registrantType === "STUDENT";
+  const serviceType = page.serviceType ?? "";
+  const hidden = new Set(page.hiddenFields ?? []);
+  const studentAge = ageFromDob(form.childDateOfBirth);
+  // 16-17 year olds need a parent to confirm by email before the account works.
+  const needsGuardian = isStudent && studentAge !== null && studentAge >= 16 && studentAge < 18;
+  // The page's own extra questions, in the shape the shared question renderer expects.
+  const customFields: ICustomFormField[] = (page.customQuestions ?? []).map((q, i) => ({
+    id: q.id,
+    stage: "student-registration:child-info",
+    label: q.label,
+    fieldType: q.fieldType as CustomFormFieldType,
+    options: q.options,
+    required: q.required,
+    order: i,
+    isActive: true,
+  }));
 
   // The price is resolved server-side from the visitor's IP/country (and any
   // currency the Super Admin assigned to that country), so it is already in the
@@ -170,7 +211,7 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
     setPriceError(null);
     setFlowTreeQuote(null);
     const [quoteRes, quoteError] = await QuotePricingAction({
-      serviceType: page.serviceType,
+      serviceType,
       taxonomyNodeId: nodeId,
       classGroupId: page.classGroupId,
     });
@@ -182,7 +223,7 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
     setPriceError(null);
     setQuote(null);
     const [quoteRes, quoteError] = await QuotePricingAction({
-      serviceType: page.serviceType,
+      serviceType,
       courseId: page.courseId,
       classGroupId: page.classGroupId,
     });
@@ -218,7 +259,7 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
         if (page.taxonomyNodeId) {
           const [[lockedRes], [childrenRes]] = await Promise.all([
             GetCurriculumNodeAction(page.taxonomyNodeId),
-            GetCurriculumChildrenAction(page.taxonomyNodeId, page.serviceType),
+            GetCurriculumChildrenAction(page.taxonomyNodeId, serviceType),
           ]);
           const locked = lockedRes?.data;
           const children = childrenRes?.data ?? [];
@@ -231,12 +272,12 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
             await fetchFlowTreeQuote(locked.id);
           }
         } else {
-          const [res] = await GetCurriculumChildrenAction(null, page.serviceType);
+          const [res] = await GetCurriculumChildrenAction(null, serviceType);
           setFlowTreeOptions(res?.data ?? []);
         }
         setIsLoading(false);
       })();
-    } else {
+    } else if (!isSpecial) {
       (async () => {
         setNeedsCourseChoice(!page.courseId);
         if (page.courseId) await fetchCourseQuote();
@@ -250,14 +291,20 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
   if (submitAttempted) {
     if (!form.parentFirstName.trim()) flagged.add("parentFirstName");
     if (!form.parentLastName.trim()) flagged.add("parentLastName");
+    if (isStudent && (studentAge === null || studentAge < 16)) flagged.add("childDateOfBirth");
+    if (needsGuardian && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.guardianEmail.trim())) flagged.add("guardianEmail");
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.parentEmail.trim())) flagged.add("parentEmail");
     if (!form.parentPhone || form.parentPhone.length - phoneDialCode.length < 6) flagged.add("parentPhone");
     if (!form.password || !isValidPassword(form.password)) flagged.add("password");
-    if (!form.childFullName.trim()) flagged.add("childFullName");
-    if (!form.childGender) flagged.add("childGender");
+    if (!isStudent && !form.childFullName.trim()) flagged.add("childFullName");
+    if (!hidden.has("gender") && !form.childGender) flagged.add("childGender");
     if (!form.childDateOfBirth) flagged.add("childDateOfBirth");
     if (!form.countryOfResidence) flagged.add("countryOfResidence");
-    if (!form.primaryLanguage) flagged.add("primaryLanguage");
+    if (!hidden.has("primaryLanguage") && !form.primaryLanguage) flagged.add("primaryLanguage");
+    for (const f of customFields) {
+      const v = answers[f.id];
+      if (f.required && (v === undefined || v === "" || (Array.isArray(v) && v.length === 0))) flagged.add(`q:${f.id}`);
+    }
     if (isFlowTree && !flowTreeLeaf) flagged.add("choice");
   }
   const hl = (key: string) => (flagged.has(key) ? "rounded-md ring-2 ring-red-500 ring-offset-1" : "");
@@ -275,7 +322,7 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
     setIsLoadingFlowTreeStep(true);
     setFlowTreeLeaf(null);
     setFlowTreeQuote(null);
-    const [childrenRes] = await GetCurriculumChildrenAction(node.id, page.serviceType);
+    const [childrenRes] = await GetCurriculumChildrenAction(node.id, serviceType);
     const children = childrenRes?.data ?? [];
     if (children.length > 0) {
       setFlowTreePath((prev) => [...prev, node]);
@@ -295,7 +342,7 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
     const newPath = flowTreePath.slice(0, -1);
     const parentNode = newPath[newPath.length - 1];
     const parentId = parentNode ? parentNode.id : page.taxonomyNodeId ?? null;
-    const [res] = await GetCurriculumChildrenAction(parentId, page.serviceType);
+    const [res] = await GetCurriculumChildrenAction(parentId, serviceType);
     setFlowTreePath(newPath);
     setFlowTreeOptions(res?.data ?? []);
     setFlowTreeLeaf(null);
@@ -306,25 +353,55 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
   // Actually creates the enrollment and opens Paystack - only ever called
   // after the parent has agreed to PaymentConsentModal (see requestPayment).
   const submitEnrollment = async (choice: EnrollChoice) => {
+    // A Special Course: the student record already exists, only the payment is left.
+    if (choice.specialStudentId) {
+      setStep("Preparing payment...");
+      const [payRes, payError] = await InitiatePaymentAction({
+        student: choice.specialStudentId,
+        amount: choice.amount,
+        currency: choice.currency,
+        description: `${choice.courseTitle ?? choice.label}`,
+        country: form.countryOfResidence,
+        // The server prices this from the course itself - the amount above is never trusted.
+        metadata: { courseId: choice.courseId },
+      });
+      if (payError || !payRes?.data) {
+        setError(payError || "We couldn't start the payment. You can pay from Payment History once logged in.");
+        return;
+      }
+      await openPayment(payRes.data, choice);
+      return;
+    }
+
     setStep("Submitting enrollment...");
+    // Hidden optional fields still have to satisfy the server, so they get neutral defaults.
+    const gender = form.childGender || "Prefer not to say";
+    const primaryLanguage = form.primaryLanguage || languages.find((l) => /english/i.test(l.label))?.value || languages[0]?.value || "";
+    const childName = isStudent ? `${form.parentFirstName} ${form.parentLastName}`.trim() : form.childFullName;
     const [enrollRes, enrollError] = await EnrollAction({
-      fullName: form.childFullName,
-      gender: form.childGender,
+      fullName: childName,
+      gender,
       dateOfBirth: form.childDateOfBirth,
       phone: `+${form.parentPhone}`,
       countryOfResidence: form.countryOfResidence,
-      primaryLanguage: form.primaryLanguage,
-      userType: "parent",
-      parentName: `${form.parentFirstName} ${form.parentLastName}`,
-      parentEmail: form.parentEmail,
-      parentPhone: `+${form.parentPhone}`,
+      primaryLanguage,
+      userType: isStudent ? "student" : "parent",
+      ...(isStudent
+        ? {}
+        : {
+            parentName: `${form.parentFirstName} ${form.parentLastName}`,
+            parentEmail: form.parentEmail,
+            parentPhone: `+${form.parentPhone}`,
+          }),
+      campaignSlug: customFields.length > 0 ? page.slug : undefined,
+      customFieldResponses: customFields.length > 0 ? answers : undefined,
       // Redeemed server-side against the server's own recomputed price
       // (StudentService.computeEnrollmentQuote) - an invalid/expired/
       // exhausted code throws and aborts the enrollment, which is why this
       // is validated (see handleSubmit) before ever reaching here.
       couponCode: form.couponCode.trim() || undefined,
       serviceDetails: {
-        serviceType: page.serviceType,
+        serviceType,
         courseId: choice.courseId,
         classGroupId: page.classGroupId,
         learningFocus: page.heading,
@@ -343,30 +420,38 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
       return;
     }
 
-    const { payment } = enrollRes.data;
+    await openPayment(enrollRes.data.payment as PaymentRequest | undefined, choice);
+  };
+
+  // Where this visitor lands after paying (or closing checkout): their own LMS.
+  const homeRoutes = isStudent ? ROUTES.LMS.STUDENT : ROUTES.LMS.PARENT;
+
+  // Opens checkout for a payment the server has already created (service enrolment
+  // or a Special Course) - one tail for both so they behave the same.
+  const openPayment = async (payment: PaymentRequest | undefined, choice: EnrollChoice) => {
     if (!payment) {
-      router.push(ROUTES.LMS.PARENT.DASHBOARD);
+      router.push(homeRoutes.DASHBOARD);
       return;
     }
-    if (payment.fullyCoveredByWallet) {
+    if ((payment as PaymentRequest & { fullyCoveredByWallet?: boolean }).fullyCoveredByWallet) {
       trackMetaEvent("Purchase", { value: choice.amount, currency: choice.currency });
-      router.push(ROUTES.LMS.PARENT.PAYMENT_HISTORY);
+      router.push(homeRoutes.PAYMENT_HISTORY);
       return;
     }
 
     setStep("Opening secure payment...");
-    const popup = await createCheckout((payment as PaymentRequest), { returnTo: ROUTES.LMS.PARENT.PAYMENT_HISTORY });
-    popup.resumeTransaction((payment as PaymentRequest).access_code, {
+    const popup = await createCheckout(payment, { returnTo: homeRoutes.PAYMENT_HISTORY });
+    popup.resumeTransaction(payment.access_code, {
       onSuccess: async () => {
         const { VerifyPaymentAction } = await import("@/server/payment");
-        const [verifyRes] = await VerifyPaymentAction((payment as PaymentRequest).reference);
+        const [verifyRes] = await VerifyPaymentAction(payment.reference);
         // Only count a payment that actually verified. The amount is the price
         // quoted on this page (before any coupon discount).
         if (verifyRes?.data?.status === "COMPLETED") trackMetaEvent("Purchase", { value: choice.amount, currency: choice.currency });
-        router.push(ROUTES.LMS.PARENT.PAYMENT_HISTORY);
+        router.push(homeRoutes.PAYMENT_HISTORY);
       },
       onCancel: () => {
-        router.push(ROUTES.LMS.PARENT.PAYMENT_HISTORY);
+        router.push(homeRoutes.PAYMENT_HISTORY);
       },
       onError: (popupError: { message?: string }) => {
         setError(popupError?.message || "Payment failed - please try again from Payment History once logged in.");
@@ -399,13 +484,32 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
       !form.parentEmail ||
       !form.parentPhone ||
       !form.password ||
-      !form.childFullName ||
-      !form.childGender ||
+      (!isStudent && !form.childFullName) ||
+      (!hidden.has("gender") && !form.childGender) ||
       !form.childDateOfBirth ||
       !form.countryOfResidence ||
-      !form.primaryLanguage
+      (!hidden.has("primaryLanguage") && !form.primaryLanguage)
     ) {
       setError("Please fill in every field");
+      return;
+    }
+    if (isStudent && studentAge !== null && studentAge < 16) {
+      setError(UNDER_16_MESSAGE);
+      return;
+    }
+    if (needsGuardian) {
+      const guardian = form.guardianEmail.trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guardian)) {
+        setError("Please enter your parent or guardian's email so they can confirm your account");
+        return;
+      }
+      if (guardian.toLowerCase() === form.parentEmail.trim().toLowerCase()) {
+        setError("Your parent or guardian's email must be different from your own");
+        return;
+      }
+    }
+    if (customFields.some((f) => flagged.has(`q:${f.id}`))) {
+      setError("Please answer the required questions");
       return;
     }
     // Both are how the team reaches the family, so they are checked on their own with a specific message.
@@ -423,7 +527,7 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
       return;
     }
     // A price that hasn't arrived (or failed) would otherwise be submitted as 0.
-    if ((isFlowTree && flowTreeLeaf && !flowTreeQuote) || (!isFlowTree && page.courseId && !quote)) {
+    if ((isFlowTree && flowTreeLeaf && !flowTreeQuote) || (!isFlowTree && !isSpecial && page.courseId && !quote)) {
       setError(priceError ? "We couldn't load the price - please retry it before continuing." : "The price is still loading - one moment.");
       return;
     }
@@ -440,8 +544,9 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
         lastName: form.parentLastName,
         email: form.parentEmail,
         phone: `+${form.parentPhone}`,
-        role: UserRole.PARENT,
+        role: isStudent ? UserRole.STUDENT : UserRole.PARENT,
         password: form.password,
+        ...(isStudent ? { dateOfBirth: form.childDateOfBirth, ...(needsGuardian ? { parentEmail: form.guardianEmail.trim() } : {}) } : {}),
       });
       // An earlier attempt on this exact page can fail partway through
       // (network drop, a later step erroring) after the account itself was
@@ -466,15 +571,21 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
         // with a confusing generic permissions error, so catch it here with a
         // message that actually explains what's wrong.
         const existingRole = retryRes.data.user.role;
-        if (existingRole !== UserRole.PARENT && existingRole !== UserRole.STUDENT) {
+        const wantedRole = isStudent ? UserRole.STUDENT : UserRole.PARENT;
+        if (existingRole !== wantedRole) {
           setError(
-            `This email already has a ${existingRole.toLowerCase()} account on our platform, which can't be used to enroll a child here - please use a different email address.`
+            `This email already has a ${existingRole.toLowerCase()} account on our platform, which can't be used on this page - please use a different email address.`
           );
           return;
         }
       } else {
         // A brand-new account was just created from this ad landing page.
         trackMetaEvent("Lead");
+        if (needsGuardian) {
+          // A 16-17 year old's account stays on hold until a parent confirms it, so there is nobody to sign in yet.
+          setPhase("consent-pending");
+          return;
+        }
         setStep("Signing you in...");
         const [signinRes, signinError] = await SigninAction({ email: form.parentEmail, password: form.password });
         if (signinError || !signinRes?.data?.token) {
@@ -509,6 +620,39 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
         }
       }
 
+      if (isSpecial) {
+        setStep("Saving your registration...");
+        const [regRes, regError] = await EnrollViaCampaignPageAction(page.slug, {
+          fullName: isStudent ? `${form.parentFirstName} ${form.parentLastName}`.trim() : form.childFullName,
+          dateOfBirth: form.childDateOfBirth,
+          gender: form.childGender || undefined,
+          countryOfResidence: form.countryOfResidence,
+          primaryLanguage: form.primaryLanguage || undefined,
+          phone: `+${form.parentPhone}`,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          customFieldResponses: customFields.length > 0 ? (answers as Record<string, string | string[] | number | boolean>) : undefined,
+        });
+        if (regError || !regRes?.data) {
+          setError(regError || "Could not save your registration.");
+          return;
+        }
+        const reg = regRes.data;
+        if (!reg.requiresPayment || page.payOnPage === false) {
+          // Free (already enrolled) or the page leaves payment to the dashboard.
+          setPhase("registered");
+          return;
+        }
+        requestPayment({
+          courseId: reg.courseId,
+          courseTitle: reg.courseTitle,
+          specialStudentId: reg.studentId,
+          label: reg.courseTitle,
+          amount: reg.amount,
+          currency: reg.currency,
+        });
+        return;
+      }
+
       if (isFlowTree) {
         // Both the pick and the price were already resolved above, before
         // signup - nothing left to do but submit. Age Range is only ever the
@@ -531,7 +675,7 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
 
       if (needsCourseChoice) {
         setStep("Loading courses...");
-        const [coursesRes, coursesError] = await GetCoursesAction({ serviceType: page.serviceType });
+        const [coursesRes, coursesError] = await GetCoursesAction({ serviceType });
         const courses = coursesRes?.data ?? [];
         if (coursesError || courses.length === 0) {
           setError(coursesError || "No courses are available for this program right now - please contact us.");
@@ -569,6 +713,37 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
     setError(null);
     requestPayment({ courseId: course.id, label: course.title, amount: course.price, currency: course.currency });
   };
+
+  if (phase === "consent-pending") {
+    return (
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6 md:sticky md:top-6 space-y-3">
+        <p className="text-lg font-bold text-gray-900 leading-snug">{cohortName}</p>
+        <p className="text-sm text-gray-700">
+          Your account is created, but because you are under 18 your parent or guardian has to confirm it first. We&apos;ve emailed them a link
+          ({form.guardianEmail}) - once they confirm, log in and finish your registration.
+        </p>
+        <Button className="w-full" onClick={() => router.push(`${ROUTES.AUTH.LOGIN}?email=${encodeURIComponent(form.parentEmail)}`)}>
+          Go to log in
+        </Button>
+      </div>
+    );
+  }
+
+  if (phase === "registered") {
+    return (
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6 md:sticky md:top-6 space-y-3">
+        <p className="text-lg font-bold text-gray-900 leading-snug">{cohortName}</p>
+        <p className="text-sm text-gray-700">
+          {page.specialCourse && page.specialCourse.price > 0
+            ? "You're registered. Pay for the course from Payment History in your dashboard to unlock it."
+            : "You're registered and enrolled."}
+        </p>
+        <Button className="w-full" onClick={() => router.push(homeRoutes.DASHBOARD)}>
+          Go to my dashboard
+        </Button>
+      </div>
+    );
+  }
 
   if (phase === "choose-course") {
     return (
@@ -654,35 +829,53 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
           </div>
         </div>
 
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide pt-2">Your child&apos;s details</p>
-        <div>
-          <Label>Full name</Label>
-          <div className={hl("childFullName")}>
-            <Input value={form.childFullName} onChange={(e) => handleChange({ childFullName: e.target.value })} />
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          <div>
-            <Label>Gender</Label>
-            <div className={hl("childGender")}>
-            <Select value={form.childGender} onValueChange={(value) => handleChange({ childGender: value })}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Male">Male</SelectItem>
-                <SelectItem value="Female">Female</SelectItem>
-              </SelectContent>
-            </Select>
+        {!isStudent && (
+          <>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide pt-2">Your child&apos;s details</p>
+            <div>
+              <Label>Full name</Label>
+              <div className={hl("childFullName")}>
+                <Input value={form.childFullName} onChange={(e) => handleChange({ childFullName: e.target.value })} />
+              </div>
             </div>
-          </div>
-          <div>
+          </>
+        )}
+        <div className="grid grid-cols-2 gap-2">
+          {!hidden.has("gender") && (
+            <div>
+              <Label>Gender</Label>
+              <div className={hl("childGender")}>
+              <Select value={form.childGender} onValueChange={(value) => handleChange({ childGender: value })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Male">Male</SelectItem>
+                  <SelectItem value="Female">Female</SelectItem>
+                </SelectContent>
+              </Select>
+              </div>
+            </div>
+          )}
+          <div className={hidden.has("gender") ? "col-span-2" : ""}>
             <Label>Date of birth</Label>
             <div className={hl("childDateOfBirth")}>
-              <Input type="date" value={form.childDateOfBirth} onChange={(e) => handleChange({ childDateOfBirth: e.target.value })} />
+              <Input type="date" max={new Date().toISOString().slice(0, 10)} value={form.childDateOfBirth} onChange={(e) => handleChange({ childDateOfBirth: e.target.value })} />
             </div>
           </div>
         </div>
+        {isStudent && studentAge !== null && studentAge < 16 && (
+          <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">{UNDER_16_MESSAGE}</p>
+        )}
+        {needsGuardian && (
+          <div>
+            <Label>Parent or guardian&apos;s email</Label>
+            <div className={hl("guardianEmail")}>
+              <Input type="email" inputMode="email" autoCapitalize="none" spellCheck={false} placeholder="parent@example.com" value={form.guardianEmail} onChange={(e) => handleChange({ guardianEmail: e.target.value.replace(/\s/g, "") })} />
+            </div>
+            <p className="text-xs text-gray-500 mt-1">You&apos;re under 18, so a parent or guardian has to confirm your account by email.</p>
+          </div>
+        )}
         <div>
           <Label>Country of residence</Label>
           <div className={hl("countryOfResidence")}>
@@ -694,39 +887,72 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
             />
           </div>
         </div>
-        <div>
-          <Label>Primary language</Label>
-          <div className={hl("primaryLanguage")}>
-            <SearchableCombobox
-              options={languageOptions}
-              value={form.primaryLanguage}
-              onChange={(value) => handleChange({ primaryLanguage: value })}
-              placeholder="Select language"
-            />
+        {!hidden.has("primaryLanguage") && (
+          <div>
+            <Label>Primary language</Label>
+            <div className={hl("primaryLanguage")}>
+              <SearchableCombobox
+                options={languageOptions}
+                value={form.primaryLanguage}
+                onChange={(value) => handleChange({ primaryLanguage: value })}
+                placeholder="Select language"
+              />
+            </div>
           </div>
-        </div>
-        <p className="text-xs text-gray-500">
-          Registering more than one child? <WhatsAppLink pageName={cohortName} label="Message us on WhatsApp" />
-        </p>
+        )}
+        {customFields.map((f) => (
+          <div key={f.id} className={hl(`q:${f.id}`)}>
+            <DynamicQuestionField field={f} value={answers[f.id]} onChange={(value) => setAnswers((prev) => ({ ...prev, [f.id]: value }))} />
+          </div>
+        ))}
+        {!isStudent && (
+          <p className="text-xs text-gray-500">
+            Registering more than one child? <WhatsAppLink pageName={cohortName} label="Message us on WhatsApp" />
+          </p>
+        )}
 
-        <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-2 pt-1">
-          <div>
-            <Label>Coupon code (optional)</Label>
-            <Input
-              value={form.couponCode}
-              onChange={(e) => handleChange({ couponCode: e.target.value })}
-              placeholder={page.promoCouponCode || "e.g. SAVE15"}
-            />
+        {/* A Special Course is charged at the course's own price, which no coupon changes. */}
+        {((!hidden.has("couponCode") && !isSpecial) || !hidden.has("referralCode")) && (
+          <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-2 pt-1">
+            {!hidden.has("couponCode") && !isSpecial && (
+              <div>
+                <Label>Coupon code (optional)</Label>
+                <Input
+                  value={form.couponCode}
+                  onChange={(e) => handleChange({ couponCode: e.target.value })}
+                  placeholder={page.promoCouponCode || "e.g. SAVE15"}
+                />
+              </div>
+            )}
+            {!hidden.has("referralCode") && (
+              <div>
+                <Label>Referral code (optional)</Label>
+                <Input value={form.referralCode} onChange={(e) => handleChange({ referralCode: e.target.value })} placeholder="Who referred you?" />
+              </div>
+            )}
           </div>
-          <div>
-            <Label>Referral code (optional)</Label>
-            <Input value={form.referralCode} onChange={(e) => handleChange({ referralCode: e.target.value })} placeholder="Who referred you?" />
-          </div>
-        </div>
+        )}
       </div>
 
       <div className="border-t border-gray-100 pt-4">
-        {isFlowTree ? (
+        {isSpecial ? (
+          <div className="space-y-1">
+            <p className="text-sm text-gray-500">{page.specialCourse?.title ?? "Price"}</p>
+            {page.specialCourse ? (
+              page.specialCourse.price > 0 ? (
+                <p className="text-2xl font-bold text-gray-900">
+                  <LocalFirstPrice amount={page.specialCourse.price} currency={page.specialCourse.currency} country={form.countryOfResidence} explain>
+                    {formatMoney(page.specialCourse.currency, page.specialCourse.price)}
+                  </LocalFirstPrice>
+                </p>
+              ) : (
+                <p className="text-2xl font-bold text-gray-900">Free</p>
+              )
+            ) : (
+              <p className="text-sm text-red-700">This course isn&apos;t open for registration right now - please contact us.</p>
+            )}
+          </div>
+        ) : isFlowTree ? (
           <div className={`space-y-2 ${flagged.has("choice") ? "rounded-md ring-2 ring-red-500 ring-offset-2 p-2" : ""}`}>
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
               {flowTreePath.length > 0 && (
@@ -790,15 +1016,18 @@ export default function CampaignSignupForm({ page, cohortName }: { page: Campaig
         )}
       </div>
 
-      <Button className="w-full" size="lg" onClick={handleSubmit} disabled={isSubmitting || isLoading}>
+      <Button className="w-full" size="lg" onClick={handleSubmit} disabled={isSubmitting || isLoading || (isSpecial && !page.specialCourse)}>
         {isSubmitting ? step || "Please wait..." : page.ctaLabel}
       </Button>
       <div className="text-center">
         <WhatsAppLink pageName={cohortName} />
       </div>
       <p className="text-xs text-gray-500 text-center">
-        Creates your STC Tutors account{needsCourseChoice ? ", then a quick course pick, " : " and takes you straight "}
-        to secure payment. We&apos;ll also email you a link to verify your address - no need to click it before paying.
+        {isSpecial && page.payOnPage === false
+          ? "Creates your STC Tutors account and registers you for the course - you pay later from your dashboard."
+          : isSpecial && (page.specialCourse?.price ?? 0) === 0
+            ? "Creates your STC Tutors account and enrols you in the course."
+            : `Creates your STC Tutors account${needsCourseChoice ? ", then a quick course pick, " : " and takes you straight "}to secure payment.`} We&apos;ll also email you a link to verify your address - no need to click it before paying.
       </p>
       <PaymentConsentModal open={showConsent} onAgree={handleAgreeToPay} onOpenChange={setShowConsent} isSubmitting={isPaying} />
     </div>

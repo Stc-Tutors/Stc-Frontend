@@ -159,3 +159,39 @@ export async function ExtendScheduleAction(
   const resData = res ? ((await res.json()) as ApiResponse<ExtensionResult>) : null;
   return [resData, error];
 }
+
+export interface CampaignPageEnrollResult {
+  studentId: string;
+  courseId: string;
+  courseTitle: string;
+  requiresPayment: boolean;
+  amount: number;
+  currency: string;
+  alreadyEnrolled: boolean;
+}
+
+// A Special Course landing page (/go/:slug): adds the child (or the student
+// themselves) once the page's own sign-up has made the account. A free course
+// is enrolled straight away; a priced one comes back with requiresPayment so the
+// page can open checkout - the verified payment is what enrols them.
+export async function EnrollViaCampaignPageAction(
+  slug: string,
+  data: {
+    fullName: string;
+    dateOfBirth: string;
+    gender?: string;
+    countryOfResidence: string;
+    primaryLanguage?: string;
+    phone?: string;
+    timezone?: string;
+    customFieldResponses?: Record<string, string | string[] | number | boolean>;
+  }
+): Promise<[ApiResponse<CampaignPageEnrollResult> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: `/course-enrollments/via-campaign/${encodeURIComponent(slug)}`,
+    request: { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) },
+  });
+
+  const resData = res ? ((await res.json()) as ApiResponse<CampaignPageEnrollResult>) : null;
+  return [resData, error];
+}
