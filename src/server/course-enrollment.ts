@@ -195,3 +195,17 @@ export async function EnrollViaCampaignPageAction(
   const resData = res ? ((await res.json()) as ApiResponse<CampaignPageEnrollResult>) : null;
   return [resData, error];
 }
+
+// Step before paying for a Special Course from its share link: who is being enrolled and what it costs.
+export async function PrepareViaShareTokenAction(
+  token: string,
+  studentId?: string
+): Promise<[ApiResponse<CampaignPageEnrollResult> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: `/course-enrollments/via-link/${token}/prepare`,
+    request: { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(studentId ? { studentId } : {}) },
+  });
+
+  const resData = res ? ((await res.json()) as ApiResponse<CampaignPageEnrollResult>) : null;
+  return [resData, error];
+}

@@ -5,7 +5,13 @@ import { useParams } from "next/navigation";
 import AuthLayout from "@/components/layout/auth-layout";
 import SpecialCourseRegisterForm from "@/components/forms/special-course-register-form";
 import { GetSpecialCourseByTokenAction, PublicSpecialCourse } from "@/server/special-course";
-import { EnrollViaShareTokenAction } from "@/server/course-enrollment";
+import { EnrollViaShareTokenAction, PrepareViaShareTokenAction } from "@/server/course-enrollment";
+import { InitiatePaymentAction, VerifyPaymentAction } from "@/server/payment";
+import { ValidateCouponAction } from "@/server/coupon";
+import { createCheckout } from "@/lib/checkout";
+import { Input } from "@/components/ui/input";
+import { PaymentRequest } from "@/types/payment";
+import PaymentConsentModal from "@/components/payment-consent-modal";
 import { GetLinkedStudentsAction } from "@/server/enrollment";
 import { GetUserAction } from "@/server/user";
 import { Button } from "@/components/ui/button";
@@ -97,6 +103,9 @@ function ExistingUserEnroll({ token, user }: { token: string; user: User }) {
   const [isLoadingStudents, setIsLoadingStudents] = useState(user.role === UserRole.PARENT);
   const [isEnrolling, setIsEnrolling] = useState(false);
   const [enrolled, setEnrolled] = useState(false);
+  const [couponCode, setCouponCode] = useState("");
+  const [pending, setPending] = useState<{ studentId: string; courseId: string; courseTitle: string; amount: number; currency: string } | null>(null);
+  const [isPaying, setIsPaying] = useState(false);
 
   useEffect(() => {
     if (user.role !== UserRole.PARENT) return;
@@ -108,9 +117,37 @@ function ExistingUserEnroll({ token, user }: { token: string; user: User }) {
     });
   }, [user.role]);
 
+  const dashboardPath = user.role === UserRole.STUDENT ? ROUTES.LMS.STUDENT.PAYMENT_HISTORY : ROUTES.LMS.PARENT.PAYMENT_HISTORY;
+
+  // Free (or already paid) courses enrol straight away; a priced one goes to payment first - the verified payment enrols them.
   const handleEnroll = async () => {
     setIsEnrolling(true);
-    const [, error] = await EnrollViaShareTokenAction(token, selectedStudentId || undefined);
+    const [prep, prepError] = await PrepareViaShareTokenAction(token, selectedStudentId || undefined);
+    if (prepError || !prep?.data) {
+      setIsEnrolling(false);
+      ToastError(prepError || "Could not start your registration.");
+      return;
+    }
+    if (prep.data.alreadyEnrolled) {
+      setIsEnrolling(false);
+      ToastSuccess("You're already enrolled in this course");
+      setEnrolled(true);
+      return;
+    }
+    if (prep.data.requiresPayment) {
+      if (couponCode.trim()) {
+        const [, couponError] = await ValidateCouponAction(couponCode.trim(), prep.data.amount);
+        if (couponError) {
+          setIsEnrolling(false);
+          ToastError(couponError);
+          return;
+        }
+      }
+      setIsEnrolling(false);
+      setPending(prep.data);
+      return;
+    }
+    const [, error] = await EnrollViaShareTokenAction(token, prep.data.studentId);
     setIsEnrolling(false);
     if (error) {
       ToastError(error);
@@ -118,6 +155,44 @@ function ExistingUserEnroll({ token, user }: { token: string; user: User }) {
     }
     ToastSuccess("Enrolled successfully");
     setEnrolled(true);
+  };
+
+  const handleAgreeToPay = async () => {
+    if (!pending) return;
+    setIsPaying(true);
+    try {
+      const [payRes, payError] = await InitiatePaymentAction({
+        student: pending.studentId,
+        amount: pending.amount,
+        currency: pending.currency,
+        description: pending.courseTitle,
+        couponCode: couponCode.trim() || undefined,
+        // The server prices this from the course itself - the amount above is never trusted.
+        metadata: { courseId: pending.courseId },
+      });
+      if (payError || !payRes?.data) {
+        ToastError(payError || "We couldn't start the payment. Please try again.");
+        return;
+      }
+      const payment = payRes.data as PaymentRequest & { fullyCoveredByWallet?: boolean };
+      // The wallet covered everything: the payment is already complete and the course is added.
+      if (payment.fullyCoveredByWallet) {
+        window.location.href = dashboardPath;
+        return;
+      }
+      const popup = await createCheckout(payment, { returnTo: dashboardPath });
+      popup.resumeTransaction(payment.access_code, {
+        onSuccess: async () => {
+          await VerifyPaymentAction(payment.reference);
+          window.location.href = dashboardPath;
+        },
+        onCancel: () => ToastError("Payment cancelled - you can try again whenever you're ready."),
+        onError: (e: { message?: string }) => ToastError(e?.message || "Payment failed - please try again."),
+      });
+    } finally {
+      setIsPaying(false);
+      setPending(null);
+    }
   };
 
   if (enrolled) {
@@ -163,13 +238,15 @@ function ExistingUserEnroll({ token, user }: { token: string; user: User }) {
           ))}
         </select>
       )}
+      <Input value={couponCode} onChange={(e) => setCouponCode(e.target.value)} placeholder="Coupon code (optional)" />
       <Button
         onClick={handleEnroll}
         disabled={isEnrolling || (user.role === UserRole.PARENT && linkedStudents.length > 1 && !selectedStudentId)}
         className="w-full bg-[#3b5bdb] hover:bg-blue-800 text-white"
       >
-        {isEnrolling ? "Enrolling..." : "Enroll now"}
+        {isEnrolling ? "Please wait..." : "Enroll now"}
       </Button>
+      <PaymentConsentModal open={!!pending} onAgree={handleAgreeToPay} onOpenChange={(o) => !o && setPending(null)} isSubmitting={isPaying} />
     </div>
   );
 }
