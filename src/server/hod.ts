@@ -7,7 +7,9 @@ import { Announcement } from "@/types/announcement";
 import { User, UserStatus } from "@/types/user";
 
 export interface HodScopeOverview {
-  service: string;
+  // Unset for a Country Partner's scope (every service in its countries).
+  service?: string;
+  countries?: string[];
   taxonomyNodeIds?: string[];
   courseIds?: string[];
   totalCourses: number;

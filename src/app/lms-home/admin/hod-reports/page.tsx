@@ -60,7 +60,10 @@ export default function HodReportsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {overview.map((scope, i) => (
             <div key={i} className="bg-white rounded-xl shadow-sm p-4 space-y-2">
-              <p className="font-medium text-gray-900">{scope.service}</p>
+              <p className="font-medium text-gray-900">
+                {scope.service || "All services"}
+                {scope.countries?.length ? ` - ${scope.countries.join(", ")}` : ""}
+              </p>
               <div className="grid grid-cols-3 gap-2 text-center">
                 <div>
                   <p className="text-xl font-semibold text-gray-800">{scope.totalCourses}</p>

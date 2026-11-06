@@ -36,7 +36,9 @@ export interface HodScopeContext {
 // `subjects` narrow REVIEW_TUTOR_APPLICATIONS against the tutor-application
 // vocabulary instead. `permissions` belongs to this scope alone.
 export interface HodScopeAssignment {
-  service: string;
+  // Unset for a Country Partner's scope: every service, limited by `countries`.
+  service?: string;
+  countries?: string[];
   taxonomyNodeIds?: string[];
   courseIds?: string[];
   // User ids of specific tutors pinned to this scope - every one of their
