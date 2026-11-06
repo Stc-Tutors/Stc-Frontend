@@ -12,6 +12,7 @@ import {
   BookOpen,
   ClipboardList,
   BarChart2,
+  Handshake,
   UserRound,
   Headphones,
   CheckCircle2,
@@ -111,6 +112,8 @@ const sidebarLinks: {
     permission: AdminPermission.APPROVE_TUTOR_PROFILE_EDITS,
   },
   { label: "HOD Reports", icon: BarChart2, href: "/lms-home/admin/hod-reports", hodPermission: HodPermission.VIEW_REPORTS },
+  // Country / Service Partners: contract, targets, revenue and earnings, and proposals to STC.
+  { label: "Partner", icon: Handshake, href: "/lms-home/admin/partner", hodOnly: true },
   {
     label: "My Unassigned Queue",
     icon: ArrowLeftRight,

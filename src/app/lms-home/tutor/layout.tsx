@@ -16,6 +16,7 @@ import {
   Home,
   Calendar,
   Users,
+  Handshake,
   Search,
   Menu,
   MessageSquare,
@@ -88,6 +89,7 @@ const HOD_LINKS: {
 }[] = [
   { label: "Tutor Applications", icon: FileUser, href: "/lms-home/admin/tutor-applications", hodPermission: HodPermission.REVIEW_TUTOR_APPLICATIONS },
   { label: "HOD Reports", icon: BarChart2, href: "/lms-home/admin/hod-reports", hodPermission: HodPermission.VIEW_REPORTS },
+  { label: "Partner", icon: Handshake, href: "/lms-home/admin/partner", hodOnly: true },
   { label: "My Unassigned Queue", icon: Users, href: "/lms-home/admin/hod-unassigned-queue", hodPermission: HodPermission.MANAGE_UNASSIGNED_QUEUE },
   {
     label: "Class Feedback",
