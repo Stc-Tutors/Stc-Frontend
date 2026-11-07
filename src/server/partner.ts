@@ -18,11 +18,25 @@ async function get<T>(url: string): Promise<[ApiResponse<T> | null, string | nul
 const monthQuery = (month?: string) => (month ? `?month=${encodeURIComponent(month)}` : "");
 
 // The signed-in partner's own contract (null when they have none).
-export const GetMyPartnerContractAction = () => get<PartnerContract | null>("/partner/me");
-export const GetPartnerKpisAction = (month?: string) => get<PartnerKpiReport>(`/partner/kpis${monthQuery(month)}`);
-export const GetPartnerRevenueAction = (month?: string) => get<PartnerRevenueReport>(`/partner/revenue${monthQuery(month)}`);
-export const GetPartnerEarningsAction = (month?: string) => get<PartnerEarningsStatement>(`/partner/earnings${monthQuery(month)}`);
-export const GetMyPartnerProposalsAction = () => get<PartnerProposal[]>("/partner/proposals");
+export async function GetMyPartnerContractAction(): Promise<[ApiResponse<PartnerContract | null> | null, string | null]> {
+  return get<PartnerContract | null>("/partner/me");
+}
+
+export async function GetPartnerKpisAction(month?: string): Promise<[ApiResponse<PartnerKpiReport> | null, string | null]> {
+  return get<PartnerKpiReport>(`/partner/kpis${monthQuery(month)}`);
+}
+
+export async function GetPartnerRevenueAction(month?: string): Promise<[ApiResponse<PartnerRevenueReport> | null, string | null]> {
+  return get<PartnerRevenueReport>(`/partner/revenue${monthQuery(month)}`);
+}
+
+export async function GetPartnerEarningsAction(month?: string): Promise<[ApiResponse<PartnerEarningsStatement> | null, string | null]> {
+  return get<PartnerEarningsStatement>(`/partner/earnings${monthQuery(month)}`);
+}
+
+export async function GetMyPartnerProposalsAction(): Promise<[ApiResponse<PartnerProposal[]> | null, string | null]> {
+  return get<PartnerProposal[]>("/partner/proposals");
+}
 
 export async function CreatePartnerProposalAction(data: {
   type: PartnerProposalType;
