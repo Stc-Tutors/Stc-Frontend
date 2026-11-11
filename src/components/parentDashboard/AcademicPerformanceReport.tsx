@@ -13,25 +13,23 @@ const pct = (n: number | null | undefined) => (n == null ? "-" : `${Math.round(n
 
 // Marks for the selected child: graded assignments and STC Exams tests together, with the overall mark across both.
 export default function AcademicPerformanceReport({ studentId }: AcademicPerformanceReportProps) {
-  const [performance, setPerformance] = useState<StudentPerformance | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  // The result is stored with the child it belongs to, so switching child shows "Loading" until the new answer arrives
+  // (no synchronous reset inside the effect).
+  const [loaded, setLoaded] = useState<{ id: string; data: StudentPerformance | null } | null>(null);
 
   useEffect(() => {
-    if (!studentId) {
-      setPerformance(null);
-      return;
-    }
+    if (!studentId) return;
     let cancelled = false;
-    setIsLoading(true);
     GetStudentPerformanceAction(studentId).then(([res]) => {
-      if (cancelled) return;
-      setPerformance(res?.data ?? null);
-      setIsLoading(false);
+      if (!cancelled) setLoaded({ id: studentId, data: res?.data ?? null });
     });
     return () => {
       cancelled = true;
     };
   }, [studentId]);
+
+  const isLoading = !!studentId && loaded?.id !== studentId;
+  const performance = loaded && loaded.id === studentId ? loaded.data : null;
 
   return (
     <Card>

@@ -22,6 +22,8 @@ interface ProgressCard {
   color: string;
   strokeColor: string;
   percent: number;
+  // Why the ring is empty, when there is nothing behind it yet (so 0% is not mistaken for "doing badly").
+  emptyNote?: string;
 }
 
 export default function AnalyticsPage() {
@@ -87,10 +89,10 @@ export default function AnalyticsPage() {
       const assignmentCompletionPct = !perf || perf.assignments.set === 0 ? 0 : Math.min(100, Math.round((perf.assignments.submitted / perf.assignments.set) * 100));
 
       setProgress([
-        { title: "Lessons", color: "text-blue-500", strokeColor: "#3b82f6", percent: lessonsPct },
-        { title: "Attendance Record", color: "text-orange-500", strokeColor: "#f97316", percent: attendancePct },
-        { title: "Test Performance", color: "text-purple-500", strokeColor: "#a855f7", percent: testPerformancePct },
-        { title: "Assignment Completion", color: "text-green-500", strokeColor: "#22c55e", percent: assignmentCompletionPct },
+        { title: "Lessons", color: "text-blue-500", strokeColor: "#3b82f6", percent: lessonsPct, emptyNote: allLessons.length === 0 ? "No lessons scheduled yet" : undefined },
+        { title: "Attendance Record", color: "text-orange-500", strokeColor: "#f97316", percent: attendancePct, emptyNote: attendance.length === 0 ? "No classes marked yet" : undefined },
+        { title: "Test Performance", color: "text-purple-500", strokeColor: "#a855f7", percent: testPerformancePct, emptyNote: !perf || perf.tests.taken === 0 ? "No exams taken yet" : undefined },
+        { title: "Assignment Completion", color: "text-green-500", strokeColor: "#22c55e", percent: assignmentCompletionPct, emptyNote: !perf || perf.assignments.set === 0 ? "No assignments set yet" : undefined },
       ]);
 
       setIsLoading(false);
@@ -219,8 +221,9 @@ export default function AnalyticsPage() {
                   strokeLinecap="round"
                 />
               </svg>
-              <span className="absolute text-lg font-semibold text-gray-800">{isLoading ? "…" : `${card.percent}%`}</span>
+              <span className="absolute text-lg font-semibold text-gray-800">{isLoading ? "…" : card.emptyNote ? "–" : `${card.percent}%`}</span>
             </div>
+            {!isLoading && card.emptyNote && <p className="text-xs text-gray-500 text-center">{card.emptyNote}</p>}
           </Card>
         ))}
       </div>
