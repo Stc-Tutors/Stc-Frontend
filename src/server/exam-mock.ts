@@ -9,7 +9,9 @@ import type {
   MockExamSubjects,
   MockLearnerHit,
   MockOwnQuestion,
-  MockPricing,
+  MockPriceList,
+  MockAccessRequest,
+  MockActivateResult,
   MockPurchase,
   MockStcStudent,
   MyMockExam,
@@ -85,8 +87,8 @@ export const ListMockResultsAction = async (params: { examId?: number; status?: 
   stc<{ attempts: MockAttempt[]; next_after_id?: number }>("GET", `results${qs({ exam_id: params.examId, status: params.status, limit: params.limit ?? 100 })}`);
 
 // Price families pay + purchases awaiting allocation
-export const GetMockPricingAdmin = async () => call<MockPricing>("/admin/exams/mock/pricing", "GET");
-export const SaveMockPricingAction = async (body: MockPricing) => call<MockPricing>("/admin/exams/mock/pricing", "PUT", body);
+export const GetMockPricingAdmin = async () => call<MockPriceList>("/admin/exams/mock/pricing", "GET");
+export const SaveMockPricingAction = async (body: MockPriceList) => call<MockPriceList>("/admin/exams/mock/pricing", "PUT", body);
 export const ListMockCoinPurchasesAction = async () => call<MockPurchase[]>("/admin/exams/mock/purchases", "GET");
 export const RetryMockCoinPurchaseAction = async (id: string) => call<MockPurchase>(`/admin/exams/mock/purchases/${id}/retry`, "POST");
 
@@ -99,3 +101,16 @@ export const GetMyMockAttemptsAction = async (learnerKey: string) =>
   call<{ attempts: MockAttempt[] }>(`/exams/mock/attempts${qs({ learnerKey })}`, "GET");
 export const LaunchMyMockAction = async (learnerKey: string, selection: { examId?: number; subjectId?: number; topicId?: number }) =>
   call<{ launchUrl: string }>("/exams/mock/launch", "POST", { learnerKey, ...selection });
+
+// Families asking for mock exams to be switched on for a child
+export const ListMockRequestsAction = async () => call<MockAccessRequest[]>("/admin/exams/mock/requests", "GET");
+export const ApproveMockRequestAction = async (id: string, note?: string) => call<MockAccessRequest>(`/admin/exams/mock/requests/${id}/approve`, "POST", { note });
+export const DeclineMockRequestAction = async (id: string, note?: string) => call<MockAccessRequest>(`/admin/exams/mock/requests/${id}/decline`, "POST", { note });
+
+// Activate a child on STC Exams so coins can reach them (also releases paid coins that were waiting)
+export const ActivateMockStudentAction = async (learnerKey: string) =>
+  call<MockActivateResult>(`/admin/exams/mock/access/${encodeURIComponent(learnerKey)}/activate`, "POST");
+
+// A family asks the school to switch mock exams on for one of their children (enrolled or not).
+export const RequestMockAccessAction = async (learnerKey: string, note?: string) =>
+  call<MockAccessRequest>("/exams/mock/request", "POST", { learnerKey, note });

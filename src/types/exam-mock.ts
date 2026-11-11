@@ -93,11 +93,43 @@ export interface MockLearnerHit {
   grade?: string;
 }
 
+// What one family pays for one child: a single price in the currency their country is assigned.
 export interface MockPricing {
   pricePerCoin: number;
   currency: string;
   minCoins: number;
   maxCoins: number;
+}
+
+// What a Super Admin edits: one price per currency (a currency with no price falls back to the naira one).
+export interface MockCoinPrice {
+  currency: string;
+  pricePerCoin: number;
+}
+
+export interface MockPriceList {
+  prices: MockCoinPrice[];
+  minCoins: number;
+  maxCoins: number;
+}
+
+export interface MockAccessRequest {
+  id: string;
+  learnerKey: string;
+  learnerName: string;
+  requesterName?: string;
+  note?: string;
+  status: "PENDING" | "APPROVED" | "DECLINED";
+  decisionNote?: string;
+  createdAt: string;
+  decidedAt?: string;
+}
+
+export interface MockActivateResult {
+  learner: { key: string; fullName: string };
+  attempted: boolean;
+  heldCoinsWaiting: boolean;
+  launchUrl: string | null;
 }
 
 export interface MockPurchase {
@@ -117,8 +149,9 @@ export interface MyMockLearner {
   fullName: string;
   enabled: boolean;
   allowedSubjectIds: number[] | null;
-  // Paid coins held until the child opens their STC Exams account once (see "Activate mock exams").
-  heldCoins?: number;
+  // The family's latest request while mock exams are still off for this child.
+  requestStatus?: "PENDING" | "DECLINED" | null;
+  requestDecisionNote?: string | null;
 }
 
 export interface MyMockExam {

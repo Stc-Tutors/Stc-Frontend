@@ -5,7 +5,11 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { formatMoney } from "@/lib/money";
 import {
+  ActivateMockStudentAction,
   AddMockQuestionsAction,
+  ApproveMockRequestAction,
+  DeclineMockRequestAction,
+  ListMockRequestsAction,
   CheckoutMockCoinPackageAction,
   DeleteMockQuestionAction,
   GetMockCatalogAdminAction,
@@ -37,7 +41,8 @@ import type {
   MockExamSubjects,
   MockLearnerHit,
   MockOwnQuestion,
-  MockPricing,
+  MockPriceList,
+  MockAccessRequest,
   MockPurchase,
   MockStcStudent,
 } from "@/types/exam-mock";
@@ -123,12 +128,38 @@ function AccessTab({ notify }: { notify: Notify }) {
   const [busy, setBusy] = useState(false);
   const [catalog, setCatalog] = useState<MockCatalog | null>(null);
   const [editing, setEditing] = useState<MockAccessRow | null>(null);
+  const [requests, setRequests] = useState<MockAccessRequest[]>([]);
+  const [link, setLink] = useState<{ name: string; url: string } | null>(null);
 
   const load = useCallback(async () => {
     const [res, error] = await ListMockAccessAction();
     if (error) notify(error);
     setRows(res?.data ?? []);
+    const [rq] = await ListMockRequestsAction();
+    setRequests((rq?.data ?? []).filter((r) => r.status === "PENDING"));
   }, [notify]);
+
+  const decide = async (r: MockAccessRequest, approve: boolean) => {
+    setBusy(true);
+    const [, error] = approve ? await ApproveMockRequestAction(r.id) : await DeclineMockRequestAction(r.id);
+    if (error) notify(error);
+    else notify(approve ? `Mock exams switched on for ${r.learnerName}` : `Declined the request for ${r.learnerName}`, true);
+    await load();
+    setBusy(false);
+  };
+
+  // Activates the child on STC Exams so coins can reach them. If STC still wants a real sign-in, a one-time link is offered to open once.
+  const activate = async (row: MockAccessRow) => {
+    setBusy(true);
+    setLink(null);
+    const [res, error] = await ActivateMockStudentAction(row.learnerKey);
+    if (error || !res?.data) notify(error ?? "Could not activate");
+    else if (res.data.heldCoinsWaiting && res.data.launchUrl) {
+      notify(`${row.fullName} still needs a first sign-in on STC Exams. Open the link below once, then press Activate again to release their paid coins.`);
+      setLink({ name: row.fullName, url: res.data.launchUrl });
+    } else notify(`${row.fullName} is activated on STC Exams - coins can now be added.`, true);
+    setBusy(false);
+  };
 
   useEffect(() => {
     queueMicrotask(() => {
@@ -186,6 +217,40 @@ function AccessTab({ notify }: { notify: Notify }) {
 
   return (
     <div className="space-y-4">
+      {requests.length > 0 && (
+        <section className="rounded-xl border border-blue-300 bg-blue-50 p-4 space-y-2">
+          <h2 className="font-semibold text-blue-900">Requests from families ({requests.length})</h2>
+          <ul className="divide-y text-sm">
+            {requests.map((r) => (
+              <li key={r.id} className="py-2 flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <p className="font-medium">{r.learnerName}</p>
+                  <p className="text-xs text-gray-600">
+                    {r.requesterName ? `Asked by ${r.requesterName}` : "Asked by their family"}
+                    {r.note ? ` - "${r.note}"` : ""}
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={() => decide(r, true)} disabled={busy}>
+                    Switch on
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => decide(r, false)} disabled={busy}>
+                    Decline
+                  </Button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+      {link && (
+        <p className="text-sm rounded-md bg-amber-50 border border-amber-300 p-2">
+          Sign-in link for {link.name}:{" "}
+          <a className="text-blue-700 underline" href={link.url} target="_blank" rel="noopener noreferrer">
+            Open once
+          </a>
+        </p>
+      )}
       <section className={box}>
         <h2 className="font-semibold">Switch mock exams on for students</h2>
         <p className="text-xs text-gray-500">Nobody has mock exams until you turn them on here. Search for a child, add them, then switch on.</p>
@@ -235,6 +300,9 @@ function AccessTab({ notify }: { notify: Notify }) {
                   </p>
                 </div>
                 <div className="flex gap-2 flex-wrap">
+                  <Button size="sm" variant="outline" onClick={() => activate(r)} disabled={busy}>
+                    Activate
+                  </Button>
                   <Button size="sm" variant="outline" onClick={() => openLimits(r)} disabled={busy}>
                     Limit subjects
                   </Button>
@@ -882,7 +950,7 @@ function ResultsTab({ notify }: { notify: Notify }) {
 // What families pay for coins, and payments that could not be turned into coins yet.
 // ---------------------------------------------------------------------------------------------------------------------------
 function PricingTab({ notify, isSuper }: { notify: Notify; isSuper: boolean }) {
-  const [pricing, setPricing] = useState<MockPricing>({ pricePerCoin: 0, currency: "NGN", minCoins: 1, maxCoins: 500 });
+  const [pricing, setPricing] = useState<MockPriceList>({ prices: [{ currency: "NGN", pricePerCoin: 0 }], minCoins: 1, maxCoins: 500 });
   const [purchases, setPurchases] = useState<MockPurchase[]>([]);
   const [busy, setBusy] = useState(false);
 
@@ -901,9 +969,12 @@ function PricingTab({ notify, isSuper }: { notify: Notify; isSuper: boolean }) {
 
   const save = async () => {
     setBusy(true);
-    const [res, error] = await SaveMockPricingAction(pricing);
-    if (error || !res?.data) notify(error ?? "Could not save the price");
-    else notify(pricing.pricePerCoin > 0 ? "Coin price saved" : "Coin buying switched off", true);
+    const [res, error] = await SaveMockPricingAction({ ...pricing, prices: pricing.prices.filter((p) => p.currency.length === 3) });
+    if (error || !res?.data) notify(error ?? "Could not save the prices");
+    else {
+      setPricing(res.data);
+      notify(res.data.prices.some((p) => p.pricePerCoin > 0) ? "Coin prices saved" : "Coin buying switched off", true);
+    }
     setBusy(false);
   };
 
@@ -944,15 +1015,47 @@ function PricingTab({ notify, isSuper }: { notify: Notify; isSuper: boolean }) {
 
       <section className={box}>
         <h2 className="font-semibold">What families pay for coins</h2>
+        <p className="text-xs text-gray-500">
+          One price per currency. A family pays in the currency their country is assigned (Super Admin &gt; country currencies); if you have not
+          priced that currency, they pay the naira price. Set a price to 0 to stop selling in that currency.
+        </p>
+        <ul className="space-y-2 text-sm">
+          {pricing.prices.map((p, i) => (
+            <li key={i} className="flex flex-wrap items-center gap-2">
+              <input
+                className="w-24 rounded-md border border-gray-300 px-3 py-2 uppercase"
+                value={p.currency}
+                maxLength={3}
+                placeholder="USD"
+                aria-label="Currency"
+                disabled={!isSuper}
+                onChange={(e) => setPricing({ ...pricing, prices: pricing.prices.map((x, j) => (j === i ? { ...x, currency: e.target.value.toUpperCase() } : x)) })}
+              />
+              <input
+                type="number"
+                min={0}
+                step="0.01"
+                className="w-32 rounded-md border border-gray-300 px-3 py-2"
+                value={p.pricePerCoin}
+                aria-label={`Price per coin in ${p.currency}`}
+                disabled={!isSuper}
+                onChange={(e) => setPricing({ ...pricing, prices: pricing.prices.map((x, j) => (j === i ? { ...x, pricePerCoin: Number(e.target.value) } : x)) })}
+              />
+              <span className="text-xs text-gray-500">per coin</span>
+              {isSuper && (
+                <Button size="sm" variant="outline" onClick={() => setPricing({ ...pricing, prices: pricing.prices.filter((_, j) => j !== i) })}>
+                  Remove
+                </Button>
+              )}
+            </li>
+          ))}
+        </ul>
+        {isSuper && (
+          <Button size="sm" variant="outline" onClick={() => setPricing({ ...pricing, prices: [...pricing.prices, { currency: "", pricePerCoin: 0 }] })}>
+            Add a currency
+          </Button>
+        )}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
-          <label className="space-y-1">
-            <span className="font-medium">Price per coin</span>
-            <input type="number" min={0} step="0.01" className={field} value={pricing.pricePerCoin} disabled={!isSuper} onChange={(e) => setPricing({ ...pricing, pricePerCoin: Number(e.target.value) })} />
-          </label>
-          <label className="space-y-1">
-            <span className="font-medium">Currency</span>
-            <input className={field} value={pricing.currency} maxLength={3} disabled={!isSuper} onChange={(e) => setPricing({ ...pricing, currency: e.target.value.toUpperCase() })} />
-          </label>
           <label className="space-y-1">
             <span className="font-medium">Fewest per purchase</span>
             <input type="number" min={1} className={field} value={pricing.minCoins} disabled={!isSuper} onChange={(e) => setPricing({ ...pricing, minCoins: Number(e.target.value) })} />
@@ -963,12 +1066,12 @@ function PricingTab({ notify, isSuper }: { notify: Notify; isSuper: boolean }) {
           </label>
         </div>
         <p className="text-xs text-gray-500">
-          {pricing.pricePerCoin > 0 ? "Families can buy coins when theirs run out." : "Price is 0, so families cannot buy coins."}{" "}
-          {isSuper ? "Set it to 0 to switch buying off." : "Only a Super Admin can change the price."}
+          {pricing.prices.some((p) => p.pricePerCoin > 0) ? "Families can buy coins when theirs run out." : "No price is set, so families cannot buy coins."}{" "}
+          {isSuper ? "" : "Only a Super Admin can change the prices."}
         </p>
         {isSuper && (
           <Button onClick={save} disabled={busy}>
-            Save price
+            Save prices
           </Button>
         )}
       </section>

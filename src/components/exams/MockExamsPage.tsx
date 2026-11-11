@@ -9,6 +9,7 @@ import {
   GetMyMockLearnersAction,
   GetMyMockSubjectsAction,
   LaunchMyMockAction,
+  RequestMockAccessAction,
 } from "@/server/exam-mock";
 import { BuyMockCoinsAction, GetMockBalanceAction, GetMockPricingAction, type MockPricing } from "@/server/exam";
 import { VerifyPaymentAction } from "@/server/payment";
@@ -36,6 +37,9 @@ export default function MockExamsPage() {
   const learner = learners.find((l) => l.key === activeKey) ?? null;
 
   const loadChild = useCallback(async (key: string) => {
+    // Priced in the currency this child's family is assigned, so it is fetched per child.
+    const [pRes] = await GetMockPricingAction(key);
+    setPricing(pRes?.data ?? null);
     const [bRes] = await GetMockBalanceAction(key);
     setCoins(mockCoinBalance(bRes?.data ?? null));
     const [aRes] = await GetMyMockAttemptsAction(key);
@@ -53,8 +57,6 @@ export default function MockExamsPage() {
         const [eRes, eError] = await GetMyMockExamsAction();
         if (eError) setAvailable(false);
         setExams(eRes?.data ?? []);
-        const [pRes] = await GetMockPricingAction();
-        setPricing(pRes?.data ?? null);
       }
       setIsLoading(false);
     })();
@@ -94,6 +96,15 @@ export default function MockExamsPage() {
       tab.opener = null;
       tab.location.href = res.data.launchUrl;
     } else window.location.assign(res.data.launchUrl);
+  };
+
+  const requestAccess = async (key: string, name: string) => {
+    setBusy(`req:${key}`);
+    const [, error] = await RequestMockAccessAction(key);
+    setBusy(null);
+    if (error) return ToastError(error);
+    ToastSuccess(`Request sent. The school will review mock exams for ${name}.`);
+    setLearners((prev) => prev.map((l) => (l.key === key ? { ...l, requestStatus: "PENDING", requestDecisionNote: null } : l)));
   };
 
   const buy = async () => {
@@ -137,8 +148,25 @@ export default function MockExamsPage() {
       <div className="bg-white shadow rounded-2xl p-6 space-y-2">
         <h1 className="text-2xl font-bold">Mock exams</h1>
         <p className="text-sm text-gray-500">
-          Mock exams have not been switched on for {learners.length > 1 ? "your children" : "this account"} yet. Ask your school to turn them on.
+          Mock exams have not been switched on for {learners.length > 1 ? "your children" : "this account"} yet. You can ask the school to turn them on.
         </p>
+        <ul className="divide-y text-sm">
+          {learners.map((l) => (
+            <li key={l.key} className="py-2 flex flex-wrap items-center justify-between gap-2">
+              <span>
+                {l.fullName}
+                {l.requestStatus === "DECLINED" && l.requestDecisionNote ? <span className="text-xs text-gray-500"> · Declined: {l.requestDecisionNote}</span> : null}
+              </span>
+              {l.requestStatus === "PENDING" ? (
+                <span className="text-xs text-amber-700">Waiting for the school</span>
+              ) : (
+                <Button size="sm" variant="outline" disabled={busy === `req:${l.key}`} onClick={() => requestAccess(l.key, l.fullName)}>
+                  {l.requestStatus === "DECLINED" ? "Ask again" : "Request mock exams"}
+                </Button>
+              )}
+            </li>
+          ))}
+        </ul>
       </div>
     );
   }
@@ -165,7 +193,19 @@ export default function MockExamsPage() {
       )}
 
       {learner && !learner.enabled ? (
-        <p className="text-sm text-gray-500">Mock exams are not switched on for {learner.fullName}. Ask your school to turn them on.</p>
+        <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-gray-500">
+          <p>
+            Mock exams are not switched on for {learner.fullName}.
+            {learner.requestStatus === "DECLINED" && learner.requestDecisionNote ? ` Declined: ${learner.requestDecisionNote}` : ""}
+          </p>
+          {learner.requestStatus === "PENDING" ? (
+            <span className="text-xs text-amber-700">Waiting for the school</span>
+          ) : (
+            <Button size="sm" variant="outline" disabled={busy === `req:${learner.key}`} onClick={() => requestAccess(learner.key, learner.fullName)}>
+              {learner.requestStatus === "DECLINED" ? "Ask again" : "Request mock exams"}
+            </Button>
+          )}
+        </div>
       ) : (
         learner && (
           <>
@@ -175,20 +215,6 @@ export default function MockExamsPage() {
                 {coins != null ? `${coins} coin(s) left` : "No coins yet"}
                 {out && canBuy ? " - buy more to keep practising" : out ? " - ask your school for coins" : ""}
               </p>
-              {(coins == null || (learner.heldCoins ?? 0) > 0) && (
-                <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm space-y-2">
-                  <p>
-                    {(learner.heldCoins ?? 0) > 0
-                      ? `${learner.heldCoins} paid coin(s) are waiting for ${learner.fullName}. `
-                      : `${learner.fullName} has not opened mock exams yet. `}
-                    Press Activate once - it opens the practice site and sets up {learner.fullName}&apos;s account, so coins can be added. Come back to
-                    this page afterwards.
-                  </p>
-                  <Button size="sm" onClick={() => start({}, "activate")} disabled={busy === "activate"}>
-                    {busy === "activate" ? "Opening..." : "Activate mock exams"}
-                  </Button>
-                </div>
-              )}
               {canBuy && pricing && (
                 <div className="flex flex-wrap items-center gap-2 text-sm">
                   <input

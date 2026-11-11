@@ -104,13 +104,12 @@ export interface MockPurchase {
   createdAt: string;
 }
 
-export const GetMockPricingAction = async () => call<MockPricing>("/exams/mock/pricing", "GET");
+// The price this child's family pays (priced in the currency their country is assigned).
+export const GetMockPricingAction = async (learnerKey: string) => call<MockPricing>(`/exams/mock/pricing?learnerKey=${encodeURIComponent(learnerKey)}`, "GET");
 export const BuyMockCoinsAction = async (learnerKey: string, coins: number) =>
   call<PaymentRequest>("/exams/mock/buy-coins", "POST", { learnerKey, coins });
-export const UpdateMockPricingAction = async (body: MockPricing) => call<MockPricing>("/admin/exams/mock/pricing", "PUT", body);
 export const GetMockPurchasesAction = async () => call<MockPurchase[]>("/admin/exams/mock/purchases", "GET");
 export const RetryMockPurchaseAction = async (id: string) => call<MockPurchase>(`/admin/exams/mock/purchases/${id}/retry`, "POST");
 
 // Admin-side reads of the same data (the learner routes above are STUDENT/PARENT only).
 export const GetMockCatalogAdminAction = async () => call<Record<string, unknown>[]>("/admin/exams/mock/catalog", "GET");
-export const GetMockPricingAdminAction = async () => call<MockPricing>("/admin/exams/mock/pricing", "GET");
