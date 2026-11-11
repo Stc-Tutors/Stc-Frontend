@@ -149,6 +149,8 @@ export interface MyMockLearner {
   fullName: string;
   enabled: boolean;
   allowedSubjectIds: number[] | null;
+  // Country of residence from the child's profile (null = not set; coins are priced by it).
+  country?: string | null;
   // The family's latest request while mock exams are still off for this child.
   requestStatus?: "PENDING" | "DECLINED" | null;
   requestDecisionNote?: string | null;

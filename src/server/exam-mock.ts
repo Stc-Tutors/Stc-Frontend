@@ -114,3 +114,7 @@ export const ActivateMockStudentAction = async (learnerKey: string) =>
 // A family asks the school to switch mock exams on for one of their children (enrolled or not).
 export const RequestMockAccessAction = async (learnerKey: string, note?: string) =>
   call<MockAccessRequest>("/exams/mock/request", "POST", { learnerKey, note });
+
+// Saves the child's country of residence to their profile (coins are priced by it).
+export const SetMockLearnerCountryAction = async (learnerKey: string, country: string) =>
+  call<{ key: string; country: string }>(`/exams/mock/learners/${encodeURIComponent(learnerKey)}/country`, "PUT", { country });

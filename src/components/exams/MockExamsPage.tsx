@@ -10,6 +10,7 @@ import {
   GetMyMockSubjectsAction,
   LaunchMyMockAction,
   RequestMockAccessAction,
+  SetMockLearnerCountryAction,
 } from "@/server/exam-mock";
 import { BuyMockCoinsAction, GetMockBalanceAction, GetMockPricingAction, type MockPricing } from "@/server/exam";
 import { VerifyPaymentAction } from "@/server/payment";
@@ -17,6 +18,9 @@ import { mockCoinBalance } from "@/lib/mock-exam-display";
 import { formatMoney } from "@/lib/money";
 import type { MockAttempt, MockExamSubjects, MyMockExam, MyMockLearner } from "@/types/exam-mock";
 import { createCheckout } from "@/lib/checkout";
+import { SearchableCombobox } from "@/components/ui/searchable-combobox";
+import { GetTaxonomyOptionsAction } from "@/server/taxonomy-option";
+import { TaxonomyOptionKind, type ITaxonomyOption } from "@/types/service-catalog";
 
 // The student/parent Mock Exams page (same page for both - the backend scopes everything to the family). Mock exams are switched on per
 // student by an admin; a child without it sees a plain "not switched on" note. A parent picks a child first.
@@ -33,8 +37,17 @@ export default function MockExamsPage() {
   const [subjects, setSubjects] = useState<MockExamSubjects | null>(null);
   const [attempts, setAttempts] = useState<MockAttempt[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
+  const [countries, setCountries] = useState<ITaxonomyOption[]>([]);
+  const [pickedCountry, setPickedCountry] = useState("");
 
   const learner = learners.find((l) => l.key === activeKey) ?? null;
+
+  // Only fetched when a child actually lacks a country.
+  const needsCountry = !!learner?.enabled && !learner.country;
+  useEffect(() => {
+    if (!needsCountry || countries.length > 0) return;
+    GetTaxonomyOptionsAction(TaxonomyOptionKind.COUNTRY).then(([res]) => setCountries(res?.data ?? []));
+  }, [needsCountry, countries.length]);
 
   const loadChild = useCallback(async (key: string) => {
     // Priced in the currency this child's family is assigned, so it is fetched per child.
@@ -105,6 +118,20 @@ export default function MockExamsPage() {
     if (error) return ToastError(error);
     ToastSuccess(`Request sent. The school will review mock exams for ${name}.`);
     setLearners((prev) => prev.map((l) => (l.key === key ? { ...l, requestStatus: "PENDING", requestDecisionNote: null } : l)));
+  };
+
+  const saveCountry = async () => {
+    if (!activeKey || !pickedCountry) return;
+    setBusy("country");
+    const [res, error] = await SetMockLearnerCountryAction(activeKey, pickedCountry);
+    if (error || !res?.data) {
+      setBusy(null);
+      return ToastError(error ?? "Could not save the country");
+    }
+    setLearners((prev) => prev.map((l) => (l.key === activeKey ? { ...l, country: res.data!.country } : l)));
+    setPickedCountry("");
+    await loadChild(activeKey); // re-prices in the right currency
+    setBusy(null);
   };
 
   const buy = async () => {
@@ -215,7 +242,27 @@ export default function MockExamsPage() {
                 {coins != null ? `${coins} coin(s) left` : "No coins yet"}
                 {out && canBuy ? " - buy more to keep practising" : out ? " - ask your school for coins" : ""}
               </p>
-              {canBuy && pricing && (
+              {needsCountry && (
+                <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm space-y-2">
+                  <p>
+                    Choose {learner.fullName}&apos;s country of residence to see the price of coins in your currency. It is saved to their profile.
+                  </p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <div className="w-64">
+                      <SearchableCombobox
+                        options={countries.map((c) => ({ value: c.value, label: c.label }))}
+                        value={pickedCountry}
+                        onChange={setPickedCountry}
+                        placeholder={countries.length === 0 ? "Loading countries..." : "Select country"}
+                      />
+                    </div>
+                    <Button size="sm" onClick={saveCountry} disabled={!pickedCountry || busy === "country"}>
+                      {busy === "country" ? "Saving..." : "Save country"}
+                    </Button>
+                  </div>
+                </div>
+              )}
+              {canBuy && pricing && !needsCountry && (
                 <div className="flex flex-wrap items-center gap-2 text-sm">
                   <input
                     type="number"
