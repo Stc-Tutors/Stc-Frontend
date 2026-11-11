@@ -117,6 +117,8 @@ export interface MyMockLearner {
   fullName: string;
   enabled: boolean;
   allowedSubjectIds: number[] | null;
+  // Paid coins held until the child opens their STC Exams account once (see "Activate mock exams").
+  heldCoins?: number;
 }
 
 export interface MyMockExam {

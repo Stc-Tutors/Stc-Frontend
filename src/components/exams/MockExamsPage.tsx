@@ -175,6 +175,20 @@ export default function MockExamsPage() {
                 {coins != null ? `${coins} coin(s) left` : "No coins yet"}
                 {out && canBuy ? " - buy more to keep practising" : out ? " - ask your school for coins" : ""}
               </p>
+              {(coins == null || (learner.heldCoins ?? 0) > 0) && (
+                <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm space-y-2">
+                  <p>
+                    {(learner.heldCoins ?? 0) > 0
+                      ? `${learner.heldCoins} paid coin(s) are waiting for ${learner.fullName}. `
+                      : `${learner.fullName} has not opened mock exams yet. `}
+                    Press Activate once - it opens the practice site and sets up {learner.fullName}&apos;s account, so coins can be added. Come back to
+                    this page afterwards.
+                  </p>
+                  <Button size="sm" onClick={() => start({}, "activate")} disabled={busy === "activate"}>
+                    {busy === "activate" ? "Opening..." : "Activate mock exams"}
+                  </Button>
+                </div>
+              )}
               {canBuy && pricing && (
                 <div className="flex flex-wrap items-center gap-2 text-sm">
                   <input
