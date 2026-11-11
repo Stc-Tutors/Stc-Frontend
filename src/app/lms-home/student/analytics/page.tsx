@@ -6,14 +6,13 @@ import DownloadReport from "@/components/studentDashboard/DownloadReport";
 import AnalyticsChart from "@/components/studentDashboard/AnalyticsChart";
 import { Card } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
-import { GetCourseAssignmentsAction } from "@/server/assignment";
+import { GetStudentPerformanceAction } from "@/server/performance";
+import { StudentPerformance } from "@/types/performance";
 import { GetStudentAttendanceAction } from "@/server/attendance";
-import { GetMySubmissionsAction } from "@/server/submission";
 import { GetNotificationsAction } from "@/server/notification";
 import { CourseEnrollmentStatus } from "@/types/course-enrollment";
 import { LessonStatus } from "@/types/lesson";
 import { AttendanceStatus } from "@/types/attendance";
-import { Assignment } from "@/types/assignment";
 import { Course } from "@/types/course";
 import { Notification } from "@/types/notification";
 import { GetCourseLessonsCached, GetEnrollmentsCached, GetStudentCoursesCached } from "@/lib/cached-reads";
@@ -30,6 +29,7 @@ export default function AnalyticsPage() {
   const [counts, setCounts] = useState({ enrolled: 0, active: 0, completed: 0 });
   const [progress, setProgress] = useState<ProgressCard[]>([]);
   const [announcements, setAnnouncements] = useState<Notification[]>([]);
+  const [performance, setPerformance] = useState<StudentPerformance | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -57,17 +57,16 @@ export default function AnalyticsPage() {
         completed: enrollments.filter((e) => e.status === CourseEnrollmentStatus.COMPLETED).length,
       });
 
-      const [lessonLists, assignmentLists, [attendanceRes], [submissionsRes]] = await Promise.all([
+      const [lessonLists, [attendanceRes], [performanceRes]] = await Promise.all([
         Promise.all(courses.map((c) => GetCourseLessonsCached(c.id))),
-        Promise.all(courses.map((c) => GetCourseAssignmentsAction(c.id))),
         GetStudentAttendanceAction(studentId),
-        GetMySubmissionsAction(),
+        GetStudentPerformanceAction(studentId),
       ]);
 
       const allLessons = lessonLists.flatMap(([res]) => res?.data ?? []);
-      const allAssignments: Assignment[] = assignmentLists.flatMap(([res]) => res?.data ?? []);
       const attendance = attendanceRes?.data ?? [];
-      const submissions = submissionsRes?.data ?? [];
+      const perf = performanceRes?.data ?? null;
+      setPerformance(perf);
 
       const lessonsPct =
         allLessons.length === 0
@@ -83,19 +82,9 @@ export default function AnalyticsPage() {
                 100
             );
 
-      const gradedSubmissions = submissions.filter((s) => typeof s.score === "number");
-      const testPerformancePct =
-        gradedSubmissions.length === 0
-          ? 0
-          : Math.round(
-              gradedSubmissions.reduce((sum, s) => {
-                const maxScore = typeof s.assignment === "string" ? 100 : s.assignment.maxScore || 100;
-                return sum + ((s.score ?? 0) / maxScore) * 100;
-              }, 0) / gradedSubmissions.length
-            );
-
-      const assignmentCompletionPct =
-        allAssignments.length === 0 ? 0 : Math.round((submissions.length / allAssignments.length) * 100);
+      // Test performance = STC Exams results; assignment completion = handed in out of what was set for this learner.
+      const testPerformancePct = Math.round(perf?.tests.averagePercent ?? 0);
+      const assignmentCompletionPct = !perf || perf.assignments.set === 0 ? 0 : Math.min(100, Math.round((perf.assignments.submitted / perf.assignments.set) * 100));
 
       setProgress([
         { title: "Lessons", color: "text-blue-500", strokeColor: "#3b82f6", percent: lessonsPct },
@@ -235,6 +224,37 @@ export default function AnalyticsPage() {
           </Card>
         ))}
       </div>
+
+      {/* ====== RECENT MARKS: graded assignments and exam results ====== */}
+      <Card className="bg-white rounded-lg shadow-sm p-4">
+        <div className="flex justify-between flex-wrap gap-2 items-center mb-3">
+          <h3 className="font-semibold text-gray-800">Recent marks</h3>
+          {performance?.overallPercent != null && (
+            <span className="text-sm text-gray-600">Overall: <span className="font-semibold text-gray-800">{Math.round(performance.overallPercent)}%</span></span>
+          )}
+        </div>
+        {isLoading ? (
+          <p className="text-sm text-gray-500">Loading...</p>
+        ) : !performance || performance.recent.length === 0 ? (
+          <p className="text-sm text-gray-500">No graded assignments or exam results yet.</p>
+        ) : (
+          <div className="divide-y">
+            {performance.recent.map((item, i) => (
+              <div key={`${item.kind}-${item.title}-${i}`} className="flex justify-between flex-wrap gap-2 py-2 text-sm">
+                <span className="text-gray-700">
+                  <span className={`mr-2 text-[10px] font-semibold px-1.5 py-0.5 rounded ${item.kind === "TEST" ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700"}`}>
+                    {item.kind === "TEST" ? "EXAM" : "ASSIGNMENT"}
+                  </span>
+                  {item.title}
+                </span>
+                <span className="font-medium">
+                  {item.score}/{item.maxScore} <span className="text-gray-500">({Math.round(item.percent)}%)</span>
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
     </div>
   );
 }

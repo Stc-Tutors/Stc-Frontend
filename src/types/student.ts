@@ -237,7 +237,12 @@ export interface AcademicSummary {
   attendanceRate: number;
   assignmentCompletionRate: number;
   averageGrade: number;
+  // Overall mark: every graded assignment and every STC Exams test counted once.
   courseProgressRate: number;
+  // STC Exams tests only (null = none taken yet).
+  testAverage: number | null;
+  testsTaken: number;
+  assignmentsGraded: number;
 }
 
 export interface ParentEnrollmentSummary {

@@ -346,6 +346,14 @@ function StudentProgressLookup() {
               <p className="text-xl font-semibold text-gray-900">{progress.assignments.averageScorePercent ?? "-"}%</p>
               <p className="text-sm text-gray-500">Avg score</p>
             </div>
+            <div>
+              <p className="text-xl font-semibold text-gray-900">{progress.performance?.tests.averagePercent ?? "-"}{progress.performance?.tests.averagePercent != null ? "%" : ""}</p>
+              <p className="text-sm text-gray-500">Avg test ({progress.performance?.tests.taken ?? 0} taken)</p>
+            </div>
+            <div>
+              <p className="text-xl font-semibold text-gray-900">{progress.performance?.overallPercent ?? "-"}{progress.performance?.overallPercent != null ? "%" : ""}</p>
+              <p className="text-sm text-gray-500">Overall mark</p>
+            </div>
           </div>
         </div>
       )}

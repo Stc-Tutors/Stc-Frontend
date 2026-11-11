@@ -186,15 +186,16 @@ export default function StudentProfilePage() {
       <section className="bg-white mt-8 sm:ml-8 sm:mr-9 px-4 sm:pl-12 sm:pr-9 py-5">
         <h2 className="font-bold text-xl mb-1">Academic Progress</h2>
         <p className="text-xs text-gray-500 mb-4">
-          Attendance across all your lessons with this student, assignment completion and average grade on your
-          courses, and overall course progress.
+          Attendance across all your lessons with this student, assignment completion, assignment grades and
+          STC Exams test results, and the overall mark across them.
         </p>
         {summary ? (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-xl">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 max-w-3xl">
             <RingStat label="Attendance Record" percent={summary.attendanceRate} />
             <RingStat label="Assignment Completion" percent={summary.assignmentCompletionRate} />
-            <RingStat label="Average Grade" percent={summary.averageGrade} />
-            <RingStat label="Course Progress" percent={summary.courseProgressRate} />
+            <RingStat label="Assignment Grade" percent={summary.averageGrade} />
+            <RingStat label={summary.testsTaken === 0 ? "Test Performance (none yet)" : "Test Performance"} percent={summary.testAverage ?? 0} />
+            <RingStat label="Overall Mark" percent={summary.courseProgressRate} />
           </div>
         ) : (
           <p className="text-sm text-gray-500">No academic data yet for this student.</p>

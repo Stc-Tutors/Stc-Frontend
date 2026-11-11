@@ -1,3 +1,4 @@
+import type { StudentPerformance } from "./performance";
 export interface AdminOverview {
   usersByRole: Record<string, number>;
   enrollmentsByStatus: Record<string, number>;
@@ -80,4 +81,5 @@ export interface StudentProgressReport {
   attendance: { total: number; present: number; rate: number | null };
   assignments: { totalSubmitted: number; totalGraded: number; averageScorePercent: number | null };
   gradeTimeline: { assignmentTitle: string; score: number; maxScore: number; gradedAt: string }[];
+  performance?: StudentPerformance;
 }
