@@ -39,6 +39,8 @@ export default function MockExamsPage() {
   const [busy, setBusy] = useState<string | null>(null);
   const [countries, setCountries] = useState<ITaxonomyOption[]>([]);
   const [pickedCountry, setPickedCountry] = useState("");
+  // The practice test runs INSIDE this page (the address bar stays on our own domain). STC Exams already allows being framed by our site.
+  const [frame, setFrame] = useState<{ url: string; selection: { examId?: number; subjectId?: number; topicId?: number } } | null>(null);
 
   const learner = learners.find((l) => l.key === activeKey) ?? null;
 
@@ -97,10 +99,23 @@ export default function MockExamsPage() {
   const start = async (selection: { examId?: number; subjectId?: number; topicId?: number }, tag: string) => {
     if (!activeKey) return;
     setBusy(tag);
-    // Reserve the tab inside the click, or the browser blocks it as a popup once we have awaited the link.
-    const tab = window.open("", "_blank");
     const [res, error] = await LaunchMyMockAction(activeKey, selection);
     setBusy(null);
+    if (error || !res?.data) return ToastError(error ?? "Could not open the practice test");
+    setFrame({ url: res.data.launchUrl, selection });
+  };
+
+  // Leaving the test: coins and the practice history have probably changed, so reload them.
+  const closeFrame = () => {
+    setFrame(null);
+    if (activeKey) void loadChild(activeKey);
+  };
+
+  // Some browsers refuse camera/microphone or storage inside a frame. A launch link works once, so this asks for a fresh one.
+  const openFrameInTab = async () => {
+    if (!activeKey || !frame) return;
+    const tab = window.open("", "_blank"); // reserved inside the click so the browser does not block it as a popup
+    const [res, error] = await LaunchMyMockAction(activeKey, frame.selection);
     if (error || !res?.data) {
       tab?.close();
       return ToastError(error ?? "Could not open the practice test");
@@ -108,6 +123,7 @@ export default function MockExamsPage() {
     if (tab) {
       tab.opener = null;
       tab.location.href = res.data.launchUrl;
+      closeFrame();
     } else window.location.assign(res.data.launchUrl);
   };
 
@@ -203,6 +219,27 @@ export default function MockExamsPage() {
 
   return (
     <div className="bg-white shadow rounded-2xl p-6 space-y-5">
+      {frame && (
+        <div className="fixed inset-0 z-[100] flex flex-col bg-white">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b px-4 py-2">
+            <p className="text-sm font-semibold text-gray-800">Mock exam{learner ? ` - ${learner.fullName}` : ""}</p>
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" onClick={openFrameInTab}>
+                Having trouble? Open in a new tab
+              </Button>
+              <Button size="sm" onClick={closeFrame}>
+                Close
+              </Button>
+            </div>
+          </div>
+          <iframe
+            title="Mock exam"
+            src={frame.url}
+            className="w-full flex-1 border-0"
+            allow="camera; microphone; display-capture; fullscreen; clipboard-write"
+          />
+        </div>
+      )}
       <div>
         <h1 className="text-2xl font-bold">Mock exams</h1>
         <p className="text-sm text-gray-500">Practise past-paper style tests. Each practice uses coins.</p>

@@ -32,6 +32,8 @@ function apiOrigins() {
 // STC Exams (proctored tests) - a test can be shown in a frame inside the LMS, so its site must be allowed to be framed here and be
 // delegated the camera/microphone/screen-share a proctored test asks for. Override when STC serves exams from a custom domain.
 const examsOrigin = process.env.NEXT_PUBLIC_STC_EXAMS_ORIGIN || "https://stc-exams.onrender.com";
+// STC Exams' web app (where a launch link lands and the test runs) is a different host from its API - both must be framable/permitted.
+const examsAppOrigin = process.env.NEXT_PUBLIC_STC_EXAMS_APP_ORIGIN || "https://eta.stctutors.com";
 
 function livekitHost(scheme) {
   const raw = process.env.NEXT_PUBLIC_LIVEKIT_URL;
@@ -95,6 +97,7 @@ function contentSecurityPolicy() {
       // The resource preview dialog frames uploaded PDFs/documents straight from Cloudinary.
       "https://res.cloudinary.com",
       examsOrigin,
+      examsAppOrigin,
     ],
     "media-src": ["'self'", "https:", "blob:", "data:"],
     "worker-src": ["'self'", "blob:"],
@@ -152,7 +155,7 @@ const nextConfig = {
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "X-Frame-Options", value: "SAMEORIGIN" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-          { key: "Permissions-Policy", value: `camera=(self "${examsOrigin}"), microphone=(self "${examsOrigin}"), display-capture=(self "${examsOrigin}"), fullscreen=(self "${examsOrigin}"), geolocation=()` },
+          { key: "Permissions-Policy", value: `camera=(self "${examsOrigin}" "${examsAppOrigin}"), microphone=(self "${examsOrigin}" "${examsAppOrigin}"), display-capture=(self "${examsOrigin}" "${examsAppOrigin}"), fullscreen=(self "${examsOrigin}" "${examsAppOrigin}"), geolocation=()` },
           // Enforced (the full host allowlist). If a legitimate third-party host is blocked, the browser console and
           // /api/csp-report name the directive and host to add in contentSecurityPolicy() above.
           { key: "Content-Security-Policy", value: contentSecurityPolicy() },
