@@ -28,6 +28,7 @@ import {
 } from "@/types/admin";
 import { Student } from "@/types/student";
 import { Input } from "@/components/ui/input";
+import AttendanceReview from "@/components/attendance/AttendanceReview";
 import { useUser } from "@/contexts/user-context";
 import { AdminPermission } from "@/types/admin-permission";
 
@@ -267,6 +268,8 @@ export default function AdminReportsPage() {
       </div>
 
       <StudentProgressLookup />
+
+      <AttendanceReview />
     </div>
   );
 }
