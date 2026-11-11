@@ -263,6 +263,7 @@ function AccessTab({ notify }: { notify: Notify }) {
                 <li key={h.key}>
                   <button type="button" className="w-full text-left px-3 py-2 hover:bg-gray-50" onClick={() => setPicked([...picked, h])}>
                     {h.fullName} {h.grade ? <span className="text-gray-500">· {h.grade}</span> : null}
+                    <span className="text-gray-500"> · {h.parentName ? `parent: ${h.parentName}` : "no parent"} · {h.enrolments ?? 0} enrolment{h.enrolments === 1 ? "" : "s"}</span>
                   </button>
                 </li>
               ))}

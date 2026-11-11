@@ -91,6 +91,9 @@ export interface MockLearnerHit {
   key: string;
   fullName: string;
   grade?: string;
+  // Who the child belongs to and how many live enrolments they have - tells apart two children with the same name.
+  parentName?: string;
+  enrolments?: number;
 }
 
 // What one family pays for one child: a single price in the currency their country is assigned.
