@@ -1,0 +1,7 @@
+# Netlify build settings (Vercel ignores this file).
+# Build with webpack, not Next 16's default Turbopack: Turbopack emits server chunks named
+# "[turbopack]_runtime.js", which Netlify's function bundler leaves out, so every page 500s with
+# "Cannot find module '../../chunks/ssr/[turbopack]_runtime.js'".
+[build]
+  command = "npx next build --webpack"
+  publish = ".next"
