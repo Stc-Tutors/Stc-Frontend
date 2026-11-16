@@ -10,6 +10,7 @@ import Timetable from "@/components/studentDashboard/TimeTable";
 import UpcomingEventsWidget from "@/components/shared/UpcomingEventsWidget";
 import { useUser } from "@/contexts/user-context";
 import PendingEnrollmentBanner from "@/components/pending-enrollment-banner";
+import PendingAdditionsBanner from "@/components/pending-additions-banner";
 
 export default function StudentOverviewPage() {
   const { user } = useUser();
@@ -17,6 +18,7 @@ export default function StudentOverviewPage() {
   return (
   <div className="space-y-6">
     <PendingEnrollmentBanner basePath="/lms-home/student/complete-profile" source="mine" />
+    <PendingAdditionsBanner />
 
     {/* Welcome Section */}
     <section className="bg-[#0a7ac2] p-6 rounded-lg shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
