@@ -47,10 +47,18 @@ export default function ReportsDuePage() {
         <p className="rounded-lg border bg-green-50 p-4 text-sm text-green-800">You&apos;re all caught up - no reports are waiting.</p>
       ) : (
         <ul className="space-y-2">
+          {items.some((l) => l.overdue) && (
+            <li className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+              Reports marked Overdue are past the one-week deadline. You can still file them now, but the session stays on hold until an admin reviews it.
+            </li>
+          )}
           {items.map((lesson) => (
             <li key={lesson.id} className="flex flex-col gap-2 rounded-lg border bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="font-medium text-gray-900">{lesson.course?.title ?? lesson.title}</p>
+                <p className="font-medium text-gray-900">
+                  {lesson.course?.title ?? lesson.title}
+                  {lesson.overdue && <span className="ml-2 rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">Overdue</span>}
+                </p>
                 <p className="text-sm text-gray-600">{formatScheduleDateTime(lesson.scheduledDate)}</p>
               </div>
               <Button size="sm" onClick={() => setFiling(lesson)}>

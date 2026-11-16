@@ -132,6 +132,8 @@ export interface ReportDueLesson {
   scheduledDate: string;
   // Absent when the tutor never clocked in - such a class is reported without a clock-out.
   actualStartTime?: string;
+  // Older than the one-week window: reminders have stopped, but it can still be filed (pay stays held until an admin reviews it).
+  overdue?: boolean;
   course?: { id?: string; title: string };
 }
 
