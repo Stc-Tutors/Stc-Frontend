@@ -485,8 +485,8 @@ function AccountStep({ referralCode, onDone }: { referralCode?: string; onDone: 
 }
 
 // Puts what the account step already collected into the learner step, so a
-// self-enrolling student doesn't retype their name/birth date and a parent
-// doesn't retype their phone. Runs before the wizard mounts (its steps seed
+// self-enrolling student doesn't retype their name, phone or birth date (a
+// parent's step 3 phone/email are the child's own, so nothing to copy). Runs before the wizard mounts (its steps seed
 // their fields once, on mount). Skipped when resuming a saved draft, which
 // carries its own details.
 function PrefilledFlow({ account }: { account: EnrollAccount }) {
@@ -500,7 +500,7 @@ function PrefilledFlow({ account }: { account: EnrollAccount }) {
       updateChildInfo(
         forcedUserType === "student"
           ? { userType: "student", fullName: `${account.firstName} ${account.lastName}`.trim(), phone: account.phone, dateOfBirth: account.dateOfBirth }
-          : { userType: "parent", phone: account.phone }
+          : { userType: "parent" }
       );
     }
     queueMicrotask(() => setReady(true));

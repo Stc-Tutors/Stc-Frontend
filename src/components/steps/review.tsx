@@ -213,7 +213,7 @@ export default function EnrollmentReview({ onNext, errors }: StepProps) {
             </div>
             {childInfo?.phone && (
               <div>
-                <p className="text-sm text-gray-600">Phone</p>
+                <p className="text-sm text-gray-600">{childInfo.userType === "parent" ? "Child's Phone" : "Phone"}</p>
                 <p className="font-medium">{childInfo.phone}</p>
               </div>
             )}

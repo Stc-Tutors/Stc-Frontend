@@ -525,12 +525,12 @@ export default function ChildInfoStep({ onNext, errors, forcedUserType }: StepPr
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone">{formData.userType === "parent" ? "Your Phone Number" : "Phone Number"}</Label>
+              <Label htmlFor="phone">{formData.userType === "parent" ? "Child's Phone (optional)" : "Phone Number"}</Label>
               <Input
                 id="phone"
                 value={formData.phone}
                 onChange={(e) => handleChange("phone", e.target.value)}
-                placeholder="Enter phone number"
+                placeholder={formData.userType === "parent" ? "If your child has their own number" : "Enter phone number"}
                 className={errors.phone ? "border-red-500" : ""}
               />
               {errors.phone && <p className="text-red-600 text-sm">{errors.phone}</p>}
