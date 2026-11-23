@@ -9,7 +9,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
-import { ChevronRight, Loader2, MailCheck, UserRound, Users } from "lucide-react";
+import { Check, ChevronRight, Circle, Loader2, MailCheck, UserRound, Users } from "lucide-react";
 
 import { EnrollmentProvider, useEnrollment } from "@/contexts/enrollment-context";
 import { IntakeGate } from "@/components/intake-closed";
@@ -22,7 +22,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { ToastError, ToastSuccess } from "@/components/ui/custom/toast";
 import { AcceptTermsAction, EnrollSignupAction } from "@/server/auth";
-import { passwordSchema } from "@/lib/password-policy";
+import { PASSWORD_MIN_LENGTH, passwordSchema } from "@/lib/password-policy";
 import { ROUTES } from "@/config/routes";
 import { UserRole } from "@/types/user";
 
@@ -64,12 +64,16 @@ const schema = z
     email: z.string().trim().email({ message: "Enter a valid email address" }),
     phone: z.string().min(10, { message: "Enter a valid phone number" }),
     password: passwordSchema,
+    confirmPassword: z.string().min(1, { message: "Please type your password again" }),
     dateOfBirth: z.string().optional(),
     parentEmail: z.string().optional(),
     referralCode: z.string().optional(),
     acceptTerms: z.boolean().refine((v) => v, { message: "Please agree to the Terms to continue" }),
   })
-  .superRefine(({ role, dateOfBirth, parentEmail, email }, ctx) => {
+  .superRefine(({ role, dateOfBirth, parentEmail, email, password, confirmPassword }, ctx) => {
+    if (confirmPassword && confirmPassword !== password) {
+      ctx.addIssue({ code: "custom", message: "The passwords don't match", path: ["confirmPassword"] });
+    }
     if (role !== UserRole.STUDENT) return;
     const age = ageFromDob(dateOfBirth);
     if (age === null) {
@@ -87,6 +91,33 @@ const schema = z
   });
 
 type FormValues = z.infer<typeof schema>;
+
+// Same rules as passwordSchema (lib/password-policy.ts), shown as a live checklist so people see what's needed while typing.
+const PASSWORD_RULES = [
+  { label: `At least ${PASSWORD_MIN_LENGTH} characters`, test: (v: string) => v.length >= PASSWORD_MIN_LENGTH },
+  { label: "An uppercase letter (A-Z)", test: (v: string) => /[A-Z]/.test(v) },
+  { label: "A lowercase letter (a-z)", test: (v: string) => /[a-z]/.test(v) },
+  { label: "A number (0-9)", test: (v: string) => /[0-9]/.test(v) },
+];
+
+function PasswordChecklist({ value }: { value: string }) {
+  return (
+    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-xs" aria-label="Password requirements">
+      {PASSWORD_RULES.map(({ label, test }) => {
+        const met = test(value);
+        return (
+          <li key={label} className={`flex items-center gap-1.5 ${met ? "text-green-700" : "text-gray-500"}`}>
+            {met ? <Check className="size-3.5" aria-hidden /> : <Circle className="size-3" aria-hidden />}
+            <span>
+              {label}
+              <span className="sr-only">{met ? " - done" : " - not yet"}</span>
+            </span>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
 
 function StepHeader({ step, title }: { step: number; title: string }) {
   return (
@@ -121,6 +152,7 @@ function AccountStep({ referralCode, onDone }: { referralCode?: string; onDone: 
       email: "",
       phone: "",
       password: "",
+      confirmPassword: "",
       dateOfBirth: "",
       parentEmail: "",
       referralCode: referralCode ?? "",
@@ -129,6 +161,7 @@ function AccountStep({ referralCode, onDone }: { referralCode?: string; onDone: 
   });
   const role = form.watch("role");
   const age = ageFromDob(form.watch("dateOfBirth"));
+  const password = form.watch("password");
 
   const onSubmit = async (values: FormValues) => {
     setExistingEmail(null);
@@ -337,19 +370,39 @@ function AccountStep({ referralCode, onDone }: { referralCode?: string; onDone: 
               </div>
             )}
 
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Create a password</FormLabel>
-                  <FormControl>
-                    <PasswordInput {...field} autoComplete="new-password" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Create a password</FormLabel>
+                    <FormControl>
+                      <PasswordInput {...field} autoComplete="new-password" />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="confirmPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Confirm password</FormLabel>
+                    <FormControl>
+                      <PasswordInput {...field} autoComplete="new-password" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="sm:col-span-2 space-y-1">
+                <PasswordChecklist value={password} />
+                {form.formState.errors.password && (
+                  <p className="text-sm text-red-600">Your password doesn&apos;t meet all the requirements above yet.</p>
+                )}
+              </div>
+            </div>
 
             {showReferral ? (
               <FormField
