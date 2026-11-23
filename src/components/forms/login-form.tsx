@@ -256,8 +256,8 @@ export default function LoginForm() {
       <div className="text-center text-sm mt-4 space-y-1">
         <p>
           Don&apos;t have an account?{" "}
-          <Link href={ROUTES.AUTH.REGISTER} className="underline underline-offset-4">
-            Register
+          <Link href={service ? `/enroll?service=${encodeURIComponent(service)}` : "/enroll"} className="underline underline-offset-4">
+            Enrol now
           </Link>
         </p>
         <p>

@@ -92,6 +92,8 @@ const publicPaths = [
   // Campaign landing pages (/go/<slug>) - a marketing link meant for
   // logged-out visitors. Without this the proxy bounced them to login.
   "/go",
+  // First-time enrolment: account + enrolment + payment on one stepped page, open to logged-out visitors.
+  "/enroll",
   // LiveKit's recorder page (public/egress/room-composite.html) - a static
   // file, but this middleware's matcher doesn't exempt public/ files, only the
   // prefixes listed there. LiveKit's own headless browser loads this with no
@@ -137,7 +139,9 @@ export async function proxy(request: Request) {
   const role = token ? await getRoleFromToken(token) : null;
   const isAuthenticated = !!role;
 
-  if (isAuthPage && isAuthenticated) {
+  // A family signed in from the enrolment page (/enroll) is still unverified - the link in their email must open, not bounce
+  // them to a dashboard that is waiting on exactly that verification.
+  if (isAuthPage && isAuthenticated && !pathname.startsWith("/auth/verify-email")) {
     return Response.redirect(new URL(ROLE_DASHBOARD[role], request.url));
   }
 

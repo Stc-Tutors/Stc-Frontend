@@ -101,6 +101,17 @@ export default function SubjectsSchedule({ onNext, errors, forcedUserType }: Ste
     GetServicesAction().then(([res]) => setAvailableServices(res?.data ?? []));
   }, []);
 
+  // Optional extras start folded away so the step only shows what's needed to
+  // place a tutor (subjects, format, days/times, start date, tutor gender,
+  // language). Opened from the start if a resumed draft already has any.
+  const [showTutorNotes, setShowTutorNotes] = useState(
+    !!(enrollmentData.serviceDetails?.learningGoals || enrollmentData.serviceDetails?.specialNeeds)
+  );
+  const [showExamDetails, setShowExamDetails] = useState(
+    Object.values(enrollmentData.serviceDetails?.examPreparationDetails ?? {}).some((v) =>
+      Array.isArray(v) ? v.length > 0 : v !== undefined && v !== null && v !== ""
+    )
+  );
   const [serviceData, setServiceData] = useState({
     ageLevel: enrollmentData.serviceDetails?.ageLevel || "",
     selectedSubjects: enrollmentData.serviceDetails?.selectedSubjects || [],
@@ -1089,6 +1100,8 @@ export default function SubjectsSchedule({ onNext, errors, forcedUserType }: Ste
             </div>
           )}
 
+          {showTutorNotes ? (
+            <>
           <div className="space-y-2">
             <Label htmlFor="learningGoals">Learning Goals</Label>
             <Textarea
@@ -1114,6 +1127,16 @@ export default function SubjectsSchedule({ onNext, errors, forcedUserType }: Ste
               rows={3}
             />
           </div>
+            </>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowTutorNotes(true)}
+              className="text-sm text-[#0a7ac2] underline underline-offset-4"
+            >
+              + Add learning goals or notes for the tutor (optional)
+            </button>
+          )}
 
           <div className="space-y-2">
             <Label>Preferred Tutor Gender *</Label>
@@ -1153,7 +1176,21 @@ export default function SubjectsSchedule({ onNext, errors, forcedUserType }: Ste
           blocker. */}
       {isPathB && (
         <Card>
-          <CardHeader><CardTitle>Exam Details (optional)</CardTitle></CardHeader>
+          <CardHeader>
+            <button
+              type="button"
+              onClick={() => setShowExamDetails((v) => !v)}
+              aria-expanded={showExamDetails}
+              className="flex w-full items-center justify-between text-left"
+            >
+              <CardTitle>Exam Details (optional)</CardTitle>
+              <span className="text-sm font-normal text-[#0a7ac2]">{showExamDetails ? "Hide" : "Add details"}</span>
+            </button>
+            {!showExamDetails && (
+              <p className="text-sm text-gray-500">Target grade, exam date, school, difficult topics - you can also add these later.</p>
+            )}
+          </CardHeader>
+          {showExamDetails && (
           <CardContent className="space-y-4">
             {examNode && (examNode.fullName || examNode.description || (examNode.requiredSubjects?.length ?? 0) > 0) && (
               <div className="bg-blue-50 rounded-lg p-3 text-sm space-y-1">
@@ -1443,6 +1480,7 @@ export default function SubjectsSchedule({ onNext, errors, forcedUserType }: Ste
               />
             </div>
           </CardContent>
+          )}
         </Card>
       )}
 

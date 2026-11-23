@@ -104,7 +104,7 @@ export default function Footer() {
               <Link href={content.loginLink} className="text-sm hover:text-blue-100 transition">
                 {content.loginText}
               </Link>
-              <Link href={ROUTES.AUTH.REGISTER}>
+              <Link href="/enroll">
                 <span className="bg-white text-[#0a7ac2] px-3 py-1.5 rounded-md text-sm hover:bg-blue-100 transition">
                   {content.registerText}
                 </span>

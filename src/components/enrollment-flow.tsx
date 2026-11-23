@@ -39,9 +39,13 @@ interface EnrollmentFlowProps {
   // (which still renders this component while redirecting) keeps working.
   dashboardPath?: string;
   paymentHistoryPath?: string;
+  // Steps shown before this wizard by the page that hosts it (the public
+  // /enroll page puts "Your account" first) - only changes the "Step N of M"
+  // counter and progress bar so the family sees one continuous sequence.
+  leadingSteps?: number;
 }
 
-export default function EnrollmentFlow({ forcedUserType, dashboardPath, paymentHistoryPath }: EnrollmentFlowProps) {
+export default function EnrollmentFlow({ forcedUserType, dashboardPath, paymentHistoryPath, leadingSteps = 0 }: EnrollmentFlowProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const continueId = searchParams.get("continue");
@@ -315,7 +319,8 @@ export default function EnrollmentFlow({ forcedUserType, dashboardPath, paymentH
     }
   };
 
-  const progress = (currentStep / steps.length) * 100;
+  const totalSteps = steps.length + leadingSteps;
+  const progress = ((currentStep + leadingSteps) / totalSteps) * 100;
 
   return (
     <div className="w-full flex-1 bg-gray-50 py-8">
@@ -339,7 +344,7 @@ export default function EnrollmentFlow({ forcedUserType, dashboardPath, paymentH
           <div className="space-y-2">
             <div className="flex justify-between flex-wrap gap-2 text-sm text-gray-600">
               <span>
-                Step {currentStep} of {steps.length}
+                Step {currentStep + leadingSteps} of {totalSteps}
               </span>
               <span>{stepTitle}</span>
             </div>

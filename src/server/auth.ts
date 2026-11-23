@@ -48,6 +48,39 @@ export async function RegisterForCampaignAction(
   return [resData, error];
 }
 
+// Signup from the first-time enrolment page (/enroll): creates the account and signs the family in at once, so they can enrol and
+// pay without first leaving to verify their email (see stcbe's AuthService.registerForEnrollment - the session can only reach
+// enrolling/paying until the email is verified). No token comes back for a 16-17 year old still waiting on a parent's confirmation.
+export async function EnrollSignupAction(
+  data: IUserSignup
+): Promise<[ApiResponse<{ token?: string; user: UserLogin["user"]; sessionSeconds?: number; consentPending?: boolean }> | null, string | null]> {
+  const cookie = await cookies();
+  const [res, error] = await fetchAPI({
+    url: "/auth/enroll-signup",
+    request: {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...data }),
+    },
+  });
+
+  const resData = res
+    ? ((await res.json()) as ApiResponse<{ token?: string; user: UserLogin["user"]; sessionSeconds?: number; consentPending?: boolean }>)
+    : null;
+
+  if (resData?.data?.token) {
+    cookie.set("token", resData.data.token, {
+      maxAge: resData.data.sessionSeconds ?? 60 * 60 * 24,
+      path: "/",
+      httpOnly: true,
+      secure: true,
+      sameSite: "lax",
+    });
+  }
+
+  return [resData, error];
+}
+
 // Accepts either an email or a studentId as the login identifier - exactly
 // one should be present, matching the backend's LoginDto.
 export async function SigninAction(data: {

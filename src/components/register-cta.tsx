@@ -16,9 +16,8 @@ interface RegisterCTAProps {
 // page, routing into the real enrollment + Paystack payment flow instead of
 // the old disconnected Google Form iframes. A signed-in student/parent goes
 // straight into the wizard with the service pre-selected; a logged-out
-// visitor is sent to sign up first, carrying the chosen service through the
-// register -> login -> dashboard hop via the `service` query param (see
-// register-form.tsx and login-form.tsx).
+// visitor goes to the one-page /enroll flow (account, learner, subjects and
+// times, payment) with the service already chosen.
 export default function RegisterCTA({ serviceType, label = "Register Now", className, icon }: RegisterCTAProps) {
   const router = useRouter();
   const { user, isLoading } = useUser();
@@ -26,7 +25,7 @@ export default function RegisterCTA({ serviceType, label = "Register Now", class
   const handleClick = () => {
     if (isLoading) return;
     router.push(
-      user ? `/dashboard/enroll?service=${serviceType}` : `/auth/register?service=${serviceType}`
+      user ? `/dashboard/enroll?service=${serviceType}` : `/enroll?service=${serviceType}`
     );
   };
 

@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Lock, WifiOff } from "lucide-react";
+import Link from "next/link";
+import { Lock, MailCheck, WifiOff } from "lucide-react";
+import ResendVerificationButton from "@/components/shared/ResendVerificationButton";
 import BrandLogo from "@/components/shared/BrandLogo";
 import LogoutButton from "@/components/shared/LogoutButton";
 import { useUser } from "@/contexts/user-context";
@@ -69,6 +71,39 @@ export default function AccessRestrictionGate({
     return (
       <div className="flex min-h-dvh items-center justify-center bg-gray-100" role="status" aria-label="Loading">
         <div className="size-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  // Signed up on the enrolment page (/enroll) and hasn't clicked the email link yet: the server answers EMAIL_NOT_VERIFIED for
+  // everything here except enrolling and paying (see stcbe's unverified-lock.ts), so say what to do instead of showing empty pages.
+  if (user && user.email && user.emailVerified === false) {
+    return (
+      <div className="flex min-h-dvh flex-col items-center justify-center bg-gray-100 px-6 text-center">
+        <BrandLogo width={120} height={40} className="object-contain mb-8" />
+        <div className="bg-white rounded-2xl shadow p-8 max-w-md space-y-4">
+          <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-blue-50 text-[#0a7ac2]">
+            <MailCheck className="size-6" />
+          </div>
+          <h1 className="text-lg font-bold text-gray-900">Verify your email to open your dashboard</h1>
+          <p className="text-sm text-gray-600">
+            We sent a link to <span className="font-medium">{user.email}</span>. Click it, then come back here.
+          </p>
+          <div className="flex flex-col items-center gap-3">
+            <button
+              type="button"
+              onClick={retrySession}
+              className="inline-block bg-gray-900 text-white text-sm font-medium px-4 py-2 rounded-md hover:bg-gray-800"
+            >
+              I&apos;ve verified it
+            </button>
+            <ResendVerificationButton email={user.email} />
+            <Link href="/enroll" className="text-sm text-gray-600 underline underline-offset-4">
+              Continue enrolling
+            </Link>
+            <LogoutButton className="text-xs text-gray-500 underline underline-offset-4">Log out</LogoutButton>
+          </div>
+        </div>
       </div>
     );
   }
