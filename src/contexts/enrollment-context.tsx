@@ -29,6 +29,8 @@ export type ChildInfo = {
   gender: string;
   dateOfBirth: string;
   phone: string;
+  // The learner's own email - optional, only asked when a parent enrols a child.
+  email?: string;
   countryOfResidence: string;
   primaryLanguage: string;
   userType: UserType;
@@ -606,6 +608,7 @@ export function EnrollmentProvider({ children }: { children: ReactNode }) {
         gender: student.gender || "",
         dateOfBirth: student.dateOfBirth ? new Date(student.dateOfBirth).toISOString().slice(0, 10) : "",
         phone: student.phone || "",
+        email: student.email || "",
         countryOfResidence: student.countryOfResidence || "",
         primaryLanguage: student.primaryLanguage || "",
         // Not stored explicitly - approximated from which owner link is

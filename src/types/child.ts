@@ -10,6 +10,7 @@ export interface Child {
   gender?: string;
   countryOfResidence?: string;
   phone?: string;
+  email?: string;
   primaryLanguage?: string;
   parentName?: string;
   parentEmail?: string;

@@ -217,6 +217,12 @@ export default function EnrollmentReview({ onNext, errors }: StepProps) {
                 <p className="font-medium">{childInfo.phone}</p>
               </div>
             )}
+            {childInfo?.userType === "parent" && childInfo?.email && (
+              <div>
+                <p className="text-sm text-gray-600">Child&apos;s Email</p>
+                <p className="font-medium">{childInfo.email}</p>
+              </div>
+            )}
           </div>
 
           {/* Parent/Guardian Info for Students */}

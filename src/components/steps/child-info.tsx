@@ -68,6 +68,7 @@ function profileToFormFields(profile: Child) {
     gender: profile.gender || "",
     dateOfBirth: profile.dateOfBirth ? new Date(profile.dateOfBirth).toISOString().slice(0, 10) : "",
     phone: profile.phone || "",
+    email: profile.email || "",
     countryOfResidence: profile.countryOfResidence || "",
     primaryLanguage: profile.primaryLanguage || "",
     parentName: profile.parentName || "",
@@ -85,6 +86,7 @@ export default function ChildInfoStep({ onNext, errors, forcedUserType }: StepPr
     gender: enrollmentData.childInfo?.gender || "",
     dateOfBirth: enrollmentData.childInfo?.dateOfBirth || "",
     phone: enrollmentData.childInfo?.phone || "",
+    email: enrollmentData.childInfo?.email || "",
     countryOfResidence: enrollmentData.childInfo?.countryOfResidence || "",
     primaryLanguage: enrollmentData.childInfo?.primaryLanguage || "",
     parentName: enrollmentData.childInfo?.parentName || "",
@@ -124,6 +126,7 @@ export default function ChildInfoStep({ onNext, errors, forcedUserType }: StepPr
       gender: enrollment.gender || "",
       dateOfBirth: enrollment.dateOfBirth ? new Date(enrollment.dateOfBirth).toISOString().slice(0, 10) : "",
       phone: enrollment.phone || "",
+      email: enrollment.email || "",
       countryOfResidence: enrollment.countryOfResidence || "",
       primaryLanguage: enrollment.primaryLanguage || "",
       parentName: enrollment.parentName || "",
@@ -147,6 +150,7 @@ export default function ChildInfoStep({ onNext, errors, forcedUserType }: StepPr
         gender: "",
         dateOfBirth: "",
         phone: "",
+        email: "",
         countryOfResidence: "",
         primaryLanguage: "",
         parentName: "",
@@ -265,6 +269,10 @@ export default function ChildInfoStep({ onNext, errors, forcedUserType }: StepPr
 
       if (!formData.dateOfBirth) {
         stepErrors.dateOfBirth = "Date of birth is required"
+      }
+
+      if (formData.userType === "parent" && formData.email.trim() && !/^\S+@\S+\.\S+$/.test(formData.email.trim())) {
+        stepErrors.email = "Please enter a valid email, or leave it blank"
       }
 
       // if (!formData.phone.trim()) {
@@ -527,6 +535,21 @@ export default function ChildInfoStep({ onNext, errors, forcedUserType }: StepPr
               />
               {errors.phone && <p className="text-red-600 text-sm">{errors.phone}</p>}
             </div>
+
+            {formData.userType === "parent" && (
+              <div className="space-y-2">
+                <Label htmlFor="childEmail">Child&apos;s Email (optional)</Label>
+                <Input
+                  id="childEmail"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => handleChange("email", e.target.value)}
+                  placeholder="If your child has their own email"
+                  className={errors.email ? "border-red-500" : ""}
+                />
+                {errors.email && <p className="text-red-600 text-sm">{errors.email}</p>}
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="countryOfResidence">Country of Residence *</Label>
