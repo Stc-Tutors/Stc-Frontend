@@ -22,6 +22,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { ToastError, ToastSuccess } from "@/components/ui/custom/toast";
 import { AcceptTermsAction, EnrollSignupAction } from "@/server/auth";
+import { GetUserAction } from "@/server/user";
 import { PASSWORD_MIN_LENGTH, passwordSchema } from "@/lib/password-policy";
 import { ROUTES } from "@/config/routes";
 import { UserRole } from "@/types/user";
@@ -91,6 +92,16 @@ const schema = z
   });
 
 type FormValues = z.infer<typeof schema>;
+
+// Records agreement, then asks the server whether the account's terms are now satisfied. The server is the judge: when no
+// Terms text is configured in the CMS, "accept" answers an error even though nothing needs accepting (and /users/me says
+// termsAccepted: true) - trusting the accept call alone sent people to a second Terms screen that could never succeed.
+async function agreeToTerms(): Promise<{ ok: boolean; error: string | null }> {
+  const [, acceptError] = await AcceptTermsAction();
+  const [me] = await GetUserAction();
+  if (me?.data) return { ok: me.data.termsAccepted !== false, error: acceptError };
+  return { ok: !acceptError, error: acceptError };
+}
 
 // Same rules as passwordSchema (lib/password-policy.ts), shown as a live checklist so people see what's needed while typing.
 const PASSWORD_RULES = [
@@ -193,8 +204,8 @@ function AccountStep({ referralCode, onDone }: { referralCode?: string; onDone: 
     }
 
     // Recorded here because the site-wide Terms pop-up only runs inside the LMS, and enrolling is refused until it is accepted.
-    const [, termsError] = await AcceptTermsAction();
-    if (termsError) ToastError("We couldn't record your agreement to the Terms - you'll be asked again before paying.");
+    const terms = await agreeToTerms();
+    if (!terms.ok) ToastError("We couldn't record your agreement to the Terms - please try once more on the next screen.");
 
     ToastSuccess("Account created - we've emailed you a link to verify it. You can carry on in the meantime.");
     onDone({
@@ -204,7 +215,7 @@ function AccountStep({ referralCode, onDone }: { referralCode?: string; onDone: 
       email: values.email.trim(),
       phone: values.phone,
       dateOfBirth: isStudent ? values.dateOfBirth ?? "" : "",
-      termsAccepted: !termsError,
+      termsAccepted: terms.ok,
     });
   };
 
@@ -525,10 +536,10 @@ function TermsCatchUp({ onAccepted }: { onAccepted: () => void }) {
               className="bg-[#0a7ac2] hover:bg-[#08629c] text-white"
               onClick={async () => {
                 setSaving(true);
-                const [, error] = await AcceptTermsAction();
+                const terms = await agreeToTerms();
                 setSaving(false);
-                if (error) ToastError(error);
-                else onAccepted();
+                if (terms.ok) onAccepted();
+                else ToastError(terms.error || "Please try again.");
               }}
             >
               {saving ? <Loader2 className="mr-2 size-4 animate-spin" aria-hidden /> : null}
