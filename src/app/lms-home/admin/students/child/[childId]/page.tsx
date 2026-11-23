@@ -165,6 +165,7 @@ export default function AdminChildProfilePage() {
           title="Contact"
           fields={{
             "Child phone": child.phone,
+            "Child email": child.email,
             "Parent / guardian": child.parentName,
             "Parent email": child.parentEmail,
             "Parent phone": child.parentPhone,

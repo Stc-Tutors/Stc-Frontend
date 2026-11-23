@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { Loader2, CheckCircle2, XCircle } from "lucide-react";
 import { VerifyEmailAction } from "@/server/auth";
 import { ROUTES } from "@/config/routes";
+import { invalidateTags } from "@/lib/client-cache";
 
 // A verification token is single-use, so running the request twice makes the
 // second call fail with "invalid or expired" even though the first one worked
@@ -37,6 +38,8 @@ export default function VerifyEmailStatus() {
       }
       const [res, error] = await verifyOnce(token);
       if (res) {
+        // A family signed in from /enroll has their session cached as unverified - drop it so the dashboard opens straight away.
+        invalidateTags(["session"]);
         setStatus("success");
         setMessage(res.message);
       } else {
@@ -65,7 +68,7 @@ export default function VerifyEmailStatus() {
           <CheckCircle2 className="mx-auto h-10 w-10 text-green-500" />
           <p className="text-gray-700">{message}</p>
           <Link href={ROUTES.AUTH.LOGIN} className="underline underline-offset-4 text-sm">
-            Continue to login
+            Continue
           </Link>
         </>
       )}

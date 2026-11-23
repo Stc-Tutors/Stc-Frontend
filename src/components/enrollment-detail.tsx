@@ -314,6 +314,12 @@ export default function EnrollmentDetail({ basePath }: EnrollmentDetailProps) {
                         {student.phone}
                       </p>
                     </div>
+                    {student.email && (
+                      <div>
+                        <span className="text-gray-600">Student Email:</span>
+                        <p className="font-medium text-gray-900 break-all">{student.email}</p>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>

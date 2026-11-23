@@ -65,6 +65,7 @@ export default function ChildProfilePage() {
       gender: form.gender,
       countryOfResidence: form.countryOfResidence,
       phone: form.phone,
+      email: form.email?.trim() ?? "",
       primaryLanguage: form.primaryLanguage,
       parentName: form.parentName,
       parentEmail: form.parentEmail,
@@ -189,6 +190,10 @@ export default function ChildProfilePage() {
           <div className="space-y-1.5">
             <Label>Phone</Label>
             <Input value={form.phone ?? ""} onChange={(e) => set("phone", e.target.value)} />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Email (optional)</Label>
+            <Input type="email" value={form.email ?? ""} onChange={(e) => set("email", e.target.value)} />
           </div>
           <div className="space-y-1.5">
             <Label>Primary Language</Label>
