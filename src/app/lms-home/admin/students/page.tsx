@@ -18,6 +18,29 @@ import { ListGroupedStudentsForAdminAction } from "@/server/admin";
 import { EnrollmentStatus, GroupedStudent, studentAvatarUrl, studentLoginId } from "@/types/student";
 import { useUser } from "@/contexts/user-context";
 import { AdminPermission } from "@/types/admin-permission";
+import { ExportCsvButton } from "@/components/export-csv-button";
+import { fetchAllPages, formatDate, type CsvColumn } from "@/lib/csv-export";
+
+const EXPORT_COLUMNS: CsvColumn<GroupedStudent>[] = [
+  { header: "Student ID", value: (r) => studentLoginId(r.studentUser) || r.studentIdCode || "" },
+  { header: "Name", value: (r) => r.fullName },
+  { header: "Grade", value: (r) => r.grade ?? "" },
+  { header: "Parent", value: (r) => r.parentName ?? "" },
+  { header: "Parent email", value: (r) => r.parentEmail ?? "" },
+  { header: "Parent phone", value: (r) => r.parentPhone ?? "" },
+  { header: "Enrollments", value: (r) => r.enrollmentCount },
+  {
+    header: "Enrollment statuses",
+    value: (r) =>
+      Object.entries(r.statusCounts)
+        .filter(([, n]) => (n ?? 0) > 0)
+        .map(([s, n]) => `${n} ${s.replace(/_/g, " ").toLowerCase()}`)
+        .join("; "),
+  },
+  { header: "Has suspended enrollment", value: (r) => (r.suspended ? "Yes" : "No") },
+  { header: "Latest enrollment", value: (r) => formatDate(r.mostRecentCreatedAt) },
+  { header: "Child ID", value: (r) => r.childId },
+];
 
 const STATUS_COLORS: Record<string, string> = {
   [EnrollmentStatus.ENROLLED]: "bg-green-100 text-green-700",
@@ -80,6 +103,9 @@ function AdminStudentsPageInner() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const fetchExportRows = () =>
+    fetchAllPages<GroupedStudent>((page, limit) => ListGroupedStudentsForAdminAction({ search: search || undefined, page, limit }));
+
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     load(search);
@@ -89,11 +115,14 @@ function AdminStudentsPageInner() {
     <div className="bg-white shadow rounded-2xl p-6">
       <div className="flex items-center justify-between flex-wrap gap-2 mb-6">
         <h1 className="text-2xl font-bold">Students</h1>
-        {canCreateStudents && (
-          <Button onClick={() => router.push("/lms-home/admin/students/new")}>
-            <Plus className="w-4 h-4 mr-1" /> Add New Student
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          <ExportCsvButton filenameBase="students" columns={EXPORT_COLUMNS} fetchRows={fetchExportRows} />
+          {canCreateStudents && (
+            <Button onClick={() => router.push("/lms-home/admin/students/new")}>
+              <Plus className="w-4 h-4 mr-1" /> Add New Student
+            </Button>
+          )}
+        </div>
       </div>
 
       <form onSubmit={handleSearchSubmit} className="relative max-w-xs mb-4">

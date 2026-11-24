@@ -27,7 +27,7 @@ export async function CreateUserAction(data: {
 }
 
 export async function GetUsersAction(
-  params?: { role?: string; status?: string; search?: string; limit?: number; assignable?: boolean },
+  params?: { role?: string; status?: string; search?: string; page?: number; limit?: number; assignable?: boolean },
   // Tutor filters (service, subject, availability, ... - see components/tutor-filters).
   tutorFilters?: Record<string, string>
 ): Promise<[ApiResponse<User[]> | null, string | null]> {

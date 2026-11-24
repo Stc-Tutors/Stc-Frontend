@@ -29,6 +29,7 @@ export interface User {
   emailVerified?: boolean;
   phone?: string;
   address?: string;
+  createdAt?: string;
   profilePicture?: string;
   avatarUrl?: string;
   joinedDate: string;

@@ -18,6 +18,20 @@ import { ROLE_LABELS } from "@/lib/roles";
 import { useUser } from "@/contexts/user-context";
 import { AdminPermission } from "@/types/admin-permission";
 import { isValidPassword, PASSWORD_POLICY_MESSAGE } from "@/lib/password-policy";
+import { ExportCsvButton } from "@/components/export-csv-button";
+import { fetchAllPages, formatDate, type CsvColumn } from "@/lib/csv-export";
+
+const EXPORT_COLUMNS: CsvColumn<User>[] = [
+  { header: "First name", value: (u) => u.firstName },
+  { header: "Last name", value: (u) => u.lastName },
+  { header: "Email", value: (u) => u.email ?? "Hidden" },
+  { header: "Phone", value: (u) => u.phone ?? "" },
+  { header: "Role", value: (u) => ROLE_LABELS[u.role] ?? u.role },
+  { header: "Status", value: (u) => u.status ?? "ACTIVE" },
+  { header: "Email verified", value: (u) => (u.emailVerified === undefined ? "" : u.emailVerified ? "Yes" : "No") },
+  { header: "Joined", value: (u) => formatDate(u.createdAt) },
+  { header: "User ID", value: (u) => u.id },
+];
 
 const CREATABLE_ROLES = [UserRole.STUDENT, UserRole.PARENT, UserRole.TUTOR];
 
@@ -52,6 +66,9 @@ export default function AdminUsersPage() {
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const fetchExportRows = () =>
+    fetchAllPages<User>((page, limit) => GetUsersAction({ search: search || undefined, role: role || undefined, page, limit }));
 
   const handleCreate = async () => {
     if (!newFirstName || !newLastName || !newEmail || !newPassword) {
@@ -89,9 +106,12 @@ export default function AdminUsersPage() {
     <div className="bg-white shadow rounded-2xl p-6">
       <div className="flex items-center justify-between flex-wrap gap-2 mb-6">
         <h1 className="text-2xl font-bold">Users</h1>
-        {canManageUsers && (
-          <Button onClick={() => setShowCreate((s) => !s)}>{showCreate ? "Cancel" : "+ Create user"}</Button>
-        )}
+        <div className="flex items-center gap-2">
+          <ExportCsvButton filenameBase="users" columns={EXPORT_COLUMNS} fetchRows={fetchExportRows} />
+          {canManageUsers && (
+            <Button onClick={() => setShowCreate((s) => !s)}>{showCreate ? "Cancel" : "+ Create user"}</Button>
+          )}
+        </div>
       </div>
 
       {message && <p className="text-sm text-blue-600 mb-4">{message}</p>}

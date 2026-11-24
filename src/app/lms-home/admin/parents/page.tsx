@@ -21,6 +21,19 @@ import {
 } from "@/components/ui/table";
 import { GetUsersAction } from "@/server/admin";
 import { User, UserRole } from "@/types/user";
+import { ExportCsvButton } from "@/components/export-csv-button";
+import { fetchAllPages, formatDate, type CsvColumn } from "@/lib/csv-export";
+
+const EXPORT_COLUMNS: CsvColumn<User>[] = [
+  { header: "First name", value: (u) => u.firstName },
+  { header: "Last name", value: (u) => u.lastName },
+  { header: "Email", value: (u) => u.email ?? "Hidden" },
+  { header: "Phone", value: (u) => u.phone ?? "" },
+  { header: "Status", value: (u) => u.status ?? "ACTIVE" },
+  { header: "Email verified", value: (u) => (u.emailVerified === undefined ? "" : u.emailVerified ? "Yes" : "No") },
+  { header: "Joined", value: (u) => formatDate(u.createdAt) },
+  { header: "User ID", value: (u) => u.id },
+];
 
 export default function AdminParentsPage() {
   const router = useRouter();
@@ -42,6 +55,9 @@ export default function AdminParentsPage() {
    
   }, []);
 
+  const fetchExportRows = () =>
+    fetchAllPages<User>((page, limit) => GetUsersAction({ role: UserRole.PARENT, search: search || undefined, page, limit }));
+
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     load(search);
@@ -49,7 +65,10 @@ export default function AdminParentsPage() {
 
   return (
     <div className="bg-white shadow rounded-2xl p-6">
-      <h1 className="text-2xl font-bold mb-6">Parents</h1>
+      <div className="flex items-center justify-between flex-wrap gap-2 mb-6">
+        <h1 className="text-2xl font-bold">Parents</h1>
+        <ExportCsvButton filenameBase="parents" columns={EXPORT_COLUMNS} fetchRows={fetchExportRows} />
+      </div>
 
       <form onSubmit={handleSearchSubmit} className="relative max-w-xs mb-4">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />

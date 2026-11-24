@@ -22,6 +22,19 @@ import {
 import { GetUsersAction } from "@/server/admin";
 import { TutorFilterBar, emptyTutorFilters, tutorFiltersToParams, type TutorFilterValues } from "@/components/tutor-filters/tutor-filter-bar";
 import { User, UserRole } from "@/types/user";
+import { ExportCsvButton } from "@/components/export-csv-button";
+import { fetchAllPages, formatDate, type CsvColumn } from "@/lib/csv-export";
+
+const EXPORT_COLUMNS: CsvColumn<User>[] = [
+  { header: "First name", value: (u) => u.firstName },
+  { header: "Last name", value: (u) => u.lastName },
+  { header: "Email", value: (u) => u.email ?? "Hidden" },
+  { header: "Phone", value: (u) => u.phone ?? "" },
+  { header: "Status", value: (u) => u.status ?? "ACTIVE" },
+  { header: "Email verified", value: (u) => (u.emailVerified === undefined ? "" : u.emailVerified ? "Yes" : "No") },
+  { header: "Joined", value: (u) => formatDate(u.createdAt) },
+  { header: "User ID", value: (u) => u.id },
+];
 
 export default function AdminTutorsPage() {
   const router = useRouter();
@@ -44,6 +57,12 @@ export default function AdminTutorsPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters]);
 
+  // Every tutor matching the current search + filters, paged.
+  const fetchExportRows = () =>
+    fetchAllPages<User>((page, limit) =>
+      GetUsersAction({ role: UserRole.TUTOR, search: search || undefined, page, limit }, tutorFiltersToParams({ ...filters, q: "" }))
+    );
+
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     load(search);
@@ -51,7 +70,10 @@ export default function AdminTutorsPage() {
 
   return (
     <div className="bg-white shadow rounded-2xl p-6">
-      <h1 className="text-2xl font-bold mb-6">Tutors</h1>
+      <div className="flex items-center justify-between flex-wrap gap-2 mb-6">
+        <h1 className="text-2xl font-bold">Tutors</h1>
+        <ExportCsvButton filenameBase="tutors" columns={EXPORT_COLUMNS} fetchRows={fetchExportRows} />
+      </div>
 
       <TutorFilterBar value={filters} onChange={setFilters} hideSearch />
 
