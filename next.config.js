@@ -141,6 +141,8 @@ const nextConfig = {
       },
     ];
   },
+  // Don't advertise the framework (drops the X-Powered-By: Next.js header).
+  poweredByHeader: false,
   // Baseline security headers that cannot break a page: nothing relies on
   // being framed by someone else or sending a referrer's full query string
   // cross-origin (verify-email/reset-password links carry a token).
