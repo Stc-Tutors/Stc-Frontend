@@ -25,6 +25,7 @@ const EXPORT_COLUMNS: CsvColumn<GroupedStudent>[] = [
   { header: "Student ID", value: (r) => studentLoginId(r.studentUser) || r.studentIdCode || "" },
   { header: "Name", value: (r) => r.fullName },
   { header: "Grade", value: (r) => r.grade ?? "" },
+  { header: "Country", value: (r) => r.country ?? "" },
   { header: "Parent", value: (r) => r.parentName ?? "" },
   { header: "Parent email", value: (r) => r.parentEmail ?? "" },
   { header: "Parent phone", value: (r) => r.parentPhone ?? "" },
@@ -146,6 +147,7 @@ function AdminStudentsPageInner() {
               <TableHead>Student ID</TableHead>
               <TableHead>Name</TableHead>
               <TableHead>Grade</TableHead>
+              <TableHead>Country</TableHead>
               <TableHead>Parent Name</TableHead>
               <TableHead>Contact</TableHead>
               <TableHead>Enrollments</TableHead>
@@ -173,6 +175,7 @@ function AdminStudentsPageInner() {
                   )}
                 </TableCell>
                 <TableCell>{child.grade || "—"}</TableCell>
+                <TableCell>{child.country || "—"}</TableCell>
                 <TableCell>{child.parentName || "—"}</TableCell>
                 <TableCell className="text-sm text-gray-500">{child.parentEmail || child.parentPhone || "—"}</TableCell>
                 <TableCell>

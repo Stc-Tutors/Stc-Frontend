@@ -29,6 +29,7 @@ const EXPORT_COLUMNS: CsvColumn<User>[] = [
   { header: "Last name", value: (u) => u.lastName },
   { header: "Email", value: (u) => u.email ?? "Hidden" },
   { header: "Phone", value: (u) => u.phone ?? "" },
+  { header: "Country", value: (u) => u.country ?? "" },
   { header: "Status", value: (u) => u.status ?? "ACTIVE" },
   { header: "Email verified", value: (u) => (u.emailVerified === undefined ? "" : u.emailVerified ? "Yes" : "No") },
   { header: "Joined", value: (u) => formatDate(u.createdAt) },
@@ -91,6 +92,7 @@ export default function AdminParentsPage() {
               <TableHead>Parent Name</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Contact</TableHead>
+              <TableHead>Country</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Action</TableHead>
             </TableRow>
@@ -107,6 +109,7 @@ export default function AdminParentsPage() {
                 </TableCell>
                 <TableCell className="text-sm text-gray-500">{parent.email || "Hidden"}</TableCell>
                 <TableCell className="text-sm text-gray-500">{parent.phone || "No phone on file"}</TableCell>
+                <TableCell className="text-sm text-gray-500">{parent.country || "—"}</TableCell>
                 <TableCell>
                   <span className="text-xs font-medium px-2 py-1 rounded-full bg-green-100 text-green-700">
                     {parent.status}

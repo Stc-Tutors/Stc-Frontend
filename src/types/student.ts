@@ -199,6 +199,7 @@ export interface GroupedStudent {
   fullName: string;
   photoUrl?: string;
   grade?: string;
+  country?: string;
   parentName?: string;
   parentEmail?: string;
   parentPhone?: string;

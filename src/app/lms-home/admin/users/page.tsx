@@ -26,6 +26,7 @@ const EXPORT_COLUMNS: CsvColumn<User>[] = [
   { header: "Last name", value: (u) => u.lastName },
   { header: "Email", value: (u) => u.email ?? "Hidden" },
   { header: "Phone", value: (u) => u.phone ?? "" },
+  { header: "Country", value: (u) => u.country ?? "" },
   { header: "Role", value: (u) => ROLE_LABELS[u.role] ?? u.role },
   { header: "Status", value: (u) => u.status ?? "ACTIVE" },
   { header: "Email verified", value: (u) => (u.emailVerified === undefined ? "" : u.emailVerified ? "Yes" : "No") },
@@ -186,6 +187,7 @@ export default function AdminUsersPage() {
               <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Role</TableHead>
+              <TableHead>Country</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Action</TableHead>
             </TableRow>
@@ -198,6 +200,7 @@ export default function AdminUsersPage() {
                 </TableCell>
                 <TableCell>{u.email || "Hidden"}</TableCell>
                 <TableCell>{ROLE_LABELS[u.role]}</TableCell>
+                <TableCell>{u.country || "—"}</TableCell>
                 <TableCell>{u.status ?? "ACTIVE"}</TableCell>
                 <TableCell className="text-right">
                   <Button variant="outline" size="sm" onClick={() => router.push(`/lms-home/admin/users/${u.id}`)}>

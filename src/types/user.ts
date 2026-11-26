@@ -30,6 +30,8 @@ export interface User {
   phone?: string;
   address?: string;
   createdAt?: string;
+  // Attached by the admin user lists only - from the tutor profile, the child record, or (parents) their children.
+  country?: string;
   profilePicture?: string;
   avatarUrl?: string;
   joinedDate: string;
