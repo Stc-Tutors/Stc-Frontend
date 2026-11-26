@@ -30,3 +30,23 @@ export async function GetUploadSignatureAction(
   const resData = res ? ((await res.json()) as ApiResponse<UploadSignature>) : null;
   return [resData, error];
 }
+
+export interface FinalizedUpload {
+  url: string;
+  fileName: string;
+  fileType: string;
+  fileSizeBytes: number;
+  uploadedAt: string;
+}
+
+// Step two of every upload (see stcbe's core/uploads/upload-finalize.service.ts): the backend checks the file Cloudinary just
+// received (real file type, trojan checks, hidden data such as photo GPS location and document author removed), stores a
+// clean copy under a random name and deletes the original. Only the returned file can be saved on a record.
+export async function FinalizeUploadAction(url: string, folder: string): Promise<[ApiResponse<FinalizedUpload> | null, string | null]> {
+  const [res, error] = await fetchAPI({
+    url: "/uploads/finalize",
+    request: { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url, folder }) },
+  });
+  const resData = res ? ((await res.json()) as ApiResponse<FinalizedUpload>) : null;
+  return [resData, error];
+}

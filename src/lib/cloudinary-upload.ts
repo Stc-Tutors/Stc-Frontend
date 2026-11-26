@@ -1,4 +1,4 @@
-import { GetUploadSignatureAction } from "@/server/uploads";
+import { FinalizeUploadAction, GetUploadSignatureAction } from "@/server/uploads";
 
 // Allowed folders - must match stcbe's uploads.controller.ts ALLOWED_FOLDERS.
 export type UploadFolder =
@@ -58,15 +58,29 @@ export async function uploadToCloudinary(file: File, folder: UploadFolder): Prom
     throw new Error(error || "Could not prepare file upload");
   }
 
+  const uploaded = await uploadRaw(file, folder, res.data);
+  return finalizeUpload(uploaded.url, folder);
+}
+
+async function uploadRaw(file: File, folder: UploadFolder, signed: NonNullable<Signature>): Promise<UploadedFile> {
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
-      return await postDirectToCloudinary(file, folder, res.data);
+      return await postDirectToCloudinary(file, folder, signed);
     } catch (err) {
       if (!(err instanceof NetworkOrServerError)) throw err;
       if (attempt === 0) await new Promise((resolve) => setTimeout(resolve, 800));
     }
   }
   return uploadViaOurServer(file, folder);
+}
+
+// The backend checks the file (real type, trojans, hidden data such as photo location and document author), keeps a clean
+// copy under a random name and deletes what was just uploaded. Only the file it returns can be saved on a record - so the
+// name shown from here on is e.g. "CV - 3f9a8b.pdf", never the name of the file on the uploader's device.
+async function finalizeUpload(url: string, folder: UploadFolder): Promise<UploadedFile> {
+  const [res, error] = await FinalizeUploadAction(url, folder);
+  if (error || !res?.data) throw new Error(error || "We couldn't check your file - please try again");
+  return res.data;
 }
 
 class NetworkOrServerError extends Error {}
